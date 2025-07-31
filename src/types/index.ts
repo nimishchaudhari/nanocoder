@@ -1,0 +1,48 @@
+export interface Message {
+  role: 'user' | 'assistant' | 'system' | 'tool';
+  content: string;
+  tool_calls?: ToolCall[];
+  tool_call_id?: string;
+  name?: string;
+}
+
+export interface ToolCall {
+  id: string;
+  function: {
+    name: string;
+    arguments: { [key: string]: any };
+  };
+}
+
+export interface ToolResult {
+  tool_call_id: string;
+  role: 'tool';
+  name: string;
+  content: string;
+}
+
+export interface Tool {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: {
+      type: 'object';
+      properties: Record<string, any>;
+      required: string[];
+    };
+  };
+}
+
+export type ToolHandler = (input: any) => Promise<string>;
+
+export interface OllamaConfig {
+  model: string;
+  maxTokens: number;
+}
+
+export interface Colors {
+  user: string;
+  assistant: string;
+  tool: string;
+}
