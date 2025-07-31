@@ -1,5 +1,5 @@
 export interface Message {
-  role: 'user' | 'assistant' | 'system' | 'tool';
+  role: "user" | "assistant" | "system" | "tool";
   content: string;
   tool_calls?: ToolCall[];
   tool_call_id?: string;
@@ -16,18 +16,18 @@ export interface ToolCall {
 
 export interface ToolResult {
   tool_call_id: string;
-  role: 'tool';
+  role: "tool";
   name: string;
   content: string;
 }
 
 export interface Tool {
-  type: 'function';
+  type: "function";
   function: {
     name: string;
     description: string;
     parameters: {
-      type: 'object';
+      type: "object";
       properties: Record<string, any>;
       required: string[];
     };
@@ -45,4 +45,5 @@ export interface Colors {
   user: string;
   assistant: string;
   tool: string;
+  subtext: string;
 }

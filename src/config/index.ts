@@ -9,6 +9,7 @@ export const colors: Colors = {
   user: "#ffffff",
   assistant: "#CAAD8D",
   tool: "#0d9488",
+  subtext: "#9ca3af",
 };
 
 export const promptPath = "./src/prompt.md";
