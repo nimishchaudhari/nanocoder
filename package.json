@@ -1,0 +1,21 @@
+{
+  "name": "nano-claude-code",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "nano-ollama-code": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "ollama": "^0.5.16"
+  }
+}
