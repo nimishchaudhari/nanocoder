@@ -6,10 +6,13 @@ export const ollamaConfig: OllamaConfig = {
 };
 
 export const colors: Colors = {
-  user: "#ffffff",
-  assistant: "#CAAD8D",
+  white: "#ffffff",
+  primary: "#CAAD8D",
   tool: "#0d9488",
-  subtext: "#9ca3af",
+  success: "#00d492",
+  error: "#ff6467",
+  secondary: "#9ca3af",
+  blue: "#8ec6ff",
 };
 
 export const promptPath = "./src/prompt.md";

@@ -42,8 +42,17 @@ export interface OllamaConfig {
 }
 
 export interface Colors {
-  user: string;
-  assistant: string;
+  white: string;
+  primary: string;
   tool: string;
-  subtext: string;
+  secondary: string;
+  success: string;
+  error: string;
+  blue: string;
+}
+
+export interface Command {
+  name: string;
+  description: string;
+  handler: (args: string[]) => void;
 }
