@@ -60,9 +60,9 @@ export function displayWelcome(): void {
   console.log();
 }
 
-export function displayAssistantMessage(content: string): void {
+export function displayAssistantMessage(content: string, model?: string): void {
   console.log();
-  console.log(`${primaryColor(ollamaConfig.model)}\n${content}`);
+  console.log(`${primaryColor(model || ollamaConfig.model)}\n${content}`);
   console.log(); // Add spacing after assistant message
 }
 

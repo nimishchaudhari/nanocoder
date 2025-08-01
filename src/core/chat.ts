@@ -167,7 +167,7 @@ export class ChatSession {
       });
 
       if (fullContent) {
-        displayAssistantMessage(fullContent);
+        displayAssistantMessage(fullContent, this.currentModel);
       }
 
       if (toolCalls && toolCalls.length > 0) {
