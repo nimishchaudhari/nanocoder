@@ -74,10 +74,6 @@ export function displayToolCall(toolCall: ToolCall, result: ToolResult): void {
   console.log(
     secondaryColor(JSON.stringify(toolCall.function.arguments, null, 2))
   );
-
-  console.log(toolColor("Result:"));
-  console.log(secondaryColor(result.content));
-  console.log(secondaryColor("─".repeat(50)));
   console.log(); // Add spacing after tool calls
 }
 

@@ -1,9 +1,12 @@
 import { OllamaClient } from "./ollama-client.js";
-import { processToolUse } from "./message-handler.js";
 import { getUserInput } from "../ui/input.js";
 import {
+  parseToolCallsFromContent,
+  cleanContentFromToolCalls,
+  executeToolCalls,
+} from "./tool-calling/index.js";
+import {
   displayAssistantMessage,
-  displayToolCall,
   displayThinkingIndicator,
   clearThinkingIndicator,
 } from "../ui/output.js";
@@ -59,38 +62,31 @@ export class ChatSession {
   }
 
   async start(): Promise<void> {
-    let needsUserInput = true;
-
     while (true) {
-      if (needsUserInput) {
-        const userInput = await getUserInput();
+      const userInput = await getUserInput();
 
-        if (userInput === null) {
-          break;
-        }
-
-        // Handle commands
-        if (isCommandInput(userInput)) {
-          const parsed = parseInput(userInput);
-          if (parsed.fullCommand) {
-            const result = await commandRegistry.execute(parsed.fullCommand);
-            if (result) {
-              console.log(result);
-            }
-            continue;
-          }
-        }
-
-        this.messages.push({ role: "user", content: userInput });
+      if (userInput === null) {
+        break;
       }
 
-      const instructions = await read_file({ path: promptPath });
-      const systemMessage: Message = { role: "system", content: instructions };
+      // Handle commands
+      if (isCommandInput(userInput)) {
+        const parsed = parseInput(userInput);
+        if (parsed.fullCommand) {
+          const result = await commandRegistry.execute(parsed.fullCommand);
+          if (result) {
+            console.log(result);
+          }
+          continue;
+        }
+      }
 
-      const stream = await this.client.chatStream(
-        [systemMessage, ...this.messages],
-        tools
-      );
+      this.messages.push({ role: "user", content: userInput });
+
+      const instructions = await read_file({ path: promptPath });
+      // const systemMessage: Message = { role: "system", content: instructions };
+
+      const stream = await this.client.chatStream([...this.messages], tools);
 
       let fullContent = "";
       let tokenCount = 0;
@@ -120,7 +116,8 @@ export class ChatSession {
           const conversationTokens = this.messages.reduce((total, msg) => {
             return total + Math.ceil((msg.content?.length || 0) / 4);
           }, 0);
-          const totalTokensUsed = systemTokens + conversationTokens + tokenCount; // System + conversation + current response
+          const totalTokensUsed =
+            systemTokens + conversationTokens + tokenCount; // System + conversation + current response
           displayThinkingIndicator(
             tokenCount,
             elapsedSeconds,
@@ -134,29 +131,10 @@ export class ChatSession {
 
       // Parse tool calls from content if tool_calls field is empty
       if (!toolCalls && fullContent) {
-        const toolCallMatch = fullContent.match(
-          /\{"name":\s*"([^"]+)",\s*"arguments":\s*(\{[^}]*\})\}/
-        );
-        if (toolCallMatch) {
-          const [, name, argsStr] = toolCallMatch;
-          try {
-            const args = JSON.parse(argsStr || "{}");
-            toolCalls = [
-              {
-                id: `call_${Date.now()}`,
-                type: "function",
-                function: {
-                  name,
-                  arguments: args,
-                },
-              },
-            ];
-          } catch (e) {
-            console.error(
-              "🔍 DEBUG - Failed to parse tool call from content:",
-              e
-            );
-          }
+        const extractedCalls = parseToolCallsFromContent(fullContent);
+        if (extractedCalls.length > 0) {
+          toolCalls = extractedCalls;
+          fullContent = cleanContentFromToolCalls(fullContent, extractedCalls);
         }
       }
 
@@ -171,15 +149,89 @@ export class ChatSession {
       }
 
       if (toolCalls && toolCalls.length > 0) {
-        needsUserInput = false;
+        const result = await executeToolCalls(toolCalls);
 
-        for (const toolCall of toolCalls) {
-          const toolResult = await processToolUse(toolCall);
-          this.messages.push(toolResult);
-          displayToolCall(toolCall, toolResult);
+        // Add tool results to message history
+        this.messages.push(...result.results);
+
+        // If tools were executed, continue the AI conversation
+        if (result.executed) {
+          await this.continueConversation();
         }
-      } else {
-        needsUserInput = true;
+      }
+    }
+  }
+
+  private async continueConversation(): Promise<void> {
+    const instructions = await read_file({ path: promptPath });
+    const stream = await this.client.chatStream([...this.messages], tools);
+
+    let fullContent = "";
+    let tokenCount = 0;
+    let toolCalls: any = null;
+    const startTime = Date.now();
+
+    for await (const chunk of stream) {
+      if (chunk.message?.content) {
+        fullContent += chunk.message.content;
+        tokenCount = Math.ceil(fullContent.length / 4);
+      }
+
+      if (chunk.eval_count) {
+        tokenCount = chunk.eval_count;
+      }
+
+      if (chunk.message?.tool_calls) {
+        toolCalls = chunk.message.tool_calls;
+      }
+
+      if (!chunk.done) {
+        const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+        const systemTokens = Math.ceil(instructions.length / 4);
+        const conversationTokens = this.messages.reduce((total, msg) => {
+          return total + Math.ceil((msg.content?.length || 0) / 4);
+        }, 0);
+        const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
+        displayThinkingIndicator(
+          tokenCount,
+          elapsedSeconds,
+          this.modelContextSize,
+          totalTokensUsed
+        );
+      }
+    }
+
+    clearThinkingIndicator();
+
+    // Parse tool calls from content if tool_calls field is empty
+    if (!toolCalls && fullContent) {
+      const extractedCalls = parseToolCallsFromContent(fullContent);
+      if (extractedCalls.length > 0) {
+        toolCalls = extractedCalls;
+        fullContent = cleanContentFromToolCalls(fullContent, extractedCalls);
+      }
+    }
+
+    this.messages.push({
+      role: "assistant",
+      content: fullContent,
+      tool_calls: toolCalls,
+    });
+
+    if (fullContent) {
+      displayAssistantMessage(fullContent, this.currentModel);
+    }
+
+    // If there are new tool calls, handle them recursively
+    if (toolCalls && toolCalls.length > 0) {
+      const result = await executeToolCalls(toolCalls);
+
+      // Add tool results to message history
+      this.messages.push(...result.results);
+
+      // Continue conversation if tools were executed
+      if (result.executed) {
+        await this.continueConversation();
       }
     }
   }
