@@ -3,6 +3,7 @@ import {
   toolColor,
   secondaryColor,
   whiteColor,
+  errorColor,
 } from "./colors.js";
 import type { ToolCall, ToolResult } from "../types/index.js";
 import { ollamaConfig } from "../config/index.js";
@@ -78,4 +79,31 @@ export function displayToolCall(toolCall: ToolCall, result: ToolResult): void {
   console.log(secondaryColor(result.content));
   console.log(secondaryColor("─".repeat(50)));
   console.log(); // Add spacing after tool calls
+}
+
+export function displayThinkingIndicator(
+  tokenCount: number,
+  elapsedSeconds: number,
+  maxTokens: number,
+  totalTokensUsed: number
+): void {
+  const contextRemaining = Math.max(
+    0,
+    Math.round(((maxTokens - totalTokensUsed) / maxTokens) * 100)
+  );
+  const isLowContext = contextRemaining < 20;
+  const contextColor = isLowContext ? errorColor : secondaryColor;
+  const warning = isLowContext ? " ⚠ clear context soon" : "";
+
+  process.stdout.write(
+    `\r${primaryColor("Working...")} ${secondaryColor(
+      `• ${tokenCount} tokens • `
+    )}${contextColor(`${contextRemaining}% context left`)}${secondaryColor(
+      ` • ${elapsedSeconds}s`
+    )}${errorColor(warning)}`
+  );
+}
+
+export function clearThinkingIndicator(): void {
+  process.stdout.write("\r" + " ".repeat(120) + "\r");
 }

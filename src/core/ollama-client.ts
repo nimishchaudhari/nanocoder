@@ -1,6 +1,6 @@
-import { Ollama } from 'ollama';
-import { ollamaConfig } from '../config/index.js';
-import type { Message, Tool } from '../types/index.js';
+import { Ollama } from "ollama";
+import { ollamaConfig } from "../config/index.js";
+import type { Message, Tool } from "../types/index.js";
 
 export class OllamaClient {
   private ollama: Ollama;
@@ -24,6 +24,18 @@ export class OllamaClient {
       model: this.currentModel,
       messages,
       tools,
+      options: {
+        num_predict: ollamaConfig.maxTokens,
+      },
+    });
+  }
+
+  async chatStream(messages: Message[], tools: Tool[]) {
+    return this.ollama.chat({
+      model: this.currentModel,
+      messages,
+      tools,
+      stream: true,
       options: {
         num_predict: ollamaConfig.maxTokens,
       },

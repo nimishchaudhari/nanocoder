@@ -39,6 +39,7 @@ export type ToolHandler = (input: any) => Promise<string>;
 export interface OllamaConfig {
   model: string;
   maxTokens: number;
+  contextSize: number;
 }
 
 export interface Colors {
