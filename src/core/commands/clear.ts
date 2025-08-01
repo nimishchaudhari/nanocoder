@@ -5,17 +5,14 @@ export const clearCommand: Command = {
   name: "clear",
   description: "Clear the chat history and model context",
   handler: async (_args: string[]) => {
-    console.clear();
-
     const chatSession = getCurrentChatSession();
     if (chatSession) {
-      chatSession.clearHistory();
-      console.log("Chat history and model context cleared.");
-      console.log();
-      return "";
+      await chatSession.clearHistory();
     }
-    console.log();
-    console.log("Chat history cleared.");
+    
+    // Clear screen and scrollback buffer using ANSI escape sequences
+    process.stdout.write('\u001b[2J\u001b[3J\u001b[H');
+    console.log("Chat history and model context cleared.");
     console.log();
     return "";
   },

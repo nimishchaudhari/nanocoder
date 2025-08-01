@@ -44,8 +44,9 @@ export class ChatSession {
     ]);
   }
 
-  clearHistory(): void {
+  async clearHistory(): Promise<void> {
     this.messages = [];
+    await this.client.clearContext();
   }
 
   getCurrentModel(): string {

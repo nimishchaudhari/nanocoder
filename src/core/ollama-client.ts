@@ -41,4 +41,18 @@ export class OllamaClient {
       },
     });
   }
+
+  async clearContext(): Promise<void> {
+    try {
+      await this.ollama.chat({
+        model: this.currentModel,
+        messages: [],
+        options: {
+          num_predict: 1,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to clear model context:", error);
+    }
+  }
 }
