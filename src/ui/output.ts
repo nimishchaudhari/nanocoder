@@ -6,6 +6,7 @@ import {
   whiteColor,
 } from "./colors.js";
 import type { ToolCall, ToolResult } from "../types/index.js";
+import { ollamaConfig } from "../config/index.js";
 
 export function displayWelcome(): void {
   const cwd = process.cwd();
@@ -66,7 +67,9 @@ export function displayWelcome(): void {
 }
 
 export function displayAssistantMessage(content: string): void {
-  console.log(`${assistantColor("Ollama:")} ${content}`);
+  console.log();
+  console.log(`${assistantColor(ollamaConfig.model)} ${content}`);
+  console.log(); // Add spacing after assistant message
 }
 
 export function displayToolCall(toolCall: ToolCall, result: ToolResult): void {
@@ -79,4 +82,5 @@ export function displayToolCall(toolCall: ToolCall, result: ToolResult): void {
   console.log(toolColor("Result:"));
   console.log(grayColor(result.content));
   console.log(grayColor("─".repeat(50)));
+  console.log(); // Add spacing after tool calls
 }

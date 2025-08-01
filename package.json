@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "chalk": "^5.4.1",
+    "inquirer": "^12.9.0",
     "ollama": "^0.5.16"
   }
 }
