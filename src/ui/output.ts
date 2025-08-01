@@ -25,7 +25,7 @@ export function displayWelcome(): void {
   console.log(
     primaryColor("│") +
       secondaryColor(
-        "   /help for help, /status for your current setup        "
+        "   /help for help                                        "
       ) +
       primaryColor("│")
   );
@@ -61,7 +61,7 @@ export function displayWelcome(): void {
 
 export function displayAssistantMessage(content: string): void {
   console.log();
-  console.log(`${primaryColor(ollamaConfig.model)} ${content}`);
+  console.log(`${primaryColor(ollamaConfig.model)}\n${content}`);
   console.log(); // Add spacing after assistant message
 }
 

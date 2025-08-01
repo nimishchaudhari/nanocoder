@@ -1,5 +1,6 @@
 import inquirer from "inquirer";
 import { commandRegistry } from "../core/commands.js";
+import { primaryColor } from "./colors.js";
 
 const examplePrompts = [
   'Try "fix typecheck errors"',
@@ -38,9 +39,9 @@ function getCommandCompletions(input: string): string[] {
 
   const commandPart = input.slice(1);
   return Array.from(commandRegistry.getAll())
-    .map(cmd => cmd.name)
-    .filter(name => name.includes(commandPart))
-    .map(cmd => `/${cmd}`)
+    .map((cmd) => cmd.name)
+    .filter((name) => name.includes(commandPart))
+    .map((cmd) => `/${cmd}`)
     .sort();
 }
 
@@ -91,7 +92,7 @@ export async function getUserInput(): Promise<string | null> {
 
     return input;
   } catch (error) {
-    console.log("\nGoodbye!");
+    console.log(primaryColor("\nGoodbye!"));
     return null;
   }
 }

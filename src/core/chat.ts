@@ -8,7 +8,7 @@ import { commandRegistry } from "./commands.js";
 import { isCommandInput, parseInput } from "./command-parser.js";
 import type { Message } from "../types/index.js";
 
-import { exitCommand, helpCommand, clearCommand } from "./commands/index.js";
+import { exitCommand, helpCommand, clearCommand, modelCommand } from "./commands/index.js";
 
 let currentChatSession: ChatSession | null = null;
 
@@ -19,15 +19,26 @@ export function getCurrentChatSession(): ChatSession | null {
 export class ChatSession {
   private client: OllamaClient;
   private messages: Message[] = [];
+  private currentModel: string;
 
   constructor() {
     this.client = new OllamaClient();
+    this.currentModel = this.client.getCurrentModel();
     currentChatSession = this;
-    commandRegistry.register([helpCommand, exitCommand, clearCommand]);
+    commandRegistry.register([helpCommand, exitCommand, clearCommand, modelCommand]);
   }
 
   clearHistory(): void {
     this.messages = [];
+  }
+
+  getCurrentModel(): string {
+    return this.currentModel;
+  }
+
+  setModel(model: string): void {
+    this.currentModel = model;
+    this.client.setModel(model);
   }
 
   async start(): Promise<void> {
