@@ -83,60 +83,7 @@ export class ChatSession {
 
       this.messages.push({ role: "user", content: userInput });
 
-      const instructions = await read_file({ path: promptPath });
-      // const systemMessage: Message = { role: "system", content: instructions };
-
-      const stream = await this.client.chatStream([...this.messages], tools);
-
-      let fullContent = "";
-      let tokenCount = 0;
-      let toolCalls: any = null;
-      const startTime = Date.now();
-
-      for await (const chunk of stream) {
-        if (chunk.message?.content) {
-          fullContent += chunk.message.content;
-          // Approximate token count by character count (rough estimate: ~4 chars per token)
-          tokenCount = Math.ceil(fullContent.length / 4);
-        }
-
-        // Use actual token count if available (final chunk)
-        if (chunk.eval_count) {
-          tokenCount = chunk.eval_count;
-        }
-
-        if (chunk.message?.tool_calls) {
-          toolCalls = chunk.message.tool_calls;
-        }
-
-        if (!chunk.done) {
-          const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
-          // Calculate total tokens used in conversation so far
-          const systemTokens = Math.ceil(instructions.length / 4);
-          const conversationTokens = this.messages.reduce((total, msg) => {
-            return total + Math.ceil((msg.content?.length || 0) / 4);
-          }, 0);
-          const totalTokensUsed =
-            systemTokens + conversationTokens + tokenCount; // System + conversation + current response
-          displayThinkingIndicator(
-            tokenCount,
-            elapsedSeconds,
-            this.modelContextSize,
-            totalTokensUsed
-          );
-        }
-      }
-
-      clearThinkingIndicator();
-
-      // Parse tool calls from content if tool_calls field is empty
-      if (!toolCalls && fullContent) {
-        const extractedCalls = parseToolCallsFromContent(fullContent);
-        if (extractedCalls.length > 0) {
-          toolCalls = extractedCalls;
-          fullContent = cleanContentFromToolCalls(fullContent, extractedCalls);
-        }
-      }
+      const { fullContent, toolCalls } = await this.processStreamResponse();
 
       this.messages.push({
         role: "assistant",
@@ -162,9 +109,19 @@ export class ChatSession {
     }
   }
 
-  private async continueConversation(): Promise<void> {
+  private async processStreamResponse(): Promise<{
+    fullContent: string;
+    toolCalls: any;
+  }> {
     const instructions = await read_file({ path: promptPath });
-    const stream = await this.client.chatStream([...this.messages], tools);
+    const systemMessage: Message = {
+      role: "system",
+      content: instructions,
+    };
+    const stream = await this.client.chatStream(
+      [systemMessage, ...this.messages],
+      tools
+    );
 
     let fullContent = "";
     let tokenCount = 0;
@@ -211,6 +168,12 @@ export class ChatSession {
         fullContent = cleanContentFromToolCalls(fullContent, extractedCalls);
       }
     }
+
+    return { fullContent, toolCalls };
+  }
+
+  private async continueConversation(): Promise<void> {
+    const { fullContent, toolCalls } = await this.processStreamResponse();
 
     this.messages.push({
       role: "assistant",
