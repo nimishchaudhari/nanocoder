@@ -1,36 +1,67 @@
 import { OllamaClient } from "./ollama-client.js";
 import { OpenRouterClient } from "./openrouter-client.js";
 import { appConfig } from "../config/index.js";
+import { errorColor } from "../ui/colors.js";
 import type { LLMClient, ProviderType } from "../types/index.js";
 import { Ollama } from "ollama";
 
-export async function createLLMClient(provider: ProviderType = "ollama"): Promise<LLMClient> {
-  switch (provider) {
-    case "openrouter":
-      if (!appConfig.openRouterApiKey) {
-        throw new Error("OpenRouter requires API key in config");
-      }
-      if (!appConfig.openRouterModels || appConfig.openRouterModels.length === 0) {
-        throw new Error("OpenRouter requires models array in config");
-      }
-      return new OpenRouterClient(appConfig.openRouterApiKey, appConfig.openRouterModels);
-    case "ollama":
-    default:
-      // Validate Ollama is installed and has models
-      try {
-        const ollama = new Ollama();
-        const models = await ollama.list();
-        
-        if (models.models.length === 0) {
-          throw new Error("No Ollama models found. Please install a model first using 'ollama pull <model>'");
-        }
-        
-        return new OllamaClient();
-      } catch (error: any) {
-        if (error.message.includes("No Ollama models found")) {
-          throw error;
-        }
-        throw new Error("Ollama is not running or not accessible. Please make sure Ollama is installed and running");
-      }
+export async function createLLMClient(
+  provider: ProviderType = "ollama"
+): Promise<LLMClient> {
+  // If user explicitly requests OpenRouter, try that first
+  if (provider === "openrouter") {
+    return await createOpenRouterClient();
   }
+
+  // Default flow: Try Ollama first, fallback to OpenRouter
+  try {
+    return await createOllamaClient();
+  } catch (ollamaError: any) {
+    console.log(errorColor(`Ollama unavailable: ${ollamaError.message}`));
+    console.log();
+    console.log("Falling back to OpenRouter...");
+    console.log();
+
+    try {
+      return await createOpenRouterClient();
+    } catch (openRouterError: any) {
+      console.log(errorColor("Both Ollama and OpenRouter are unavailable."));
+      console.log();
+      console.log(errorColor("Please either:"));
+      console.log(
+        errorColor(
+          "1. Install and run Ollama with a model: 'ollama pull qwen3:0.6b'"
+        )
+      );
+      console.log(errorColor("2. Configure OpenRouter in agents.config.json"));
+      console.log();
+      process.exit(1);
+    }
+  }
+}
+
+async function createOllamaClient(): Promise<LLMClient> {
+  const ollama = new Ollama();
+  const models = await ollama.list();
+
+  if (models.models.length === 0) {
+    throw new Error("No Ollama models found");
+  }
+
+  const client = new OllamaClient();
+  await client.waitForInitialization();
+  return client;
+}
+
+async function createOpenRouterClient(): Promise<LLMClient> {
+  if (!appConfig.openRouterApiKey) {
+    throw new Error("OpenRouter requires API key in config");
+  }
+  if (!appConfig.openRouterModels || appConfig.openRouterModels.length === 0) {
+    throw new Error("OpenRouter requires models array in config");
+  }
+  return new OpenRouterClient(
+    appConfig.openRouterApiKey,
+    appConfig.openRouterModels
+  );
 }

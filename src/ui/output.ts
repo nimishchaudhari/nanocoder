@@ -6,7 +6,6 @@ import {
   errorColor,
 } from "./colors.js";
 import type { ToolCall, ToolResult } from "../types/index.js";
-import { ollamaConfig } from "../config/index.js";
 
 // Initialize terminal - no modifications needed
 export function initializeTerminal(): void {
@@ -67,7 +66,7 @@ export function displayWelcome(): void {
 
 export function displayAssistantMessage(content: string, model?: string): void {
   console.log();
-  console.log(`${primaryColor(model || ollamaConfig.model)}\n${content}`);
+  console.log(`${primaryColor(model || "Assistant")}\n${content}`);
   console.log(); // Add spacing after assistant message
 }
 

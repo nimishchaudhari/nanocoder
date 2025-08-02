@@ -28,7 +28,6 @@ export const appConfig = loadAppConfig();
 
 // Legacy exports for backwards compatibility
 export const ollamaConfig = {
-  model: "qwen3:0.6b",
   maxTokens: 4096,
   contextSize: 4000,
 };
