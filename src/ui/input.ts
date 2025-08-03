@@ -1,6 +1,7 @@
 import inquirer from "inquirer";
 import { commandRegistry } from "../core/commands.js";
 import { primaryColor, successColor, errorColor } from "./colors.js";
+import { formatToolCall } from "./tool-formatter.js";
 import type { ToolCall } from "../types/index.js";
 
 const examplePrompts = [
@@ -68,6 +69,9 @@ export async function getUserInput(): Promise<string | null> {
         console.log(`\n💡 Available commands matching "${inputValue}":`);
         console.log();
         
+        // Add bottom margin for command selection input
+        process.stdout.write('\n\n\n\n\n\u001b[5A');
+        
         const commandChoice = await inquirer.prompt({
           type: "list",
           name: "selectedCommand",
@@ -82,6 +86,9 @@ export async function getUserInput(): Promise<string | null> {
         console.log();
         console.log(`💡 Did you mean: ${completions[0]}?`);
         console.log();
+        
+        // Add bottom margin for command confirmation input
+        process.stdout.write('\n\n\n\n\n\u001b[5A');
         
         const confirm = await inquirer.prompt({
           type: "confirm",
@@ -106,14 +113,16 @@ export async function promptToolApproval(toolCall: ToolCall): Promise<boolean> {
   // Add bottom margin for tool approval input
   process.stdout.write('\n\n\n\n\n\u001b[5A');
   
+  // Display the formatted tool call
+  console.log();
+  console.log(await formatToolCall(toolCall));
+  console.log();
+  
   const { action } = await inquirer.prompt([
     {
       type: "list",
       name: "action",
-      message: `⚒ ${toolCall.function.name}(${JSON.stringify(
-        toolCall.function.arguments,
-        null
-      )})`,
+      message: "Execute this tool?",
       choices: [
         { name: `${successColor("✓ Yes, execute")}`, value: "execute" },
         {

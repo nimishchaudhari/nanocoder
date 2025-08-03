@@ -23,6 +23,10 @@ export const providerCommand: Command = {
       }));
 
       console.log();
+      
+      // Add bottom margin for provider selection input
+      process.stdout.write('\n\n\n\n\n\u001b[5A');
+      
       const answer = await inquirer.prompt({
         type: "list",
         name: "selectedProvider",

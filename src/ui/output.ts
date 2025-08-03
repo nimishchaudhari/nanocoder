@@ -5,6 +5,7 @@ import {
   whiteColor,
   errorColor,
 } from "./colors.js";
+import { highlightContent } from "./syntax-highlighter.js";
 import type { ToolCall, ToolResult } from "../types/index.js";
 
 // Initialize terminal - no modifications needed
@@ -66,7 +67,8 @@ export function displayWelcome(): void {
 
 export function displayAssistantMessage(content: string, model?: string): void {
   console.log();
-  console.log(`${primaryColor(model || "Assistant")}\n${content}`);
+  const highlightedContent = highlightContent(content);
+  console.log(`${primaryColor(model || "Assistant")}\n${highlightedContent}`);
   console.log(); // Add spacing after assistant message
 }
 

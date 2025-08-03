@@ -31,6 +31,10 @@ export const modelCommand: Command = {
       }));
 
       console.log();
+      
+      // Add bottom margin for model selection input
+      process.stdout.write('\n\n\n\n\n\u001b[5A');
+      
       const answer = await inquirer.prompt({
         type: "list",
         name: "selectedModel",
