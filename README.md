@@ -73,7 +73,7 @@ Create `agents.config.json` in your **working directory** (where you run `nanoco
 {
   "nanocoder": {
     "openRouterApiKey": "your-api-key-here",
-    "openRouterModels": ["openrouter/horizon-beta"]
+    "openRouterModels": ["foo-model", "bar-model"]
   }
 }
 ```
