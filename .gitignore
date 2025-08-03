@@ -130,5 +130,10 @@ Thumbs.db
 package-lock.json
 yarn.lock
 
-# configuration
-agents.config.json.claude
+# Agents configuration
+agents.config.json
+.claude
+agents
+CLAUDE.md
+GEMINI.md
+
