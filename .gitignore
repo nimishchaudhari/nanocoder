@@ -131,4 +131,4 @@ package-lock.json
 yarn.lock
 
 # configuration
-agents.config.json
+agents.config.json.claude
