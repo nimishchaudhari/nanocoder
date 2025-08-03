@@ -1,36 +1,49 @@
-# nano-ollama-code
+# Nanocoder
 
-A simple CLI chat interface that uses Ollama for local AI interactions with tool support.
+A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter. Built with privacy and control in mind, Nanocoder supports multiple AI providers with tool support for file operations and command execution.
 
-## Prerequisites
+## Installation
 
-- [Ollama](https://ollama.ai/) running locally
+### For Users (Recommended)
+
+Install globally and use anywhere:
+
+```bash
+npm install -g nanocoder
+```
+
+Then run in any directory:
+
+```bash
+nanocoder
+```
+
+### For Development
+
+If you want to contribute or modify Nanocoder:
+
+**Prerequisites:**
+
 - Node.js 18+
 - pnpm
 
-## Setup
+**Setup:**
 
-1. Install dependencies:
+1. Clone and install dependencies:
 
 ```bash
+git clone [repo-url]
+cd nanocoder
 pnpm install
 ```
 
-2. Make sure Ollama is running and has a model pulled:
-
-```bash
-ollama pull [model]
-```
-
-3. Build the project:
+2. Build the project:
 
 ```bash
 pnpm run build
 ```
 
-## Usage
-
-Run the chat interface:
+3. Run locally:
 
 ```bash
 pnpm run start
@@ -42,12 +55,51 @@ Or build and run in one command:
 pnpm run dev
 ```
 
+## Configuration
+
+### AI Provider Setup
+
+**Option A: Ollama (Local AI)**
+
+```bash
+ollama pull qwen3:0.6b  # or any other model
+```
+
+**Option B: OpenRouter (Cloud AI)**
+
+Create `agents.config.json` in your **working directory** (where you run `nanocoder`):
+
+```json
+{
+  "nanocoder": {
+    "openRouterApiKey": "your-api-key-here",
+    "openRouterModels": ["openrouter/horizon-beta"]
+  }
+}
+```
+
+> **Note**: The `agents.config.json` file should be placed in the directory where you run Nanocoder, allowing for project-by-project configuration with different models or API keys per repository.
+
+### Commands
+
+The CLI supports several built-in commands:
+
+- `/help` - Show available commands
+- `/clear` - Clear chat history
+- `/model` - Switch between available models
+- `/provider` - Switch between AI providers (ollama/openrouter)
+- `/exit` - Exit the application
+
 ## Features
 
-- Interactive chat with Ollama models
-- File reading/writing tools
-- Bash command execution
-- Colorized output
+- **Multi-provider support**: Seamlessly switch between Ollama (local) and OpenRouter (cloud)
+- **Smart fallback**: Automatically falls back to OpenRouter if Ollama is unavailable
+- **Tool calling**: AI can execute tools to interact with your system
+  - File reading and writing
+  - Bash command execution
+- **Interactive commands**: Built-in command system for managing the chat session
+- **Colorised output**: Enhanced terminal experience with syntax highlighting
+- **Model switching**: Change AI models on the fly
 
 ## License
 
