@@ -21,17 +21,12 @@ export const helpCommand: Command = {
       commands.length === 0
         ? "No commands available."
         : commands
-            .map(
-              (cmd) => `  • ${blueColor("/" + cmd.name)} - ${cmd.description}`
-            )
+            .map((cmd) => `  • /${cmd.name} - ${cmd.description}`)
             .join("\n");
 
     console.log(`
-${primaryColor(
-  "NanoCoder " +
-    packageJson.version +
-    " - AI-Powered Code Assistant with Ollama."
-)}
+${primaryColor("NanoCoder " + packageJson.version)}
+A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter. Built with privacy and control in mind, Nanocoder supports multiple AI providers with tool support for file operations and command execution.
 
 Always review model responses, especially when running code. Models have read access to files in the current directory and can run commands and edit files with your permission.
 
