@@ -1,15 +1,37 @@
 {
-  "name": "nanocoder",
+  "name": "@motesoftware/nanocoder",
   "main": "dist/index.js",
   "type": "module",
-  "version": "0.1.0",
+  "version": "1.0.1",
+  "description": "A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter",
+  "keywords": [
+    "cli",
+    "ai",
+    "coding",
+    "agent",
+    "ollama",
+    "openrouter",
+    "local",
+    "typescript"
+  ],
+  "author": "Mote Software Ltd",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mote-Software/nanocoder.git"
+  },
+  "homepage": "https://github.com/Mote-Software/nanocoder#readme",
+  "bugs": {
+    "url": "https://github.com/Mote-Software/nanocoder/issues"
+  },
   "bin": {
     "nanocoder": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsc && node dist/index.js"
+    "dev": "tsc && node dist/index.js",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@types/node": "^20",
