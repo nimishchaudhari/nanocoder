@@ -101,6 +101,24 @@ The CLI supports several built-in commands:
 - **Colorised output**: Enhanced terminal experience with syntax highlighting
 - **Model switching**: Change AI models on the fly
 
+## Contributing
+
+We're a small team building Nanocoder and would love your help! Whether you're interested in:
+
+- Adding support for new AI providers
+- Improving tool functionality
+- Enhancing the user experience
+- Writing documentation
+- Reporting bugs or suggesting features
+
+All contributions are welcome! Please feel free to:
+
+1. Open an issue to discuss your idea
+2. Fork the repository and create a pull request
+3. Join discussions in existing issues
+
+For development setup, see the [For Development](#for-development) section above.
+
 ## License
 
 MIT License
