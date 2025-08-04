@@ -9,7 +9,7 @@ A local-first CLI coding agent that brings the power of agentic coding tools lik
 Install globally and use anywhere:
 
 ```bash
-npm install -g nanocoder
+npm install -g @motesoftware/nanocoder
 ```
 
 Then run in any directory:
@@ -25,7 +25,7 @@ If you want to contribute or modify Nanocoder:
 **Prerequisites:**
 
 - Node.js 18+
-- pnpm
+- npm
 
 **Setup:**
 
@@ -34,25 +34,25 @@ If you want to contribute or modify Nanocoder:
 ```bash
 git clone [repo-url]
 cd nanocoder
-pnpm install
+npm install
 ```
 
 2. Build the project:
 
 ```bash
-pnpm run build
+npm run build
 ```
 
 3. Run locally:
 
 ```bash
-pnpm run start
+npm run start
 ```
 
 Or build and run in one command:
 
 ```bash
-pnpm run dev
+npm run dev
 ```
 
 ## Configuration
