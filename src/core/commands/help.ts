@@ -3,7 +3,7 @@ import { commandRegistry } from "../commands.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { blueColor, primaryColor } from "../../ui/colors.js";
+import { primaryColor } from "../../ui/colors.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
