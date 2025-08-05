@@ -158,6 +158,8 @@ export class ChatSession {
     fullContent: string;
     toolCalls: any;
   } | null> {
+    let timerInterval: NodeJS.Timeout | null = null;
+    
     try {
       const instructions = await read_file({ path: promptPath });
       const systemMessage: Message = {
@@ -173,7 +175,26 @@ export class ChatSession {
       let tokenCount = 0;
       let toolCalls: any = null;
       let hasContent = false;
+      let isComplete = false;
       const startTime = Date.now();
+
+      // Start a timer that updates the display every second
+      timerInterval = setInterval(() => {
+        if (isComplete) return;
+        
+        const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+        const systemTokens = Math.ceil(instructions.length / 4);
+        const conversationTokens = this.messages.reduce((total, msg) => {
+          return total + Math.ceil((msg.content?.length || 0) / 4);
+        }, 0);
+        const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
+        displayThinkingIndicator(
+          tokenCount,
+          elapsedSeconds,
+          this.client.getContextSize(),
+          totalTokensUsed
+        );
+      }, 1000);
 
       for await (const chunk of stream) {
         hasContent = true;
@@ -207,6 +228,8 @@ export class ChatSession {
         }
       }
 
+      isComplete = true;
+      if (timerInterval) clearInterval(timerInterval);
       clearThinkingIndicator();
 
       // If no content was received (stream was empty due to error), return null
@@ -225,6 +248,7 @@ export class ChatSession {
 
       return { fullContent, toolCalls };
     } catch (error) {
+      if (timerInterval) clearInterval(timerInterval);
       clearThinkingIndicator();
       // Error was already logged in the OpenRouter client, just return null
       return null;
