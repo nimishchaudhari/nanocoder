@@ -1,5 +1,5 @@
 import { Command } from "../../types/index.js";
-import inquirer from "inquirer";
+import { select } from "@inquirer/prompts";
 import { successColor, errorColor } from "../../ui/colors.js";
 import { getCurrentChatSession } from "../chat.js";
 
@@ -35,19 +35,17 @@ export const modelCommand: Command = {
       // Add bottom margin for model selection input
       process.stdout.write('\n\n\n\n\n\u001b[5A');
       
-      const answer = await inquirer.prompt({
-        type: "list",
-        name: "selectedModel",
+      const selectedModel = await select({
         message: "Select a model:",
         choices: modelChoices,
         default: currentModel,
       });
       console.log();
 
-      if (answer.selectedModel !== currentModel) {
-        chatSession.setModel(answer.selectedModel);
+      if (selectedModel !== currentModel) {
+        chatSession.setModel(selectedModel);
         console.log(
-          successColor(`✓ Model changed to: ${answer.selectedModel}`)
+          successColor(`✓ Model changed to: ${selectedModel}`)
         );
       } else {
         console.log("Model unchanged.");

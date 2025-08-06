@@ -1,5 +1,5 @@
 import { Command } from "../../types/index.js";
-import inquirer from "inquirer";
+import { select } from "@inquirer/prompts";
 import { successColor, errorColor } from "../../ui/colors.js";
 import { getCurrentChatSession } from "../chat.js";
 
@@ -27,19 +27,17 @@ export const providerCommand: Command = {
       // Add bottom margin for provider selection input
       process.stdout.write('\n\n\n\n\n\u001b[5A');
       
-      const answer = await inquirer.prompt({
-        type: "list",
-        name: "selectedProvider",
+      const selectedProvider = await select({
         message: "Select a provider:",
         choices: providerChoices,
         default: currentProvider,
       });
       console.log();
 
-      if (answer.selectedProvider !== currentProvider) {
-        await chatSession.setProvider(answer.selectedProvider);
+      if (selectedProvider !== currentProvider) {
+        await chatSession.setProvider(selectedProvider);
         console.log(
-          successColor(`✓ Provider changed to: ${answer.selectedProvider}`)
+          successColor(`✓ Provider changed to: ${selectedProvider}`)
         );
         console.log(
           successColor(`✓ Current model: ${chatSession.getCurrentModel()}`)

@@ -1,4 +1,4 @@
-import inquirer from "inquirer";
+import { input, select, confirm } from "@inquirer/prompts";
 import { commandRegistry } from "../core/commands.js";
 import { primaryColor, successColor, errorColor } from "./colors.js";
 import { formatToolCall } from "./tool-formatter.js";
@@ -52,14 +52,16 @@ export async function getUserInput(): Promise<string | null> {
     // Add bottom margin for main input
     process.stdout.write('\n\n\n\n\n\u001b[5A');
     
-    const answers = await inquirer.prompt({
-      type: "input",
-      name: "userInput",
+    const userInput = await input({
       message: "",
       default: getRandomPrompt(),
     });
 
-    let inputValue = (answers.userInput || "").trim();
+    if (userInput === undefined) {
+      return null;
+    }
+
+    let inputValue = userInput.trim();
 
     // If user starts typing a command, show completions and let them choose
     if (inputValue.startsWith("/") && inputValue.length > 1) {
@@ -72,16 +74,14 @@ export async function getUserInput(): Promise<string | null> {
         // Add bottom margin for command selection input
         process.stdout.write('\n\n\n\n\n\u001b[5A');
         
-        const commandChoice = await inquirer.prompt({
-          type: "list",
-          name: "selectedCommand",
+        const selectedCommand = await select({
           message: "Select a command:",
           choices: [
             { name: `Continue with: ${inputValue}`, value: inputValue },
             ...completions.map((cmd) => ({ name: cmd, value: cmd })),
           ],
         });
-        inputValue = commandChoice.selectedCommand;
+        inputValue = selectedCommand;
       } else if (completions.length === 1 && completions[0] !== inputValue) {
         console.log();
         console.log(`💡 Did you mean: ${completions[0]}?`);
@@ -90,13 +90,11 @@ export async function getUserInput(): Promise<string | null> {
         // Add bottom margin for command confirmation input
         process.stdout.write('\n\n\n\n\n\u001b[5A');
         
-        const confirm = await inquirer.prompt({
-          type: "confirm",
-          name: "useCompletion",
+        const useCompletion = await confirm({
           message: `Use "${completions[0]}" instead?`,
           default: true,
         });
-        if (confirm.useCompletion) {
+        if (useCompletion && completions[0]) {
           inputValue = completions[0];
         }
       }
@@ -118,21 +116,17 @@ export async function promptToolApproval(toolCall: ToolCall): Promise<boolean> {
   console.log(await formatToolCall(toolCall));
   console.log();
   
-  const { action } = await inquirer.prompt([
-    {
-      type: "list",
-      name: "action",
-      message: "Execute this tool?",
-      choices: [
-        { name: `${successColor("✓ Yes, execute")}`, value: "execute" },
-        {
-          name: `${errorColor("⨯ No, tell agent what to do differently")}`,
-          value: "cancel",
-        },
-      ],
-      default: "execute",
-    },
-  ]);
+  const action = await select({
+    message: "Execute this tool?",
+    choices: [
+      { name: `${successColor("✓ Yes, execute")}`, value: "execute" },
+      {
+        name: `${errorColor("⨯ No, tell agent what to do differently")}`,
+        value: "cancel",
+      },
+    ],
+    default: "execute",
+  });
 
   return action === "execute";
 }
