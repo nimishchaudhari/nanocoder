@@ -2,7 +2,7 @@ import { highlight } from 'cli-highlight';
 import { diffLines } from 'diff';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { primaryColor, secondaryColor, toolColor, successColor, errorColor } from './colors.js';
+import { primaryColor, secondaryColor, toolColor, successColor, errorColor, addedLineColor, removedLineColor } from './colors.js';
 import type { ToolCall } from '../types/index.js';
 
 export async function formatToolCall(toolCall: ToolCall): Promise<string> {
@@ -54,47 +54,104 @@ async function formatWriteFile(args: any): Promise<string> {
     let contextLines = 0;
     let diffOutput = '';
     
-    for (const part of diff) {
+    const contextLinesBeforeAfter = 3; // Show 3 lines before and after changes
+    
+    for (let i = 0; i < diff.length; i++) {
+      const part = diff[i];
+      if (!part) continue;
+      
+      const prevPart = diff[i - 1];
+      const nextPart = diff[i + 1];
+      const hasChangesBefore = prevPart && (prevPart.added || prevPart.removed);
+      const hasChangesAfter = nextPart && (nextPart.added || nextPart.removed);
+      
       if (part.added) {
         addedLines += part.count || 0;
         const lines = part.value.split('\n').filter(line => line !== '');
         for (const line of lines) {
-          try {
-            const highlighted = highlight(line, { language, theme: 'default' });
-            diffOutput += `${successColor('+ ')}${highlighted}\n`;
-          } catch {
-            diffOutput += `${successColor('+ ')}${line}\n`;
-          }
+          diffOutput += `${addedLineColor('+ ' + line)}\n`;
         }
       } else if (part.removed) {
         removedLines += part.count || 0;
         const lines = part.value.split('\n').filter(line => line !== '');
         for (const line of lines) {
-          try {
-            const highlighted = highlight(line, { language, theme: 'default' });
-            diffOutput += `${errorColor('- ')}${highlighted}\n`;
-          } catch {
-            diffOutput += `${errorColor('- ')}${line}\n`;
-          }
+          diffOutput += `${removedLineColor('- ' + line)}\n`;
         }
       } else {
-        // Context lines - show only a few
+        // Context lines - show more intelligently around changes
         const lines = part.value.split('\n').filter(line => line !== '');
-        const maxContext = 3;
-        const showLines = lines.slice(0, maxContext);
-        contextLines += showLines.length;
         
-        for (const line of showLines) {
-          try {
-            const highlighted = highlight(line, { language, theme: 'default' });
-            diffOutput += `  ${highlighted}\n`;
-          } catch {
-            diffOutput += `  ${line}\n`;
+        if (hasChangesBefore && hasChangesAfter) {
+          // Between changes - show limited context
+          const maxBetween = Math.min(6, lines.length);
+          const showLines = lines.slice(0, maxBetween);
+          contextLines += showLines.length;
+          
+          for (const line of showLines) {
+            try {
+              const highlighted = highlight(line, { language, theme: 'default' });
+              diffOutput += `  ${highlighted}\n`;
+            } catch {
+              diffOutput += `  ${line}\n`;
+            }
           }
-        }
-        
-        if (lines.length > maxContext) {
-          diffOutput += `${secondaryColor('  ... (' + (lines.length - maxContext) + ' unchanged lines)')}\n`;
+          
+          if (lines.length > maxBetween) {
+            diffOutput += `${secondaryColor('  ... (' + (lines.length - maxBetween) + ' unchanged lines)')}\n`;
+          }
+        } else if (hasChangesBefore) {
+          // After changes - show first few lines as context
+          const showLines = lines.slice(0, contextLinesBeforeAfter);
+          contextLines += showLines.length;
+          
+          for (const line of showLines) {
+            try {
+              const highlighted = highlight(line, { language, theme: 'default' });
+              diffOutput += `  ${highlighted}\n`;
+            } catch {
+              diffOutput += `  ${line}\n`;
+            }
+          }
+          
+          if (lines.length > contextLinesBeforeAfter) {
+            diffOutput += `${secondaryColor('  ... (' + (lines.length - contextLinesBeforeAfter) + ' unchanged lines)')}\n`;
+          }
+        } else if (hasChangesAfter) {
+          // Before changes - show last few lines as context
+          const startIndex = Math.max(0, lines.length - contextLinesBeforeAfter);
+          const showLines = lines.slice(startIndex);
+          contextLines += showLines.length;
+          
+          if (startIndex > 0) {
+            diffOutput += `${secondaryColor('  ... (' + startIndex + ' unchanged lines)')}\n`;
+          }
+          
+          for (const line of showLines) {
+            try {
+              const highlighted = highlight(line, { language, theme: 'default' });
+              diffOutput += `  ${highlighted}\n`;
+            } catch {
+              diffOutput += `  ${line}\n`;
+            }
+          }
+        } else {
+          // No adjacent changes - show minimal context
+          const maxContext = 2;
+          const showLines = lines.slice(0, maxContext);
+          contextLines += showLines.length;
+          
+          for (const line of showLines) {
+            try {
+              const highlighted = highlight(line, { language, theme: 'default' });
+              diffOutput += `  ${highlighted}\n`;
+            } catch {
+              diffOutput += `  ${line}\n`;
+            }
+          }
+          
+          if (lines.length > maxContext) {
+            diffOutput += `${secondaryColor('  ... (' + (lines.length - maxContext) + ' unchanged lines)')}\n`;
+          }
         }
       }
     }
