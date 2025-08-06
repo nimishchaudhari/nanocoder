@@ -1,9 +1,10 @@
-import { read_file, write_file } from './file-tools.js';
+import { read_file, write_file, read_many_files } from './file-tools.js';
 import { execute_bash } from './bash-tools.js';
 import type { ToolHandler, Tool } from '../types/index.js';
 
 export const toolRegistry: Record<string, ToolHandler> = {
   read_file,
+  read_many_files,
   write_file,
   execute_bash,
 };
@@ -20,6 +21,20 @@ export const tools: Tool[] = [
           path: { type: 'string', description: 'The path to the file to read.' },
         },
         required: ['path'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'read_many_files',
+      description: 'Read the contents of multiple files. Returns a JSON array of { path, content } in the same order as provided.',
+      parameters: {
+        type: 'object',
+        properties: {
+          paths: { type: 'array', items: { type: 'string' }, description: 'Array of file paths to read, in order.' },
+        },
+        required: ['paths'],
       },
     },
   },

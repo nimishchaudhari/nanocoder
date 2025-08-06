@@ -13,6 +13,8 @@ export async function formatToolCall(toolCall: ToolCall): Promise<string> {
       return await formatWriteFile(args);
     case 'read_file':
       return formatReadFile(args);
+    case 'read_many_files':
+      return formatReadManyFiles(args);
     case 'execute_bash':
       return formatBashCommand(args);
     default:
@@ -200,6 +202,32 @@ function formatReadFile(args: any): string {
   }
   
   return result;
+}
+
+function formatReadManyFiles(args: any): string {
+  const paths = args.paths || [];
+  let result = `${toolColor('⚒ read_many_files')}\n`;
+  
+  if (!Array.isArray(paths)) {
+    result += `${errorColor('Error:')} paths must be an array`;
+    return result;
+  }
+  
+  result += `${secondaryColor('Files:')} ${primaryColor(paths.length)} file${paths.length !== 1 ? 's' : ''}\n`;
+  
+  // Show first few paths as preview
+  const maxPreview = 5;
+  const previewPaths = paths.slice(0, maxPreview);
+  
+  for (const path of previewPaths) {
+    result += `${secondaryColor('  •')} ${primaryColor(path)}\n`;
+  }
+  
+  if (paths.length > maxPreview) {
+    result += `${secondaryColor('  ... and ' + (paths.length - maxPreview) + ' more files')}\n`;
+  }
+  
+  return result.slice(0, -1); // Remove trailing newline
 }
 
 function formatBashCommand(args: any): string {
