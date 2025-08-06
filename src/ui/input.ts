@@ -1,6 +1,6 @@
-import { input, select, confirm } from "@inquirer/prompts";
+import * as p from "@clack/prompts";
 import { commandRegistry } from "../core/commands.js";
-import { primaryColor, successColor, errorColor } from "./colors.js";
+import { successColor, errorColor, toolColor, primaryColor } from "./colors.js";
 import { formatToolCall } from "./tool-formatter.js";
 import type { ToolCall } from "../types/index.js";
 
@@ -49,15 +49,13 @@ function getCommandCompletions(input: string): string[] {
 
 export async function getUserInput(): Promise<string | null> {
   try {
-    // Add bottom margin for main input
-    process.stdout.write('\n\n\n\n\n\u001b[5A');
-    
-    const userInput = await input({
-      message: "",
-      default: getRandomPrompt(),
+    const userInput = await p.text({
+      message: primaryColor("What would you like me to help with?"),
+      placeholder: getRandomPrompt(),
     });
 
-    if (userInput === undefined) {
+    if (p.isCancel(userInput)) {
+      p.cancel("Operation cancelled");
       return null;
     }
 
@@ -67,33 +65,31 @@ export async function getUserInput(): Promise<string | null> {
     if (inputValue.startsWith("/") && inputValue.length > 1) {
       const completions = getCommandCompletions(inputValue);
       if (completions.length > 1) {
-        console.log();
-        console.log(`\n💡 Available commands matching "${inputValue}":`);
-        console.log();
-        
-        // Add bottom margin for command selection input
-        process.stdout.write('\n\n\n\n\n\u001b[5A');
-        
-        const selectedCommand = await select({
-          message: "Select a command:",
-          choices: [
-            { name: `Continue with: ${inputValue}`, value: inputValue },
-            ...completions.map((cmd) => ({ name: cmd, value: cmd })),
+        const selectedCommand = await p.select({
+          message: `💡 Available commands matching "${inputValue}":`,
+          options: [
+            { label: `Continue with: ${inputValue}`, value: inputValue },
+            ...completions.map((cmd) => ({ label: cmd, value: cmd })),
           ],
         });
+
+        if (p.isCancel(selectedCommand)) {
+          p.cancel("Operation cancelled");
+          return null;
+        }
+
         inputValue = selectedCommand;
       } else if (completions.length === 1 && completions[0] !== inputValue) {
-        console.log();
-        console.log(`💡 Did you mean: ${completions[0]}?`);
-        console.log();
-        
-        // Add bottom margin for command confirmation input
-        process.stdout.write('\n\n\n\n\n\u001b[5A');
-        
-        const useCompletion = await confirm({
-          message: `Use "${completions[0]}" instead?`,
-          default: true,
+        const useCompletion = await p.confirm({
+          message: `💡 Did you mean "${completions[0]}"?`,
+          initialValue: true,
         });
+
+        if (p.isCancel(useCompletion)) {
+          p.cancel("Operation cancelled");
+          return null;
+        }
+
         if (useCompletion && completions[0]) {
           inputValue = completions[0];
         }
@@ -102,31 +98,31 @@ export async function getUserInput(): Promise<string | null> {
 
     return inputValue;
   } catch (error) {
-    console.log(primaryColor("\nGoodbye!"));
+    p.cancel("Goodbye!");
     return null;
   }
 }
 
 export async function promptToolApproval(toolCall: ToolCall): Promise<boolean> {
-  // Add bottom margin for tool approval input
-  process.stdout.write('\n\n\n\n\n\u001b[5A');
-  
-  // Display the formatted tool call
-  console.log();
-  console.log(await formatToolCall(toolCall));
-  console.log();
-  
-  const action = await select({
+  // Display formatted tool call - use message to avoid extra dots
+  const formattedTool = await formatToolCall(toolCall);
+  p.log.message(formattedTool);
+
+  const action = await p.select({
     message: "Execute this tool?",
-    choices: [
-      { name: `${successColor("✓ Yes, execute")}`, value: "execute" },
+    options: [
+      { label: `${successColor("✓ Yes, execute")}`, value: "execute" },
       {
-        name: `${errorColor("⨯ No, tell agent what to do differently")}`,
+        label: `${errorColor("⨯ No, tell agent what to do differently")}`,
         value: "cancel",
       },
     ],
-    default: "execute",
   });
+
+  if (p.isCancel(action)) {
+    p.cancel("Operation cancelled");
+    return false;
+  }
 
   return action === "execute";
 }

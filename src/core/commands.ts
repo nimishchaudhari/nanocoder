@@ -1,5 +1,5 @@
 import { Command } from "../types/index.js";
-import { errorColor } from "../ui/colors.js";
+import * as p from "@clack/prompts";
 
 export class CommandRegistry {
   private commands = new Map<string, Command>();
@@ -37,13 +37,7 @@ export class CommandRegistry {
 
     const command = this.get(commandName);
     if (!command) {
-      console.log();
-      console.log(
-        errorColor(
-          `Unknown command: ${commandName}. Type /help for available commands.`
-        )
-      );
-      console.log();
+      p.log.error(`Unknown command: ${commandName}. Type /help for available commands.`);
       return;
     }
 

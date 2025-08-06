@@ -1,6 +1,5 @@
 import { Command } from "../../types/index.js";
-import { select } from "@inquirer/prompts";
-import { successColor, errorColor } from "../../ui/colors.js";
+import * as p from "@clack/prompts";
 import { getCurrentChatSession } from "../chat.js";
 
 export const modelCommand: Command = {
@@ -9,7 +8,7 @@ export const modelCommand: Command = {
   handler: async (args: string[]) => {
     const chatSession = getCurrentChatSession();
     if (!chatSession) {
-      console.log(errorColor("No active chat session found."));
+      p.log.error("No active chat session found.");
       return;
     }
 
@@ -18,9 +17,7 @@ export const modelCommand: Command = {
       const availableModels = await chatSession.getAvailableModels();
 
       if (availableModels.length === 0) {
-        console.log(
-          errorColor("No models available. Please check your configuration.")
-        );
+        p.log.error("No models available. Please check your configuration.");
         return;
       }
 
@@ -29,31 +26,29 @@ export const modelCommand: Command = {
         name: `${model}${model === currentModel ? " (current)" : ""}`,
         value: model,
       }));
-
-      console.log();
       
-      // Add bottom margin for model selection input
-      process.stdout.write('\n\n\n\n\n\u001b[5A');
-      
-      const selectedModel = await select({
+      const selectedModel = await p.select({
         message: "Select a model:",
-        choices: modelChoices,
-        default: currentModel,
+        options: modelChoices.map(choice => ({
+          label: choice.name,
+          value: choice.value
+        })),
       });
-      console.log();
 
+      if (p.isCancel(selectedModel)) {
+        p.cancel("Operation cancelled");
+        return;
+      }
+      
       if (selectedModel !== currentModel) {
         chatSession.setModel(selectedModel);
-        console.log(
-          successColor(`✓ Model changed to: ${selectedModel}`)
-        );
+        p.log.success(`Model changed to: ${selectedModel}`);
       } else {
-        console.log("Model unchanged.");
+        p.log.message("Model unchanged.");
       }
-      console.log();
     } catch (error) {
-      console.log(errorColor(`Error accessing models: ${error}`));
-      console.log("Make sure your provider is properly configured.");
+      p.log.error(`Error accessing models: ${error}`);
+      p.log.warn("Make sure your provider is properly configured.");
     }
   },
 };

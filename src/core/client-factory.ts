@@ -1,7 +1,7 @@
 import { OllamaClient } from "./ollama-client.js";
 import { OpenRouterClient } from "./openrouter-client.js";
 import { appConfig } from "../config/index.js";
-import { errorColor } from "../ui/colors.js";
+import * as p from "@clack/prompts";
 import type { LLMClient, ProviderType } from "../types/index.js";
 import { Ollama } from "ollama";
 
@@ -17,24 +17,16 @@ export async function createLLMClient(
   try {
     return await createOllamaClient();
   } catch (ollamaError: any) {
-    console.log(errorColor(`Ollama unavailable: ${ollamaError.message}`));
-    console.log();
-    console.log("Falling back to OpenRouter...");
-    console.log();
+    p.log.warn(`Ollama unavailable: ${ollamaError.message}`);
+    p.log.info("Falling back to OpenRouter...");
 
     try {
       return await createOpenRouterClient();
     } catch (openRouterError: any) {
-      console.log(errorColor("Both Ollama and OpenRouter are unavailable."));
-      console.log();
-      console.log(errorColor("Please either:"));
-      console.log(
-        errorColor(
-          "1. Install and run Ollama with a model: 'ollama pull qwen3:0.6b'"
-        )
-      );
-      console.log(errorColor("2. Configure OpenRouter in agents.config.json"));
-      console.log();
+      p.log.error("Both Ollama and OpenRouter are unavailable.");
+      p.log.error("Please either:");
+      p.log.error("1. Install and run Ollama with a model: 'ollama pull qwen3:0.6b'");
+      p.log.error("2. Configure OpenRouter in agents.config.json");
       process.exit(1);
     }
   }

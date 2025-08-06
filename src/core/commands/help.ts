@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { primaryColor } from "../../ui/colors.js";
+import * as p from "@clack/prompts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,9 +25,8 @@ export const helpCommand: Command = {
             .map((cmd) => `  • /${cmd.name} - ${cmd.description}`)
             .join("\n");
 
-    console.log(`
-${primaryColor("NanoCoder " + packageJson.version)}
-A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter. Built with privacy and control in mind, Nanocoder supports multiple AI providers with tool support for file operations and command execution.
+    p.log.message(`${primaryColor("NanoCoder " + packageJson.version)}
+A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter.
 
 Always review model responses, especially when running code. Models have read access to files in the current directory and can run commands and edit files with your permission.
 
@@ -37,7 +37,6 @@ ${primaryColor("Common Tasks:")}
   • Run commands > /help
 
 ${primaryColor("Commands:")}
-${commandList}
-    `);
+${commandList}`);
   },
 };

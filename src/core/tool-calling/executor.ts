@@ -2,7 +2,7 @@ import { processToolUse } from "../message-handler.js";
 import { displayToolCall } from "../../ui/output.js";
 import { promptToolApproval } from "../../ui/input.js";
 import type { ToolCall, ToolResult } from "../../types/index.js";
-import { errorColor } from "../../ui/colors.js";
+import * as p from "@clack/prompts";
 
 export interface ToolExecutionResult {
   executed: boolean;
@@ -20,10 +20,7 @@ export async function executeToolCall(
     displayToolCall(toolCall, toolResult);
     return toolResult;
   } else {
-    console.log(
-      errorColor("Tool execution cancelled. Returning to user input...")
-    );
-    console.log();
+    p.log.info("Tool execution cancelled. Returning to user input...");
     return null;
   }
 }

@@ -38,7 +38,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@inquirer/prompts": "^7.8.0",
+    "@clack/prompts": "^0.11.0",
     "chalk": "^5.4.1",
     "cli-highlight": "^2.1.11",
     "diff": "^8.0.2",

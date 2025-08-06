@@ -11,6 +11,7 @@ import {
   displayThinkingIndicator,
   clearThinkingIndicator,
 } from "../ui/output.js";
+import * as p from "@clack/prompts";
 import { tools, read_file } from "../tools/index.js";
 import { promptPath } from "../config/index.js";
 import { commandRegistry } from "./commands.js";
@@ -77,7 +78,7 @@ export class ChatSession {
     if (provider !== this.currentProvider) {
       // This will throw if provider requirements aren't met (e.g., missing API key)
       const newClient = await createLLMClient(provider);
-      
+
       this.currentProvider = provider;
       this.client = newClient;
       this.currentModel = this.client.getCurrentModel();
@@ -95,7 +96,10 @@ export class ChatSession {
       this.client = await createLLMClient(this.currentProvider);
       this.currentModel = this.client.getCurrentModel();
     } catch (error) {
-      console.error(`Failed to initialize ${this.currentProvider} provider:`, error);
+      console.error(
+        `Failed to initialize ${this.currentProvider} provider:`,
+        error
+      );
       process.exit(1);
     }
 
@@ -111,8 +115,8 @@ export class ChatSession {
         const parsed = parseInput(userInput);
         if (parsed.fullCommand) {
           const result = await commandRegistry.execute(parsed.fullCommand);
-          if (result) {
-            console.log(result);
+          if (result && result.trim()) {
+            p.log.message(result);
           }
           continue;
         }
@@ -134,7 +138,6 @@ export class ChatSession {
         content: fullContent,
         tool_calls: toolCalls,
       });
-
 
       if (fullContent) {
         displayAssistantMessage(fullContent, this.currentModel);
@@ -159,7 +162,9 @@ export class ChatSession {
     toolCalls: any;
   } | null> {
     let timerInterval: NodeJS.Timeout | null = null;
-    
+    let onKeypress: ((chunk: Buffer) => void) | null = null;
+    let originalRawMode: boolean | undefined;
+
     try {
       const instructions = await read_file({ path: promptPath });
       const systemMessage: Message = {
@@ -176,12 +181,30 @@ export class ChatSession {
       let toolCalls: any = null;
       let hasContent = false;
       let isComplete = false;
+      let isCancelled = false;
       const startTime = Date.now();
+
+      // Set up ESC key handler to cancel the request
+      originalRawMode = process.stdin.isRaw;
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+      
+      onKeypress = (chunk: Buffer) => {
+        // ESC key is keyCode 27
+        if (chunk[0] === 27) {
+          isCancelled = true;
+          isComplete = true;
+          // Consume the ESC key to prevent it from propagating
+          return;
+        }
+      };
+      
+      process.stdin.on('data', onKeypress);
 
       // Start a timer that updates the display every second
       timerInterval = setInterval(() => {
         if (isComplete) return;
-        
+
         const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
         const systemTokens = Math.ceil(instructions.length / 4);
         const conversationTokens = this.messages.reduce((total, msg) => {
@@ -197,8 +220,13 @@ export class ChatSession {
       }, 1000);
 
       for await (const chunk of stream) {
-        hasContent = true;
+        // Check if cancelled by ESC key
+        if (isCancelled) {
+          break;
+        }
         
+        hasContent = true;
+
         if (chunk.message?.content) {
           fullContent += chunk.message.content;
           tokenCount = Math.ceil(fullContent.length / 4);
@@ -218,7 +246,8 @@ export class ChatSession {
           const conversationTokens = this.messages.reduce((total, msg) => {
             return total + Math.ceil((msg.content?.length || 0) / 4);
           }, 0);
-          const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
+          const totalTokensUsed =
+            systemTokens + conversationTokens + tokenCount;
           displayThinkingIndicator(
             tokenCount,
             elapsedSeconds,
@@ -230,7 +259,27 @@ export class ChatSession {
 
       isComplete = true;
       if (timerInterval) clearInterval(timerInterval);
+      
+      // Clean up ESC key handler and restore terminal state
+      if (onKeypress) {
+        process.stdin.removeListener('data', onKeypress);
+      }
+      if (originalRawMode !== undefined) {
+        process.stdin.setRawMode(originalRawMode);
+      }
+      // Clear any remaining input buffer
+      process.stdin.read();
+      process.stdin.pause();
+      
       clearThinkingIndicator();
+
+      // If cancelled by ESC, show cancellation message and return null
+      if (isCancelled) {
+        p.log.warn("Request cancelled by user");
+        // Add a small delay to ensure terminal state is restored before next prompt
+        await new Promise(resolve => setTimeout(resolve, 100));
+        return null;
+      }
 
       // If no content was received (stream was empty due to error), return null
       if (!hasContent) {
@@ -249,6 +298,22 @@ export class ChatSession {
       return { fullContent, toolCalls };
     } catch (error) {
       if (timerInterval) clearInterval(timerInterval);
+      
+      // Clean up ESC key handler and restore terminal state
+      try {
+        if (onKeypress) {
+          process.stdin.removeListener('data', onKeypress);
+        }
+        if (originalRawMode !== undefined) {
+          process.stdin.setRawMode(originalRawMode);
+        }
+        // Clear any remaining input buffer
+        process.stdin.read();
+        process.stdin.pause();
+      } catch {
+        // Ignore cleanup errors
+      }
+      
       clearThinkingIndicator();
       // Error was already logged in the OpenRouter client, just return null
       return null;

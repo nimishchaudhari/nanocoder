@@ -1,5 +1,5 @@
 import type { ToolCall } from "../../types/index.js";
-import { errorColor } from "../../ui/colors.js";
+import * as p from "@clack/prompts";
 
 export function parseToolCallsFromContent(content: string): ToolCall[] {
   const extractedCalls: ToolCall[] = [];
@@ -28,10 +28,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
         return extractedCalls;
       }
     } catch (e) {
-      console.log(
-        errorColor("Tool call failed to parse from JSON code block.")
-      );
-      console.log();
+      p.log.warn("Tool call failed to parse from JSON code block.");
     }
   }
 
@@ -52,8 +49,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
         });
       }
     } catch (e) {
-      console.log(errorColor("Tool call failed to parse from JSON block."));
-      console.log();
+      p.log.warn("Tool call failed to parse from JSON block.");
     }
   }
 
@@ -76,8 +72,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
         });
       }
     } catch (e) {
-      console.log(errorColor("Tool call failed to parse from XML."));
-      console.log();
+      p.log.warn("Tool call failed to parse from XML.");
     }
   }
 
@@ -107,8 +102,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
           },
         });
       } catch (e) {
-        console.log(errorColor("Tool call failed to parse from content."));
-        console.log();
+        p.log.warn("Tool call failed to parse from content.");
       }
     }
   }

@@ -1,7 +1,7 @@
 import { Command } from "../../types/index.js";
-import { select } from "@inquirer/prompts";
-import { successColor, errorColor } from "../../ui/colors.js";
+import * as p from "@clack/prompts";
 import { getCurrentChatSession } from "../chat.js";
+import { primaryColor } from "../../ui/colors.js";
 
 export const providerCommand: Command = {
   name: "provider",
@@ -9,7 +9,7 @@ export const providerCommand: Command = {
   handler: async (_args: string[]) => {
     const chatSession = getCurrentChatSession();
     if (!chatSession) {
-      console.log(errorColor("No active chat session found."));
+      p.log.error("No active chat session found.");
       return;
     }
 
@@ -22,34 +22,31 @@ export const providerCommand: Command = {
         value: provider,
       }));
 
-      console.log();
-      
-      // Add bottom margin for provider selection input
-      process.stdout.write('\n\n\n\n\n\u001b[5A');
-      
-      const selectedProvider = await select({
+      const selectedProvider = await p.select({
         message: "Select a provider:",
-        choices: providerChoices,
-        default: currentProvider,
+        options: providerChoices.map((choice) => ({
+          label: choice.name,
+          value: choice.value,
+        })),
       });
-      console.log();
+
+      if (p.isCancel(selectedProvider)) {
+        p.cancel("Operation cancelled");
+        return;
+      }
 
       if (selectedProvider !== currentProvider) {
         await chatSession.setProvider(selectedProvider);
-        console.log(
-          successColor(`✓ Provider changed to: ${selectedProvider}`)
+        p.log.success(`Provider changed to: ${primaryColor(selectedProvider)}`);
+        p.log.success(
+          `Current model: ${primaryColor(chatSession.getCurrentModel())}`
         );
-        console.log(
-          successColor(`✓ Current model: ${chatSession.getCurrentModel()}`)
-        );
-        console.log(successColor("✓ Chat history cleared"));
+        p.log.warning("Chat history cleared");
       } else {
-        console.log("Provider unchanged.");
+        p.log.message("Provider unchanged.");
       }
-      console.log();
     } catch (error) {
-      console.log(errorColor(`Error switching provider: ${error}`));
+      p.log.error(`Error switching provider: ${error}`);
     }
-    console.log();
   },
 };

@@ -3,8 +3,9 @@ import {
   toolColor,
   secondaryColor,
   whiteColor,
-  errorColor,
+  blueColor,
 } from "./colors.js";
+import * as p from "@clack/prompts";
 import { highlightContent } from "./syntax-highlighter.js";
 import type { ToolCall, ToolResult } from "../types/index.js";
 
@@ -15,7 +16,6 @@ export function initializeTerminal(): void {
 
 export function displayWelcome(): void {
   const cwd = process.cwd();
-
   console.log();
   console.log(
     primaryColor("╭─────────────────────────────────────────────────────────╮")
@@ -42,7 +42,6 @@ export function displayWelcome(): void {
     primaryColor("╰─────────────────────────────────────────────────────────╯")
   );
   console.log();
-  console.log(secondaryColor(`cwd: ${cwd}`));
   console.log();
   console.log(secondaryColor("Tips for getting started:"));
   console.log();
@@ -63,20 +62,23 @@ export function displayWelcome(): void {
     secondaryColor("※ Tip: This tool uses Ollama locally for privacy")
   );
   console.log();
+  p.intro(blueColor(`cwd: ${cwd}`));
 }
 
 export function displayAssistantMessage(content: string, model?: string): void {
-  console.log();
   const highlightedContent = highlightContent(content);
-  console.log(`${primaryColor(model || "Assistant")}\n${highlightedContent}`);
-  console.log(); // Add spacing after assistant message
+  p.log.success(
+    `${primaryColor(model || "Assistant")}:\n${highlightedContent}`
+  );
 }
 
-export function displayToolCall(toolCall: ToolCall, result: ToolResult): void {
-  console.log();
-  console.log(`${toolColor(`⚒ ${toolCall.function.name} executed`)}`);
-  console.log(); // Add spacing after tool calls
+export function displayToolCall(toolCall: ToolCall, _result: ToolResult): void {
+  p.log.info(`${toolColor(`⚒ ${toolCall.function.name}`)} executed`);
 }
+
+let currentSpinner: ReturnType<typeof p.spinner> | null = null;
+let finalTokenCount = 0;
+let startTime = 0;
 
 export function displayThinkingIndicator(
   tokenCount: number,
@@ -89,18 +91,37 @@ export function displayThinkingIndicator(
     Math.round(((maxTokens - totalTokensUsed) / maxTokens) * 100)
   );
   const isLowContext = contextRemaining < 20;
-  const contextColor = isLowContext ? errorColor : secondaryColor;
   const warning = isLowContext ? " ⚠ clear context soon" : "";
 
-  process.stdout.write(
-    `\r${primaryColor("Working...")} ${secondaryColor(
-      `• ${tokenCount} tokens • `
-    )}${contextColor(`${contextRemaining}% context left`)}${secondaryColor(
-      ` • ${elapsedSeconds}s`
-    )}${errorColor(warning)}`
-  );
+  const message = `${tokenCount} tokens • ${contextRemaining}% context left • ${elapsedSeconds}s${warning}`;
+
+  if (!currentSpinner) {
+    currentSpinner = p.spinner();
+    currentSpinner.start(message);
+    startTime = Date.now();
+  } else {
+    currentSpinner.message(message);
+  }
+
+  // Track final stats
+  finalTokenCount = tokenCount;
 }
 
 export function clearThinkingIndicator(): void {
-  process.stdout.write("\r" + " ".repeat(120) + "\r");
+  if (currentSpinner) {
+    const finalTime = Math.round((Date.now() - startTime) / 1000);
+    currentSpinner.stop(`${finalTokenCount} tokens in ${finalTime}s`);
+    currentSpinner = null;
+    finalTokenCount = 0;
+    startTime = 0;
+  }
+}
+
+export function startNewConversation(): void {
+  p.outro("Conversation cleared! Starting fresh...");
+  p.intro(blueColor("What will you create?"));
+}
+
+export function endConversation(): void {
+  p.outro("Goodbye! 👋");
 }

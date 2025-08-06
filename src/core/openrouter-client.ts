@@ -1,5 +1,5 @@
 import type { Message, Tool, LLMClient } from "../types/index.js";
-import { errorColor } from "../ui/colors.js";
+import * as p from "@clack/prompts";
 
 export class OpenRouterClient implements LLMClient {
   private apiKey: string;
@@ -124,7 +124,7 @@ export class OpenRouterClient implements LLMClient {
         // If we can't parse the error response, use the basic message
       }
 
-      console.log(errorColor(`\n❌ ${errorMessage}\n`));
+      p.log.error(errorMessage);
       return null; // Return null to indicate error
     }
 
@@ -198,13 +198,13 @@ export class OpenRouterClient implements LLMClient {
         // If we can't parse the error response, use the basic message
       }
 
-      console.log(errorColor(`\n⨯ ${errorMessage}\n`));
+      p.log.error(errorMessage);
       return; // Gracefully exit the generator without yielding any chunks
     }
 
     const reader = response.body?.getReader();
     if (!reader) {
-      console.log(errorColor(`\n⨯ Failed to get response reader\n`));
+      p.log.error("Failed to get response reader");
       return;
     }
 
