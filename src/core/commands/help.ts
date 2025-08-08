@@ -3,8 +3,7 @@ import { commandRegistry } from "../commands.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { primaryColor } from "../../ui/colors.js";
-import * as p from "@clack/prompts";
+import { borderedContent } from "../../ui/bordered-content.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,18 +24,21 @@ export const helpCommand: Command = {
             .map((cmd) => `  • /${cmd.name} - ${cmd.description}`)
             .join("\n");
 
-    p.log.message(`${primaryColor("NanoCoder " + packageJson.version)}
+    borderedContent(
+      `NanoCoder ${packageJson.version}`,
+      `
 A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter.
 
 Always review model responses, especially when running code. Models have read access to files in the current directory and can run commands and edit files with your permission.
 
-${primaryColor("Common Tasks:")}
+Common Tasks:
   • Ask questions about your codebase > How does foo.py work?
   • Edit files > Update bar.ts to...
   • Fix errors > cargo build
   • Run commands > /help
 
-${primaryColor("Commands:")}
-${commandList}`);
+Commands:
+${commandList}`
+    );
   },
 };

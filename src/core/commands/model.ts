@@ -1,6 +1,7 @@
 import { Command } from "../../types/index.js";
 import * as p from "@clack/prompts";
 import { getCurrentChatSession } from "../chat.js";
+import { successColor } from "../../ui/colors.js";
 
 export const modelCommand: Command = {
   name: "model",
@@ -26,12 +27,12 @@ export const modelCommand: Command = {
         name: `${model}${model === currentModel ? " (current)" : ""}`,
         value: model,
       }));
-      
+
       const selectedModel = await p.select({
         message: "Select a model:",
-        options: modelChoices.map(choice => ({
+        options: modelChoices.map((choice) => ({
           label: choice.name,
-          value: choice.value
+          value: choice.value,
         })),
       });
 
@@ -39,10 +40,10 @@ export const modelCommand: Command = {
         p.cancel("Operation cancelled");
         return;
       }
-      
+
       if (selectedModel !== currentModel) {
         chatSession.setModel(selectedModel);
-        p.log.success(`Model changed to: ${selectedModel}`);
+        p.log.success(successColor(`Model changed to: ${selectedModel}`));
       } else {
         p.log.message("Model unchanged.");
       }

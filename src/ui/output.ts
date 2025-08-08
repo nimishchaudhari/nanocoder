@@ -4,15 +4,12 @@ import {
   secondaryColor,
   whiteColor,
   blueColor,
+  successColor,
 } from "./colors.js";
 import * as p from "@clack/prompts";
 import { highlightContent } from "./syntax-highlighter.js";
 import type { ToolCall, ToolResult } from "../types/index.js";
-
-// Initialize terminal - no modifications needed
-export function initializeTerminal(): void {
-  // Keep simple for now
-}
+import { borderedContent } from "./bordered-content.js";
 
 export function displayWelcome(): void {
   const cwd = process.cwd();
@@ -67,9 +64,9 @@ export function displayWelcome(): void {
 
 export function displayAssistantMessage(content: string, model?: string): void {
   const highlightedContent = highlightContent(content);
-  p.log.success(
-    `${primaryColor(model || "Assistant")}:\n${highlightedContent}`
-  );
+  const modelName = model || "Assistant";
+
+  borderedContent(modelName, highlightedContent);
 }
 
 export function displayToolCall(toolCall: ToolCall, _result: ToolResult): void {
@@ -118,7 +115,7 @@ export function clearThinkingIndicator(): void {
 }
 
 export function startNewConversation(): void {
-  p.outro("Conversation cleared! Starting fresh...");
+  p.outro(successColor("Conversation cleared! Starting fresh..."));
   p.intro(blueColor("What will you create?"));
 }
 

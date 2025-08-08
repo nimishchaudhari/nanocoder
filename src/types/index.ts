@@ -55,6 +55,7 @@ export interface AppConfig {
 
 export interface Colors {
   white: string;
+  black: string;
   primary: string;
   tool: string;
   secondary: string;

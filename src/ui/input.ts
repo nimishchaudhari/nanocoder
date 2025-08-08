@@ -1,6 +1,6 @@
 import * as p from "@clack/prompts";
 import { commandRegistry } from "../core/commands.js";
-import { successColor, errorColor, toolColor, primaryColor } from "./colors.js";
+import { successColor, errorColor, primaryColor, blueColor } from "./colors.js";
 import { formatToolCall } from "./tool-formatter.js";
 import type { ToolCall } from "../types/index.js";
 
@@ -66,7 +66,7 @@ export async function getUserInput(): Promise<string | null> {
       const completions = getCommandCompletions(inputValue);
       if (completions.length > 1) {
         const selectedCommand = await p.select({
-          message: `💡 Available commands matching "${inputValue}":`,
+          message: blueColor(`Available commands matching "${inputValue}":`),
           options: [
             { label: `Continue with: ${inputValue}`, value: inputValue },
             ...completions.map((cmd) => ({ label: cmd, value: cmd })),
@@ -81,7 +81,7 @@ export async function getUserInput(): Promise<string | null> {
         inputValue = selectedCommand;
       } else if (completions.length === 1 && completions[0] !== inputValue) {
         const useCompletion = await p.confirm({
-          message: `💡 Did you mean "${completions[0]}"?`,
+          message: blueColor(`Did you mean "${completions[0]}"?`),
           initialValue: true,
         });
 
