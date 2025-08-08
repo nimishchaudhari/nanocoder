@@ -34,6 +34,7 @@ export const ollamaConfig = {
 
 export const colors: Colors = {
   white: "#ffffff",
+  black: "#000000",
   primary: "#CAAD8D",
   tool: "#0d9488",
   success: "#00d492",

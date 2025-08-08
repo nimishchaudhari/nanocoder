@@ -12,7 +12,7 @@ import {
   clearThinkingIndicator,
 } from "../ui/output.js";
 import * as p from "@clack/prompts";
-import { tools, read_file } from "../tools/index.js";
+import { tools, read_file } from "./tools/index.js";
 import { promptPath } from "../config/index.js";
 import { commandRegistry } from "./commands.js";
 import { isCommandInput, parseInput } from "./command-parser.js";
@@ -188,7 +188,7 @@ export class ChatSession {
       originalRawMode = process.stdin.isRaw;
       process.stdin.setRawMode(true);
       process.stdin.resume();
-      
+
       onKeypress = (chunk: Buffer) => {
         // ESC key is keyCode 27
         if (chunk[0] === 27) {
@@ -198,8 +198,8 @@ export class ChatSession {
           return;
         }
       };
-      
-      process.stdin.on('data', onKeypress);
+
+      process.stdin.on("data", onKeypress);
 
       // Start a timer that updates the display every second
       timerInterval = setInterval(() => {
@@ -224,7 +224,7 @@ export class ChatSession {
         if (isCancelled) {
           break;
         }
-        
+
         hasContent = true;
 
         if (chunk.message?.content) {
@@ -259,10 +259,10 @@ export class ChatSession {
 
       isComplete = true;
       if (timerInterval) clearInterval(timerInterval);
-      
+
       // Clean up ESC key handler and restore terminal state
       if (onKeypress) {
-        process.stdin.removeListener('data', onKeypress);
+        process.stdin.removeListener("data", onKeypress);
       }
       if (originalRawMode !== undefined) {
         process.stdin.setRawMode(originalRawMode);
@@ -270,14 +270,14 @@ export class ChatSession {
       // Clear any remaining input buffer
       process.stdin.read();
       process.stdin.pause();
-      
+
       clearThinkingIndicator();
 
       // If cancelled by ESC, show cancellation message and return null
       if (isCancelled) {
         p.log.warn("Request cancelled by user");
         // Add a small delay to ensure terminal state is restored before next prompt
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         return null;
       }
 
@@ -298,11 +298,11 @@ export class ChatSession {
       return { fullContent, toolCalls };
     } catch (error) {
       if (timerInterval) clearInterval(timerInterval);
-      
+
       // Clean up ESC key handler and restore terminal state
       try {
         if (onKeypress) {
-          process.stdin.removeListener('data', onKeypress);
+          process.stdin.removeListener("data", onKeypress);
         }
         if (originalRawMode !== undefined) {
           process.stdin.setRawMode(originalRawMode);
@@ -313,7 +313,7 @@ export class ChatSession {
       } catch {
         // Ignore cleanup errors
       }
-      
+
       clearThinkingIndicator();
       // Error was already logged in the OpenRouter client, just return null
       return null;
