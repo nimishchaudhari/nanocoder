@@ -3,6 +3,7 @@ import { commandRegistry } from "../core/commands.js";
 import { successColor, errorColor, primaryColor, blueColor } from "./colors.js";
 import { formatToolCall } from "./tool-formatter.js";
 import type { ToolCall } from "../types/index.js";
+import { promptHistory } from "../core/prompt-history.js";
 
 const examplePrompts = [
   'Try "fix typecheck errors"',
@@ -49,6 +50,11 @@ function getCommandCompletions(input: string): string[] {
 
 export async function getUserInput(): Promise<string | null> {
   try {
+    // Load history on first use
+    if (promptHistory.getHistory().length === 0) {
+      await promptHistory.loadHistory();
+    }
+
     const userInput = await p.text({
       message: primaryColor("What would you like me to help with?"),
       placeholder: getRandomPrompt(),
@@ -60,6 +66,11 @@ export async function getUserInput(): Promise<string | null> {
     }
 
     let inputValue = userInput.trim();
+    
+    // Add to history if it's not empty and not a command
+    if (inputValue && !inputValue.startsWith("/")) {
+      promptHistory.addPrompt(inputValue);
+    }
 
     // If user starts typing a command, show completions and let them choose
     if (inputValue.startsWith("/") && inputValue.length > 1) {

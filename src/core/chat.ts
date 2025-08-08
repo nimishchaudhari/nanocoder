@@ -24,6 +24,7 @@ import {
   clearCommand,
   modelCommand,
   providerCommand,
+  historyCommand,
 } from "./commands/index.js";
 
 let currentChatSession: ChatSession | null = null;
@@ -49,6 +50,7 @@ export class ChatSession {
       clearCommand,
       modelCommand,
       providerCommand,
+      historyCommand,
     ]);
   }
 
@@ -116,7 +118,36 @@ export class ChatSession {
         if (parsed.fullCommand) {
           const result = await commandRegistry.execute(parsed.fullCommand);
           if (result && result.trim()) {
-            p.log.message(result);
+            // Check if the result is a prompt to execute
+            if (result.startsWith("EXECUTE_PROMPT:")) {
+              const promptToExecute = result.replace("EXECUTE_PROMPT:", "");
+              p.log.message(`Executing: ${promptToExecute}`);
+              // Add the selected prompt as a user message and process it
+              this.messages.push({ role: "user", content: promptToExecute });
+              // Continue to process this as a regular user input
+              const response = await this.processStreamResponse();
+              if (!response) {
+                continue;
+              }
+              const { fullContent, toolCalls } = response;
+              this.messages.push({
+                role: "assistant",
+                content: fullContent,
+                tool_calls: toolCalls,
+              });
+              if (fullContent) {
+                displayAssistantMessage(fullContent, this.currentModel);
+              }
+              if (toolCalls && toolCalls.length > 0) {
+                const toolResult = await executeToolCalls(toolCalls);
+                this.messages.push(...toolResult.results);
+                if (toolResult.executed) {
+                  await this.continueConversation();
+                }
+              }
+            } else {
+              p.log.message(result);
+            }
           }
           continue;
         }
