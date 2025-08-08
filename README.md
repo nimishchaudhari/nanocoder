@@ -103,6 +103,52 @@ Common OpenAI-compatible providers:
 - **LocalAI**: `"baseUrl": "http://localhost:8080"`
 - **Any OpenAI-compatible endpoint**: Just provide the base URL
 
+### MCP (Model Context Protocol) Servers
+
+Nanocoder supports connecting to MCP servers to extend its capabilities with additional tools. Configure MCP servers in your `agents.config.json`:
+
+```json
+{
+  "nanocoder": {
+    "mcpServers": [
+      {
+        "name": "filesystem",
+        "command": "npx",
+        "args": ["@modelcontextprotocol/server-filesystem", "/path/to/allowed/directory"]
+      },
+      {
+        "name": "github",
+        "command": "npx",
+        "args": ["@modelcontextprotocol/server-github"],
+        "env": {
+          "GITHUB_TOKEN": "your-github-token"
+        }
+      },
+      {
+        "name": "custom-server",
+        "command": "python",
+        "args": ["path/to/server.py"],
+        "env": {
+          "API_KEY": "your-api-key"
+        }
+      }
+    ]
+  }
+}
+```
+
+When MCP servers are configured, Nanocoder will:
+- Automatically connect to all configured servers on startup
+- Make all server tools available to the AI model
+- Show connected servers and their tools with the `/mcp` command
+
+Popular MCP servers:
+- **Filesystem**: Enhanced file operations
+- **GitHub**: Repository management
+- **Brave Search**: Web search capabilities
+- **Memory**: Persistent context storage
+- [View more MCP servers](https://github.com/modelcontextprotocol/servers)
+
 > **Note**: The `agents.config.json` file should be placed in the directory where you run Nanocoder, allowing for project-by-project configuration with different models or API keys per repository.
 
 ### Commands
@@ -113,6 +159,7 @@ The CLI supports several built-in commands:
 - `/clear` - Clear chat history
 - `/model` - Switch between available models
 - `/provider` - Switch between AI providers (ollama/openrouter/openai-compatible)
+- `/mcp` - Show connected MCP servers and their tools
 - `/exit` - Exit the application
 
 ## Features
@@ -122,6 +169,7 @@ The CLI supports several built-in commands:
 - **Tool calling**: AI can execute tools to interact with your system
   - File reading and writing
   - Bash command execution
+  - **MCP (Model Context Protocol) servers**: Connect to any MCP server for extended capabilities
 - **Interactive commands**: Built-in command system for managing the chat session
 - **Colorised output**: Enhanced terminal experience with syntax highlighting
 - **Model switching**: Change AI models on the fly

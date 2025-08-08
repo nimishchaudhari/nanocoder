@@ -15,6 +15,7 @@ function loadAppConfig(): AppConfig {
           openRouterApiKey: agentsData.nanocoder.openRouterApiKey,
           openRouterModels: agentsData.nanocoder.openRouterModels,
           openAICompatible: agentsData.nanocoder.openAICompatible,
+          mcpServers: agentsData.nanocoder.mcpServers,
         };
       }
     } catch (error) {

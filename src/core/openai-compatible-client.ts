@@ -71,34 +71,22 @@ export class OpenAICompatibleClient implements LLMClient {
     const requestBody = {
       model: this.currentModel,
       messages: messages.map((msg) => {
+        // Convert tool result messages to user messages for Anthropic compatibility
+        if (msg.role === "tool") {
+          return {
+            role: "user",
+            content: `Tool result for ${msg.name}:\n${msg.content || ""}`,
+          };
+        }
+
         const cleanMsg: any = {
           role: msg.role,
           content: msg.content || "",
         };
 
-        // Include tool_calls for assistant messages
-        if (msg.role === "assistant" && msg.tool_calls) {
-          cleanMsg.tool_calls = msg.tool_calls.map((toolCall: any) => ({
-            ...toolCall,
-            function: {
-              ...toolCall.function,
-              arguments:
-                typeof toolCall.function.arguments === "string"
-                  ? toolCall.function.arguments
-                  : JSON.stringify(toolCall.function.arguments),
-            },
-          }));
-        }
-
-        // Include tool_call_id for tool messages
-        if (msg.role === "tool" && msg.tool_call_id) {
-          cleanMsg.tool_call_id = msg.tool_call_id;
-        }
-
-        // Include name for tool messages
-        if (msg.role === "tool" && msg.name) {
-          cleanMsg.name = msg.name;
-        }
+        // Note: Anthropic API doesn't support tool_calls in messages
+        // Tool calling is handled differently, so we don't include tool_calls here
+        // The model will output tool calls in its content which we parse separately
 
         return cleanMsg;
       }),
@@ -147,34 +135,22 @@ export class OpenAICompatibleClient implements LLMClient {
     const requestBody = {
       model: this.currentModel,
       messages: messages.map((msg) => {
+        // Convert tool result messages to user messages for Anthropic compatibility
+        if (msg.role === "tool") {
+          return {
+            role: "user",
+            content: `Tool result for ${msg.name}:\n${msg.content || ""}`,
+          };
+        }
+
         const cleanMsg: any = {
           role: msg.role,
           content: msg.content || "",
         };
 
-        // Include tool_calls for assistant messages
-        if (msg.role === "assistant" && msg.tool_calls) {
-          cleanMsg.tool_calls = msg.tool_calls.map((toolCall: any) => ({
-            ...toolCall,
-            function: {
-              ...toolCall.function,
-              arguments:
-                typeof toolCall.function.arguments === "string"
-                  ? toolCall.function.arguments
-                  : JSON.stringify(toolCall.function.arguments),
-            },
-          }));
-        }
-
-        // Include tool_call_id for tool messages
-        if (msg.role === "tool" && msg.tool_call_id) {
-          cleanMsg.tool_call_id = msg.tool_call_id;
-        }
-
-        // Include name for tool messages
-        if (msg.role === "tool" && msg.name) {
-          cleanMsg.name = msg.name;
-        }
+        // Note: Anthropic API doesn't support tool_calls in messages
+        // Tool calling is handled differently, so we don't include tool_calls here
+        // The model will output tool calls in its content which we parse separately
 
         return cleanMsg;
       }),

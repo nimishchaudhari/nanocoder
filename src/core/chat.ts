@@ -6,14 +6,16 @@ import {
   cleanContentFromToolCalls,
   executeToolCalls,
 } from "./tool-calling/index.js";
+import { setToolRegistryGetter } from "./message-handler.js";
 import {
   displayAssistantMessage,
   displayThinkingIndicator,
   clearThinkingIndicator,
 } from "../ui/output.js";
 import * as p from "@clack/prompts";
-import { tools, read_file } from "../tools/index.js";
-import { promptPath } from "../config/index.js";
+import { read_file } from "../tools/index.js";
+import { ToolManager } from "../tools/tool-manager.js";
+import { promptPath, appConfig } from "../config/index.js";
 import { commandRegistry } from "./commands.js";
 import { isCommandInput, parseInput } from "./command-parser.js";
 import type { Message } from "../types/index.js";
@@ -24,6 +26,7 @@ import {
   clearCommand,
   modelCommand,
   providerCommand,
+  mcpCommand,
 } from "./commands/index.js";
 
 let currentChatSession: ChatSession | null = null;
@@ -37,11 +40,17 @@ export class ChatSession {
   private messages: Message[] = [];
   private currentModel: string;
   private currentProvider: ProviderType = "ollama";
+  private toolManager: ToolManager;
 
   constructor() {
     // Client will be initialized in start() method
     this.client = null as any; // Temporary until async initialization
     this.currentModel = "";
+    this.toolManager = new ToolManager();
+    
+    // Set up the tool registry getter for the message handler
+    setToolRegistryGetter(() => this.toolManager.getToolRegistry());
+    
     currentChatSession = this;
     commandRegistry.register([
       helpCommand,
@@ -49,6 +58,7 @@ export class ChatSession {
       clearCommand,
       modelCommand,
       providerCommand,
+      mcpCommand,
     ]);
   }
 
@@ -90,11 +100,21 @@ export class ChatSession {
     return ["ollama", "openrouter", "openai-compatible"];
   }
 
+  getToolManager(): ToolManager {
+    return this.toolManager;
+  }
+
   async start(): Promise<void> {
     // Initialize client on startup
     try {
       this.client = await createLLMClient(this.currentProvider);
       this.currentModel = this.client.getCurrentModel();
+      
+      // Initialize MCP servers if configured
+      if (appConfig.mcpServers && appConfig.mcpServers.length > 0) {
+        p.log.info("Connecting to MCP servers...");
+        await this.toolManager.initializeMCP(appConfig.mcpServers);
+      }
     } catch (error) {
       console.error(
         `Failed to initialize ${this.currentProvider} provider:`,
@@ -166,14 +186,31 @@ export class ChatSession {
     let originalRawMode: boolean | undefined;
 
     try {
-      const instructions = await read_file({ path: promptPath });
+      let instructions = await read_file({ path: promptPath });
+      
+      // Append MCP server information to the system prompt if servers are connected
+      const connectedServers = this.toolManager.getConnectedServers();
+      if (connectedServers.length > 0) {
+        instructions += "\n\nAdditional MCP Tools Available:\n";
+        for (const serverName of connectedServers) {
+          const serverTools = this.toolManager.getServerTools(serverName);
+          if (serverTools.length > 0) {
+            instructions += `\nFrom MCP Server "${serverName}":\n`;
+            for (const tool of serverTools) {
+              instructions += `- ${tool.name}: ${tool.description || 'MCP tool'}\n`;
+            }
+          }
+        }
+        instructions += "\nThese MCP tools extend your capabilities beyond file operations and bash commands.";
+      }
+      
       const systemMessage: Message = {
         role: "system",
         content: instructions,
       };
       const stream = await this.client.chatStream(
         [systemMessage, ...this.messages],
-        tools
+        this.toolManager.getAllTools()
       );
 
       let fullContent = "";
