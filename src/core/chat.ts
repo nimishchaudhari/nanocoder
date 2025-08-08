@@ -16,6 +16,8 @@ import * as p from "@clack/prompts";
 import { read_file } from "../tools/index.js";
 import { ToolManager } from "../tools/tool-manager.js";
 import { promptPath, appConfig } from "../config/index.js";
+import { loadPreferences, updateLastUsed, getLastUsedModel } from "../config/preferences.js";
+import { initializeLogging, shouldLog } from "../config/logging.js";
 import { commandRegistry } from "./commands.js";
 import { isCommandInput, parseInput } from "./command-parser.js";
 import type { Message } from "../types/index.js";
@@ -27,6 +29,7 @@ import {
   modelCommand,
   providerCommand,
   mcpCommand,
+  debugCommand,
 } from "./commands/index.js";
 
 let currentChatSession: ChatSession | null = null;
@@ -43,10 +46,19 @@ export class ChatSession {
   private toolManager: ToolManager;
 
   constructor() {
+    // Initialize logging system
+    initializeLogging();
+    
     // Client will be initialized in start() method
     this.client = null as any; // Temporary until async initialization
     this.currentModel = "";
     this.toolManager = new ToolManager();
+    
+    // Load preferences to set initial provider
+    const preferences = loadPreferences();
+    if (preferences.lastProvider) {
+      this.currentProvider = preferences.lastProvider;
+    }
     
     // Set up the tool registry getter for the message handler
     setToolRegistryGetter(() => this.toolManager.getToolRegistry());
@@ -59,6 +71,7 @@ export class ChatSession {
       modelCommand,
       providerCommand,
       mcpCommand,
+      debugCommand,
     ]);
   }
 
@@ -74,6 +87,8 @@ export class ChatSession {
   setModel(model: string): void {
     this.currentModel = model;
     this.client.setModel(model);
+    // Save the preference
+    updateLastUsed(this.currentProvider, model);
   }
 
   async getAvailableModels(): Promise<string[]> {
@@ -91,7 +106,23 @@ export class ChatSession {
 
       this.currentProvider = provider;
       this.client = newClient;
-      this.currentModel = this.client.getCurrentModel();
+      
+      // Check if we have a preferred model for this provider
+      const lastUsedModel = getLastUsedModel(provider);
+      if (lastUsedModel) {
+        const availableModels = await newClient.getAvailableModels();
+        if (availableModels.includes(lastUsedModel)) {
+          newClient.setModel(lastUsedModel);
+          this.currentModel = lastUsedModel;
+        } else {
+          this.currentModel = newClient.getCurrentModel();
+        }
+      } else {
+        this.currentModel = newClient.getCurrentModel();
+      }
+      
+      // Save the preference
+      updateLastUsed(provider, this.currentModel);
       await this.clearHistory();
     }
   }
@@ -108,11 +139,32 @@ export class ChatSession {
     // Initialize client on startup
     try {
       this.client = await createLLMClient(this.currentProvider);
-      this.currentModel = this.client.getCurrentModel();
+      
+      // Try to use the last used model for this provider
+      const lastUsedModel = getLastUsedModel(this.currentProvider);
+      if (lastUsedModel) {
+        const availableModels = await this.client.getAvailableModels();
+        if (availableModels.includes(lastUsedModel)) {
+          this.client.setModel(lastUsedModel);
+          this.currentModel = lastUsedModel;
+        } else {
+          this.currentModel = this.client.getCurrentModel();
+        }
+      } else {
+        this.currentModel = this.client.getCurrentModel();
+      }
+      
+      // Save the preference
+      updateLastUsed(this.currentProvider, this.currentModel);
+      
+      // Display current provider and model (always show this)
+      p.log.info(`Using provider: ${this.currentProvider}, model: ${this.currentModel}`);
       
       // Initialize MCP servers if configured
       if (appConfig.mcpServers && appConfig.mcpServers.length > 0) {
-        p.log.info("Connecting to MCP servers...");
+        if (shouldLog("info")) {
+          p.log.info("Connecting to MCP servers...");
+        }
         await this.toolManager.initializeMCP(appConfig.mcpServers);
       }
     } catch (error) {

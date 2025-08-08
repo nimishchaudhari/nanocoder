@@ -2,6 +2,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import * as p from "@clack/prompts";
 import type { Tool } from "../../types/index.js";
+import { shouldLog } from "../../config/logging.js";
 
 export interface MCPServer {
   name: string;
@@ -28,11 +29,20 @@ export class MCPClient {
   async connectToServer(server: MCPServer): Promise<void> {
     try {
       // Create transport for the server
+      // When not in verbose mode, suppress stderr output from MCP servers
       const transport = new StdioClientTransport({
         command: server.command,
         args: server.args || [],
-        env: server.env,
-      });
+        env: {
+          ...server.env,
+          // Set log level environment variables that many servers respect
+          LOG_LEVEL: shouldLog("debug") ? "DEBUG" : "ERROR",
+          DEBUG: shouldLog("debug") ? "1" : "0",
+          VERBOSE: shouldLog("debug") ? "1" : "0",
+        },
+        // Suppress stderr if not in verbose mode
+        stderr: shouldLog("debug") ? "inherit" : "ignore",
+      } as any);
 
       // Create and connect client
       const client = new Client({
@@ -57,11 +67,13 @@ export class MCPClient {
 
       this.serverTools.set(server.name, tools);
 
-      p.log.success(
-        `Connected to MCP server "${server.name}" with ${tools.length} tools: ${tools
-          .map((t) => t.name)
-          .join(", ")}`
-      );
+      if (shouldLog("info")) {
+        p.log.success(
+          `Connected to MCP server "${server.name}" with ${tools.length} tools: ${tools
+            .map((t) => t.name)
+            .join(", ")}`
+        );
+      }
     } catch (error) {
       p.log.error(`Failed to connect to MCP server "${server.name}": ${error}`);
       throw error;
@@ -74,7 +86,9 @@ export class MCPClient {
         await this.connectToServer(server);
       } catch (error) {
         // Log error but continue with other servers
-        p.log.warn(`Skipping server "${server.name}" due to connection error`);
+        if (shouldLog("warn")) {
+          p.log.warn(`Skipping server "${server.name}" due to connection error`);
+        }
       }
     }
     this.isConnected = true;

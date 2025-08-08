@@ -68,7 +68,19 @@ export class OpenAICompatibleClient implements LLMClient {
   }
 
   async chat(messages: Message[], tools: Tool[]): Promise<any> {
-    const requestBody = {
+    // Check if the last user message suggests tool usage
+    const lastUserMessage = messages.filter(m => m.role === "user").pop();
+    const shouldForceTools = lastUserMessage && (
+      lastUserMessage.content?.toLowerCase().includes("retrieve") ||
+      lastUserMessage.content?.toLowerCase().includes("check") ||
+      lastUserMessage.content?.toLowerCase().includes("search") ||
+      lastUserMessage.content?.toLowerCase().includes("find") ||
+      lastUserMessage.content?.toLowerCase().includes("get") ||
+      lastUserMessage.content?.toLowerCase().includes("list") ||
+      lastUserMessage.content?.toLowerCase().includes("show")
+    );
+
+    const requestBody: any = {
       model: this.currentModel,
       messages: messages.map((msg) => {
         // Convert tool result messages to user messages for Anthropic compatibility
@@ -94,6 +106,11 @@ export class OpenAICompatibleClient implements LLMClient {
       max_tokens: 4096,
       stream: false,
     };
+
+    // Add tool_choice to force immediate tool usage when appropriate
+    if (tools.length > 0 && shouldForceTools) {
+      requestBody.tool_choice = "required"; // This forces the model to use tools immediately
+    }
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -132,7 +149,19 @@ export class OpenAICompatibleClient implements LLMClient {
   }
 
   async *chatStream(messages: Message[], tools: Tool[]): AsyncIterable<any> {
-    const requestBody = {
+    // Check if the last user message suggests tool usage
+    const lastUserMessage = messages.filter(m => m.role === "user").pop();
+    const shouldForceTools = lastUserMessage && (
+      lastUserMessage.content?.toLowerCase().includes("retrieve") ||
+      lastUserMessage.content?.toLowerCase().includes("check") ||
+      lastUserMessage.content?.toLowerCase().includes("search") ||
+      lastUserMessage.content?.toLowerCase().includes("find") ||
+      lastUserMessage.content?.toLowerCase().includes("get") ||
+      lastUserMessage.content?.toLowerCase().includes("list") ||
+      lastUserMessage.content?.toLowerCase().includes("show")
+    );
+
+    const requestBody: any = {
       model: this.currentModel,
       messages: messages.map((msg) => {
         // Convert tool result messages to user messages for Anthropic compatibility
@@ -158,6 +187,11 @@ export class OpenAICompatibleClient implements LLMClient {
       max_tokens: 4096,
       stream: true,
     };
+
+    // Add tool_choice to force immediate tool usage when appropriate
+    if (tools.length > 0 && shouldForceTools) {
+      requestBody.tool_choice = "required"; // This forces the model to use tools immediately
+    }
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
