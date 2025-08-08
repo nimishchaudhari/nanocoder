@@ -21,6 +21,7 @@ import { initializeLogging, shouldLog } from "../config/logging.js";
 import { commandRegistry } from "./commands.js";
 import { isCommandInput, parseInput } from "./command-parser.js";
 import type { Message } from "../types/index.js";
+import { CustomCommandLoader, CustomCommandExecutor } from "./custom-commands/index.js";
 
 import {
   exitCommand,
@@ -30,6 +31,7 @@ import {
   providerCommand,
   mcpCommand,
   debugCommand,
+  commandsCommand,
 } from "./commands/index.js";
 
 let currentChatSession: ChatSession | null = null;
@@ -44,6 +46,8 @@ export class ChatSession {
   private currentModel: string;
   private currentProvider: ProviderType = "ollama";
   private toolManager: ToolManager;
+  private customCommandLoader: CustomCommandLoader;
+  private customCommandExecutor: CustomCommandExecutor;
 
   constructor() {
     // Initialize logging system
@@ -53,6 +57,10 @@ export class ChatSession {
     this.client = null as any; // Temporary until async initialization
     this.currentModel = "";
     this.toolManager = new ToolManager();
+    
+    // Initialize custom commands
+    this.customCommandLoader = new CustomCommandLoader();
+    this.customCommandExecutor = new CustomCommandExecutor(this);
     
     // Load preferences to set initial provider
     const preferences = loadPreferences();
@@ -72,6 +80,7 @@ export class ChatSession {
       providerCommand,
       mcpCommand,
       debugCommand,
+      commandsCommand,
     ]);
   }
 
@@ -134,6 +143,46 @@ export class ChatSession {
   getToolManager(): ToolManager {
     return this.toolManager;
   }
+  
+  getCustomCommandLoader(): CustomCommandLoader {
+    return this.customCommandLoader;
+  }
+  
+  async processUserInput(input: string): Promise<void> {
+    // This method is called by CustomCommandExecutor
+    this.messages.push({ role: "user", content: input });
+    
+    const response = await this.processStreamResponse();
+    
+    // If there was an error, just return (keep user message in history)
+    if (!response) {
+      return;
+    }
+    
+    const { fullContent, toolCalls } = response;
+    
+    this.messages.push({
+      role: "assistant",
+      content: fullContent,
+      tool_calls: toolCalls,
+    });
+    
+    if (fullContent) {
+      displayAssistantMessage(fullContent, this.currentModel);
+    }
+    
+    if (toolCalls && toolCalls.length > 0) {
+      const result = await executeToolCalls(toolCalls);
+      
+      // Add tool results to message history
+      this.messages.push(...result.results);
+      
+      // If tools were executed, continue the AI conversation
+      if (result.executed) {
+        await this.continueConversation();
+      }
+    }
+  }
 
   async start(): Promise<void> {
     // Initialize client on startup
@@ -159,6 +208,13 @@ export class ChatSession {
       
       // Display current provider and model (always show this)
       p.log.info(`Using provider: ${this.currentProvider}, model: ${this.currentModel}`);
+      
+      // Load custom commands
+      await this.customCommandLoader.loadCommands();
+      const customCommands = this.customCommandLoader.getAllCommands();
+      if (customCommands.length > 0 && shouldLog("info")) {
+        p.log.info(`Loaded ${customCommands.length} custom commands from .nanocoder/commands`);
+      }
       
       // Initialize MCP servers if configured
       if (appConfig.mcpServers && appConfig.mcpServers.length > 0) {
@@ -186,6 +242,16 @@ export class ChatSession {
       if (isCommandInput(userInput)) {
         const parsed = parseInput(userInput);
         if (parsed.fullCommand) {
+          // Check for custom command first
+          const customCommand = this.customCommandLoader.getCommand(parsed.fullCommand);
+          if (customCommand) {
+            // Execute custom command with any arguments
+            const args = userInput.slice(parsed.fullCommand.length + 1).trim().split(/\s+/).filter(arg => arg);
+            await this.customCommandExecutor.execute(customCommand, args);
+            continue;
+          }
+          
+          // Otherwise try built-in command
           const result = await commandRegistry.execute(parsed.fullCommand);
           if (result && result.trim()) {
             p.log.message(result);
