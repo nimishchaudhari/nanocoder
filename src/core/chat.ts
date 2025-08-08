@@ -145,7 +145,6 @@ export class ChatSession {
             // Check if the result is a prompt to execute
             if (result.startsWith("EXECUTE_PROMPT:")) {
               const promptToExecute = result.replace("EXECUTE_PROMPT:", "");
-              p.log.message(`Executing: ${promptToExecute}`);
               // Add the selected prompt as a user message and process it
               this.messages.push({ role: "user", content: promptToExecute });
               // Continue to process this as a regular user input

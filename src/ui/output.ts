@@ -69,8 +69,9 @@ export function displayAssistantMessage(content: string, model?: string): void {
   borderedContent(modelName, highlightedContent);
 }
 
-export function displayToolCall(toolCall: ToolCall, _result: ToolResult): void {
-  p.log.info(`${toolColor(`⚒ ${toolCall.function.name}`)} executed`);
+export function displayToolCall(toolCall: ToolCall, result: ToolResult): void {
+  const tokenCount = Math.ceil((result.content?.length || 0) / 4);
+  p.log.info(`${toolColor(`⚒ ${toolCall.function.name}`)} executed • ${tokenCount} tokens`);
 }
 
 let currentSpinner: ReturnType<typeof p.spinner> | null = null;
