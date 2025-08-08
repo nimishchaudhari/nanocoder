@@ -241,7 +241,7 @@ export class OpenRouterClient implements LLMClient {
 
                 yield {
                   message: {
-                    content: accumulatedContent,
+                    content: "", // Don't re-yield accumulated content, it's already been yielded during streaming
                     tool_calls: processedToolCalls,
                   },
                   done: true,
@@ -257,10 +257,11 @@ export class OpenRouterClient implements LLMClient {
 
               // Accumulate content
               if (chunk.choices?.[0]?.delta?.content) {
-                accumulatedContent += chunk.choices[0].delta.content;
+                const deltaContent = chunk.choices[0].delta.content;
+                accumulatedContent += deltaContent;
                 yield {
                   message: {
-                    content: chunk.choices[0].delta.content,
+                    content: deltaContent,
                   },
                   done: false,
                 };

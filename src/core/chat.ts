@@ -33,6 +33,30 @@ export function getCurrentChatSession(): ChatSession | null {
   return currentChatSession;
 }
 
+/**
+ * Cleans duplicate content from model responses as a safety net
+ */
+function cleanDuplicateContent(content: string): string {
+  if (!content || content.length < 50) return content;
+
+  // Split by sentences and remove exact duplicates
+  const sentences = content
+    .split(/(?<=[.!?])\s+/)
+    .filter((s) => s.trim().length > 0);
+  const seen = new Set<string>();
+  const cleaned: string[] = [];
+
+  for (const sentence of sentences) {
+    const normalized = sentence.trim().toLowerCase();
+    if (!seen.has(normalized)) {
+      seen.add(normalized);
+      cleaned.push(sentence);
+    }
+  }
+
+  return cleaned.join(" ").trim();
+}
+
 export class ChatSession {
   private client: LLMClient;
   private messages: Message[] = [];
@@ -250,6 +274,10 @@ export class ChatSession {
         );
       }, 1000);
 
+      let lastSeenContent = "";
+      let repetitionCount = 0;
+      const MAX_REPETITIONS = 3;
+
       for await (const chunk of stream) {
         // Check if cancelled by ESC key
         if (isCancelled) {
@@ -259,7 +287,44 @@ export class ChatSession {
         hasContent = true;
 
         if (chunk.message?.content) {
-          fullContent += chunk.message.content;
+          const newContent = chunk.message.content;
+
+          // Check for repetitive content (Kimi issue)
+          if (newContent === lastSeenContent && newContent.trim().length > 0) {
+            repetitionCount++;
+            if (repetitionCount >= MAX_REPETITIONS) {
+              break;
+            }
+          } else {
+            repetitionCount = 0;
+            lastSeenContent = newContent;
+          }
+
+          fullContent += newContent;
+
+          // Also check for content-level repetition (sentences/phrases repeated within the full content)
+          if (fullContent.length > 100) {
+            const sentences = fullContent
+              .split(/[.!?]+/)
+              .filter((s) => s.trim().length > 20);
+            const sentenceSet = new Set();
+            let duplicateCount = 0;
+
+            for (const sentence of sentences) {
+              const normalized = sentence.trim().toLowerCase();
+              if (sentenceSet.has(normalized)) {
+                duplicateCount++;
+                if (duplicateCount >= 2) {
+                  break;
+                }
+              } else {
+                sentenceSet.add(normalized);
+              }
+            }
+
+            if (duplicateCount >= 2) break;
+          }
+
           tokenCount = Math.ceil(fullContent.length / 4);
         }
 
@@ -316,6 +381,9 @@ export class ChatSession {
       if (!hasContent) {
         return null;
       }
+
+      // Clean up any duplicate content before processing
+      fullContent = cleanDuplicateContent(fullContent);
 
       // Parse tool calls from content if tool_calls field is empty
       if (!toolCalls && fullContent) {

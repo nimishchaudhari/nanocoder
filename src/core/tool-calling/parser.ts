@@ -15,8 +15,14 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 
   // Try to parse entire content as single JSON tool call
   if (trimmedContent.startsWith("{") && trimmedContent.endsWith("}")) {
+    // Skip empty or nearly empty JSON objects
+    if (trimmedContent === "{}" || trimmedContent.replace(/\s/g, "") === "{}") {
+      return extractedCalls;
+    }
+    
     try {
       const parsed = JSON.parse(trimmedContent);
+      
       if (parsed.name && parsed.arguments !== undefined) {
         extractedCalls.push({
           id: `call_${Date.now()}`,
@@ -144,12 +150,32 @@ export function cleanContentFromToolCalls(
 
   let cleanedContent = content;
 
+  // Handle markdown code blocks that contain only tool calls
+  const codeBlockRegex = /```(?:json)?\s*\n?([\s\S]*?)\n?```/g;
+  cleanedContent = cleanedContent.replace(codeBlockRegex, (match, blockContent) => {
+    const trimmedBlock = blockContent.trim();
+    
+    // Check if this block contains a tool call that we parsed
+    try {
+      const parsed = JSON.parse(trimmedBlock);
+      if (parsed.name && parsed.arguments !== undefined) {
+        // This code block contains only a tool call, remove the entire block
+        return "";
+      }
+    } catch (e) {
+      // Not valid JSON, keep the code block
+    }
+    
+    // Keep the code block as-is if it doesn't contain a tool call
+    return match;
+  });
+
   // Remove XML-style tool calls
   const xmlToolCallRegex =
     /<([a-zA-Z_][a-zA-Z0-9_]*)\s*>\s*\{\s*"?([^"]*)"?\s*:\s*"([^"]*)"\s*\}\s*<\/\1>/g;
   cleanedContent = cleanedContent.replace(xmlToolCallRegex, "").trim();
 
-  // Remove JSON blocks that were parsed as tool calls
+  // Remove JSON blocks that were parsed as tool calls (for non-code-block cases)
   const toolCallPatterns = [
     /\{\s*\n\s*"name":\s*"([^"]+)",\s*\n\s*"arguments":\s*\{[\s\S]*?\}\s*\n\s*\}/g, // Multiline JSON blocks
     /\{"name":\s*"([^"]+)",\s*"arguments":\s*(\{[^}]*\})\}/g,
@@ -161,10 +187,10 @@ export function cleanContentFromToolCalls(
     cleanedContent = cleanedContent.replace(pattern, "").trim();
   }
 
-  // Remove any remaining JSON-like blocks that might be tool calls
+  // Clean up extra whitespace and newlines
   cleanedContent = cleanedContent
-    .replace(/\{"name":[^}]+\}+/g, "")
-    .replace(/\n\s*\n/g, "\n")
+    .replace(/\n\s*\n\s*\n/g, "\n\n") // Reduce multiple newlines to double
+    .replace(/^\s*\n+|\n+\s*$/g, "") // Remove leading/trailing newlines
     .trim();
 
   return cleanedContent;

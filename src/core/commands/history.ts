@@ -8,14 +8,15 @@ export const historyCommand: Command = {
   description: "Select from recent prompt history",
   handler: async () => {
     const history = promptHistory.getHistory();
-    
+
     if (history.length === 0) {
-      return "No prompt history available.";
+      p.log.info("No prompt history available.");
+      return;
     }
 
     // Reverse to show most recent first
     const recentHistory = [...history].reverse();
-    
+
     const selected = await p.select({
       message: primaryColor("Select a prompt from history:"),
       options: recentHistory.map((prompt, index) => ({
@@ -26,7 +27,8 @@ export const historyCommand: Command = {
     });
 
     if (p.isCancel(selected)) {
-      return "Selection cancelled.";
+      p.log.info("Selection cancelled.");
+      return;
     }
 
     // Return the selected prompt so it gets executed

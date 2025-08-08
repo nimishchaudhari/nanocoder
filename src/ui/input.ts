@@ -66,7 +66,7 @@ export async function getUserInput(): Promise<string | null> {
     }
 
     let inputValue = userInput.trim();
-    
+
     // Add to history if it's not empty and not a command
     if (inputValue && !inputValue.startsWith("/")) {
       promptHistory.addPrompt(inputValue);
