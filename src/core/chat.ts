@@ -87,7 +87,7 @@ export class ChatSession {
   }
 
   getAvailableProviders(): ProviderType[] {
-    return ["ollama", "openrouter"];
+    return ["ollama", "openrouter", "openai-compatible"];
   }
 
   async start(): Promise<void> {

@@ -80,6 +80,29 @@ Create `agents.config.json` in your **working directory** (where you run `nanoco
 }
 ```
 
+**Option C: OpenAI-Compatible APIs (Local or Remote)**
+
+Configure any OpenAI-compatible API endpoint (e.g., LM Studio, Ollama Web API, vLLM, LocalAI, etc.):
+
+```json
+{
+  "nanocoder": {
+    "openAICompatible": {
+      "baseUrl": "http://localhost:1234",
+      "apiKey": "optional-api-key",
+      "models": ["model-1", "model-2"]
+    }
+  }
+}
+```
+
+Common OpenAI-compatible providers:
+- **LM Studio**: `"baseUrl": "http://localhost:1234"`
+- **Ollama Web API**: `"baseUrl": "http://localhost:11434"`
+- **vLLM**: `"baseUrl": "http://localhost:8000"`
+- **LocalAI**: `"baseUrl": "http://localhost:8080"`
+- **Any OpenAI-compatible endpoint**: Just provide the base URL
+
 > **Note**: The `agents.config.json` file should be placed in the directory where you run Nanocoder, allowing for project-by-project configuration with different models or API keys per repository.
 
 ### Commands
@@ -89,13 +112,13 @@ The CLI supports several built-in commands:
 - `/help` - Show available commands
 - `/clear` - Clear chat history
 - `/model` - Switch between available models
-- `/provider` - Switch between AI providers (ollama/openrouter)
+- `/provider` - Switch between AI providers (ollama/openrouter/openai-compatible)
 - `/exit` - Exit the application
 
 ## Features
 
-- **Multi-provider support**: Seamlessly switch between Ollama (local) and OpenRouter (cloud)
-- **Smart fallback**: Automatically falls back to OpenRouter if Ollama is unavailable
+- **Multi-provider support**: Seamlessly switch between Ollama (local), OpenRouter (cloud), and any OpenAI-compatible API
+- **Smart fallback**: Automatically falls back to available providers if one is unavailable
 - **Tool calling**: AI can execute tools to interact with your system
   - File reading and writing
   - Bash command execution
