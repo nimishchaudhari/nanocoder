@@ -90,6 +90,7 @@ The CLI supports several built-in commands:
 - `/clear` - Clear chat history
 - `/model` - Switch between available models
 - `/provider` - Switch between AI providers (ollama/openrouter)
+- `/history` - Select from recent prompt history
 - `/exit` - Exit the application
 
 ## Features

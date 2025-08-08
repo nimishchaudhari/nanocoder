@@ -33,15 +33,15 @@ export const ollamaConfig = {
 };
 
 export const colors: Colors = {
-  white: "#ffffff",
-  black: "#000000",
-  primary: "#CAAD8D",
-  tool: "#0d9488",
-  success: "#00d492",
-  error: "#ff6467",
-  secondary: "#9ca3af",
-  blue: "#8ec6ff",
-  orange: "#FFA500",
+  white: "#c0caf5",
+  black: "#1a1b26",
+  primary: "#bb9af7",
+  tool: "#7dcfff",
+  success: "#9ece6a",
+  error: "#f7768e",
+  secondary: "#565f89",
+  blue: "#7aa2f7",
+  orange: "#ff9e64",
 };
 
 export const promptPath = "./src/prompt.md";

@@ -86,5 +86,4 @@ export function borderedContent(
 
   // Bottom border with rounded corners
   console.log(primaryColor("╰" + "─".repeat(width - 2) + "╯"));
-  console.log();
 }

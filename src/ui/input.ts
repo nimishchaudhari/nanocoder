@@ -4,6 +4,7 @@ import { successColor, errorColor, primaryColor, blueColor } from "./colors.js";
 import { formatToolCall } from "./tool-formatter.js";
 import type { ToolCall } from "../types/index.js";
 import { promptHistory } from "../core/prompt-history.js";
+import { borderedContent } from "./bordered-content.js";
 
 const examplePrompts = [
   'Try "fix typecheck errors"',
@@ -117,7 +118,7 @@ export async function getUserInput(): Promise<string | null> {
 export async function promptToolApproval(toolCall: ToolCall): Promise<boolean> {
   // Display formatted tool call - use message to avoid extra dots
   const formattedTool = await formatToolCall(toolCall);
-  p.log.message(formattedTool);
+  console.log("\n" + formattedTool + "\n");
 
   const action = await p.select({
     message: "Execute this tool?",

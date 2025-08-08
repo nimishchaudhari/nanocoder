@@ -14,5 +14,5 @@ export const blueColorBg = chalk.hex(colors.black).bgHex(colors.blue);
 export const orangeColor = chalk.hex(colors.orange);
 
 // Background colors for diff lines
-export const addedLineColor = chalk.hex(colors.success).bgHex("#0d5d0d").bold;
-export const removedLineColor = chalk.hex(colors.error).bgHex("#5d0d0d").bold;
+export const addedLineColor = chalk.hex(colors.success).bgHex("#283457").bold;
+export const removedLineColor = chalk.hex(colors.error).bgHex("#3f2d3d").bold;
