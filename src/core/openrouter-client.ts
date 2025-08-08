@@ -105,7 +105,7 @@ export class OpenRouterClient implements LLMClient {
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
-          "X-Title": "NanoCoder",
+          "X-Title": "Nanocoder",
         },
         body: JSON.stringify(requestBody),
       }
@@ -179,7 +179,7 @@ export class OpenRouterClient implements LLMClient {
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
-          "X-Title": "NanoCoder",
+          "X-Title": "Nanocoder",
         },
         body: JSON.stringify(requestBody),
       }

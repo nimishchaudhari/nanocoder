@@ -25,7 +25,7 @@ export const helpCommand: Command = {
             .join("\n");
 
     borderedContent(
-      `NanoCoder ${packageJson.version}`,
+      `Nanocoder ${packageJson.version}`,
       `
 A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter.
 

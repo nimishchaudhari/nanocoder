@@ -19,7 +19,7 @@ export function displayWelcome(): void {
   );
   console.log(
     primaryColor("│") +
-      whiteColor(" ✻ Welcome to NanoCoder!                                 ") +
+      whiteColor(" ✻ Welcome to Nanocoder!                                 ") +
       primaryColor("│")
   );
   console.log(
@@ -71,7 +71,11 @@ export function displayAssistantMessage(content: string, model?: string): void {
 
 export function displayToolCall(toolCall: ToolCall, result: ToolResult): void {
   const tokenCount = Math.ceil((result.content?.length || 0) / 4);
-  p.log.info(`${toolColor(`⚒ ${toolCall.function.name}`)} executed • ${tokenCount} tokens`);
+  p.log.info(
+    `${toolColor(
+      `⚒ ${toolCall.function.name}`
+    )} executed • ${tokenCount} tokens`
+  );
 }
 
 let currentSpinner: ReturnType<typeof p.spinner> | null = null;
