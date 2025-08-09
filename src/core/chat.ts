@@ -269,7 +269,7 @@ export class ChatSession {
         const parsed = parseInput(userInput);
         if (parsed.fullCommand) {
           // Check for custom command first
-          const customCommand = this.customCommandLoader.getCommand(parsed.fullCommand);
+          const customCommand = customCommandCache ? customCommandCache.get(parsed.fullCommand) : this.customCommandLoader.getCommand(parsed.fullCommand);
           if (customCommand) {
             // Execute custom command with any arguments
             const args = userInput.slice(parsed.fullCommand.length + 1).trim().split(/\s+/).filter(arg => arg);
