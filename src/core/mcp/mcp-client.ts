@@ -42,7 +42,7 @@ export class MCPClient {
         },
         // Suppress stderr if not in verbose mode
         stderr: shouldLog("debug") ? "inherit" : "ignore",
-      } as any);
+      });
 
       // Create and connect client
       const client = new Client({
