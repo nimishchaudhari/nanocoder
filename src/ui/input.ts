@@ -1,10 +1,12 @@
 import * as p from "@clack/prompts";
 import { commandRegistry } from "../core/commands.js";
 import { getCurrentChatSession } from "../core/chat.js";
-import { successColor, errorColor, toolColor, primaryColor } from "./colors.js";
+import { successColor, errorColor, toolColor, primaryColor, blueColor } from "./colors.js";
 import { formatToolCall } from "./tool-formatter.js";
 import type { ToolCall } from "../types/index.js";
 import { getUserInputWithAutocomplete } from "./input-with-autocomplete.js";
+import { promptHistory } from "../core/prompt-history.js";
+import { borderedContent } from "./bordered-content.js";
 
 const examplePrompts = [
   'Try "fix typecheck errors"',
@@ -65,6 +67,11 @@ function getCommandCompletions(input: string): string[] {
 
 export async function getUserInput(): Promise<string | null> {
   try {
+    // Load history on first use
+    if (promptHistory.getHistory().length === 0) {
+      await promptHistory.loadHistory();
+    }
+
     // Use autocomplete input for better command discovery
     const userInput = await getUserInputWithAutocomplete();
     
@@ -72,8 +79,14 @@ export async function getUserInput(): Promise<string | null> {
       return null;
     }
 
-    // Just return the input - autocomplete is handled during typing now
-    return userInput.trim();
+    let inputValue = userInput.trim();
+
+    // Add to history if it's not empty and not a command
+    if (inputValue && !inputValue.startsWith("/")) {
+      promptHistory.addPrompt(inputValue);
+    }
+
+    return inputValue;
   } catch (error) {
     p.cancel("Goodbye!");
     return null;
@@ -83,7 +96,7 @@ export async function getUserInput(): Promise<string | null> {
 export async function promptToolApproval(toolCall: ToolCall): Promise<boolean> {
   // Display formatted tool call - use message to avoid extra dots
   const formattedTool = await formatToolCall(toolCall);
-  p.log.message(formattedTool);
+  console.log("\n" + formattedTool + "\n");
 
   const action = await p.select({
     message: "Execute this tool?",

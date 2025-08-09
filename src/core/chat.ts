@@ -13,8 +13,8 @@ import {
   clearThinkingIndicator,
 } from "../ui/output.js";
 import * as p from "@clack/prompts";
-import { read_file } from "../tools/index.js";
-import { ToolManager } from "../tools/tool-manager.js";
+import { tools, read_file } from "./tools/index.js";
+import { ToolManager } from "./tools/tool-manager.js";
 import { promptPath, appConfig } from "../config/index.js";
 import { loadPreferences, updateLastUsed, getLastUsedModel } from "../config/preferences.js";
 import { initializeLogging, shouldLog } from "../config/logging.js";
@@ -32,12 +32,37 @@ import {
   mcpCommand,
   debugCommand,
   commandsCommand,
+  historyCommand,
 } from "./commands/index.js";
 
 let currentChatSession: ChatSession | null = null;
 
 export function getCurrentChatSession(): ChatSession | null {
   return currentChatSession;
+}
+
+/**
+ * Cleans duplicate content from model responses as a safety net
+ */
+function cleanDuplicateContent(content: string): string {
+  if (!content || content.length < 50) return content;
+
+  // Split by sentences and remove exact duplicates
+  const sentences = content
+    .split(/(?<=[.!?])\s+/)
+    .filter((s) => s.trim().length > 0);
+  const seen = new Set<string>();
+  const cleaned: string[] = [];
+
+  for (const sentence of sentences) {
+    const normalized = sentence.trim().toLowerCase();
+    if (!seen.has(normalized)) {
+      seen.add(normalized);
+      cleaned.push(sentence);
+    }
+  }
+
+  return cleaned.join(" ").trim();
 }
 
 export class ChatSession {
@@ -81,6 +106,7 @@ export class ChatSession {
       mcpCommand,
       debugCommand,
       commandsCommand,
+      historyCommand,
     ]);
   }
 
@@ -254,7 +280,35 @@ export class ChatSession {
           // Otherwise try built-in command
           const result = await commandRegistry.execute(parsed.fullCommand);
           if (result && result.trim()) {
-            p.log.message(result);
+            // Check if the result is a prompt to execute
+            if (result.startsWith("EXECUTE_PROMPT:")) {
+              const promptToExecute = result.replace("EXECUTE_PROMPT:", "");
+              // Add the selected prompt as a user message and process it
+              this.messages.push({ role: "user", content: promptToExecute });
+              // Continue to process this as a regular user input
+              const response = await this.processStreamResponse();
+              if (!response) {
+                continue;
+              }
+              const { fullContent, toolCalls } = response;
+              this.messages.push({
+                role: "assistant",
+                content: fullContent,
+                tool_calls: toolCalls,
+              });
+              if (fullContent) {
+                displayAssistantMessage(fullContent, this.currentModel);
+              }
+              if (toolCalls && toolCalls.length > 0) {
+                const toolResult = await executeToolCalls(toolCalls);
+                this.messages.push(...toolResult.results);
+                if (toolResult.executed) {
+                  await this.continueConversation();
+                }
+              }
+            } else {
+              p.log.message(result);
+            }
           }
           continue;
         }
@@ -343,7 +397,7 @@ export class ChatSession {
       originalRawMode = process.stdin.isRaw;
       process.stdin.setRawMode(true);
       process.stdin.resume();
-      
+
       onKeypress = (chunk: Buffer) => {
         // ESC key is keyCode 27
         if (chunk[0] === 27) {
@@ -353,8 +407,8 @@ export class ChatSession {
           return;
         }
       };
-      
-      process.stdin.on('data', onKeypress);
+
+      process.stdin.on("data", onKeypress);
 
       // Start a timer that updates the display every second
       timerInterval = setInterval(() => {
@@ -374,16 +428,57 @@ export class ChatSession {
         );
       }, 1000);
 
+      let lastSeenContent = "";
+      let repetitionCount = 0;
+      const MAX_REPETITIONS = 3;
+
       for await (const chunk of stream) {
         // Check if cancelled by ESC key
         if (isCancelled) {
           break;
         }
-        
+
         hasContent = true;
 
         if (chunk.message?.content) {
-          fullContent += chunk.message.content;
+          const newContent = chunk.message.content;
+
+          // Check for repetitive content (Kimi issue)
+          if (newContent === lastSeenContent && newContent.trim().length > 0) {
+            repetitionCount++;
+            if (repetitionCount >= MAX_REPETITIONS) {
+              break;
+            }
+          } else {
+            repetitionCount = 0;
+            lastSeenContent = newContent;
+          }
+
+          fullContent += newContent;
+
+          // Also check for content-level repetition (sentences/phrases repeated within the full content)
+          if (fullContent.length > 100) {
+            const sentences = fullContent
+              .split(/[.!?]+/)
+              .filter((s) => s.trim().length > 20);
+            const sentenceSet = new Set();
+            let duplicateCount = 0;
+
+            for (const sentence of sentences) {
+              const normalized = sentence.trim().toLowerCase();
+              if (sentenceSet.has(normalized)) {
+                duplicateCount++;
+                if (duplicateCount >= 2) {
+                  break;
+                }
+              } else {
+                sentenceSet.add(normalized);
+              }
+            }
+
+            if (duplicateCount >= 2) break;
+          }
+
           tokenCount = Math.ceil(fullContent.length / 4);
         }
 
@@ -414,10 +509,10 @@ export class ChatSession {
 
       isComplete = true;
       if (timerInterval) clearInterval(timerInterval);
-      
+
       // Clean up ESC key handler and restore terminal state
       if (onKeypress) {
-        process.stdin.removeListener('data', onKeypress);
+        process.stdin.removeListener("data", onKeypress);
       }
       if (originalRawMode !== undefined) {
         process.stdin.setRawMode(originalRawMode);
@@ -425,14 +520,14 @@ export class ChatSession {
       // Clear any remaining input buffer
       process.stdin.read();
       process.stdin.pause();
-      
+
       clearThinkingIndicator();
 
       // If cancelled by ESC, show cancellation message and return null
       if (isCancelled) {
         p.log.warn("Request cancelled by user");
         // Add a small delay to ensure terminal state is restored before next prompt
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         return null;
       }
 
@@ -440,6 +535,9 @@ export class ChatSession {
       if (!hasContent) {
         return null;
       }
+
+      // Clean up any duplicate content before processing
+      fullContent = cleanDuplicateContent(fullContent);
 
       // Parse tool calls from content if tool_calls field is empty
       if (!toolCalls && fullContent) {
@@ -453,11 +551,11 @@ export class ChatSession {
       return { fullContent, toolCalls };
     } catch (error) {
       if (timerInterval) clearInterval(timerInterval);
-      
+
       // Clean up ESC key handler and restore terminal state
       try {
         if (onKeypress) {
-          process.stdin.removeListener('data', onKeypress);
+          process.stdin.removeListener("data", onKeypress);
         }
         if (originalRawMode !== undefined) {
           process.stdin.setRawMode(originalRawMode);
@@ -468,7 +566,7 @@ export class ChatSession {
       } catch {
         // Ignore cleanup errors
       }
-      
+
       clearThinkingIndicator();
       // Error was already logged in the OpenRouter client, just return null
       return null;

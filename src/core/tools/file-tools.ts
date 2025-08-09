@@ -1,10 +1,12 @@
-import { resolve } from 'node:path';
-import { readFile, writeFile } from 'node:fs/promises';
-import type { ToolHandler } from '../types/index.js';
+import { resolve } from "node:path";
+import { readFile, writeFile } from "node:fs/promises";
+import type { ToolHandler } from "../../types/index.js";
 
-export const read_file: ToolHandler = async (args: { path: string }): Promise<string> => {
+export const read_file: ToolHandler = async (args: {
+  path: string;
+}): Promise<string> => {
   try {
-    const content = await readFile(resolve(args.path), 'utf-8');
+    const content = await readFile(resolve(args.path), "utf-8");
     return content;
   } catch (error) {
     return `Error reading file: ${
@@ -13,18 +15,25 @@ export const read_file: ToolHandler = async (args: { path: string }): Promise<st
   }
 };
 
-export const read_many_files: ToolHandler = async (args: { paths: string[] }): Promise<string> => {
+export const read_many_files: ToolHandler = async (args: {
+  paths: string[];
+}): Promise<string> => {
   try {
     if (!Array.isArray(args.paths)) {
-      return 'Error: paths must be an array of strings';
+      return "Error: paths must be an array of strings";
     }
     const results = [] as { path: string; content: string }[];
     for (const p of args.paths) {
       try {
-        const content = await readFile(resolve(p), 'utf-8');
+        const content = await readFile(resolve(p), "utf-8");
         results.push({ path: p, content });
       } catch (err) {
-        results.push({ path: p, content: `Error reading file: ${err instanceof Error ? err.message : String(err)}` });
+        results.push({
+          path: p,
+          content: `Error reading file: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        });
       }
     }
     return JSON.stringify(results);
@@ -41,8 +50,8 @@ export const write_file: ToolHandler = async (args: {
 }): Promise<string> => {
   try {
     const absPath = resolve(args.path);
-    await writeFile(absPath, args.content, 'utf-8');
-    return 'File written successfully';
+    await writeFile(absPath, args.content, "utf-8");
+    return "File written successfully";
   } catch (error) {
     return `Error writing file: ${
       error instanceof Error ? error.message : String(error)

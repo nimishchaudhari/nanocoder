@@ -1,7 +1,7 @@
 import { Command } from "../../types/index.js";
 import * as p from "@clack/prompts";
 import { getCurrentChatSession } from "../chat.js";
-import { primaryColor } from "../../ui/colors.js";
+import { primaryColor, successColor } from "../../ui/colors.js";
 
 export const providerCommand: Command = {
   name: "provider",
@@ -47,13 +47,16 @@ export const providerCommand: Command = {
 
       if (selectedProvider !== currentProvider) {
         await chatSession.setProvider(selectedProvider);
-        p.log.success(`Provider changed to: ${primaryColor(selectedProvider)}`);
         p.log.success(
-          `Current model: ${primaryColor(chatSession.getCurrentModel())}`
+          successColor(
+            `Provider changed to: ${primaryColor(
+              selectedProvider
+            )}\nCurrent model: ${primaryColor(chatSession.getCurrentModel())}`
+          )
         );
         p.log.warning("Chat history cleared");
       } else {
-        p.log.message("Provider unchanged.");
+        p.log.info("Provider unchanged.");
       }
     } catch (error) {
       p.log.error(`Error switching provider: ${error}`);

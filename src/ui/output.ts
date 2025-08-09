@@ -4,15 +4,12 @@ import {
   secondaryColor,
   whiteColor,
   blueColor,
+  successColor,
 } from "./colors.js";
 import * as p from "@clack/prompts";
 import { highlightContent } from "./syntax-highlighter.js";
 import type { ToolCall, ToolResult } from "../types/index.js";
-
-// Initialize terminal - no modifications needed
-export function initializeTerminal(): void {
-  // Keep simple for now
-}
+import { borderedContent } from "./bordered-content.js";
 
 export function displayWelcome(): void {
   const cwd = process.cwd();
@@ -22,7 +19,7 @@ export function displayWelcome(): void {
   );
   console.log(
     primaryColor("│") +
-      whiteColor(" ✻ Welcome to NanoCoder!                                 ") +
+      whiteColor(" ✻ Welcome to Nanocoder!                                 ") +
       primaryColor("│")
   );
   console.log(
@@ -67,13 +64,18 @@ export function displayWelcome(): void {
 
 export function displayAssistantMessage(content: string, model?: string): void {
   const highlightedContent = highlightContent(content);
-  p.log.success(
-    `${primaryColor(model || "Assistant")}:\n${highlightedContent}`
-  );
+  const modelName = model || "Assistant";
+
+  borderedContent(modelName, highlightedContent);
 }
 
-export function displayToolCall(toolCall: ToolCall, _result: ToolResult): void {
-  p.log.info(`${toolColor(`⚒ ${toolCall.function.name}`)} executed`);
+export function displayToolCall(toolCall: ToolCall, result: ToolResult): void {
+  const tokenCount = Math.ceil((result.content?.length || 0) / 4);
+  p.log.info(
+    `${toolColor(
+      `⚒ ${toolCall.function.name}`
+    )} executed • ${tokenCount} tokens`
+  );
 }
 
 let currentSpinner: ReturnType<typeof p.spinner> | null = null;
@@ -118,7 +120,7 @@ export function clearThinkingIndicator(): void {
 }
 
 export function startNewConversation(): void {
-  p.outro("Conversation cleared! Starting fresh...");
+  p.outro(successColor("Conversation cleared! Starting fresh..."));
   p.intro(blueColor("What will you create?"));
 }
 
