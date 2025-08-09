@@ -9,7 +9,7 @@ export class OpenAICompatibleClient implements LLMClient {
 
   constructor(baseUrl: string, apiKey?: string, models?: string[]) {
     // Ensure baseUrl ends without a trailing slash for consistent URL construction
-    this.baseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    this.baseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
     this.apiKey = apiKey;
     this.availableModels = models || ["default"];
     this.currentModel = this.availableModels[0]!;
@@ -31,7 +31,10 @@ export class OpenAICompatibleClient implements LLMClient {
 
   async getAvailableModels(): Promise<string[]> {
     // If models are configured, return them
-    if (this.availableModels.length > 0 && this.availableModels[0] !== "default") {
+    if (
+      this.availableModels.length > 0 &&
+      this.availableModels[0] !== "default"
+    ) {
       return this.availableModels;
     }
 
@@ -40,7 +43,7 @@ export class OpenAICompatibleClient implements LLMClient {
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
-      
+
       if (this.apiKey) {
         headers["Authorization"] = `Bearer ${this.apiKey}`;
       }
@@ -67,17 +70,28 @@ export class OpenAICompatibleClient implements LLMClient {
     return this.availableModels;
   }
 
-  async chat(messages: Message[], tools: Tool[]): Promise<any> {
+  /**
+   * Determines the appropriate tool_choice value based on messages and tools
+   */
+  private _getToolChoice(messages: Message[], tools: Tool[]): "required" | undefined {
+    if (tools.length === 0) return undefined;
+    
     // Check if the last user message suggests tool usage
-    const lastUserMessage = messages.filter(m => m.role === "user").pop();
-    const shouldForceTools = lastUserMessage && (
-      lastUserMessage.content?.toLowerCase().includes("retrieve") ||
-      lastUserMessage.content?.toLowerCase().includes("check") ||
-      lastUserMessage.content?.toLowerCase().includes("search") ||
-      lastUserMessage.content?.toLowerCase().includes("find") ||
-      lastUserMessage.content?.toLowerCase().includes("get") ||
-      lastUserMessage.content?.toLowerCase().includes("list") ||
-      lastUserMessage.content?.toLowerCase().includes("show")
+    const lastUserMessage = messages.filter((m) => m.role === "user").pop();
+    const shouldForceTools =
+      lastUserMessage &&
+      (lastUserMessage.content?.toLowerCase().includes("retrieve") ||
+        lastUserMessage.content?.toLowerCase().includes("check") ||
+        lastUserMessage.content?.toLowerCase().includes("search") ||
+        lastUserMessage.content?.toLowerCase().includes("find") ||
+        lastUserMessage.content?.toLowerCase().includes("get") ||
+        lastUserMessage.content?.toLowerCase().includes("list") ||
+        lastUserMessage.content?.toLowerCase().includes("show"));
+
+    return shouldForceTools ? "required" : undefined;
+  }
+
+  async chat(messages: Message[], tools: Tool[]): Promise<any> {
     const toolChoice = this._getToolChoice(messages, tools);
 
     const requestBody: any = {
@@ -105,29 +119,22 @@ export class OpenAICompatibleClient implements LLMClient {
       tools: tools.length > 0 ? tools : undefined,
       max_tokens: 4096,
       stream: false,
+      tool_choice: toolChoice,
     };
-
-    // Add tool_choice to force immediate tool usage when appropriate
-    if (tools.length > 0 && shouldForceTools) {
-      requestBody.tool_choice = "required"; // This forces the model to use tools immediately
-    }
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-    
+
     if (this.apiKey) {
       headers["Authorization"] = `Bearer ${this.apiKey}`;
     }
 
-    const response = await fetch(
-      `${this.baseUrl}/v1/chat/completions`,
-      {
-        method: "POST",
-        headers,
-        body: JSON.stringify(requestBody),
-      }
-    );
+    const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(requestBody),
+    });
 
     if (!response.ok) {
       let errorMessage = `OpenAI-compatible API error: ${response.status} ${response.statusText}`;
@@ -149,17 +156,7 @@ export class OpenAICompatibleClient implements LLMClient {
   }
 
   async *chatStream(messages: Message[], tools: Tool[]): AsyncIterable<any> {
-    // Check if the last user message suggests tool usage
-    const lastUserMessage = messages.filter(m => m.role === "user").pop();
-    const shouldForceTools = lastUserMessage && (
-      lastUserMessage.content?.toLowerCase().includes("retrieve") ||
-      lastUserMessage.content?.toLowerCase().includes("check") ||
-      lastUserMessage.content?.toLowerCase().includes("search") ||
-      lastUserMessage.content?.toLowerCase().includes("find") ||
-      lastUserMessage.content?.toLowerCase().includes("get") ||
-      lastUserMessage.content?.toLowerCase().includes("list") ||
-      lastUserMessage.content?.toLowerCase().includes("show")
-    );
+    const toolChoice = this._getToolChoice(messages, tools);
 
     const requestBody: any = {
       model: this.currentModel,
@@ -186,29 +183,22 @@ export class OpenAICompatibleClient implements LLMClient {
       tools: tools.length > 0 ? tools : undefined,
       max_tokens: 4096,
       stream: true,
+      tool_choice: toolChoice,
     };
-
-    // Add tool_choice to force immediate tool usage when appropriate
-    if (tools.length > 0 && shouldForceTools) {
-      requestBody.tool_choice = "required"; // This forces the model to use tools immediately
-    }
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-    
+
     if (this.apiKey) {
       headers["Authorization"] = `Bearer ${this.apiKey}`;
     }
 
-    const response = await fetch(
-      `${this.baseUrl}/v1/chat/completions`,
-      {
-        method: "POST",
-        headers,
-        body: JSON.stringify(requestBody),
-      }
-    );
+    const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(requestBody),
+    });
 
     if (!response.ok) {
       let errorMessage = `OpenAI-compatible API error: ${response.status} ${response.statusText}`;

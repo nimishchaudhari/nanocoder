@@ -1,6 +1,20 @@
 import type { ToolCall } from "../../types/index.js";
 import * as p from "@clack/prompts";
 
+/**
+ * Validates if a tool name and inner content are valid for tool call processing
+ */
+function isValidToolCall(toolName?: string, innerContent?: string): boolean {
+  return !!(toolName && innerContent);
+}
+
+/**
+ * Validates if parameter name and value are valid for processing
+ */
+function isValidParameter(paramName?: string, paramValue?: string): boolean {
+  return !!(paramName && paramValue !== undefined);
+}
+
 export function parseToolCallsFromContent(content: string): ToolCall[] {
   const extractedCalls: ToolCall[] = [];
   let trimmedContent = content.trim();
@@ -79,7 +93,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
     }
     
     // Check if this looks like an MCP tool call with nested parameter tags
-    if (innerContent.includes('<') && innerContent.includes('>')) {
+    if (innerContent && innerContent.includes('<') && innerContent.includes('>')) {
       try {
         // Parse nested XML tags as parameters
         const paramRegex = /<([^>]+)>([^<]*)<\/\1>/g;
@@ -93,20 +107,21 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
             continue;
           }
           
-          const trimmedValue = paramValue.trim();
+          // paramValue is guaranteed to be defined here due to validation
+          const trimmedValue = paramValue!.trim();
           // Try to parse as JSON if it looks like JSON, otherwise use as string
           if (trimmedValue.startsWith('{') || trimmedValue.startsWith('[')) {
             try {
-              args[paramName] = JSON.parse(trimmedValue);
+              args[paramName!] = JSON.parse(trimmedValue);
             } catch {
-              args[paramName] = trimmedValue;
+              args[paramName!] = trimmedValue;
             }
           } else if (trimmedValue === 'true' || trimmedValue === 'false') {
-            args[paramName] = trimmedValue === 'true';
+            args[paramName!] = trimmedValue === 'true';
           } else if (!isNaN(Number(trimmedValue))) {
-            args[paramName] = Number(trimmedValue);
+            args[paramName!] = Number(trimmedValue);
           } else {
-            args[paramName] = trimmedValue;
+            args[paramName!] = trimmedValue;
           }
         }
         
@@ -115,7 +130,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
           extractedCalls.push({
             id: `call_${Date.now()}_${extractedCalls.length}`,
             function: {
-              name: toolName,
+              name: toolName!,
               arguments: args,
             },
           });

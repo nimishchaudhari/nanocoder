@@ -73,6 +73,7 @@ export class ChatSession {
   private toolManager: ToolManager;
   private customCommandLoader: CustomCommandLoader;
   private customCommandExecutor: CustomCommandExecutor;
+  private customCommandCache: Map<string, any> = new Map();
 
   constructor() {
     // Initialize logging system
@@ -238,6 +239,19 @@ export class ChatSession {
       // Load custom commands
       await this.customCommandLoader.loadCommands();
       const customCommands = this.customCommandLoader.getAllCommands();
+      
+      // Populate command cache for better performance
+      this.customCommandCache.clear();
+      for (const command of customCommands) {
+        this.customCommandCache.set(command.name, command);
+        // Also cache aliases for quick lookup
+        if (command.metadata?.aliases) {
+          for (const alias of command.metadata.aliases) {
+            this.customCommandCache.set(alias, command);
+          }
+        }
+      }
+      
       if (customCommands.length > 0 && shouldLog("info")) {
         p.log.info(`Loaded ${customCommands.length} custom commands from .nanocoder/commands`);
       }
@@ -269,7 +283,7 @@ export class ChatSession {
         const parsed = parseInput(userInput);
         if (parsed.fullCommand) {
           // Check for custom command first
-          const customCommand = customCommandCache ? customCommandCache.get(parsed.fullCommand) : this.customCommandLoader.getCommand(parsed.fullCommand);
+          const customCommand = this.customCommandCache.get(parsed.fullCommand) || this.customCommandLoader.getCommand(parsed.fullCommand);
           if (customCommand) {
             // Execute custom command with any arguments
             const args = userInput.slice(parsed.fullCommand.length + 1).trim().split(/\s+/).filter(arg => arg);
