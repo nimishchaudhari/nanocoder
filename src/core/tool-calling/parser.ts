@@ -67,7 +67,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
     const [fullMatch, toolName, innerContent] = directMatch;
     
     // Skip if toolName or innerContent is undefined
-    if (!toolName || !innerContent) {
+    if (!isValidToolCall(toolName, innerContent)) {
       continue;
     }
     
