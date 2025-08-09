@@ -78,7 +78,7 @@ export class OpenAICompatibleClient implements LLMClient {
       lastUserMessage.content?.toLowerCase().includes("get") ||
       lastUserMessage.content?.toLowerCase().includes("list") ||
       lastUserMessage.content?.toLowerCase().includes("show")
-    );
+    const toolChoice = this._getToolChoice(messages, tools);
 
     const requestBody: any = {
       model: this.currentModel,
