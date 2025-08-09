@@ -1,7 +1,7 @@
-import type { Tool, ToolHandler } from "../types/index.js";
+import type { Tool, ToolHandler } from "../../types/index.js";
 import { tools as staticTools, toolRegistry as staticToolRegistry } from "./index.js";
-import { MCPClient } from "../core/mcp/mcp-client.js";
-import { MCPToolAdapter } from "../core/mcp/mcp-tool-adapter.js";
+import { MCPClient } from "../mcp/mcp-client.js";
+import { MCPToolAdapter } from "../mcp/mcp-tool-adapter.js";
 
 /**
  * Manages both static tools and dynamic MCP tools

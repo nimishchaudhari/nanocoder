@@ -153,7 +153,7 @@ Popular MCP servers:
 
 ### Commands
 
-The CLI supports several built-in commands:
+#### Built-in Commands
 
 - `/help` - Show available commands
 - `/clear` - Clear chat history
@@ -161,19 +161,83 @@ The CLI supports several built-in commands:
 - `/provider` - Switch between AI providers (ollama/openrouter/openai-compatible)
 - `/mcp` - Show connected MCP servers and their tools
 - `/history` - Select from recent prompt history
+- `/debug` - Toggle logging levels (silent/normal/verbose)
+- `/commands` - List all custom commands
 - `/exit` - Exit the application
+
+#### Custom Commands
+
+Nanocoder supports custom commands defined as markdown files in the `.nanocoder/commands` directory. This allows you to create reusable prompts with parameters and organize them by category.
+
+**Example custom command** (`.nanocoder/commands/test.md`):
+```markdown
+---
+description: "Generate comprehensive unit tests for the specified component"
+aliases: ["testing", "spec"]
+parameters:
+  - name: "component"
+    description: "The component or function to test"
+    required: true
+---
+
+Generate comprehensive unit tests for {{component}}. Include:
+- Happy path scenarios
+- Edge cases and error handling
+- Mock dependencies where appropriate
+- Clear test descriptions
+```
+
+**Usage**: `/test component="UserService"`
+
+**Features**:
+- YAML frontmatter for metadata (description, aliases, parameters)
+- Template variable substitution with `{{parameter}}` syntax
+- Namespace support through directories (e.g., `/refactor:dry`)
+- Autocomplete integration for command discovery
+- Parameter validation and prompting
+
+**Pre-installed Commands**:
+- `/test` - Generate comprehensive unit tests for components
+- `/review` - Perform thorough code reviews with suggestions
+- `/refactor:dry` - Apply DRY (Don't Repeat Yourself) principle
+- `/refactor:solid` - Apply SOLID design principles
 
 ## Features
 
-- **Multi-provider support**: Seamlessly switch between Ollama (local), OpenRouter (cloud), and any OpenAI-compatible API
-- **Smart fallback**: Automatically falls back to available providers if one is unavailable
-- **Tool calling**: AI can execute tools to interact with your system
-  - File reading and writing
-  - Bash command execution
-  - **MCP (Model Context Protocol) servers**: Connect to any MCP server for extended capabilities
-- **Interactive commands**: Built-in command system for managing the chat session
-- **Colorised output**: Enhanced terminal experience with syntax highlighting
-- **Model switching**: Change AI models on the fly
+### 🔌 Multi-Provider Support
+- **Ollama**: Local inference with privacy and no API costs
+- **OpenRouter**: Access to premium models (Claude, GPT-4, etc.)
+- **OpenAI-Compatible APIs**: Support for LM Studio, vLLM, LocalAI, and any OpenAI-spec API
+- **Smart fallback**: Automatically switches to available providers if one fails
+- **Per-provider preferences**: Remembers your preferred model for each provider
+
+### 🛠️ Advanced Tool System  
+- **Built-in tools**: File operations, bash command execution
+- **MCP (Model Context Protocol) servers**: Extend capabilities with any MCP-compatible tool
+- **Dynamic tool loading**: Tools are loaded on-demand from configured MCP servers
+- **Tool approval**: Optional confirmation before executing potentially destructive operations
+
+### 📝 Custom Command System
+- **Markdown-based commands**: Define reusable prompts in `.nanocoder/commands/`
+- **Template variables**: Use `{{parameter}}` syntax for dynamic content
+- **Namespace organization**: Organize commands in folders (e.g., `refactor/dry.md`)
+- **Autocomplete support**: Tab completion for command discovery
+- **Rich metadata**: YAML frontmatter for descriptions, aliases, and parameters
+
+### 🎯 Enhanced User Experience
+- **Smart autocomplete**: Tab completion for commands with real-time suggestions
+- **Prompt history**: Access and reuse previous prompts with `/history`
+- **Configurable logging**: Silent, normal, or verbose output levels
+- **Colorized output**: Syntax highlighting and structured display
+- **Session persistence**: Maintains context and preferences across sessions
+- **Real-time indicators**: Shows token usage, timing, and processing status
+
+### ⚙️ Developer Features
+- **TypeScript-first**: Full type safety and IntelliSense support
+- **Extensible architecture**: Plugin-style system for adding new capabilities
+- **Project-specific config**: Different settings per project via `agents.config.json`
+- **Debug tools**: Built-in debugging commands and verbose logging
+- **Error resilience**: Graceful handling of provider failures and network issues
 
 ## Contributing
 
