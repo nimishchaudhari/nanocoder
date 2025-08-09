@@ -89,7 +89,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
         while ((paramMatch = paramRegex.exec(innerContent)) !== null) {
           const [, paramName, paramValue] = paramMatch;
           // Skip if paramName or paramValue is undefined
-          if (!paramName || paramValue === undefined) {
+          if (!isValidParameter(paramName, paramValue)) {
             continue;
           }
           
