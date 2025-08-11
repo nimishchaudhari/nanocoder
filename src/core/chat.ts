@@ -13,15 +13,22 @@ import {
   clearThinkingIndicator,
 } from "../ui/output.js";
 import * as p from "@clack/prompts";
-import { tools, read_file } from "./tools/index.js";
+import { read_file } from "./tools/index.js";
 import { ToolManager } from "./tools/tool-manager.js";
 import { promptPath, appConfig } from "../config/index.js";
-import { loadPreferences, updateLastUsed, getLastUsedModel } from "../config/preferences.js";
+import {
+  loadPreferences,
+  updateLastUsed,
+  getLastUsedModel,
+} from "../config/preferences.js";
 import { initializeLogging, shouldLog } from "../config/logging.js";
 import { commandRegistry } from "./commands.js";
 import { isCommandInput, parseInput } from "./command-parser.js";
 import type { Message } from "../types/index.js";
-import { CustomCommandLoader, CustomCommandExecutor } from "./custom-commands/index.js";
+import {
+  CustomCommandLoader,
+  CustomCommandExecutor,
+} from "./custom-commands/index.js";
 
 import {
   exitCommand,
@@ -78,25 +85,25 @@ export class ChatSession {
   constructor() {
     // Initialize logging system
     initializeLogging();
-    
+
     // Client will be initialized in start() method
     this.client = null as any; // Temporary until async initialization
     this.currentModel = "";
     this.toolManager = new ToolManager();
-    
+
     // Initialize custom commands
     this.customCommandLoader = new CustomCommandLoader();
     this.customCommandExecutor = new CustomCommandExecutor(this);
-    
+
     // Load preferences to set initial provider
     const preferences = loadPreferences();
     if (preferences.lastProvider) {
       this.currentProvider = preferences.lastProvider;
     }
-    
+
     // Set up the tool registry getter for the message handler
     setToolRegistryGetter(() => this.toolManager.getToolRegistry());
-    
+
     currentChatSession = this;
     commandRegistry.register([
       helpCommand,
@@ -142,7 +149,7 @@ export class ChatSession {
 
       this.currentProvider = provider;
       this.client = newClient;
-      
+
       // Check if we have a preferred model for this provider
       const lastUsedModel = getLastUsedModel(provider);
       if (lastUsedModel) {
@@ -156,7 +163,7 @@ export class ChatSession {
       } else {
         this.currentModel = newClient.getCurrentModel();
       }
-      
+
       // Save the preference
       updateLastUsed(provider, this.currentModel);
       await this.clearHistory();
@@ -170,40 +177,40 @@ export class ChatSession {
   getToolManager(): ToolManager {
     return this.toolManager;
   }
-  
+
   getCustomCommandLoader(): CustomCommandLoader {
     return this.customCommandLoader;
   }
-  
+
   async processUserInput(input: string): Promise<void> {
     // This method is called by CustomCommandExecutor
     this.messages.push({ role: "user", content: input });
-    
+
     const response = await this.processStreamResponse();
-    
+
     // If there was an error, just return (keep user message in history)
     if (!response) {
       return;
     }
-    
+
     const { fullContent, toolCalls } = response;
-    
+
     this.messages.push({
       role: "assistant",
       content: fullContent,
       tool_calls: toolCalls,
     });
-    
+
     if (fullContent) {
       displayAssistantMessage(fullContent, this.currentModel);
     }
-    
+
     if (toolCalls && toolCalls.length > 0) {
       const result = await executeToolCalls(toolCalls);
-      
+
       // Add tool results to message history
       this.messages.push(...result.results);
-      
+
       // If tools were executed, continue the AI conversation
       if (result.executed) {
         await this.continueConversation();
@@ -215,7 +222,7 @@ export class ChatSession {
     // Initialize client on startup
     try {
       this.client = await createLLMClient(this.currentProvider);
-      
+
       // Try to use the last used model for this provider
       const lastUsedModel = getLastUsedModel(this.currentProvider);
       if (lastUsedModel) {
@@ -229,17 +236,19 @@ export class ChatSession {
       } else {
         this.currentModel = this.client.getCurrentModel();
       }
-      
+
       // Save the preference
       updateLastUsed(this.currentProvider, this.currentModel);
-      
+
       // Display current provider and model (always show this)
-      p.log.info(`Using provider: ${this.currentProvider}, model: ${this.currentModel}`);
-      
+      p.log.info(
+        `Using provider: ${this.currentProvider}, model: ${this.currentModel}`
+      );
+
       // Load custom commands
       await this.customCommandLoader.loadCommands();
       const customCommands = this.customCommandLoader.getAllCommands();
-      
+
       // Populate command cache for better performance
       this.customCommandCache.clear();
       for (const command of customCommands) {
@@ -251,11 +260,13 @@ export class ChatSession {
           }
         }
       }
-      
+
       if (customCommands.length > 0 && shouldLog("info")) {
-        p.log.info(`Loaded ${customCommands.length} custom commands from .nanocoder/commands`);
+        p.log.info(
+          `Loaded ${customCommands.length} custom commands from .nanocoder/commands`
+        );
       }
-      
+
       // Initialize MCP servers if configured
       if (appConfig.mcpServers && appConfig.mcpServers.length > 0) {
         if (shouldLog("info")) {
@@ -283,14 +294,20 @@ export class ChatSession {
         const parsed = parseInput(userInput);
         if (parsed.fullCommand) {
           // Check for custom command first
-          const customCommand = this.customCommandCache.get(parsed.fullCommand) || this.customCommandLoader.getCommand(parsed.fullCommand);
+          const customCommand =
+            this.customCommandCache.get(parsed.fullCommand) ||
+            this.customCommandLoader.getCommand(parsed.fullCommand);
           if (customCommand) {
             // Execute custom command with any arguments
-            const args = userInput.slice(parsed.fullCommand.length + 1).trim().split(/\s+/).filter(arg => arg);
+            const args = userInput
+              .slice(parsed.fullCommand.length + 1)
+              .trim()
+              .split(/\s+/)
+              .filter((arg) => arg);
             await this.customCommandExecutor.execute(customCommand, args);
             continue;
           }
-          
+
           // Otherwise try built-in command
           const result = await commandRegistry.execute(parsed.fullCommand);
           if (result && result.trim()) {
@@ -373,7 +390,7 @@ export class ChatSession {
 
     try {
       let instructions = await read_file({ path: promptPath });
-      
+
       // Append MCP server information to the system prompt if servers are connected
       const connectedServers = this.toolManager.getConnectedServers();
       if (connectedServers.length > 0) {
@@ -383,13 +400,16 @@ export class ChatSession {
           if (serverTools.length > 0) {
             instructions += `\nFrom MCP Server "${serverName}":\n`;
             for (const tool of serverTools) {
-              instructions += `- ${tool.name}: ${tool.description || 'MCP tool'}\n`;
+              instructions += `- ${tool.name}: ${
+                tool.description || "MCP tool"
+              }\n`;
             }
           }
         }
-        instructions += "\nThese MCP tools extend your capabilities beyond file operations and bash commands.";
+        instructions +=
+          "\nThese MCP tools extend your capabilities beyond file operations and bash commands.";
       }
-      
+
       const systemMessage: Message = {
         role: "system",
         content: instructions,
