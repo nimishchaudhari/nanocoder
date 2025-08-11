@@ -1,7 +1,8 @@
 import type { Command } from "../../types/index.js";
 import * as p from "@clack/prompts";
 import { primaryColor, secondaryColor } from "../../ui/colors.js";
-import { getLogLevel, setLogLevel, type LogLevel } from "../../config/logging.js";
+import { getLogLevel, setLogLevel } from "../../config/logging.js";
+import type { LogLevel } from "../../types/index.js";
 
 export const debugCommand: Command = {
   name: "debug",

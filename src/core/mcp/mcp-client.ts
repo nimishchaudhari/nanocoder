@@ -4,19 +4,7 @@ import * as p from "@clack/prompts";
 import type { Tool } from "../../types/index.js";
 import { shouldLog } from "../../config/logging.js";
 
-export interface MCPServer {
-  name: string;
-  command: string;
-  args?: string[];
-  env?: Record<string, string>;
-}
-
-export interface MCPTool {
-  name: string;
-  description?: string;
-  inputSchema?: any;
-  serverName: string;
-}
+import type { MCPServer, MCPTool } from "../../types/index.js";
 
 export class MCPClient {
   private clients: Map<string, Client> = new Map();

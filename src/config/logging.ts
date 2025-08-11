@@ -1,6 +1,8 @@
 import { loadPreferences, savePreferences } from "./preferences.js";
 
-export type LogLevel = "silent" | "normal" | "verbose";
+import type { LogLevel } from "../types/index.js";
+
+export type { LogLevel };
 
 let currentLogLevel: LogLevel = "normal";
 

@@ -1,3 +1,16 @@
+export interface Command {
+  name: string;
+  description: string;
+  handler: (args: string[]) => void;
+}
+
+export interface ParsedCommand {
+  isCommand: boolean;
+  command?: string;
+  args?: string[];
+  fullCommand?: string;
+}
+
 export interface CustomCommandMetadata {
   description?: string;
   aliases?: string[];
@@ -13,7 +26,7 @@ export interface CustomCommand {
   content: string; // The markdown content without frontmatter
 }
 
-export interface ParsedCommand {
+export interface ParsedCustomCommand {
   metadata: CustomCommandMetadata;
   content: string;
 }

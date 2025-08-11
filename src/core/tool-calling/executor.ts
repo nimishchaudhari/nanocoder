@@ -1,13 +1,9 @@
 import { processToolUse } from "../message-handler.js";
 import { displayToolCall } from "../../ui/output.js";
 import { promptToolApproval } from "../../ui/input.js";
-import type { ToolCall, ToolResult } from "../../types/index.js";
+import type { ToolCall, ToolResult, ToolExecutionResult } from "../../types/index.js";
 import * as p from "@clack/prompts";
 
-export interface ToolExecutionResult {
-  executed: boolean;
-  results: ToolResult[];
-}
 
 
 export async function executeToolCall(

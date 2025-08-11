@@ -4,13 +4,7 @@ import { homedir } from "os";
 import type { ProviderType } from "../types/index.js";
 import { shouldLog } from "./logging.js";
 
-interface UserPreferences {
-  lastProvider?: ProviderType;
-  lastModel?: string;
-  providerModels?: {
-    [key in ProviderType]?: string;
-  };
-}
+import type { UserPreferences } from "../types/index.js";
 
 const PREFERENCES_PATH = join(homedir(), ".nanocoder-preferences.json");
 
