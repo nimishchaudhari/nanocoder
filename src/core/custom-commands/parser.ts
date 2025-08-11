@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import type { CustomCommandMetadata, ParsedCommand } from "./types.js";
+import type { CustomCommandMetadata, ParsedCustomCommand } from "../../types/index.js";
 
 /**
  * Enhanced YAML frontmatter parser with support for multi-line strings and nested objects
@@ -136,7 +136,7 @@ function parseEnhancedFrontmatter(frontmatter: string): CustomCommandMetadata {
 /**
  * Parse a markdown file with optional YAML frontmatter
  */
-export function parseCommandFile(filePath: string): ParsedCommand {
+export function parseCommandFile(filePath: string): ParsedCustomCommand {
   const fileContent = readFileSync(filePath, "utf-8");
   
   // Check for frontmatter

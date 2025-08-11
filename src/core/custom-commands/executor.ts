@@ -1,4 +1,4 @@
-import type { CustomCommand } from "./types.js";
+import type { CustomCommand } from "../../types/index.js";
 import { substituteTemplateVariables } from "./parser.js";
 import type { ChatSession } from "../chat.js";
 
@@ -14,7 +14,7 @@ export class CustomCommandExecutor {
     
     if (command.metadata.parameters && command.metadata.parameters.length > 0) {
       // Map arguments to parameters
-      command.metadata.parameters.forEach((param, index) => {
+      command.metadata.parameters.forEach((param: string, index: number) => {
         variables[param] = args[index] || "";
       });
       
@@ -43,7 +43,7 @@ export class CustomCommandExecutor {
     const parts: string[] = [`/${command.fullName}`];
     
     if (command.metadata.parameters && command.metadata.parameters.length > 0) {
-      parts.push(command.metadata.parameters.map(p => `<${p}>`).join(" "));
+      parts.push(command.metadata.parameters.map((p: string) => `<${p}>`).join(" "));
     }
     
     if (command.metadata.description) {
@@ -51,7 +51,7 @@ export class CustomCommandExecutor {
     }
     
     if (command.metadata.aliases && command.metadata.aliases.length > 0) {
-      const aliasNames = command.metadata.aliases.map(a => 
+      const aliasNames = command.metadata.aliases.map((a: string) => 
         command.namespace ? `${command.namespace}:${a}` : a
       );
       parts.push(`(aliases: ${aliasNames.join(", ")})`);

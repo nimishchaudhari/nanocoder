@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, statSync } from "fs";
 import { join, basename } from "path";
-import type { CustomCommand } from "./types.js";
+import type { CustomCommand } from "../../types/index.js";
 import { parseCommandFile } from "./parser.js";
 
 export class CustomCommandLoader {
