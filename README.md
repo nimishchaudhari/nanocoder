@@ -193,7 +193,7 @@ Nanocoder automatically saves your preferences to remember your choices across s
 
 #### Custom Commands
 
-Nanocoder supports custom commands defined as markdown files in the `.nanocoder/commands` directory. This allows you to create reusable prompts with parameters and organize them by category.
+Nanocoder supports custom commands defined as markdown files in the `.nanocoder/commands` directory. Like `agents.config.json`, this directory is created per codebase, allowing you to create reusable prompts with parameters and organize them by category specific to each project.
 
 **Example custom command** (`.nanocoder/commands/test.md`):
 
