@@ -27,7 +27,9 @@ export const providerCommand: Command = {
           displayName = "Ollama";
         }
         return {
-          name: `${displayName}${provider === currentProvider ? " (current)" : ""}`,
+          name: `${displayName}${
+            provider === currentProvider ? " (current)" : ""
+          }`,
           value: provider,
         };
       });
@@ -49,9 +51,7 @@ export const providerCommand: Command = {
         await chatSession.setProvider(selectedProvider);
         p.log.success(
           successColor(
-            `Provider changed to: ${primaryColor(
-              selectedProvider
-            )}\nCurrent model: ${primaryColor(chatSession.getCurrentModel())}`
+            `Provider changed to: ${selectedProvider}, model: ${chatSession.getCurrentModel()}`
           )
         );
         p.log.warning("Chat history cleared");
