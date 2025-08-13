@@ -5,7 +5,7 @@ import { getCurrentChatSession } from "../chat.js";
 import { borderedContent } from "../../ui/bordered-content.js";
 
 export const commandsCommand: Command = {
-  name: "commands",
+  name: "custom-commands",
   description: "List all custom commands from .nanocoder/commands",
   handler: async (_args: string[]): Promise<void> => {
     const chatSession = getCurrentChatSession();
@@ -57,7 +57,7 @@ export const commandsCommand: Command = {
 };
 
 function formatCommand(cmd: any): string {
-  const parts: string[] = [`• /${primaryColor(cmd.fullName)}`];
+  const parts: string[] = [`• /${cmd.fullName}`];
 
   if (cmd.metadata.parameters && cmd.metadata.parameters.length > 0) {
     parts.push(cmd.metadata.parameters.map((p: string) => `<${p}>`).join(" "));
