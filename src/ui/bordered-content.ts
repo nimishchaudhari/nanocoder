@@ -37,8 +37,13 @@ function wrapText(text: string, width: number): string[] {
             currentLine = word;
             currentCleanLine = cleanWord;
           } else {
-            // Single word is too long, force break
-            lines.push(word);
+            // Single word is too long, truncate to fit
+            const cleanWord = word.replace(/\u001b\[[0-9;]*m/g, "");
+            if (cleanWord.length > width) {
+              lines.push(word.substring(0, width));
+            } else {
+              lines.push(word);
+            }
           }
         }
       }
