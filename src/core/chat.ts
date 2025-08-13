@@ -39,7 +39,6 @@ import {
   mcpCommand,
   debugCommand,
   commandsCommand,
-  historyCommand,
 } from "./commands/index.js";
 
 let currentChatSession: ChatSession | null = null;
@@ -114,7 +113,6 @@ export class ChatSession {
       mcpCommand,
       debugCommand,
       commandsCommand,
-      historyCommand,
     ]);
   }
 

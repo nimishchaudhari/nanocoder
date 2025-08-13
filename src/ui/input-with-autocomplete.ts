@@ -2,8 +2,8 @@ import * as readline from "readline";
 import { commandRegistry } from "../core/commands.js";
 import { getCurrentChatSession } from "../core/chat.js";
 import { primaryColor, secondaryColor, successColor } from "./colors.js";
-import * as p from "@clack/prompts";
 import { endConversation } from "./output.js";
+import { promptHistory } from "../core/prompt-history.js";
 
 /**
  * Get all available command completions
@@ -49,32 +49,36 @@ function completer(line: string): [string[], string] {
 
   const allCommands = getAllCommandCompletions();
   const hits = allCommands.filter((cmd) => cmd.startsWith(line));
-  
+
   // If there's exactly one match, return it for immediate completion
   if (hits.length === 1) {
     return [hits, line];
   }
-  
+
   // If there are multiple matches, find the longest common prefix
   if (hits.length > 1) {
     let commonPrefix = hits[0] || "";
     for (let i = 1; i < hits.length; i++) {
       const hit = hits[i];
       if (!hit) continue;
-      
+
       let j = 0;
-      while (j < commonPrefix.length && j < hit.length && commonPrefix[j] === hit[j]) {
+      while (
+        j < commonPrefix.length &&
+        j < hit.length &&
+        commonPrefix[j] === hit[j]
+      ) {
         j++;
       }
       commonPrefix = commonPrefix.substring(0, j);
     }
-    
+
     // If the common prefix is longer than the current input, complete to the prefix
     if (commonPrefix.length > line.length) {
       return [[commonPrefix], line];
     }
   }
-  
+
   return [hits, line];
 }
 
@@ -82,7 +86,10 @@ function completer(line: string): [string[], string] {
  * Get user input with autocomplete support
  */
 export async function getUserInputWithAutocomplete(): Promise<string | null> {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
+    // Load history before creating the interface
+    await promptHistory.loadHistory();
+
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -101,21 +108,40 @@ export async function getUserInputWithAutocomplete(): Promise<string | null> {
     const promptText = primaryColor("What would you like me to help with?");
     console.log(promptText);
     console.log(
-      secondaryColor("Type `/` and then press Tab for command suggestions.")
+      secondaryColor(
+        "Type `/` and then press Tab for command suggestions. Use ↑/↓ for history."
+      )
     );
     console.log();
 
     const keypressHandler = (_str: string, key: any) => {
       if (key && key.name === "escape") {
-        // Clear the line immediately
+        // Clear the line and reset history index
         process.stdout.write("\r\x1b[K>>> ");
         (rl as any).line = "";
         (rl as any).cursor = 0;
+        promptHistory.resetIndex();
         (rl as any)._refreshLine();
+      } else if (key && key.name === "up") {
+        // Navigate to previous history entry
+        const prevEntry = promptHistory.getPrevious();
+        if (prevEntry !== null) {
+          (rl as any).line = prevEntry;
+          (rl as any).cursor = prevEntry.length;
+          (rl as any)._refreshLine();
+        }
+      } else if (key && key.name === "down") {
+        // Navigate to next history entry
+        const nextEntry = promptHistory.getNext();
+        if (nextEntry !== null) {
+          (rl as any).line = nextEntry;
+          (rl as any).cursor = nextEntry.length;
+          (rl as any)._refreshLine();
+        }
       }
     };
 
-    // Handle escape key to clear input
+    // Handle escape key to clear input and arrow keys for history
     process.stdin.on("keypress", keypressHandler);
 
     rl.question(">>> ", (answer) => {
