@@ -63,15 +63,15 @@ async function createOllamaClient(): Promise<LLMClient> {
 }
 
 async function createOpenRouterClient(): Promise<LLMClient> {
-  if (!appConfig.openRouterApiKey) {
+  if (!appConfig.openRouter?.apiKey) {
     throw new Error("OpenRouter requires API key in config");
   }
-  if (!appConfig.openRouterModels || appConfig.openRouterModels.length === 0) {
+  if (!appConfig.openRouter?.models || appConfig.openRouter.models.length === 0) {
     throw new Error("OpenRouter requires models array in config");
   }
   return new OpenRouterClient(
-    appConfig.openRouterApiKey,
-    appConfig.openRouterModels
+    appConfig.openRouter.apiKey,
+    appConfig.openRouter.models
   );
 }
 

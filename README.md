@@ -4,6 +4,27 @@ A local-first CLI coding agent that brings the power of agentic coding tools lik
 
 ![Screenshot](./.github/assets/example.png)
 
+## Table of Contents
+
+- [Installation](#installation)
+  - [For Users (Recommended)](#for-users-recommended)
+  - [For Development](#for-development)
+- [Configuration](#configuration)
+  - [AI Provider Setup](#ai-provider-setup)
+  - [MCP (Model Context Protocol) Servers](#mcp-model-context-protocol-servers)
+  - [User Preferences](#user-preferences)
+  - [Commands](#commands)
+    - [Built-in Commands](#built-in-commands)
+    - [Custom Commands](#custom-commands)
+- [Features](#features)
+  - [Multi-Provider Support](#-multi-provider-support)
+  - [Advanced Tool System](#️-advanced-tool-system)
+  - [Custom Command System](#-custom-command-system)
+  - [Enhanced User Experience](#-enhanced-user-experience)
+  - [Developer Features](#️-developer-features)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Installation
 
 ### For Users (Recommended)
@@ -74,8 +95,10 @@ Create `agents.config.json` in your **working directory** (where you run `nanoco
 ```json
 {
   "nanocoder": {
-    "openRouterApiKey": "your-api-key-here",
-    "openRouterModels": ["foo-model", "bar-model"]
+    "openRouter": {
+      "apiKey": "your-api-key-here",
+      "models": ["foo-model", "bar-model"]
+    }
   }
 }
 ```
@@ -162,17 +185,20 @@ Popular MCP servers:
 Nanocoder automatically saves your preferences to remember your choices across sessions. Preferences are stored in `~/.nanocoder-preferences.json` in your home directory.
 
 **What gets saved automatically:**
+
 - **Last provider used**: The AI provider you last selected (Ollama, OpenRouter, or OpenAI-compatible)
 - **Last model per provider**: Your preferred model for each provider
 - **Session continuity**: Automatically switches back to your preferred provider/model when restarting
 
 **How it works:**
+
 - When you switch providers with `/provider`, your choice is saved
 - When you switch models with `/model`, the selection is saved for that specific provider
 - Next time you start Nanocoder, it will use your last provider and model
 - Each provider remembers its own preferred model independently
 
 **Manual management:**
+
 - View current preferences: The file is human-readable JSON
 - Reset preferences: Delete `~/.nanocoder-preferences.json` to start fresh
 - No manual editing needed: Use the `/provider` and `/model` commands instead

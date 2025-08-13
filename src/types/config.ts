@@ -1,8 +1,10 @@
 import type { ProviderType } from "./core.js";
 
 export interface AppConfig {
-  openRouterApiKey?: string;
-  openRouterModels?: string[];
+  openRouter?: {
+    apiKey: string;
+    models: string[];
+  };
   openAICompatible?: {
     baseUrl: string;
     apiKey?: string;
