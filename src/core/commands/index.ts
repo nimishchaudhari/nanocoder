@@ -3,4 +3,6 @@ export * from "./help.js";
 export * from "./clear.js";
 export * from "./model.js";
 export * from "./provider.js";
-export * from "./history.js";
+export * from "./mcp.js";
+export * from "./debug.js";
+export * from "./custom-commands.js";

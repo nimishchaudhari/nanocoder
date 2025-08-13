@@ -17,10 +17,22 @@ export const providerCommand: Command = {
       const availableProviders = chatSession.getAvailableProviders();
       const currentProvider = chatSession.getCurrentProvider();
 
-      const providerChoices = availableProviders.map((provider) => ({
-        name: `${provider}${provider === currentProvider ? " (current)" : ""}`,
-        value: provider,
-      }));
+      const providerChoices = availableProviders.map((provider) => {
+        let displayName: string = provider;
+        if (provider === "openai-compatible") {
+          displayName = "OpenAI Compatible";
+        } else if (provider === "openrouter") {
+          displayName = "OpenRouter";
+        } else if (provider === "ollama") {
+          displayName = "Ollama";
+        }
+        return {
+          name: `${displayName}${
+            provider === currentProvider ? " (current)" : ""
+          }`,
+          value: provider,
+        };
+      });
 
       const selectedProvider = await p.select({
         message: "Select a provider:",
@@ -39,9 +51,7 @@ export const providerCommand: Command = {
         await chatSession.setProvider(selectedProvider);
         p.log.success(
           successColor(
-            `Provider changed to: ${primaryColor(
-              selectedProvider
-            )}\nCurrent model: ${primaryColor(chatSession.getCurrentModel())}`
+            `Provider changed to: ${selectedProvider}, model: ${chatSession.getCurrentModel()}`
           )
         );
         p.log.warning("Chat history cleared");

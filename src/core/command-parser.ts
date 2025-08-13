@@ -1,9 +1,4 @@
-export interface ParsedCommand {
-  isCommand: boolean;
-  command?: string;
-  args?: string[];
-  fullCommand?: string;
-}
+import type { ParsedCommand } from "../types/index.js";
 
 export function parseInput(input: string): ParsedCommand {
   const trimmed = input.trim();

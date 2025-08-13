@@ -38,7 +38,7 @@ Common Tasks:
   • Run commands > /help
 
 Commands:
-${commandList}`
+${commandList}\n`
     );
   },
 };
