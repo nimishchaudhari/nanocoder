@@ -40,6 +40,7 @@ import {
   debugCommand,
   commandsCommand,
 } from "./commands/index.js";
+import { successColor } from "../ui/colors.js";
 
 let currentChatSession: ChatSession | null = null;
 
@@ -240,7 +241,9 @@ export class ChatSession {
 
       // Display current provider and model (always show this)
       p.log.info(
-        `Using provider: ${this.currentProvider}, model: ${this.currentModel}`
+        successColor(
+          `Using provider: ${this.currentProvider}, model: ${this.currentModel}`
+        )
       );
 
       // Load custom commands
