@@ -157,6 +157,26 @@ Popular MCP servers:
 
 > **Note**: The `agents.config.json` file should be placed in the directory where you run Nanocoder, allowing for project-by-project configuration with different models or API keys per repository.
 
+### User Preferences
+
+Nanocoder automatically saves your preferences to remember your choices across sessions. Preferences are stored in `~/.nanocoder-preferences.json` in your home directory.
+
+**What gets saved automatically:**
+- **Last provider used**: The AI provider you last selected (Ollama, OpenRouter, or OpenAI-compatible)
+- **Last model per provider**: Your preferred model for each provider
+- **Session continuity**: Automatically switches back to your preferred provider/model when restarting
+
+**How it works:**
+- When you switch providers with `/provider`, your choice is saved
+- When you switch models with `/model`, the selection is saved for that specific provider
+- Next time you start Nanocoder, it will use your last provider and model
+- Each provider remembers its own preferred model independently
+
+**Manual management:**
+- View current preferences: The file is human-readable JSON
+- Reset preferences: Delete `~/.nanocoder-preferences.json` to start fresh
+- No manual editing needed: Use the `/provider` and `/model` commands instead
+
 ### Commands
 
 #### Built-in Commands
