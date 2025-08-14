@@ -2,48 +2,67 @@ import { OllamaClient } from "./ollama-client.js";
 import { OpenRouterClient } from "./openrouter-client.js";
 import { OpenAICompatibleClient } from "./openai-compatible-client.js";
 import { appConfig } from "../config/index.js";
+import { loadPreferences } from "../config/preferences.js";
 import * as p from "@clack/prompts";
 import type { LLMClient, ProviderType } from "../types/index.js";
 import { Ollama } from "ollama";
+import { endConversation } from "../ui/output.js";
+import { blueColor, errorColor } from "../ui/colors.js";
 
 export async function createLLMClient(
-  provider: ProviderType = "ollama"
-): Promise<LLMClient> {
-  // If user explicitly requests a specific provider
-  if (provider === "openrouter") {
-    return await createOpenRouterClient();
-  }
-  
-  if (provider === "openai-compatible") {
-    return await createOpenAICompatibleClient();
+  provider?: ProviderType
+): Promise<{ client: LLMClient; actualProvider: ProviderType }> {
+  p.log.info("Loading preferences...");
+
+  // If no provider specified, check user preferences
+  if (!provider) {
+    const preferences = loadPreferences();
+    provider = preferences.lastProvider || "ollama";
   }
 
-  // Default flow: Try Ollama first, fallback to others
+  // Try the preferred/specified provider first
   try {
-    return await createOllamaClient();
-  } catch (ollamaError: any) {
-    p.log.warn(`Ollama unavailable: ${ollamaError.message}`);
-    
-    // Try OpenAI-compatible if configured
-    if (appConfig.openAICompatible?.baseUrl) {
-      p.log.info("Trying OpenAI-compatible API...");
-      try {
-        return await createOpenAICompatibleClient();
-      } catch (openAIError: any) {
-        p.log.warn(`OpenAI-compatible API unavailable: ${openAIError.message}`);
-      }
+    if (provider === "openrouter") {
+      const client = await createOpenRouterClient();
+      return { client, actualProvider: "openrouter" };
     }
-    
-    // Finally try OpenRouter
-    p.log.info("Falling back to OpenRouter...");
-    try {
-      return await createOpenRouterClient();
-    } catch (openRouterError: any) {
-      p.log.error("All providers are unavailable.");
-      p.log.error("Please either:");
-      p.log.error("1. Install and run Ollama with a model: 'ollama pull qwen3:0.6b'");
-      p.log.error("2. Configure OpenRouter in agents.config.json");
-      p.log.error("3. Configure an OpenAI-compatible API in agents.config.json");
+
+    if (provider === "openai-compatible") {
+      const client = await createOpenAICompatibleClient();
+      return { client, actualProvider: "openai-compatible" };
+    }
+
+    // Default to Ollama
+    const client = await createOllamaClient();
+    return { client, actualProvider: "ollama" };
+  } catch (preferredError: any) {
+    // If preferred provider failed and it wasn't Ollama, try Ollama as fallback
+    if (provider !== "ollama") {
+      p.log.error(
+        errorColor(`${provider} unavailable: ${preferredError.message}`)
+      );
+      p.log.info(blueColor("Falling back to Ollama..."));
+
+      try {
+        const client = await createOllamaClient();
+        return { client, actualProvider: "ollama" };
+      } catch (ollamaError: any) {
+        p.log.error(
+          errorColor(`Ollama unavailable: ${ollamaError.message}\n\nPlease either:\n
+1. Install and run Ollama with a model: ollama pull qwen3:0.6b
+2. Configure your preferred provider in an \`agents.config.json\` file in the current directory`)
+        );
+
+        endConversation();
+        process.exit(1);
+      }
+    } else {
+      p.log.error(
+        errorColor(`Ollama unavailable: ${preferredError.message}\n\nPlease either:\n
+1. Install and run Ollama with a model: ollama pull qwen3:0.6b
+2. Configure your preferred provider in an \`agents.config.json\` file in the current directory`)
+      );
+      endConversation();
       process.exit(1);
     }
   }
@@ -66,7 +85,10 @@ async function createOpenRouterClient(): Promise<LLMClient> {
   if (!appConfig.openRouter?.apiKey) {
     throw new Error("OpenRouter requires API key in config");
   }
-  if (!appConfig.openRouter?.models || appConfig.openRouter.models.length === 0) {
+  if (
+    !appConfig.openRouter?.models ||
+    appConfig.openRouter.models.length === 0
+  ) {
     throw new Error("OpenRouter requires models array in config");
   }
   return new OpenRouterClient(

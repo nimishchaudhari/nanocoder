@@ -144,13 +144,13 @@ export class ChatSession {
   async setProvider(provider: ProviderType): Promise<void> {
     if (provider !== this.currentProvider) {
       // This will throw if provider requirements aren't met (e.g., missing API key)
-      const newClient = await createLLMClient(provider);
+      const { client: newClient, actualProvider } = await createLLMClient(provider);
 
-      this.currentProvider = provider;
+      this.currentProvider = actualProvider;
       this.client = newClient;
 
       // Check if we have a preferred model for this provider
-      const lastUsedModel = getLastUsedModel(provider);
+      const lastUsedModel = getLastUsedModel(actualProvider);
       if (lastUsedModel) {
         const availableModels = await newClient.getAvailableModels();
         if (availableModels.includes(lastUsedModel)) {
@@ -220,7 +220,9 @@ export class ChatSession {
   async start(): Promise<void> {
     // Initialize client on startup
     try {
-      this.client = await createLLMClient(this.currentProvider);
+      const { client, actualProvider } = await createLLMClient(this.currentProvider);
+      this.client = client;
+      this.currentProvider = actualProvider;
 
       // Try to use the last used model for this provider
       const lastUsedModel = getLastUsedModel(this.currentProvider);
