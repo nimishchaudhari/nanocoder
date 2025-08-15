@@ -243,7 +243,6 @@ For feature requests:
 ### Getting Help
 
 - **GitHub Issues**: For bugs, features, and questions
-- **Discussions**: For broader conversations about the project
 
 ### Code of Conduct
 
