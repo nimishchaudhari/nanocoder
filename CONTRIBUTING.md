@@ -103,6 +103,7 @@ Before contributing, please:
 We follow conventional commits:
 
 - `feat:` - New features
+- `mod:` – Smaller modifications to existing features
 - `fix:` - Bug fixes
 - `docs:` - Documentation changes
 - `refactor:` - Code refactoring
