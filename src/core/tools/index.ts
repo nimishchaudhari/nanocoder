@@ -1,5 +1,7 @@
-import { read_file, write_file, read_many_files } from "./file-tools.js";
-import { execute_bash } from "./bash-tools.js";
+import { read_file } from "./read-file.js";
+import { write_file } from "./write-file.js";
+import { read_many_files } from "./read-many-files.js";
+import { execute_bash } from "./execute-bash.js";
 import type { ToolHandler, Tool } from "../../types/index.js";
 
 export const toolRegistry: Record<string, ToolHandler> = {
@@ -86,5 +88,7 @@ export const tools: Tool[] = [
   },
 ];
 
-export * from "./file-tools.js";
-export * from "./bash-tools.js";
+export * from "./read-file.js";
+export * from "./write-file.js";
+export * from "./read-many-files.js";
+export * from "./execute-bash.js";
