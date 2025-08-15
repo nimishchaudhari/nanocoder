@@ -13,7 +13,7 @@ import {
   clearThinkingIndicator,
 } from "../ui/output.js";
 import * as p from "@clack/prompts";
-import { read_file } from "./tools/index.js";
+import { readFileTool } from "./tools/read-file.js";
 import { ToolManager } from "./tools/tool-manager.js";
 import { promptPath, appConfig } from "../config/index.js";
 import {
@@ -392,7 +392,7 @@ export class ChatSession {
     let originalRawMode: boolean | undefined;
 
     try {
-      let instructions = await read_file({ path: promptPath });
+      let instructions = await readFileTool.handler({ path: promptPath });
 
       // Append MCP server information to the system prompt if servers are connected
       const connectedServers = this.toolManager.getConnectedServers();

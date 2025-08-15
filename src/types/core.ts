@@ -36,6 +36,12 @@ export interface Tool {
 
 export type ToolHandler = (input: any) => Promise<string>;
 
+export interface ToolDefinition {
+  handler: ToolHandler;
+  config: Tool;
+  formatter?: (args: any) => string | Promise<string>;
+}
+
 export interface LLMClient {
   getCurrentModel(): string;
   setModel(model: string): void;

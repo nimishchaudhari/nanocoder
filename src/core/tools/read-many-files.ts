@@ -1,8 +1,9 @@
 import { resolve } from "node:path";
 import { readFile } from "node:fs/promises";
-import type { ToolHandler } from "../../types/index.js";
+import type { ToolHandler, ToolDefinition } from "../../types/index.js";
+import { toolColor, secondaryColor, primaryColor, errorColor } from "../../ui/colors.js";
 
-export const read_many_files: ToolHandler = async (args: {
+const handler: ToolHandler = async (args: {
   paths: string[];
 }): Promise<string> => {
   try {
@@ -30,3 +31,52 @@ export const read_many_files: ToolHandler = async (args: {
     }`;
   }
 };
+
+const formatter = (args: any): string => {
+  const paths = args.paths || [];
+  let result = `${toolColor('⚒ read_many_files')}\n`;
+  
+  if (!Array.isArray(paths)) {
+    result += `${errorColor('Error:')} paths must be an array`;
+    return result;
+  }
+  
+  result += `${secondaryColor('Files:')} ${primaryColor(paths.length)} file${paths.length !== 1 ? 's' : ''}\n`;
+  
+  const maxPreview = 5;
+  const previewPaths = paths.slice(0, maxPreview);
+  
+  for (const path of previewPaths) {
+    result += `${secondaryColor('  •')} ${primaryColor(path)}\n`;
+  }
+  
+  if (paths.length > maxPreview) {
+    result += `${secondaryColor('  ... and ' + (paths.length - maxPreview) + ' more files')}\n`;
+  }
+  
+  return result.slice(0, -1);
+};
+
+export const readManyFilesTool: ToolDefinition = {
+  handler,
+  formatter,
+  config: {
+    type: "function",
+    function: {
+      name: "read_many_files",
+      description: "Read the contents of multiple files. Returns a JSON array of { path, content } in the same order as provided.",
+      parameters: {
+        type: "object",
+        properties: {
+          paths: {
+            type: "array",
+            items: { type: "string" },
+            description: "Array of file paths to read, in order.",
+          },
+        },
+        required: ["paths"],
+      },
+    },
+  },
+};
+

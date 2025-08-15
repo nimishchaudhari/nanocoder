@@ -1,94 +1,28 @@
-import { read_file } from "./read-file.js";
-import { write_file } from "./write-file.js";
-import { read_many_files } from "./read-many-files.js";
-import { execute_bash } from "./execute-bash.js";
-import type { ToolHandler, Tool } from "../../types/index.js";
+import { readFileTool } from "./read-file.js";
+import { writeFileTool } from "./write-file.js";
+import { readManyFilesTool } from "./read-many-files.js";
+import { executeBashTool } from "./execute-bash.js";
+import type { ToolHandler, Tool, ToolDefinition } from "../../types/index.js";
 
-export const toolRegistry: Record<string, ToolHandler> = {
-  read_file,
-  read_many_files,
-  write_file,
-  execute_bash,
-};
-
-export const tools: Tool[] = [
-  {
-    type: "function",
-    function: {
-      name: "read_file",
-      description: "Read the contents of a file",
-      parameters: {
-        type: "object",
-        properties: {
-          path: {
-            type: "string",
-            description: "The path to the file to read.",
-          },
-        },
-        required: ["path"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "read_many_files",
-      description:
-        "Read the contents of multiple files. Returns a JSON array of { path, content } in the same order as provided.",
-      parameters: {
-        type: "object",
-        properties: {
-          paths: {
-            type: "array",
-            items: { type: "string" },
-            description: "Array of file paths to read, in order.",
-          },
-        },
-        required: ["paths"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "write_file",
-      description: "Write content to a file (overwrites existing content)",
-      parameters: {
-        type: "object",
-        properties: {
-          path: {
-            type: "string",
-            description: "The path to the file to write.",
-          },
-          content: {
-            type: "string",
-            description: "The content to write to the file.",
-          },
-        },
-        required: ["path", "content"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "execute_bash",
-      description: "Execute a bash command and return its output",
-      parameters: {
-        type: "object",
-        properties: {
-          command: {
-            type: "string",
-            description: "The bash command to execute.",
-          },
-        },
-        required: ["command"],
-      },
-    },
-  },
+export const toolDefinitions: ToolDefinition[] = [
+  readFileTool,
+  writeFileTool,
+  readManyFilesTool,
+  executeBashTool,
 ];
 
-export * from "./read-file.js";
-export * from "./write-file.js";
-export * from "./read-many-files.js";
-export * from "./execute-bash.js";
+export const toolRegistry: Record<string, ToolHandler> = 
+  Object.fromEntries(
+    toolDefinitions.map(def => [def.config.function.name, def.handler])
+  );
+
+export const tools: Tool[] = toolDefinitions.map(def => def.config);
+
+// Export formatter registry for the UI
+export const toolFormatters: Record<string, (args: any) => string | Promise<string>> = 
+  Object.fromEntries(
+    toolDefinitions
+      .filter(def => def.formatter)
+      .map(def => [def.config.function.name, def.formatter!])
+  );
+

@@ -1,8 +1,9 @@
 import { resolve } from "node:path";
 import { readFile } from "node:fs/promises";
-import type { ToolHandler } from "../../types/index.js";
+import type { ToolHandler, ToolDefinition } from "../../types/index.js";
+import { toolColor, secondaryColor, primaryColor } from "../../ui/colors.js";
 
-export const read_file: ToolHandler = async (args: {
+const handler: ToolHandler = async (args: {
   path: string;
 }): Promise<string> => {
   try {
@@ -14,3 +15,40 @@ export const read_file: ToolHandler = async (args: {
     }`;
   }
 };
+
+const formatter = (args: any): string => {
+  const path = args.path || args.file_path || 'unknown';
+  let result = `${toolColor('⚒ read_file')}\n`;
+  result += `${secondaryColor('Path:')} ${primaryColor(path)}`;
+  
+  if (args.offset || args.limit) {
+    result += `\n${secondaryColor('Range:')} `;
+    if (args.offset) result += `from line ${args.offset} `;
+    if (args.limit) result += `(${args.limit} lines)`;
+  }
+  
+  return result;
+};
+
+export const readFileTool: ToolDefinition = {
+  handler,
+  formatter,
+  config: {
+    type: "function",
+    function: {
+      name: "read_file",
+      description: "Read the contents of a file",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "The path to the file to read.",
+          },
+        },
+        required: ["path"],
+      },
+    },
+  },
+};
+

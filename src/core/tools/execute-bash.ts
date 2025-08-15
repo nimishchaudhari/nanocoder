@@ -1,7 +1,9 @@
 import { spawn } from "node:child_process";
-import type { ToolHandler } from "../../types/index.js";
+import { highlight } from 'cli-highlight';
+import type { ToolHandler, ToolDefinition } from "../../types/index.js";
+import { toolColor, secondaryColor, primaryColor } from "../../ui/colors.js";
 
-export const execute_bash: ToolHandler = async (args: {
+const handler: ToolHandler = async (args: {
   command: string;
 }): Promise<string> => {
   try {
@@ -18,7 +20,7 @@ export const execute_bash: ToolHandler = async (args: {
         stderr += data.toString();
       });
 
-      proc.on("close", (code) => {
+      proc.on("close", () => {
         if (stderr) {
           resolve(`STDERR:\n${stderr}\nSTDOUT:\n${stdout}`);
         } else {
@@ -36,3 +38,41 @@ export const execute_bash: ToolHandler = async (args: {
     }`;
   }
 };
+
+const formatter = (args: any): string => {
+  const command = args.command || 'unknown';
+  let result = `${toolColor('⚒ execute_bash')}\n`;
+  result += `${secondaryColor('Command:')} `;
+  
+  try {
+    const highlighted = highlight(command, { language: 'bash', theme: 'default' });
+    result += highlighted;
+  } catch {
+    result += `${primaryColor(command)}`;
+  }
+  
+  return result;
+};
+
+export const executeBashTool: ToolDefinition = {
+  handler,
+  formatter,
+  config: {
+    type: "function",
+    function: {
+      name: "execute_bash",
+      description: "Execute a bash command and return its output",
+      parameters: {
+        type: "object",
+        properties: {
+          command: {
+            type: "string",
+            description: "The bash command to execute.",
+          },
+        },
+        required: ["command"],
+      },
+    },
+  },
+};
+
