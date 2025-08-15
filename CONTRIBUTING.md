@@ -6,7 +6,6 @@ Thank you for your interest in contributing to Nanocoder! We welcome contributio
 
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
-- [Project Structure](#project-structure)
 - [Making Changes](#making-changes)
 - [Testing](#testing)
 - [Coding Standards](#coding-standards)
@@ -26,29 +25,33 @@ Before contributing, please:
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or pnpm
 - Git
 
 ### Setup Steps
 
 1. **Fork and clone the repository:**
+
    ```bash
    git clone https://github.com/YOUR-USERNAME/nanocoder.git
    cd nanocoder
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 3. **Build the project:**
+
    ```bash
    npm run build
    ```
 
 4. **Test your setup:**
+
    ```bash
    npm run start
    ```
@@ -57,29 +60,6 @@ Before contributing, please:
    ```bash
    npm run dev
    ```
-
-## Project Structure
-
-```
-src/
-├── config/          # Configuration management (preferences, logging)
-├── core/            # Core functionality
-│   ├── commands/    # Built-in slash commands (/help, /model, etc.)
-│   ├── custom-commands/ # Custom command system
-│   ├── mcp/         # Model Context Protocol integration
-│   ├── tool-calling/ # Tool execution and parsing
-│   └── tools/       # Built-in tools (file, bash operations)
-├── types/           # TypeScript type definitions
-└── ui/              # User interface components (colors, input, output)
-```
-
-### Key Components
-
-- **Client Factory** (`core/client-factory.ts`): Manages AI provider connections
-- **Chat Handler** (`core/chat.ts`): Main conversation loop
-- **Tool Manager** (`core/tools/tool-manager.ts`): Coordinates tool execution
-- **MCP Client** (`core/mcp/mcp-client.ts`): Handles MCP server connections
-- **Command Parser** (`core/command-parser.ts`): Processes slash commands
 
 ## Making Changes
 
@@ -94,16 +74,19 @@ src/
 ### Development Workflow
 
 1. **Create a branch:**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 2. **Make your changes:**
+
    - Follow the existing code style
    - Add appropriate TypeScript types
    - Update documentation if needed
 
 3. **Test your changes:**
+
    ```bash
    npm run build
    npm run start
@@ -133,11 +116,13 @@ We follow conventional commits:
 Since Nanocoder is a CLI tool, most testing is currently manual:
 
 1. **Test different AI providers:**
+
    - Ollama (local)
    - OpenRouter (API)
    - OpenAI-compatible endpoints
 
 2. **Test core functionality:**
+
    - File operations (read, write, edit)
    - Bash command execution
    - Custom commands
@@ -190,21 +175,25 @@ We welcome contributions that add automated testing:
 
 ```markdown
 ## Description
+
 Brief description of what this PR does
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Tested with Ollama
 - [ ] Tested with OpenRouter
 - [ ] Tested with OpenAI-compatible API
 - [ ] Tested MCP integration (if applicable)
 
 ## Checklist
+
 - [ ] Code follows project style guidelines
 - [ ] Self-review completed
 - [ ] Documentation updated (if needed)
