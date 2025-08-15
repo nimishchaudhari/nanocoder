@@ -212,7 +212,6 @@ Nanocoder automatically saves your preferences to remember your choices across s
 - `/model` - Switch between available models
 - `/provider` - Switch between AI providers (ollama/openrouter/openai-compatible)
 - `/mcp` - Show connected MCP servers and their tools
-- `/history` - Select from recent prompt history
 - `/debug` - Toggle logging levels (silent/normal/verbose)
 - `/custom-commands` - List all custom commands
 - `/exit` - Exit the application
