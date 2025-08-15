@@ -14,7 +14,16 @@ const handler: ToolHandler = async (args: {
     for (const p of args.paths) {
       try {
         const content = await readFile(resolve(p), "utf-8");
-        results.push({ path: p, content });
+        const lines = content.split('\n');
+        
+        // Add line numbers for precise editing
+        let numberedContent = '';
+        for (let i = 0; i < lines.length; i++) {
+          const lineNum = String(i + 1).padStart(4, ' ');
+          numberedContent += `${lineNum}: ${lines[i]}\n`;
+        }
+        
+        results.push({ path: p, content: numberedContent.slice(0, -1) });
       } catch (err) {
         results.push({
           path: p,
@@ -64,7 +73,7 @@ export const readManyFilesTool: ToolDefinition = {
     type: "function",
     function: {
       name: "read_many_files",
-      description: "Read the contents of multiple files. Returns a JSON array of { path, content } in the same order as provided.",
+      description: "Read the contents of multiple files with line numbers. Returns a JSON array of { path, content } in the same order as provided.",
       parameters: {
         type: "object",
         properties: {

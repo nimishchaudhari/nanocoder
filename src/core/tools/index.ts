@@ -1,5 +1,6 @@
 import { readFileTool } from "./read-file.js";
 import { writeFileTool } from "./write-file.js";
+import { editLinesTool } from "./edit-lines.js";
 import { readManyFilesTool } from "./read-many-files.js";
 import { executeBashTool } from "./execute-bash.js";
 import type { ToolHandler, Tool, ToolDefinition } from "../../types/index.js";
@@ -7,6 +8,7 @@ import type { ToolHandler, Tool, ToolDefinition } from "../../types/index.js";
 export const toolDefinitions: ToolDefinition[] = [
   readFileTool,
   writeFileTool,
+  editLinesTool,
   readManyFilesTool,
   executeBashTool,
 ];

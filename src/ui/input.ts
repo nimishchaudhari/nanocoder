@@ -71,6 +71,12 @@ export async function promptToolApproval(toolCall: ToolCall): Promise<boolean> {
   const formattedTool = await formatToolCall(toolCall);
   console.log("\n" + formattedTool + "\n");
 
+  // Check if the formatter detected an error that should prevent execution
+  if (shouldAutoFailTool(formattedTool, toolCall.function.name)) {
+    console.log(`${errorColor("✗ Tool execution cancelled due to error")}\n`);
+    return false;
+  }
+
   const action = await p.select({
     message: "Execute this tool?",
     options: [
@@ -88,4 +94,27 @@ export async function promptToolApproval(toolCall: ToolCall): Promise<boolean> {
   }
 
   return action === "execute";
+}
+
+function shouldAutoFailTool(formatterOutput: string, toolName: string): boolean {
+  // Check for common error patterns that should prevent execution
+  const errorPatterns = [
+    "✗ Text not found in file",
+    "✗ Start line .* is out of range",
+    "✗ End line .* is out of range", 
+    "✗ Line number .* is out of range",
+    "Operation will fail",
+    "Error:",
+  ];
+
+  // For edit-related tools, be more strict about text-not-found errors
+  if (["edit_lines"].includes(toolName)) {
+    return errorPatterns.some(pattern => {
+      const regex = new RegExp(pattern);
+      return regex.test(formatterOutput);
+    });
+  }
+
+  // For other tools, only fail on explicit errors
+  return formatterOutput.includes("Error:");
 }

@@ -8,7 +8,16 @@ const handler: ToolHandler = async (args: {
 }): Promise<string> => {
   try {
     const content = await readFile(resolve(args.path), "utf-8");
-    return content;
+    const lines = content.split('\n');
+    
+    // Return content with line numbers for precise editing
+    let result = '';
+    for (let i = 0; i < lines.length; i++) {
+      const lineNum = String(i + 1).padStart(4, ' ');
+      result += `${lineNum}: ${lines[i]}\n`;
+    }
+    
+    return result.slice(0, -1); // Remove trailing newline
   } catch (error) {
     return `Error reading file: ${
       error instanceof Error ? error.message : String(error)
@@ -37,7 +46,7 @@ export const readFileTool: ToolDefinition = {
     type: "function",
     function: {
       name: "read_file",
-      description: "Read the contents of a file",
+      description: "Read the contents of a file with line numbers (use line numbers with edit_lines tool for precise editing)",
       parameters: {
         type: "object",
         properties: {
