@@ -6,10 +6,9 @@ import { toolColor, secondaryColor, primaryColor, errorColor } from "../../ui/co
 const handler: ToolHandler = async (args: {
   paths: string[];
 }): Promise<string> => {
-  try {
-    if (!Array.isArray(args.paths)) {
-      return "Error: paths must be an array of strings";
-    }
+  if (!Array.isArray(args.paths)) {
+    throw new Error("paths must be an array of strings");
+  }
     const results = [] as { path: string; content: string }[];
     for (const p of args.paths) {
       try {
@@ -34,11 +33,6 @@ const handler: ToolHandler = async (args: {
       }
     }
     return JSON.stringify(results);
-  } catch (error) {
-    return `Error reading multiple files: ${
-      error instanceof Error ? error.message : String(error)
-    }`;
-  }
 };
 
 const formatter = (args: any): string => {

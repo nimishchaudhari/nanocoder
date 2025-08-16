@@ -14,15 +14,9 @@ const handler: ToolHandler = async (args: {
   path: string;
   content: string;
 }): Promise<string> => {
-  try {
-    const absPath = resolve(args.path);
-    await writeFile(absPath, args.content, "utf-8");
-    return "File written successfully";
-  } catch (error) {
-    return `Error writing file: ${
-      error instanceof Error ? error.message : String(error)
-    }`;
-  }
+  const absPath = resolve(args.path);
+  await writeFile(absPath, args.content, "utf-8");
+  return "File written successfully";
 };
 
 const formatter = async (args: any): Promise<string> => {
@@ -31,7 +25,7 @@ const formatter = async (args: any): Promise<string> => {
   const lineCount = newContent.split("\n").length;
   const charCount = newContent.length;
 
-  let result = `${toolColor("⚒ write_file")}\n`;
+  let result = `${toolColor("⚒ create_file")}\n`;
   result += `${secondaryColor("Path:")} ${primaryColor(path)}\n`;
   result += `${secondaryColor("Size:")} ${successColor(
     `${lineCount} lines, ${charCount} characters`
@@ -63,14 +57,14 @@ const formatter = async (args: any): Promise<string> => {
   return result;
 };
 
-export const writeFileTool: ToolDefinition = {
+export const createFileTool: ToolDefinition = {
   handler,
   formatter,
   config: {
     type: "function",
     function: {
-      name: "write_file",
-      description: "Write content to a file (overwrites existing content)",
+      name: "create_file",
+      description: "Create a new file with the specified content (overwrites if file exists)",
       parameters: {
         type: "object",
         properties: {

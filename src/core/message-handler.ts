@@ -18,12 +18,22 @@ export async function processToolUse(toolCall: ToolCall): Promise<ToolResult> {
     throw new Error(`Unknown tool: ${toolCall.function.name}`);
   }
 
-  const result = await handler(toolCall.function.arguments);
-
-  return {
-    tool_call_id: toolCall.id,
-    role: "tool",
-    name: toolCall.function.name,
-    content: result,
-  };
+  try {
+    const result = await handler(toolCall.function.arguments);
+    return {
+      tool_call_id: toolCall.id,
+      role: "tool",
+      name: toolCall.function.name,
+      content: result,
+    };
+  } catch (error) {
+    // Convert exceptions to error messages that the model can see and correct
+    const errorMessage = `Error: ${error instanceof Error ? error.message : String(error)}`;
+    return {
+      tool_call_id: toolCall.id,
+      role: "tool",
+      name: toolCall.function.name,
+      content: errorMessage,
+    };
+  }
 }

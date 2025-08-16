@@ -6,37 +6,31 @@ import { toolColor, secondaryColor, primaryColor } from "../../ui/colors.js";
 const handler: ToolHandler = async (args: {
   command: string;
 }): Promise<string> => {
-  try {
-    return new Promise((resolve, reject) => {
-      const proc = spawn("sh", ["-c", args.command]);
-      let stdout = "";
-      let stderr = "";
+  return new Promise((resolve, reject) => {
+    const proc = spawn("sh", ["-c", args.command]);
+    let stdout = "";
+    let stderr = "";
 
-      proc.stdout.on("data", (data) => {
-        stdout += data.toString();
-      });
-
-      proc.stderr.on("data", (data) => {
-        stderr += data.toString();
-      });
-
-      proc.on("close", () => {
-        if (stderr) {
-          resolve(`STDERR:\n${stderr}\nSTDOUT:\n${stdout}`);
-        } else {
-          resolve(stdout);
-        }
-      });
-
-      proc.on("error", (error) => {
-        reject(`Error executing command: ${error.message}`);
-      });
+    proc.stdout.on("data", (data) => {
+      stdout += data.toString();
     });
-  } catch (error) {
-    return `Error executing command: ${
-      error instanceof Error ? error.message : String(error)
-    }`;
-  }
+
+    proc.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    proc.on("close", () => {
+      if (stderr) {
+        resolve(`STDERR:\n${stderr}\nSTDOUT:\n${stdout}`);
+      } else {
+        resolve(stdout);
+      }
+    });
+
+    proc.on("error", (error) => {
+      reject(new Error(`Error executing command: ${error.message}`));
+    });
+  });
 };
 
 const formatter = (args: any): string => {
