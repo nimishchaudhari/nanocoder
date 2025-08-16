@@ -106,6 +106,7 @@ export class OpenRouterClient implements LLMClient {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
           "X-Title": "Nanocoder",
+          "HTTP-Referer": "https://github.com/Mote-Software/nanocoder",
         },
         body: JSON.stringify(requestBody),
       }
