@@ -15,6 +15,65 @@ import { getLanguageFromExtension } from "../utils/programming-language-helper.j
 
 type EditMode = "insert" | "replace" | "delete" | "move" | "find_replace";
 
+/**
+ * Generate post-edit context showing current file state
+ */
+function generatePostEditContext(
+  lines: string[],
+  editStartLine: number,
+  editEndLine: number,
+  mode: EditMode
+): string {
+  const totalLines = lines.length;
+  const contextLines = 25; // Lines to show around edit
+  
+  let result = `\n\nCurrent file state (${totalLines} total lines):\n`;
+  
+  // For small files, show more context
+  if (totalLines <= 50) {
+    const start = Math.max(0, editStartLine - 10);
+    const end = Math.min(totalLines, editEndLine + 10);
+    
+    for (let i = start; i < end; i++) {
+      const lineNum = i + 1;
+      const isInEditRange = lineNum >= editStartLine && lineNum <= editEndLine;
+      const marker = isInEditRange ? " ← " : "   ";
+      result += `${lineNum.toString().padStart(3, " ")}${marker}${lines[i] || ""}\n`;
+    }
+  } else {
+    // For larger files, show context around the edit
+    const start = Math.max(0, editStartLine - contextLines / 2);
+    const end = Math.min(totalLines, editEndLine + contextLines / 2);
+    
+    // Show some lines from start if we're not already there
+    if (start > 5) {
+      for (let i = 0; i < 3; i++) {
+        result += `${(i + 1).toString().padStart(3, " ")}   ${lines[i] || ""}\n`;
+      }
+      result += `  ...  [${start - 3} lines omitted]\n`;
+    }
+    
+    // Show context around edit
+    for (let i = start; i < end; i++) {
+      const lineNum = i + 1;
+      const isInEditRange = lineNum >= editStartLine && lineNum <= editEndLine;
+      const marker = isInEditRange ? " ← " : "   ";
+      result += `${lineNum.toString().padStart(3, " ")}${marker}${lines[i] || ""}\n`;
+    }
+    
+    // Show some lines from end if we're not already there
+    if (end < totalLines - 5) {
+      result += `  ...  [${totalLines - end - 3} lines omitted]\n`;
+      for (let i = totalLines - 3; i < totalLines; i++) {
+        result += `${(i + 1).toString().padStart(3, " ")}   ${lines[i] || ""}\n`;
+      }
+    }
+  }
+  
+  return result;
+}
+
+
 const handler: ToolHandler = async (args: {
   path: string;
   mode: EditMode;
@@ -49,7 +108,31 @@ const handler: ToolHandler = async (args: {
       }
 
       await writeFile(absPath, newContent, "utf-8");
-      return "File edited successfully";
+
+      const updatedLines = newContent.split("\n");
+      
+      // For find_replace, try to find where changes occurred
+      const replacementText = args.new_text || "";
+      let firstChangeLine = 1;
+      let lastChangeLine = 1;
+      
+      if (replacementText) {
+        for (let i = 0; i < updatedLines.length; i++) {
+          if (updatedLines[i]?.includes(replacementText)) {
+            if (firstChangeLine === 1) firstChangeLine = i + 1;
+            lastChangeLine = i + 1;
+          }
+        }
+      }
+      
+      const context = generatePostEditContext(
+        updatedLines,
+        firstChangeLine,
+        lastChangeLine,
+        args.mode
+      );
+      
+      return `File edited successfully.${context}`;
     }
 
     // For line-based operations, validate line numbers
@@ -149,7 +232,46 @@ const handler: ToolHandler = async (args: {
     const newContent = newLines.join("\n");
     await writeFile(absPath, newContent, "utf-8");
 
-    return `Successfully ${description}`;
+    // Generate rich context showing the current file state
+    const updatedLines = newContent.split("\n");
+    
+    // Calculate the actual affected line range in the new file
+    let actualStartLine = lineNum || 1;
+    let actualEndLine = args.end_line || lineNum || 1;
+    
+    switch (args.mode) {
+      case "insert": {
+        const insertLines = content.split("\n");
+        actualEndLine = actualStartLine + insertLines.length - 1;
+        break;
+      }
+      case "replace": {
+        const replaceLines = content.split("\n");
+        actualEndLine = actualStartLine + replaceLines.length - 1;
+        break;
+      }
+      case "delete": {
+        // For delete, show context around where deletion happened
+        actualEndLine = actualStartLine;
+        break;
+      }
+      case "move": {
+        const targetLine = args.target_line || 1;
+        const linesToMove = (args.end_line || lineNum || 1) - (lineNum || 1) + 1;
+        actualStartLine = targetLine;
+        actualEndLine = targetLine + linesToMove - 1;
+        break;
+      }
+    }
+    
+    const context = generatePostEditContext(
+      updatedLines,
+      actualStartLine,
+      actualEndLine,
+      args.mode
+    );
+    
+    return `Successfully ${description}.${context}`;
   } catch (error) {
     throw error; // Re-throw to preserve the original error
   }
@@ -158,10 +280,10 @@ const handler: ToolHandler = async (args: {
 const formatter = async (args: any): Promise<string> => {
   const path = args.path || args.file_path || "unknown";
   const mode = args.mode || "insert";
-  const lineNumber = args.line_number;
-  const endLine = args.end_line ?? lineNumber;
+  const lineNumber = Number(args.line_number);
+  const endLine = Number(args.end_line) || lineNumber;
   const content = args.content || "";
-  const targetLine = args.target_line;
+  const targetLine = Number(args.target_line);
   const oldText = args.old_text || "";
   const newText = args.new_text || "";
   const replaceAll = args.replace_all || false;
