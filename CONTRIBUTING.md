@@ -244,6 +244,7 @@ For feature requests:
 ### Getting Help
 
 - **GitHub Issues**: For bugs, features, and questions
+- **Discord Server**: Join our community Discord server for real-time discussions, help, and collaboration: [Join our Discord server](https://discord.gg/22UpyxKX)
 
 ### Code of Conduct
 

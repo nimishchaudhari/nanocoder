@@ -22,7 +22,7 @@ A local-first CLI coding agent that brings the power of agentic coding tools lik
   - [Custom Command System](#-custom-command-system)
   - [Enhanced User Experience](#-enhanced-user-experience)
   - [Developer Features](#️-developer-features)
-- [Contributing](#contributing)
+- [Community](#community)
 
 ## Installation
 
@@ -298,20 +298,22 @@ Generate comprehensive unit tests for {{component}}. Include:
 - **Debug tools**: Built-in debugging commands and verbose logging
 - **Error resilience**: Graceful handling of provider failures and network issues
 
-## Contributing
+## Community
 
-We're a small team building Nanocoder and would love your help! Whether you're interested in:
+We're a small team building Nanocoder and would love your help! Whether you're interested in contributing code, documentation, or just being part of our community, there are several ways to get involved.
 
+**If you want to contribute:**
+- Read our detailed [CONTRIBUTING.md](CONTRIBUTING.md) guide for information on development setup, coding standards, and how to submit your changes.
+
+**If you want to be part of our community:**
+- Join our Discord server to connect with other users, ask questions, share ideas, and get help: [Join our Discord server](https://discord.gg/22UpyxKX)
+
+Whether you're interested in:
 - Adding support for new AI providers
 - Improving tool functionality
 - Enhancing the user experience
 - Writing documentation
 - Reporting bugs or suggesting features
+- Just learning about local-first AI coding tools
 
-All contributions are welcome! Please feel free to:
-
-1. Open an issue to discuss your idea
-2. Fork the repository and create a pull request
-3. Join discussions in existing issues
-
-For development setup, see the [For Development](#for-development) section above.
+All contributions and community participation are welcome!
