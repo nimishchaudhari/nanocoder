@@ -303,12 +303,15 @@ Generate comprehensive unit tests for {{component}}. Include:
 We're a small team building Nanocoder and would love your help! Whether you're interested in contributing code, documentation, or just being part of our community, there are several ways to get involved.
 
 **If you want to contribute:**
+
 - Read our detailed [CONTRIBUTING.md](CONTRIBUTING.md) guide for information on development setup, coding standards, and how to submit your changes.
 
 **If you want to be part of our community:**
-- Join our Discord server to connect with other users, ask questions, share ideas, and get help: [Join our Discord server](https://discord.gg/22UpyxKX)
+
+- Join our Discord server to connect with other users, ask questions, share ideas, and get help: [Join our Discord server](https://discord.gg/ktPDV6rekE)
 
 Whether you're interested in:
+
 - Adding support for new AI providers
 - Improving tool functionality
 - Enhancing the user experience
