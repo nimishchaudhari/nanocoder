@@ -2,7 +2,7 @@ name: Release to NPM and GitHub
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: write
@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Check version difference
         id: version-check
@@ -30,11 +30,11 @@ jobs:
           # Get current package.json version
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           echo "package-version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
-          
+
           # Get latest NPM version (handle case where package doesn't exist yet)
           NPM_VERSION=$(npm view @motesoftware/nanocoder version 2>/dev/null || echo "0.0.0")
           echo "npm-version=$NPM_VERSION" >> $GITHUB_OUTPUT
-          
+
           # Compare versions
           if [ "$PACKAGE_VERSION" != "$NPM_VERSION" ]; then
             echo "✅ New version detected: $PACKAGE_VERSION (current NPM: $NPM_VERSION)"
@@ -55,8 +55,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -91,22 +91,52 @@ jobs:
           release_name: nanocoder v${{ needs.check-version.outputs.package-version }}
           body: |
             ## What's Changed
-            
+
             Auto-generated release for nanocoder v${{ needs.check-version.outputs.package-version }}.
-            
+
             ### Installation
             ```bash
             npm install -g @motesoftware/nanocoder
             ```
-            
+
             ### Usage
             ```bash
             nanocoder
             ```
-            
+
             **Full Changelog**: https://github.com/Mote-Software/nanocoder/compare/v${{ needs.check-version.outputs.npm-version }}...v${{ needs.check-version.outputs.package-version }}
           draft: false
           prerelease: false
+
+      - name: Send Discord Notification
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+            -d '{
+              "embeds": [{
+                "title": "🎉 New Release: Nanocoder v${{ needs.check-version.outputs.package-version }}",
+                "description": "A new version of Nanocoder has been released!",
+                "color": 5763719,
+                "fields": [
+                  {
+                    "name": "Version",
+                    "value": "v${{ needs.check-version.outputs.package-version }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Installation",
+                    "value": "`npm install -g @motesoftware/nanocoder`",
+                    "inline": false
+                  }
+                ],
+                "footer": {
+                  "text": "GitHub Actions"
+                },
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'",
+                "url": "https://github.com/${{ github.repository }}/releases/tag/v${{ needs.check-version.outputs.package-version }}"
+              }]
+            }' \
+            ${{ secrets.DISCORD_WEBHOOK_URL }}
 
   notify:
     needs: [check-version, publish]
