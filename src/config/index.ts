@@ -1,6 +1,7 @@
 import type { AppConfig, Colors } from "../types/index.js";
 import { existsSync, readFileSync } from "fs";
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
 // Function to load app configuration from agents.config.json if it exists
 function loadAppConfig(): AppConfig {
@@ -45,4 +46,8 @@ export const colors: Colors = {
   orange: "#ff9e64",
 };
 
-export const promptPath = "./src/prompt.md";
+// Get the package root directory (where this module is installed)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+// Go up from dist/config to package root, then to src/prompt.md
+export const promptPath = join(__dirname, "../../src/prompt.md");
