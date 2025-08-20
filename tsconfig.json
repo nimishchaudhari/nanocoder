@@ -1,31 +1,20 @@
 {
-  "compilerOptions": {
-    // Environment setup & latest features
-    "lib": ["ESNext"],
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleDetection": "force",
-    "allowJs": true,
-
-    // Node.js mode
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-
-    // Best practices
-    "strict": true,
-    "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-
-    // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
-  },
-  "include": ["src/**/*"]
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "Node16",
+		"moduleResolution": "Node16",
+		"outDir": "dist",
+		"rootDir": "source",
+		"strict": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"jsx": "react-jsx",
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true
+	},
+	"include": ["source/**/*"],
+	"exclude": ["dist", "node_modules"]
 }
