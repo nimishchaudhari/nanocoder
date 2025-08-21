@@ -2,15 +2,18 @@ import {Box, Text, useInput, useFocus} from 'ink';
 import {useState, useEffect} from 'react';
 import {colors} from '../config/index.js';
 import {promptHistory} from '../prompt-history.js';
+import {commandRegistry} from '../commands.js';
 
 interface ChatProps {
 	onSubmit?: (message: string) => void;
 	placeholder?: string;
+	customCommands?: string[]; // List of custom command names and aliases
 }
 
-export default function Chat({
+export default function UserInput({
 	onSubmit,
 	placeholder = 'Type `/` and then press Tab for command suggestions. Use ↑/↓ for history.',
+	customCommands = [],
 }: ChatProps) {
 	const [input, setInput] = useState('');
 	const [hasLargeContent, setHasLargeContent] = useState(false);
@@ -19,6 +22,10 @@ export default function Chat({
 	const [originalInput, setOriginalInput] = useState(''); // Store input before history navigation
 	const [showFullContent, setShowFullContent] = useState(false); // Toggle full content display
 	const [historyIndex, setHistoryIndex] = useState(-1); // Track our own history index
+	const [showCompletions, setShowCompletions] = useState(false);
+	const [completions, setCompletions] = useState<
+		Array<{name: string; isCustom: boolean}>
+	>([]);
 	const {isFocused} = useFocus({autoFocus: true});
 
 	// Load history on mount
@@ -60,6 +67,8 @@ export default function Chat({
 				setShowClearMessage(false);
 				setShowFullContent(false); // Reset full content display
 				setHistoryIndex(-1); // Reset history navigation
+				setShowCompletions(false); // Reset completions
+				setCompletions([]); // Clear completions
 			} else {
 				// First escape - show clear message
 				setShowClearMessage(true);
@@ -75,7 +84,39 @@ export default function Chat({
 			return;
 		}
 
-		// Hide clear message on any other input
+		// Handle Tab for command completion
+		if (key.tab) {
+			if (input.startsWith('/')) {
+				const commandPrefix = input.slice(1).split(' ')[0]; // Remove '/' and get first word
+
+				// Get built-in command completions
+				const builtInCompletions =
+					commandRegistry.getCompletions(commandPrefix);
+
+				// Get custom command completions
+				const customCompletions = customCommands.filter(cmd =>
+					cmd.startsWith(commandPrefix),
+				);
+
+				// Create completion objects with type info
+				const allCompletions = [
+					...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
+					...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
+				];
+
+				if (allCompletions.length > 0) {
+					setCompletions(allCompletions);
+					setShowCompletions(true);
+				}
+			}
+			return;
+		}
+
+		// Hide completions and clear message on any other input
+		if (showCompletions) {
+			setShowCompletions(false);
+			setCompletions([]);
+		}
 		if (showClearMessage) {
 			setShowClearMessage(false);
 		}
@@ -96,6 +137,8 @@ export default function Chat({
 				setOriginalInput('');
 				setShowFullContent(false); // Reset full content display
 				setHistoryIndex(-1); // Reset history navigation
+				setShowCompletions(false); // Reset completions
+				setCompletions([]); // Clear completions
 				promptHistory.resetIndex(); // Reset history navigation
 			}
 			return;
@@ -107,7 +150,7 @@ export default function Chat({
 			if (historyIndex === -1) {
 				setOriginalInput(input);
 			}
-			
+
 			const history = promptHistory.getHistory();
 			if (history.length > 0) {
 				if (historyIndex === -1) {
@@ -228,6 +271,19 @@ export default function Chat({
 					<Text color={colors.secondary} dimColor>
 						Press escape again to clear
 					</Text>
+				)}
+				{showCompletions && completions.length > 0 && (
+					<Box flexDirection="column" marginTop={1}>
+						<Text color={colors.secondary}>Available commands:</Text>
+						{completions.map((completion, index) => (
+							<Text
+								key={index}
+								color={completion.isCustom ? colors.blue : colors.primary}
+							>
+								/{completion.name}
+							</Text>
+						))}
+					</Box>
 				)}
 			</Box>
 		</Box>

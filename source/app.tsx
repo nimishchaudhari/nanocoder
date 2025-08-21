@@ -15,7 +15,7 @@ import {commandRegistry} from './commands.js';
 import {shouldLog} from './config/logging.js';
 import {appConfig} from './config/index.js';
 import {createLLMClient} from './client-factory.js';
-import Chat from './components/chat.js';
+import UserInput from './components/user-input.js';
 import Status from './components/status.js';
 import {helpCommand, exitCommand} from './commands/index.js';
 
@@ -44,27 +44,42 @@ export default function App() {
 	const [startChat, setStartChat] = useState<boolean>(false);
 
 	useEffect(() => {
-		setClient(null);
-		setCurrentModel('');
-		setToolManager(new ToolManager());
-		setCustomCommandLoader(new CustomCommandLoader());
-		setCustomCommandExecutor(new CustomCommandExecutor());
+		const initializeApp = async () => {
+			setClient(null);
+			setCurrentModel('');
+			
+			const newToolManager = new ToolManager();
+			const newCustomCommandLoader = new CustomCommandLoader();
+			const newCustomCommandExecutor = new CustomCommandExecutor();
+			
+			setToolManager(newToolManager);
+			setCustomCommandLoader(newCustomCommandLoader);
+			setCustomCommandExecutor(newCustomCommandExecutor);
 
-		// Load preferences to set initial provider
-		const preferences = loadPreferences();
-		if (preferences.lastProvider) {
-			setCurrentProvider(preferences.lastProvider);
-		}
+			// Load preferences to set initial provider
+			const preferences = loadPreferences();
+			if (preferences.lastProvider) {
+				setCurrentProvider(preferences.lastProvider);
+			}
 
-		// Set up the tool registry getter for the message handler
-		setToolRegistryGetter(() => toolManager!.getToolRegistry());
+			// Set up the tool registry getter for the message handler
+			setToolRegistryGetter(() => newToolManager.getToolRegistry());
 
-		commandRegistry.register([helpCommand, exitCommand]);
-		start();
-		setStartChat(true);
+			commandRegistry.register([helpCommand, exitCommand]);
+
+			// Now start with the properly initialized objects
+			await start(newToolManager, newCustomCommandLoader, newCustomCommandExecutor);
+			setStartChat(true);
+		};
+
+		initializeApp();
 	}, []);
 
-	async function start(): Promise<void> {
+	async function start(
+		newToolManager: ToolManager, 
+		newCustomCommandLoader: CustomCommandLoader, 
+		newCustomCommandExecutor: CustomCommandExecutor
+	): Promise<void> {
 		// Initialize client on startup
 		try {
 			const {client, actualProvider} = await createLLMClient(currentProvider);
@@ -89,12 +104,9 @@ export default function App() {
 			// Save the preference
 			updateLastUsed(currentProvider, currentModel);
 
-			// Display current provider and model (always show this)
-			console.log(`Using provider: ${currentProvider}, model: ${currentModel}`);
-
 			// Load custom commands
-			await customCommandLoader?.loadCommands();
-			const customCommands = customCommandLoader?.getAllCommands() || [];
+			await newCustomCommandLoader.loadCommands();
+			const customCommands = newCustomCommandLoader.getAllCommands() || [];
 
 			// Populate command cache for better performance
 			customCommandCache.clear();
@@ -119,7 +131,7 @@ export default function App() {
 				if (shouldLog('info')) {
 					console.log('Connecting to MCP servers...');
 				}
-				await toolManager?.initializeMCP(appConfig.mcpServers);
+				await newToolManager.initializeMCP(appConfig.mcpServers);
 			}
 		} catch (error) {
 			console.error(`Failed to initialize ${currentProvider} provider:`, error);
@@ -240,12 +252,35 @@ export default function App() {
 			{startChat && (
 				<>
 					<Status provider={currentProvider} model={currentModel} />
-					<Chat
-						onSubmit={message => {
-							console.log('=== COMPLETE MESSAGE ===');
-							console.log('Length:', message.length);
-							console.log('JSON:', JSON.stringify(message));
-							console.log('=========================');
+					<UserInput
+						customCommands={Array.from(customCommandCache.keys())}
+						onSubmit={async message => {
+							// Check if it's a command (starts with /)
+							if (message.startsWith('/')) {
+								const commandName = message.slice(1).split(' ')[0];
+								
+								// Check for custom command first
+								const customCommand = customCommandCache.get(commandName) ||
+									customCommandLoader?.getCommand(commandName);
+								
+								if (customCommand) {
+									// Execute custom command with any arguments
+									const args = message.slice(commandName.length + 1).trim().split(/\s+/).filter(arg => arg);
+									await customCommandExecutor?.execute(customCommand, args);
+								} else {
+									// Execute built-in command
+									const result = await commandRegistry.execute(commandName);
+									if (result && result.trim()) {
+										console.log(result);
+									}
+								}
+							} else {
+								// Regular message - for now just log it
+								console.log('=== COMPLETE MESSAGE ===');
+								console.log('Length:', message.length);
+								console.log('JSON:', JSON.stringify(message));
+								console.log('=========================');
+							}
 						}}
 					/>
 				</>
