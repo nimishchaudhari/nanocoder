@@ -1,4 +1,4 @@
-import {Box, Text} from 'ink';
+import {Box} from 'ink';
 import WelcomeMessage from './components/welcome-message.js';
 import {useEffect, useState} from 'react';
 import {LLMClient, Message, ProviderType} from './types/core.js';
@@ -15,8 +15,8 @@ import {commandRegistry} from './commands.js';
 import {shouldLog} from './config/logging.js';
 import {appConfig} from './config/index.js';
 import {createLLMClient} from './client-factory.js';
-import CurrentWorkingDirectory from './components/current-working-directory.js';
 import Chat from './components/chat.js';
+import Status from './components/status.js';
 
 export default function App() {
 	const [client, setClient] = useState<LLMClient | null>(null);
@@ -247,7 +247,7 @@ export default function App() {
 
 			{startChat && (
 				<>
-					<CurrentWorkingDirectory />
+					<Status provider={currentProvider} model={currentModel} />
 					<Chat onSubmit={(message) => {
 						console.log('=== COMPLETE MESSAGE ===');
 						console.log('Length:', message.length);
