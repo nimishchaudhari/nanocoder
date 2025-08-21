@@ -1,6 +1,7 @@
 import {Box, Text, useInput, useFocus} from 'ink';
 import {useState, useEffect} from 'react';
 import {colors} from '../config/index.js';
+import {promptHistory} from '../prompt-history.js';
 
 interface ChatProps {
 	onSubmit?: (message: string) => void;
@@ -15,7 +16,13 @@ export default function Chat({
 	const [hasLargeContent, setHasLargeContent] = useState(false);
 	const [cursorVisible, setCursorVisible] = useState(true);
 	const [showClearMessage, setShowClearMessage] = useState(false);
+	const [originalInput, setOriginalInput] = useState(''); // Store input before history navigation
 	const {isFocused} = useFocus({autoFocus: true});
+
+	// Load history on mount
+	useEffect(() => {
+		promptHistory.loadHistory();
+	}, []);
 
 	// Blinking cursor effect
 	useEffect(() => {
@@ -64,9 +71,43 @@ export default function Chat({
 
 		if (key.return) {
 			if (input.trim() && onSubmit) {
-				onSubmit(input.trim()); // ALWAYS send actual input content
+				const message = input.trim();
+				promptHistory.addPrompt(message); // Add to history
+				onSubmit(message); // ALWAYS send actual input content
 				setInput('');
 				setHasLargeContent(false);
+				setOriginalInput('');
+				promptHistory.resetIndex(); // Reset history navigation
+			}
+			return;
+		}
+
+		// History navigation with up/down arrows
+		if (key.upArrow) {
+			// Store original input before starting history navigation
+			if (originalInput === '') {
+				setOriginalInput(input);
+			}
+			const previous = promptHistory.getPrevious();
+			if (previous !== null) {
+				setInput(previous);
+				setHasLargeContent(previous.length > 150);
+			}
+			return;
+		}
+
+		if (key.downArrow) {
+			const next = promptHistory.getNext();
+			if (next !== null) {
+				if (next === '') {
+					// Reached the end, restore original input
+					setInput(originalInput);
+					setHasLargeContent(originalInput.length > 150);
+					setOriginalInput(''); // Clear stored original
+				} else {
+					setInput(next);
+					setHasLargeContent(next.length > 150);
+				}
 			}
 			return;
 		}
@@ -122,7 +163,7 @@ export default function Chat({
 	};
 
 	return (
-		<Box flexDirection="column" paddingY={1} width={75}>
+		<Box flexDirection="column" paddingY={1} width={100}>
 			<Box flexDirection="column">
 				<Text color={colors.primary} bold>
 					What would you like me to help with?
