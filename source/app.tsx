@@ -17,6 +17,7 @@ import {appConfig} from './config/index.js';
 import {createLLMClient} from './client-factory.js';
 import Chat from './components/chat.js';
 import Status from './components/status.js';
+import {helpCommand, exitCommand} from './commands/index.js';
 
 export default function App() {
 	const [client, setClient] = useState<LLMClient | null>(null);
@@ -58,16 +59,7 @@ export default function App() {
 		// Set up the tool registry getter for the message handler
 		setToolRegistryGetter(() => toolManager!.getToolRegistry());
 
-		commandRegistry.register([
-			// helpCommand,
-			// exitCommand,
-			// clearCommand,
-			// modelCommand,
-			// providerCommand,
-			// mcpCommand,
-			// debugCommand,
-			// commandsCommand,
-		]);
+		commandRegistry.register([helpCommand, exitCommand]);
 		start();
 		setStartChat(true);
 	}, []);
@@ -248,12 +240,14 @@ export default function App() {
 			{startChat && (
 				<>
 					<Status provider={currentProvider} model={currentModel} />
-					<Chat onSubmit={(message) => {
-						console.log('=== COMPLETE MESSAGE ===');
-						console.log('Length:', message.length);
-						console.log('JSON:', JSON.stringify(message));
-						console.log('=========================');
-					}} />
+					<Chat
+						onSubmit={message => {
+							console.log('=== COMPLETE MESSAGE ===');
+							console.log('Length:', message.length);
+							console.log('JSON:', JSON.stringify(message));
+							console.log('=========================');
+						}}
+					/>
 				</>
 			)}
 		</Box>

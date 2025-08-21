@@ -17,6 +17,8 @@ export default function Chat({
 	const [cursorVisible, setCursorVisible] = useState(true);
 	const [showClearMessage, setShowClearMessage] = useState(false);
 	const [originalInput, setOriginalInput] = useState(''); // Store input before history navigation
+	const [showFullContent, setShowFullContent] = useState(false); // Toggle full content display
+	const [historyIndex, setHistoryIndex] = useState(-1); // Track our own history index
 	const {isFocused} = useFocus({autoFocus: true});
 
 	// Load history on mount
@@ -40,6 +42,11 @@ export default function Chat({
 		setCursorVisible(true);
 	};
 
+	// Get the key combination for expanding content
+	const getExpandKey = () => {
+		return 'Ctrl+B';
+	};
+
 	useInput((inputChar, key) => {
 		// Reset cursor blink on any input
 		resetCursorBlink();
@@ -51,9 +58,19 @@ export default function Chat({
 				setInput('');
 				setHasLargeContent(false);
 				setShowClearMessage(false);
+				setShowFullContent(false); // Reset full content display
+				setHistoryIndex(-1); // Reset history navigation
 			} else {
 				// First escape - show clear message
 				setShowClearMessage(true);
+			}
+			return;
+		}
+
+		// Handle Ctrl+B to toggle full content display
+		if (key.ctrl && inputChar === 'b') {
+			if (hasLargeContent && input.length > 150) {
+				setShowFullContent(prev => !prev);
 			}
 			return;
 		}
@@ -77,6 +94,8 @@ export default function Chat({
 				setInput('');
 				setHasLargeContent(false);
 				setOriginalInput('');
+				setShowFullContent(false); // Reset full content display
+				setHistoryIndex(-1); // Reset history navigation
 				promptHistory.resetIndex(); // Reset history navigation
 			}
 			return;
@@ -85,29 +104,52 @@ export default function Chat({
 		// History navigation with up/down arrows
 		if (key.upArrow) {
 			// Store original input before starting history navigation
-			if (originalInput === '') {
+			if (historyIndex === -1) {
 				setOriginalInput(input);
 			}
-			const previous = promptHistory.getPrevious();
-			if (previous !== null) {
-				setInput(previous);
-				setHasLargeContent(previous.length > 150);
+			
+			const history = promptHistory.getHistory();
+			if (history.length > 0) {
+				if (historyIndex === -1) {
+					// Start from the most recent
+					setHistoryIndex(history.length - 1);
+					setInput(history[history.length - 1]);
+					setHasLargeContent(history[history.length - 1].length > 150);
+				} else if (historyIndex > 0) {
+					// Go to previous item
+					const newIndex = historyIndex - 1;
+					setHistoryIndex(newIndex);
+					setInput(history[newIndex]);
+					setHasLargeContent(history[newIndex].length > 150);
+				} else {
+					// At beginning (index 0), go to empty
+					setHistoryIndex(-2); // Special value for "before beginning"
+					setInput('');
+					setHasLargeContent(false);
+				}
 			}
 			return;
 		}
 
 		if (key.downArrow) {
-			const next = promptHistory.getNext();
-			if (next !== null) {
-				if (next === '') {
-					// Reached the end, restore original input
-					setInput(originalInput);
-					setHasLargeContent(originalInput.length > 150);
-					setOriginalInput(''); // Clear stored original
-				} else {
-					setInput(next);
-					setHasLargeContent(next.length > 150);
-				}
+			const history = promptHistory.getHistory();
+			if (historyIndex >= 0 && historyIndex < history.length - 1) {
+				// Go to next item in history
+				const newIndex = historyIndex + 1;
+				setHistoryIndex(newIndex);
+				setInput(history[newIndex]);
+				setHasLargeContent(history[newIndex].length > 150);
+			} else if (historyIndex === history.length - 1) {
+				// At end of history, restore original input
+				setHistoryIndex(-1);
+				setInput(originalInput);
+				setHasLargeContent(originalInput.length > 150);
+				setOriginalInput('');
+			} else if (historyIndex === -2) {
+				// From empty, go to first history item
+				setHistoryIndex(0);
+				setInput(history[0]);
+				setHasLargeContent(history[0].length > 150);
 			}
 			return;
 		}
@@ -146,17 +188,22 @@ export default function Chat({
 	});
 
 	// Render function - NEVER modifies state, only for display
-	const getDisplayText = () => {
+	const renderDisplayContent = () => {
 		if (!input) return placeholder;
 
-		if (hasLargeContent && input.length > 150) {
+		if (hasLargeContent && input.length > 150 && !showFullContent) {
 			// Count lines properly - handle both \n and \r line endings
 			const lineCount = Math.max(
 				input.split('\n').length,
 				input.split('\r').length,
 			);
 
-			return `[${input.length} characters, ${lineCount} lines]`;
+			return (
+				<>
+					{`[${input.length} characters, ${lineCount} lines] `}
+					<Text color={colors.secondary}>({getExpandKey()} to expand)</Text>
+				</>
+			);
 		}
 
 		return input;
@@ -170,7 +217,7 @@ export default function Chat({
 				</Text>
 
 				<Text color={input ? colors.white : colors.secondary}>
-					{'>'} {getDisplayText()}
+					{'>'} {renderDisplayContent()}
 					{input && isFocused && cursorVisible && (
 						<Text backgroundColor={colors.white} color={colors.black}>
 							{' '}
