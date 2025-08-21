@@ -248,7 +248,12 @@ export default function App() {
 			{startChat && (
 				<>
 					<CurrentWorkingDirectory />
-					<Chat onSubmit={(message) => console.log('Message:', message)} />
+					<Chat onSubmit={(message) => {
+						console.log('=== COMPLETE MESSAGE ===');
+						console.log('Length:', message.length);
+						console.log('JSON:', JSON.stringify(message));
+						console.log('=========================');
+					}} />
 				</>
 			)}
 		</Box>

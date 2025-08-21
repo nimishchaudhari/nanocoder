@@ -88,11 +88,15 @@ export default function Chat({
 	const getDisplayText = () => {
 		if (!input) return placeholder;
 		
-		if (hasPastedContent && pastedContent) {
-			const pasteEndPosition = beforePasteContent.length + pastedContent.length;
-			const beforePaste = beforePasteContent;
-			const afterPaste = input.slice(pasteEndPosition);
-			const lineCount = pastedContent.split('\n').length;
+		if (hasPastedContent && pastedContent && beforePasteContent) {
+			const beforePaste = input.slice(0, beforePasteContent.length);
+			const afterPasteStart = beforePasteContent.length + pastedContent.length;
+			const afterPaste = input.slice(afterPasteStart);
+			// Count lines properly - handle both \n and \r line endings
+			const lineCount = Math.max(
+				pastedContent.split('\n').length,
+				pastedContent.split('\r').length
+			);
 			
 			return `${beforePaste}[pasted ${pastedContent.length} chars, ${lineCount} lines]${afterPaste}`;
 		}
