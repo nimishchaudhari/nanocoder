@@ -1,5 +1,5 @@
 import {Box, Text, useInput, useFocus} from 'ink';
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import {colors} from '../config/index.js';
 import {promptHistory} from '../prompt-history.js';
 import {commandRegistry} from '../commands.js';
@@ -10,23 +10,106 @@ interface ChatProps {
 	customCommands?: string[]; // List of custom command names and aliases
 }
 
+// Types for better organization
+type Completion = {name: string; isCustom: boolean};
+
+// Custom hooks
+function useInputState() {
+	const [input, setInput] = useState('');
+	const [hasLargeContent, setHasLargeContent] = useState(false);
+	const [originalInput, setOriginalInput] = useState('');
+	const [historyIndex, setHistoryIndex] = useState(-1);
+
+	const updateInput = useCallback((newInput: string) => {
+		setInput(newInput);
+		setHasLargeContent(newInput.length > 150);
+	}, []);
+
+	const resetInput = useCallback(() => {
+		setInput('');
+		setHasLargeContent(false);
+		setOriginalInput('');
+		setHistoryIndex(-1);
+	}, []);
+
+	return {
+		input,
+		hasLargeContent,
+		originalInput,
+		historyIndex,
+		setInput,
+		setHasLargeContent,
+		setOriginalInput,
+		setHistoryIndex,
+		updateInput,
+		resetInput
+	};
+}
+
+function useUIState() {
+	const [cursorVisible, setCursorVisible] = useState(true);
+	const [showClearMessage, setShowClearMessage] = useState(false);
+	const [showFullContent, setShowFullContent] = useState(false);
+	const [showCompletions, setShowCompletions] = useState(false);
+	const [completions, setCompletions] = useState<Completion[]>([]);
+
+	const resetUIState = useCallback(() => {
+		setShowClearMessage(false);
+		setShowFullContent(false);
+		setShowCompletions(false);
+		setCompletions([]);
+	}, []);
+
+	return {
+		cursorVisible,
+		showClearMessage,
+		showFullContent,
+		showCompletions,
+		completions,
+		setCursorVisible,
+		setShowClearMessage,
+		setShowFullContent,
+		setShowCompletions,
+		setCompletions,
+		resetUIState
+	};
+}
+
 export default function UserInput({
 	onSubmit,
 	placeholder = 'Type `/` and then press Tab for command suggestions. Use ↑/↓ for history.',
 	customCommands = [],
 }: ChatProps) {
-	const [input, setInput] = useState('');
-	const [hasLargeContent, setHasLargeContent] = useState(false);
-	const [cursorVisible, setCursorVisible] = useState(true);
-	const [showClearMessage, setShowClearMessage] = useState(false);
-	const [originalInput, setOriginalInput] = useState(''); // Store input before history navigation
-	const [showFullContent, setShowFullContent] = useState(false); // Toggle full content display
-	const [historyIndex, setHistoryIndex] = useState(-1); // Track our own history index
-	const [showCompletions, setShowCompletions] = useState(false);
-	const [completions, setCompletions] = useState<
-		Array<{name: string; isCustom: boolean}>
-	>([]);
 	const {isFocused} = useFocus({autoFocus: true});
+	const inputState = useInputState();
+	const uiState = useUIState();
+
+	const {
+		input,
+		hasLargeContent,
+		originalInput,
+		historyIndex,
+		setInput,
+		setHasLargeContent,
+		setOriginalInput,
+		setHistoryIndex,
+		updateInput,
+		resetInput
+	} = inputState;
+
+	const {
+		cursorVisible,
+		showClearMessage,
+		showFullContent,
+		showCompletions,
+		completions,
+		setCursorVisible,
+		setShowClearMessage,
+		setShowFullContent,
+		setShowCompletions,
+		setCompletions,
+		resetUIState
+	} = uiState;
 
 	// Load history on mount
 	useEffect(() => {
@@ -39,44 +122,99 @@ export default function UserInput({
 
 		const interval = setInterval(() => {
 			setCursorVisible(prev => !prev);
-		}, 500); // Blink every 500ms
+		}, 500);
 
 		return () => clearInterval(interval);
-	}, [isFocused]);
+	}, [isFocused, setCursorVisible]);
 
-	// Show cursor immediately when typing, reset blink timer
-	const resetCursorBlink = () => {
+	// Helper functions
+	const resetCursorBlink = useCallback(() => {
 		setCursorVisible(true);
-	};
+	}, [setCursorVisible]);
 
-	// Get the key combination for expanding content
-	const getExpandKey = () => {
-		return 'Ctrl+B';
-	};
+	const getExpandKey = () => 'Ctrl+B';
+
+	// Command completion logic
+	const handleCommandCompletion = useCallback((commandPrefix: string) => {
+		const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
+		const customCompletions = customCommands.filter(cmd => cmd.startsWith(commandPrefix));
+		
+		const allCompletions: Completion[] = [
+			...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
+			...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
+		];
+
+		if (allCompletions.length > 0) {
+			setCompletions(allCompletions);
+			setShowCompletions(true);
+		}
+	}, [customCommands, setCompletions, setShowCompletions]);
+
+	// Handle form submission
+	const handleSubmit = useCallback(() => {
+		if (input.trim() && onSubmit) {
+			const message = input.trim();
+			promptHistory.addPrompt(message);
+			onSubmit(message);
+			resetInput();
+			resetUIState();
+			promptHistory.resetIndex();
+		}
+	}, [input, onSubmit, resetInput, resetUIState]);
+
+	// Handle escape key logic
+	const handleEscape = useCallback(() => {
+		if (showClearMessage) {
+			resetInput();
+			resetUIState();
+		} else {
+			setShowClearMessage(true);
+		}
+	}, [showClearMessage, resetInput, resetUIState, setShowClearMessage]);
+
+	// History navigation
+	const handleHistoryNavigation = useCallback((direction: 'up' | 'down') => {
+		const history = promptHistory.getHistory();
+		if (history.length === 0) return;
+
+		if (direction === 'up') {
+			if (historyIndex === -1) {
+				setOriginalInput(input);
+				setHistoryIndex(history.length - 1);
+				updateInput(history[history.length - 1]);
+			} else if (historyIndex > 0) {
+				const newIndex = historyIndex - 1;
+				setHistoryIndex(newIndex);
+				updateInput(history[newIndex]);
+			} else {
+				setHistoryIndex(-2);
+				updateInput('');
+			}
+		} else {
+			if (historyIndex >= 0 && historyIndex < history.length - 1) {
+				const newIndex = historyIndex + 1;
+				setHistoryIndex(newIndex);
+				updateInput(history[newIndex]);
+			} else if (historyIndex === history.length - 1) {
+				setHistoryIndex(-1);
+				updateInput(originalInput);
+				setOriginalInput('');
+			} else if (historyIndex === -2) {
+				setHistoryIndex(0);
+				updateInput(history[0]);
+			}
+		}
+	}, [historyIndex, input, originalInput, setHistoryIndex, setOriginalInput, updateInput]);
 
 	useInput((inputChar, key) => {
-		// Reset cursor blink on any input
 		resetCursorBlink();
 
-		// Handle escape key
+		// Handle special keys
 		if (key.escape) {
-			if (showClearMessage) {
-				// Second escape - clear everything
-				setInput('');
-				setHasLargeContent(false);
-				setShowClearMessage(false);
-				setShowFullContent(false); // Reset full content display
-				setHistoryIndex(-1); // Reset history navigation
-				setShowCompletions(false); // Reset completions
-				setCompletions([]); // Clear completions
-			} else {
-				// First escape - show clear message
-				setShowClearMessage(true);
-			}
+			handleEscape();
 			return;
 		}
 
-		// Handle Ctrl+B to toggle full content display
 		if (key.ctrl && inputChar === 'b') {
 			if (hasLargeContent && input.length > 150) {
 				setShowFullContent(prev => !prev);
@@ -84,35 +222,13 @@ export default function UserInput({
 			return;
 		}
 
-		// Handle Tab for command completion
-		if (key.tab) {
-			if (input.startsWith('/')) {
-				const commandPrefix = input.slice(1).split(' ')[0]; // Remove '/' and get first word
-
-				// Get built-in command completions
-				const builtInCompletions =
-					commandRegistry.getCompletions(commandPrefix);
-
-				// Get custom command completions
-				const customCompletions = customCommands.filter(cmd =>
-					cmd.startsWith(commandPrefix),
-				);
-
-				// Create completion objects with type info
-				const allCompletions = [
-					...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
-					...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
-				];
-
-				if (allCompletions.length > 0) {
-					setCompletions(allCompletions);
-					setShowCompletions(true);
-				}
-			}
+		if (key.tab && input.startsWith('/')) {
+			const commandPrefix = input.slice(1).split(' ')[0];
+			handleCommandCompletion(commandPrefix);
 			return;
 		}
 
-		// Hide completions and clear message on any other input
+		// Clear UI state on other input
 		if (showCompletions) {
 			setShowCompletions(false);
 			setCompletions([]);
@@ -121,112 +237,38 @@ export default function UserInput({
 			setShowClearMessage(false);
 		}
 
+		// Handle return keys
 		if (key.return && key.shift) {
-			const newInput = input + '\n';
-			setInput(newInput);
+			updateInput(input + '\n');
 			return;
 		}
 
 		if (key.return) {
-			if (input.trim() && onSubmit) {
-				const message = input.trim();
-				promptHistory.addPrompt(message); // Add to history
-				onSubmit(message); // ALWAYS send actual input content
-				setInput('');
-				setHasLargeContent(false);
-				setOriginalInput('');
-				setShowFullContent(false); // Reset full content display
-				setHistoryIndex(-1); // Reset history navigation
-				setShowCompletions(false); // Reset completions
-				setCompletions([]); // Clear completions
-				promptHistory.resetIndex(); // Reset history navigation
-			}
+			handleSubmit();
 			return;
 		}
 
-		// History navigation with up/down arrows
+		// Handle navigation
 		if (key.upArrow) {
-			// Store original input before starting history navigation
-			if (historyIndex === -1) {
-				setOriginalInput(input);
-			}
-
-			const history = promptHistory.getHistory();
-			if (history.length > 0) {
-				if (historyIndex === -1) {
-					// Start from the most recent
-					setHistoryIndex(history.length - 1);
-					setInput(history[history.length - 1]);
-					setHasLargeContent(history[history.length - 1].length > 150);
-				} else if (historyIndex > 0) {
-					// Go to previous item
-					const newIndex = historyIndex - 1;
-					setHistoryIndex(newIndex);
-					setInput(history[newIndex]);
-					setHasLargeContent(history[newIndex].length > 150);
-				} else {
-					// At beginning (index 0), go to empty
-					setHistoryIndex(-2); // Special value for "before beginning"
-					setInput('');
-					setHasLargeContent(false);
-				}
-			}
+			handleHistoryNavigation('up');
 			return;
 		}
 
 		if (key.downArrow) {
-			const history = promptHistory.getHistory();
-			if (historyIndex >= 0 && historyIndex < history.length - 1) {
-				// Go to next item in history
-				const newIndex = historyIndex + 1;
-				setHistoryIndex(newIndex);
-				setInput(history[newIndex]);
-				setHasLargeContent(history[newIndex].length > 150);
-			} else if (historyIndex === history.length - 1) {
-				// At end of history, restore original input
-				setHistoryIndex(-1);
-				setInput(originalInput);
-				setHasLargeContent(originalInput.length > 150);
-				setOriginalInput('');
-			} else if (historyIndex === -2) {
-				// From empty, go to first history item
-				setHistoryIndex(0);
-				setInput(history[0]);
-				setHasLargeContent(history[0].length > 150);
-			}
+			handleHistoryNavigation('down');
 			return;
 		}
 
-		if (key.backspace) {
+		// Handle deletion
+		if (key.backspace || key.delete) {
 			const newInput = input.slice(0, -1);
-			setInput(newInput);
-			// If content gets small again, turn off large content flag
-			if (newInput.length < 100) {
-				setHasLargeContent(false);
-			}
+			updateInput(newInput);
 			return;
 		}
 
-		if (key.delete) {
-			const newInput = input.slice(0, -1);
-			setInput(newInput);
-			if (newInput.length < 100) {
-				setHasLargeContent(false);
-			}
-			return;
-		}
-
-		// Character input
+		// Handle character input
 		if (inputChar) {
-			const newInput = input + inputChar;
-			setInput(newInput);
-
-			// If content becomes large (paste or lots of typing), mark as large content
-			if (newInput.length > 150) {
-				setHasLargeContent(true);
-			}
-
-			return;
+			updateInput(input + inputChar);
 		}
 	});
 
