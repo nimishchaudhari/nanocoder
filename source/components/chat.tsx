@@ -9,21 +9,22 @@ interface ChatProps {
 
 export default function Chat({
 	onSubmit,
-	placeholder = 'Type your message...',
+	placeholder = 'Type `/` and then press Tab for command suggestions. Use ↑/↓ for history.',
 }: ChatProps) {
 	const [input, setInput] = useState('');
 	const [hasLargeContent, setHasLargeContent] = useState(false);
 	const [cursorVisible, setCursorVisible] = useState(true);
+	const [showClearMessage, setShowClearMessage] = useState(false);
 	const {isFocused} = useFocus({autoFocus: true});
 
 	// Blinking cursor effect
 	useEffect(() => {
 		if (!isFocused) return;
-		
+
 		const interval = setInterval(() => {
 			setCursorVisible(prev => !prev);
 		}, 500); // Blink every 500ms
-		
+
 		return () => clearInterval(interval);
 	}, [isFocused]);
 
@@ -35,6 +36,25 @@ export default function Chat({
 	useInput((inputChar, key) => {
 		// Reset cursor blink on any input
 		resetCursorBlink();
+
+		// Handle escape key
+		if (key.escape) {
+			if (showClearMessage) {
+				// Second escape - clear everything
+				setInput('');
+				setHasLargeContent(false);
+				setShowClearMessage(false);
+			} else {
+				// First escape - show clear message
+				setShowClearMessage(true);
+			}
+			return;
+		}
+
+		// Hide clear message on any other input
+		if (showClearMessage) {
+			setShowClearMessage(false);
+		}
 
 		if (key.return && key.shift) {
 			const newInput = input + '\n';
@@ -107,6 +127,7 @@ export default function Chat({
 				<Text color={colors.primary} bold>
 					What would you like me to help with?
 				</Text>
+
 				<Text color={input ? colors.white : colors.secondary}>
 					{'>'} {getDisplayText()}
 					{input && isFocused && cursorVisible && (
@@ -115,6 +136,11 @@ export default function Chat({
 						</Text>
 					)}
 				</Text>
+				{showClearMessage && (
+					<Text color={colors.secondary} dimColor>
+						Press escape again to clear
+					</Text>
+				)}
 			</Box>
 		</Box>
 	);
