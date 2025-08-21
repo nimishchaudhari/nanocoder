@@ -89,8 +89,6 @@ export default function UserInput({
 		hasLargeContent,
 		originalInput,
 		historyIndex,
-		setInput,
-		setHasLargeContent,
 		setOriginalInput,
 		setHistoryIndex,
 		updateInput,
