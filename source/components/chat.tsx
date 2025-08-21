@@ -13,6 +13,7 @@ export default function Chat({
 }: ChatProps) {
 	const [input, setInput] = useState('');
 	const [beforePasteContent, setBeforePasteContent] = useState('');
+	const [pastedContent, setPastedContent] = useState('');
 	const [hasPastedContent, setHasPastedContent] = useState(false);
 	const {isFocused} = useFocus({autoFocus: true});
 
@@ -32,6 +33,7 @@ export default function Chat({
 				onSubmit(input.trim()); // ALWAYS send actual input content
 				setInput('');
 				setBeforePasteContent('');
+				setPastedContent('');
 				setHasPastedContent(false);
 			}
 			return;
@@ -43,6 +45,7 @@ export default function Chat({
 			// If we backspace past the paste point, reset
 			if (newInput.length <= beforePasteContent.length) {
 				setBeforePasteContent(newInput);
+				setPastedContent('');
 				setHasPastedContent(false);
 			}
 			return;
@@ -53,6 +56,7 @@ export default function Chat({
 			setInput(newInput);
 			if (newInput.length <= beforePasteContent.length) {
 				setBeforePasteContent(newInput);
+				setPastedContent('');
 				setHasPastedContent(false);
 			}
 			return;
@@ -67,13 +71,14 @@ export default function Chat({
 			if (inputChar.length > 10) {
 				// This is a paste operation
 				setBeforePasteContent(input); // Save what we had before
+				setPastedContent(inputChar); // Save what was pasted
 				setHasPastedContent(true);
 			} else if (!hasPastedContent) {
 				// Normal typing - update our "before paste" marker
 				setBeforePasteContent(newInput);
 			}
 			// If hasPastedContent is true and this is normal typing, 
-			// we're typing after paste - don't update beforePasteContent
+			// we're typing after paste - show it separately from the paste placeholder
 			
 			return;
 		}
@@ -83,10 +88,13 @@ export default function Chat({
 	const getDisplayText = () => {
 		if (!input) return placeholder;
 		
-		if (hasPastedContent && input.length > beforePasteContent.length) {
-			const pastedPortion = input.slice(beforePasteContent.length);
-			const lineCount = pastedPortion.split('\n').length;
-			return `${beforePasteContent}[pasted ${pastedPortion.length} chars, ${lineCount} lines]`;
+		if (hasPastedContent && pastedContent) {
+			const pasteEndPosition = beforePasteContent.length + pastedContent.length;
+			const beforePaste = beforePasteContent;
+			const afterPaste = input.slice(pasteEndPosition);
+			const lineCount = pastedContent.split('\n').length;
+			
+			return `${beforePaste}[pasted ${pastedContent.length} chars, ${lineCount} lines]${afterPaste}`;
 		}
 		
 		return input;
