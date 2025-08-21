@@ -16,15 +16,15 @@ const packageJson = JSON.parse(
 export default function WelcomeMessage() {
 	return (
 		<TitledBox
-			borderStyle="bold"
+			borderStyle="round"
 			titles={[`✻ Welcome to Nanocoder ${packageJson.version}`]}
-			titleStyles={titleStyles.rectangle}
+			titleStyles={titleStyles.pill}
 			width={75}
 			borderColor={colors.primary}
 			paddingX={2}
 			paddingY={1}
 			flexDirection="column"
-			marginBottom={2}
+			marginBottom={1}
 		>
 			<Box paddingBottom={1}>
 				<Text color={colors.white}>Tips for getting started:</Text>
