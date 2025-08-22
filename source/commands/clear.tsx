@@ -18,7 +18,7 @@ function Clear() {
 			marginBottom={1}
 		>
 			<Text color={colors.success} bold>
-				Chat Cleared....
+				Chat Cleared...
 			</Text>
 		</TitledBox>
 	);
