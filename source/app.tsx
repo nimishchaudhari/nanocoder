@@ -20,7 +20,14 @@ import UserInput from './components/user-input.js';
 import Status from './components/status.js';
 import ChatQueue from './components/chat-queue.js';
 import InfoMessage from './components/info-message.js';
-import {helpCommand, exitCommand, clearCommand} from './commands/index.js';
+import ModelSelector from './components/model-selector.js';
+import {
+	helpCommand,
+	exitCommand,
+	clearCommand,
+	modelCommand,
+} from './commands/index.js';
+import SuccessMessage from './components/success-message.js';
 
 export default function App() {
 	const [client, setClient] = useState<LLMClient | null>(null);
@@ -46,6 +53,10 @@ export default function App() {
 
 	const [startChat, setStartChat] = useState<boolean>(false);
 
+	// Model selection mode
+	const [isModelSelectionMode, setIsModelSelectionMode] =
+		useState<boolean>(false);
+
 	// Chat queue for components
 	const [chatComponents, setChatComponents] = useState<React.ReactNode[]>([]);
 
@@ -54,6 +65,35 @@ export default function App() {
 		setChatComponents(prev => [...prev, component]);
 	};
 
+	// Helper function to enter model selection mode
+	const enterModelSelectionMode = () => {
+		setIsModelSelectionMode(true);
+	};
+
+	// Handle model selection
+	const handleModelSelect = async (selectedModel: string) => {
+		if (client && selectedModel !== currentModel) {
+			client.setModel(selectedModel);
+			setCurrentModel(selectedModel);
+
+			// Update preferences
+			updateLastUsed(currentProvider, selectedModel);
+
+			// Add success message to chat queue
+			addToChatQueue(
+				<SuccessMessage
+					key={`model-changed-${Date.now()}`}
+					message={`Model changed to: ${selectedModel}`}
+				/>,
+			);
+		}
+		setIsModelSelectionMode(false);
+	};
+
+	// Handle model selection cancel
+	const handleModelSelectionCancel = () => {
+		setIsModelSelectionMode(false);
+	};
 
 	useEffect(() => {
 		const initializeApp = async () => {
@@ -85,7 +125,12 @@ export default function App() {
 			// Set up the tool registry getter for the message handler
 			setToolRegistryGetter(() => newToolManager.getToolRegistry());
 
-			commandRegistry.register([helpCommand, exitCommand, clearCommand]);
+			commandRegistry.register([
+				helpCommand,
+				exitCommand,
+				clearCommand,
+				modelCommand,
+			]);
 
 			// Now start with the properly initialized objects
 			await start(newToolManager, newCustomCommandLoader);
@@ -114,6 +159,12 @@ export default function App() {
 					.filter(arg => arg);
 				await customCommandExecutor?.execute(customCommand, args);
 			} else {
+				// Handle special commands that need app state access
+				if (commandName === 'model') {
+					enterModelSelectionMode();
+					return;
+				}
+
 				// Execute built-in command
 				const result = await commandRegistry.execute(commandName);
 				if (result) {
@@ -223,10 +274,19 @@ export default function App() {
 						]}
 						queuedComponents={chatComponents}
 					/>
-					<UserInput
-						customCommands={Array.from(customCommandCache.keys())}
-						onSubmit={handleMessageSubmit}
-					/>
+					{isModelSelectionMode ? (
+						<ModelSelector
+							client={client}
+							currentModel={currentModel}
+							onModelSelect={handleModelSelect}
+							onCancel={handleModelSelectionCancel}
+						/>
+					) : (
+						<UserInput
+							customCommands={Array.from(customCommandCache.keys())}
+							onSubmit={handleMessageSubmit}
+						/>
+					)}
 				</>
 			)}
 		</Box>
