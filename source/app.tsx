@@ -20,7 +20,7 @@ import UserInput from './components/user-input.js';
 import Status from './components/status.js';
 import ChatQueue from './components/chat-queue.js';
 import InfoMessage from './components/info-message.js';
-import {helpCommand, exitCommand} from './commands/index.js';
+import {helpCommand, exitCommand, clearCommand} from './commands/index.js';
 
 export default function App() {
 	const [client, setClient] = useState<LLMClient | null>(null);
@@ -54,10 +54,6 @@ export default function App() {
 		setChatComponents(prev => [...prev, component]);
 	};
 
-	// Helper function to clear the chat queue
-	const clearChatQueue = () => {
-		setChatComponents([]);
-	};
 
 	useEffect(() => {
 		const initializeApp = async () => {
@@ -89,7 +85,7 @@ export default function App() {
 			// Set up the tool registry getter for the message handler
 			setToolRegistryGetter(() => newToolManager.getToolRegistry());
 
-			commandRegistry.register([helpCommand, exitCommand]);
+			commandRegistry.register([helpCommand, exitCommand, clearCommand]);
 
 			// Now start with the properly initialized objects
 			await start(newToolManager, newCustomCommandLoader);

@@ -1,13 +1,26 @@
+import {Command} from '../types/index.js';
+import {commandRegistry} from '../commands.js';
+import fs from 'fs';
+import path from 'path';
+import {fileURLToPath} from 'url';
+import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
-import {colors} from '../../config/index.js';
+import {colors} from '../config/index.js';
 
-interface HelpProps {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const packageJson = JSON.parse(
+	fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'),
+);
+
+function Help({
+	version,
+	commands,
+}: {
 	version: string;
 	commands: Array<{name: string; description: string}>;
-}
-
-export default function Help({version, commands}: HelpProps) {
+}) {
 	return (
 		<TitledBox
 			borderStyle="round"
@@ -71,3 +84,17 @@ export default function Help({version, commands}: HelpProps) {
 		</TitledBox>
 	);
 }
+
+export const helpCommand: Command = {
+	name: 'help',
+	description: 'Show available commands',
+	handler: async (_args: string[]) => {
+		const commands = commandRegistry.getAll();
+
+		return React.createElement(Help, {
+			key: `help-${Date.now()}`,
+			version: packageJson.version,
+			commands: commands,
+		});
+	},
+};

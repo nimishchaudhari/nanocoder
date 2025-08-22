@@ -42,7 +42,7 @@ function useInputState() {
 		setOriginalInput,
 		setHistoryIndex,
 		updateInput,
-		resetInput
+		resetInput,
 	};
 }
 
@@ -71,7 +71,7 @@ function useUIState() {
 		setShowFullContent,
 		setShowCompletions,
 		setCompletions,
-		resetUIState
+		resetUIState,
 	};
 }
 
@@ -92,7 +92,7 @@ export default function UserInput({
 		setOriginalInput,
 		setHistoryIndex,
 		updateInput,
-		resetInput
+		resetInput,
 	} = inputState;
 
 	const {
@@ -106,7 +106,7 @@ export default function UserInput({
 		setShowFullContent,
 		setShowCompletions,
 		setCompletions,
-		resetUIState
+		resetUIState,
 	} = uiState;
 
 	// Load history on mount
@@ -133,25 +133,30 @@ export default function UserInput({
 	const getExpandKey = () => 'Ctrl+B';
 
 	// Command completion logic
-	const handleCommandCompletion = useCallback((commandPrefix: string) => {
-		const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
-		const customCompletions = customCommands.filter(cmd => cmd.startsWith(commandPrefix));
-		
-		const allCompletions: Completion[] = [
-			...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
-			...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
-		];
+	const handleCommandCompletion = useCallback(
+		(commandPrefix: string) => {
+			const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
+			const customCompletions = customCommands.filter(cmd =>
+				cmd.startsWith(commandPrefix),
+			);
 
-		if (allCompletions.length === 1) {
-			// Auto-complete when there's exactly one match
-			const completion = allCompletions[0];
-			updateInput(`/${completion.name}`);
-		} else if (allCompletions.length > 1) {
-			// Show completions when there are multiple matches
-			setCompletions(allCompletions);
-			setShowCompletions(true);
-		}
-	}, [customCommands, setCompletions, setShowCompletions, updateInput]);
+			const allCompletions: Completion[] = [
+				...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
+				...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
+			];
+
+			if (allCompletions.length === 1) {
+				// Auto-complete when there's exactly one match
+				const completion = allCompletions[0];
+				updateInput(`/${completion.name}`);
+			} else if (allCompletions.length > 1) {
+				// Show completions when there are multiple matches
+				setCompletions(allCompletions);
+				setShowCompletions(true);
+			}
+		},
+		[customCommands, setCompletions, setShowCompletions, updateInput],
+	);
 
 	// Handle form submission
 	const handleSubmit = useCallback(() => {
@@ -176,38 +181,48 @@ export default function UserInput({
 	}, [showClearMessage, resetInput, resetUIState, setShowClearMessage]);
 
 	// History navigation
-	const handleHistoryNavigation = useCallback((direction: 'up' | 'down') => {
-		const history = promptHistory.getHistory();
-		if (history.length === 0) return;
+	const handleHistoryNavigation = useCallback(
+		(direction: 'up' | 'down') => {
+			const history = promptHistory.getHistory();
+			if (history.length === 0) return;
 
-		if (direction === 'up') {
-			if (historyIndex === -1) {
-				setOriginalInput(input);
-				setHistoryIndex(history.length - 1);
-				updateInput(history[history.length - 1]);
-			} else if (historyIndex > 0) {
-				const newIndex = historyIndex - 1;
-				setHistoryIndex(newIndex);
-				updateInput(history[newIndex]);
+			if (direction === 'up') {
+				if (historyIndex === -1) {
+					setOriginalInput(input);
+					setHistoryIndex(history.length - 1);
+					updateInput(history[history.length - 1]);
+				} else if (historyIndex > 0) {
+					const newIndex = historyIndex - 1;
+					setHistoryIndex(newIndex);
+					updateInput(history[newIndex]);
+				} else {
+					setHistoryIndex(-2);
+					updateInput('');
+				}
 			} else {
-				setHistoryIndex(-2);
-				updateInput('');
+				if (historyIndex >= 0 && historyIndex < history.length - 1) {
+					const newIndex = historyIndex + 1;
+					setHistoryIndex(newIndex);
+					updateInput(history[newIndex]);
+				} else if (historyIndex === history.length - 1) {
+					setHistoryIndex(-1);
+					updateInput(originalInput);
+					setOriginalInput('');
+				} else if (historyIndex === -2) {
+					setHistoryIndex(0);
+					updateInput(history[0]);
+				}
 			}
-		} else {
-			if (historyIndex >= 0 && historyIndex < history.length - 1) {
-				const newIndex = historyIndex + 1;
-				setHistoryIndex(newIndex);
-				updateInput(history[newIndex]);
-			} else if (historyIndex === history.length - 1) {
-				setHistoryIndex(-1);
-				updateInput(originalInput);
-				setOriginalInput('');
-			} else if (historyIndex === -2) {
-				setHistoryIndex(0);
-				updateInput(history[0]);
-			}
-		}
-	}, [historyIndex, input, originalInput, setHistoryIndex, setOriginalInput, updateInput]);
+		},
+		[
+			historyIndex,
+			input,
+			originalInput,
+			setHistoryIndex,
+			setOriginalInput,
+			updateInput,
+		],
+	);
 
 	useInput((inputChar, key) => {
 		resetCursorBlink();
