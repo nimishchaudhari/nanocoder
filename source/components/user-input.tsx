@@ -142,11 +142,16 @@ export default function UserInput({
 			...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
 		];
 
-		if (allCompletions.length > 0) {
+		if (allCompletions.length === 1) {
+			// Auto-complete when there's exactly one match
+			const completion = allCompletions[0];
+			updateInput(`/${completion.name}`);
+		} else if (allCompletions.length > 1) {
+			// Show completions when there are multiple matches
 			setCompletions(allCompletions);
 			setShowCompletions(true);
 		}
-	}, [customCommands, setCompletions, setShowCompletions]);
+	}, [customCommands, setCompletions, setShowCompletions, updateInput]);
 
 	// Handle form submission
 	const handleSubmit = useCallback(() => {
