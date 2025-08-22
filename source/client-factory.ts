@@ -9,8 +9,6 @@ import {Ollama} from 'ollama';
 export async function createLLMClient(
 	provider?: ProviderType,
 ): Promise<{client: LLMClient; actualProvider: ProviderType}> {
-	console.log('Loading preferences...');
-
 	// If no provider specified, check user preferences
 	if (!provider) {
 		const preferences = loadPreferences();

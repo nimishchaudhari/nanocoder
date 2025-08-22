@@ -1,6 +1,7 @@
 import {Box, Text} from 'ink';
 
 import {colors} from '../config/index.js';
+import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 
 export default function Status({
 	provider,
@@ -13,13 +14,16 @@ export default function Status({
 
 	return (
 		<>
-			<Box
+			<TitledBox
 				borderStyle="round"
-				marginBottom={1}
-				paddingX={2}
+				titles={['Status']}
+				titleStyles={titleStyles.pill}
 				width={75}
-				borderColor={colors.secondary}
+				borderColor={colors.blue}
+				paddingX={2}
+				paddingY={1}
 				flexDirection="column"
+				marginBottom={1}
 			>
 				<Text color={colors.blue}>
 					<Text bold={true}>CWD: </Text>
@@ -30,7 +34,7 @@ export default function Status({
 					{provider}, <Text bold={true}>Model: </Text>
 					{model}
 				</Text>
-			</Box>
+			</TitledBox>
 		</>
 	);
 }

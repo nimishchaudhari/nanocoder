@@ -1,7 +1,7 @@
 export interface Command {
   name: string;
   description: string;
-  handler: (args: string[]) => void;
+  handler: (args: string[]) => void | string | Promise<void | string | React.ReactNode>;
 }
 
 export interface ParsedCommand {

@@ -1,4 +1,5 @@
 import {Command} from './types/index.js';
+import React from 'react';
 
 export class CommandRegistry {
 	private commands = new Map<string, Command>();
@@ -25,7 +26,7 @@ export class CommandRegistry {
 			.sort();
 	}
 
-	async execute(input: string): Promise<void | string> {
+	async execute(input: string): Promise<void | string | React.ReactNode> {
 		const parts = input.trim().split(/\s+/);
 		const commandName = parts[0];
 		if (!commandName) {

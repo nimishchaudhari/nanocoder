@@ -19,6 +19,7 @@ import {createLLMClient} from './client-factory.js';
 import UserInput from './components/user-input.js';
 import Status from './components/status.js';
 import ChatQueue from './components/chat-queue.js';
+import InfoMessage from './components/info-message.js';
 import {helpCommand, exitCommand} from './commands/index.js';
 
 export default function App() {
@@ -48,6 +49,16 @@ export default function App() {
 	// Chat queue for components
 	const [chatComponents, setChatComponents] = useState<React.ReactNode[]>([]);
 
+	// Helper function to add components to the chat queue
+	const addToChatQueue = (component: React.ReactNode) => {
+		setChatComponents(prev => [...prev, component]);
+	};
+
+	// Helper function to clear the chat queue
+	const clearChatQueue = () => {
+		setChatComponents([]);
+	};
+
 	useEffect(() => {
 		const initializeApp = async () => {
 			setClient(null);
@@ -66,6 +77,14 @@ export default function App() {
 			if (preferences.lastProvider) {
 				setCurrentProvider(preferences.lastProvider);
 			}
+
+			// Add info message to chat queue when preferences are loaded
+			addToChatQueue(
+				<InfoMessage
+					key="preferences-loaded"
+					message="User preferences loaded..."
+				/>,
+			);
 
 			// Set up the tool registry getter for the message handler
 			setToolRegistryGetter(() => newToolManager.getToolRegistry());
@@ -101,8 +120,13 @@ export default function App() {
 			} else {
 				// Execute built-in command
 				const result = await commandRegistry.execute(commandName);
-				if (result && result.trim()) {
-					console.log(result);
+				if (result) {
+					// Check if result is JSX (React element)
+					if (React.isValidElement(result)) {
+						addToChatQueue(result);
+					} else if (typeof result === 'string' && result.trim()) {
+						console.log(result);
+					}
 				}
 			}
 		} else {
