@@ -11,6 +11,7 @@ import {
 	loadPreferences,
 	updateLastUsed,
 } from './config/preferences.js';
+import type {UserPreferences} from './types/index.js';
 import {setToolRegistryGetter} from './message-handler.js';
 import {commandRegistry} from './commands.js';
 import {shouldLog} from './config/logging.js';
@@ -21,11 +22,14 @@ import Status from './components/status.js';
 import ChatQueue from './components/chat-queue.js';
 import InfoMessage from './components/info-message.js';
 import ModelSelector from './components/model-selector.js';
+import ProviderSelector from './components/provider-selector.js';
 import {
 	helpCommand,
 	exitCommand,
 	clearCommand,
 	modelCommand,
+	providerCommand,
+	commandsCommand,
 } from './commands/index.js';
 import SuccessMessage from './components/success-message.js';
 
@@ -57,6 +61,10 @@ export default function App() {
 	const [isModelSelectionMode, setIsModelSelectionMode] =
 		useState<boolean>(false);
 
+	// Provider selection mode
+	const [isProviderSelectionMode, setIsProviderSelectionMode] =
+		useState<boolean>(false);
+
 	// Chat queue for components
 	const [chatComponents, setChatComponents] = useState<React.ReactNode[]>([]);
 
@@ -68,6 +76,11 @@ export default function App() {
 	// Helper function to enter model selection mode
 	const enterModelSelectionMode = () => {
 		setIsModelSelectionMode(true);
+	};
+
+	// Helper function to enter provider selection mode
+	const enterProviderSelectionMode = () => {
+		setIsProviderSelectionMode(true);
 	};
 
 	// Handle model selection
@@ -95,6 +108,47 @@ export default function App() {
 		setIsModelSelectionMode(false);
 	};
 
+	// Handle provider selection
+	const handleProviderSelect = async (selectedProvider: ProviderType) => {
+		if (selectedProvider !== currentProvider) {
+			try {
+				// Create new client for the selected provider
+				const {client: newClient, actualProvider} = await createLLMClient(selectedProvider);
+				setClient(newClient);
+				setCurrentProvider(actualProvider);
+				
+				// Set the model from the new client
+				const newModel = newClient.getCurrentModel();
+				setCurrentModel(newModel);
+
+				// Update preferences - use the actualProvider (which is what was successfully created)
+				updateLastUsed(actualProvider, newModel);
+
+				// Add success message to chat queue
+				addToChatQueue(
+					<SuccessMessage
+						key={`provider-changed-${Date.now()}`}
+						message={`Provider changed to: ${actualProvider}, model: ${newModel}`}
+					/>,
+				);
+			} catch (error) {
+				// Add error message if provider change fails
+				addToChatQueue(
+					<InfoMessage
+						key={`provider-error-${Date.now()}`}
+						message={`Failed to change provider: ${error}`}
+					/>,
+				);
+			}
+		}
+		setIsProviderSelectionMode(false);
+	};
+
+	// Handle provider selection cancel
+	const handleProviderSelectionCancel = () => {
+		setIsProviderSelectionMode(false);
+	};
+
 	useEffect(() => {
 		const initializeApp = async () => {
 			setClient(null);
@@ -108,11 +162,8 @@ export default function App() {
 			setCustomCommandLoader(newCustomCommandLoader);
 			setCustomCommandExecutor(newCustomCommandExecutor);
 
-			// Load preferences to set initial provider
+			// Load preferences - we'll pass them directly to avoid state timing issues
 			const preferences = loadPreferences();
-			if (preferences.lastProvider) {
-				setCurrentProvider(preferences.lastProvider);
-			}
 
 			// Add info message to chat queue when preferences are loaded
 			addToChatQueue(
@@ -130,10 +181,12 @@ export default function App() {
 				exitCommand,
 				clearCommand,
 				modelCommand,
+				providerCommand,
+				commandsCommand,
 			]);
 
 			// Now start with the properly initialized objects
-			await start(newToolManager, newCustomCommandLoader);
+			await start(newToolManager, newCustomCommandLoader, preferences);
 			setStartChat(true);
 		};
 
@@ -165,6 +218,11 @@ export default function App() {
 					return;
 				}
 
+				if (commandName === 'provider') {
+					enterProviderSelectionMode();
+					return;
+				}
+
 				// Execute built-in command
 				const result = await commandRegistry.execute(commandName);
 				if (result) {
@@ -186,28 +244,31 @@ export default function App() {
 	};
 
 	// Initialize LLM client and model
-	const initializeClient = async () => {
-		const {client, actualProvider} = await createLLMClient(currentProvider);
+	const initializeClient = async (preferredProvider?: ProviderType) => {
+		const {client, actualProvider} = await createLLMClient(preferredProvider);
 		setClient(client);
 		setCurrentProvider(actualProvider);
 
 		// Try to use the last used model for this provider
-		const lastUsedModel = getLastUsedModel(currentProvider);
+		const lastUsedModel = getLastUsedModel(actualProvider);
 
+		let finalModel: string;
 		if (lastUsedModel) {
 			const availableModels = await client.getAvailableModels();
 			if (availableModels.includes(lastUsedModel)) {
 				client.setModel(lastUsedModel);
-				setCurrentModel(lastUsedModel);
+				finalModel = lastUsedModel;
 			} else {
-				setCurrentModel(client.getCurrentModel());
+				finalModel = client.getCurrentModel();
 			}
 		} else {
-			setCurrentModel(client.getCurrentModel());
+			finalModel = client.getCurrentModel();
 		}
+		
+		setCurrentModel(finalModel);
 
-		// Save the preference
-		updateLastUsed(currentProvider, currentModel);
+		// Save the preference - use actualProvider and the model that was actually set
+		updateLastUsed(actualProvider, finalModel);
 	};
 
 	// Load and cache custom commands
@@ -247,13 +308,14 @@ export default function App() {
 	async function start(
 		newToolManager: ToolManager,
 		newCustomCommandLoader: CustomCommandLoader,
+		preferences: UserPreferences,
 	): Promise<void> {
 		try {
-			await initializeClient();
+			await initializeClient(preferences.lastProvider);
 			await loadCustomCommands(newCustomCommandLoader);
 			await initializeMCPServers(newToolManager);
 		} catch (error) {
-			console.error(`Failed to initialize ${currentProvider} provider:`, error);
+			console.error(`Failed to initialize provider:`, error);
 			process.exit(1);
 		}
 	}
@@ -280,6 +342,12 @@ export default function App() {
 							currentModel={currentModel}
 							onModelSelect={handleModelSelect}
 							onCancel={handleModelSelectionCancel}
+						/>
+					) : isProviderSelectionMode ? (
+						<ProviderSelector
+							currentProvider={currentProvider}
+							onProviderSelect={handleProviderSelect}
+							onCancel={handleProviderSelectionCancel}
 						/>
 					) : (
 						<UserInput

@@ -1,8 +1,31 @@
 {
-	"name": "nanocoder",
+	"name": "@motesoftware/nanocoder",
+	"main": "dist/cli.js",
 	"version": "1.4.0",
+	"description": "A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter",
+	"keywords": [
+		"cli",
+		"ai",
+		"coding",
+		"agent",
+		"ollama",
+		"openrouter",
+		"local",
+		"typescript"
+	],
+	"author": "Mote Software Ltd",
 	"license": "MIT",
-	"bin": "dist/cli.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Mote-Software/nanocoder.git"
+	},
+	"homepage": "https://github.com/Mote-Software/nanocoder#readme",
+	"bugs": {
+		"url": "https://github.com/Mote-Software/nanocoder/issues"
+	},
+	"bin": {
+		"nanocoder": "dist/cli.js"
+	},
 	"type": "module",
 	"engines": {
 		"node": ">=16"
@@ -14,7 +37,8 @@
 		"test": "prettier --check . && xo && ava"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"src/prompt.md"
 	],
 	"dependencies": {
 		"@mishieck/ink-titled-box": "^0.3.0",
