@@ -30,6 +30,7 @@ import {
 	modelCommand,
 	providerCommand,
 	commandsCommand,
+	debugCommand,
 } from './commands/index.js';
 import SuccessMessage from './components/success-message.js';
 
@@ -183,6 +184,7 @@ export default function App() {
 				modelCommand,
 				providerCommand,
 				commandsCommand,
+				debugCommand,
 			]);
 
 			// Now start with the properly initialized objects
@@ -224,7 +226,7 @@ export default function App() {
 				}
 
 				// Execute built-in command
-				const result = await commandRegistry.execute(commandName);
+				const result = await commandRegistry.execute(message.slice(1)); // Remove the leading '/'
 				if (result) {
 					// Check if result is JSX (React element)
 					if (React.isValidElement(result)) {
