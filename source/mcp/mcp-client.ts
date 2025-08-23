@@ -3,7 +3,7 @@ import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
 import type {Tool} from '../types/index.js';
 import {shouldLog} from '../config/logging.js';
 
-import type {MCPServer, MCPTool} from '../types/index.js';
+import type {MCPServer, MCPTool, MCPInitResult} from '../types/index.js';
 
 export class MCPClient {
 	private clients: Map<string, Client> = new Map();
@@ -54,33 +54,49 @@ export class MCPClient {
 
 			this.serverTools.set(server.name, tools);
 
-			if (shouldLog('info')) {
-				console.log(
-					`Connected to MCP server "${server.name}" with ${
-						tools.length
-					} tools: ${tools.map(t => t.name).join(', ')}`,
-				);
-			}
+			// Success - no console logging here, will be handled by app
 		} catch (error) {
-			console.log(`Failed to connect to MCP server "${server.name}": ${error}`);
+			// Error - no console logging here, will be handled by app
 			throw error;
 		}
 	}
 
-	async connectToServers(servers: MCPServer[]): Promise<void> {
-		for (const server of servers) {
+	async connectToServers(
+		servers: MCPServer[], 
+		onProgress?: (result: MCPInitResult) => void
+	): Promise<MCPInitResult[]> {
+		const results: MCPInitResult[] = [];
+		
+		// Connect to servers in parallel for better performance
+		const connectionPromises = servers.map(async (server) => {
 			try {
 				await this.connectToServer(server);
+				const tools = this.serverTools.get(server.name) || [];
+				const result: MCPInitResult = {
+					serverName: server.name,
+					success: true,
+					toolCount: tools.length,
+				};
+				results.push(result);
+				onProgress?.(result);
+				return result;
 			} catch (error) {
-				// Log error but continue with other servers
-				if (shouldLog('warn')) {
-					console.warn(
-						`Skipping server "${server.name}" due to connection error`,
-					);
-				}
+				const result: MCPInitResult = {
+					serverName: server.name,
+					success: false,
+					error: error instanceof Error ? error.message : String(error),
+				};
+				results.push(result);
+				onProgress?.(result);
+				return result;
 			}
-		}
+		});
+
+		// Wait for all connections to complete
+		await Promise.all(connectionPromises);
+		
 		this.isConnected = true;
+		return results;
 	}
 
 	getAllTools(): Tool[] {

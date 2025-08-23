@@ -1,10 +1,22 @@
 import type { ToolCall, ToolResult, ToolHandler } from './types/index.js';
+import type {ToolManager} from './tools/tool-manager.js';
 
 // This will be set by the ChatSession
 let toolRegistryGetter: (() => Record<string, ToolHandler>) | null = null;
 
+// This will be set by the App
+let toolManagerGetter: (() => ToolManager | null) | null = null;
+
 export function setToolRegistryGetter(getter: () => Record<string, ToolHandler>) {
   toolRegistryGetter = getter;
+}
+
+export function setToolManagerGetter(getter: () => ToolManager | null) {
+	toolManagerGetter = getter;
+}
+
+export function getToolManager(): ToolManager | null {
+	return toolManagerGetter ? toolManagerGetter() : null;
 }
 
 export async function processToolUse(toolCall: ToolCall): Promise<ToolResult> {

@@ -11,16 +11,20 @@ import {
 	loadPreferences,
 	updateLastUsed,
 } from './config/preferences.js';
-import type {UserPreferences} from './types/index.js';
-import {setToolRegistryGetter} from './message-handler.js';
+import type {UserPreferences, MCPInitResult} from './types/index.js';
+import {
+	setToolRegistryGetter,
+	setToolManagerGetter,
+} from './message-handler.js';
 import {commandRegistry} from './commands.js';
 import {shouldLog} from './config/logging.js';
-import {appConfig} from './config/index.js';
+import {appConfig, colors} from './config/index.js';
 import {createLLMClient} from './client-factory.js';
 import UserInput from './components/user-input.js';
 import Status from './components/status.js';
 import ChatQueue from './components/chat-queue.js';
 import InfoMessage from './components/info-message.js';
+import ErrorMessage from './components/error-message.js';
 import ModelSelector from './components/model-selector.js';
 import ProviderSelector from './components/provider-selector.js';
 import {
@@ -31,6 +35,7 @@ import {
 	providerCommand,
 	commandsCommand,
 	debugCommand,
+	mcpCommand,
 } from './commands/index.js';
 import SuccessMessage from './components/success-message.js';
 
@@ -57,6 +62,7 @@ export default function App() {
 	>(new Map());
 
 	const [startChat, setStartChat] = useState<boolean>(false);
+	const [mcpInitialized, setMcpInitialized] = useState<boolean>(false);
 
 	// Model selection mode
 	const [isModelSelectionMode, setIsModelSelectionMode] =
@@ -114,10 +120,12 @@ export default function App() {
 		if (selectedProvider !== currentProvider) {
 			try {
 				// Create new client for the selected provider
-				const {client: newClient, actualProvider} = await createLLMClient(selectedProvider);
+				const {client: newClient, actualProvider} = await createLLMClient(
+					selectedProvider,
+				);
 				setClient(newClient);
 				setCurrentProvider(actualProvider);
-				
+
 				// Set the model from the new client
 				const newModel = newClient.getCurrentModel();
 				setCurrentModel(newModel);
@@ -177,6 +185,9 @@ export default function App() {
 			// Set up the tool registry getter for the message handler
 			setToolRegistryGetter(() => newToolManager.getToolRegistry());
 
+			// Set up the tool manager getter for commands that need it
+			setToolManagerGetter(() => newToolManager);
+
 			commandRegistry.register([
 				helpCommand,
 				exitCommand,
@@ -185,11 +196,15 @@ export default function App() {
 				providerCommand,
 				commandsCommand,
 				debugCommand,
+				mcpCommand,
 			]);
 
-			// Now start with the properly initialized objects
+			// Now start with the properly initialized objects (excluding MCP)
 			await start(newToolManager, newCustomCommandLoader, preferences);
 			setStartChat(true);
+
+			// Initialize MCP servers after UI is shown
+			await initializeMCPServers(newToolManager);
 		};
 
 		initializeApp();
@@ -266,7 +281,7 @@ export default function App() {
 		} else {
 			finalModel = client.getCurrentModel();
 		}
-		
+
 		setCurrentModel(finalModel);
 
 		// Save the preference - use actualProvider and the model that was actually set
@@ -300,10 +315,50 @@ export default function App() {
 	// Initialize MCP servers if configured
 	const initializeMCPServers = async (toolManager: ToolManager) => {
 		if (appConfig.mcpServers && appConfig.mcpServers.length > 0) {
-			if (shouldLog('info')) {
-				console.log('Connecting to MCP servers...');
+			// Add connecting message to chat queue
+			addToChatQueue(
+				<InfoMessage
+					key={`mcp-connecting-${Date.now()}`}
+					message={`Connecting to ${appConfig.mcpServers.length} MCP server${
+						appConfig.mcpServers.length > 1 ? 's' : ''
+					}...`}
+				/>,
+			);
+
+			// Define progress callback to show live updates
+			const onProgress = (result: MCPInitResult) => {
+				if (result.success) {
+					addToChatQueue(
+						<SuccessMessage
+							key={`mcp-success-${result.serverName}-${Date.now()}`}
+							message={`Connected to MCP server "${result.serverName}" with ${result.toolCount} tools`}
+						/>,
+					);
+				} else {
+					addToChatQueue(
+						<ErrorMessage
+							key={`mcp-error-${result.serverName}-${Date.now()}`}
+							message={`Failed to connect to MCP server "${result.serverName}": ${result.error}`}
+						/>,
+					);
+				}
+			};
+
+			try {
+				await toolManager.initializeMCP(appConfig.mcpServers, onProgress);
+			} catch (error) {
+				addToChatQueue(
+					<ErrorMessage
+						key={`mcp-fatal-error-${Date.now()}`}
+						message={`Failed to initialize MCP servers: ${error}`}
+					/>,
+				);
 			}
-			await toolManager.initializeMCP(appConfig.mcpServers);
+			// Mark MCP as initialized whether successful or not
+			setMcpInitialized(true);
+		} else {
+			// No MCP servers configured, mark as initialized immediately
+			setMcpInitialized(true);
 		}
 	};
 
@@ -315,7 +370,6 @@ export default function App() {
 		try {
 			await initializeClient(preferences.lastProvider);
 			await loadCustomCommands(newCustomCommandLoader);
-			await initializeMCPServers(newToolManager);
 		} catch (error) {
 			console.error(`Failed to initialize provider:`, error);
 			process.exit(1);
@@ -351,11 +405,13 @@ export default function App() {
 							onProviderSelect={handleProviderSelect}
 							onCancel={handleProviderSelectionCancel}
 						/>
-					) : (
+					) : mcpInitialized ? (
 						<UserInput
 							customCommands={Array.from(customCommandCache.keys())}
 							onSubmit={handleMessageSubmit}
 						/>
+					) : (
+						<Text color={colors.secondary}>Loading...</Text>
 					)}
 				</>
 			)}

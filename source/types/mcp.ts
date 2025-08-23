@@ -11,3 +11,10 @@ export interface MCPTool {
   inputSchema?: any;
   serverName: string;
 }
+
+export interface MCPInitResult {
+  serverName: string;
+  success: boolean;
+  toolCount?: number;
+  error?: string;
+}

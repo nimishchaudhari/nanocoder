@@ -1,4 +1,4 @@
-import type {Tool, ToolHandler} from '../types/index.js';
+import type {Tool, ToolHandler, MCPInitResult} from '../types/index.js';
 import {
 	tools as staticTools,
 	toolRegistry as staticToolRegistry,
@@ -21,12 +21,15 @@ export class ToolManager {
 		this.allTools = [...staticTools];
 	}
 
-	async initializeMCP(servers: any[]): Promise<void> {
+	async initializeMCP(
+		servers: any[], 
+		onProgress?: (result: MCPInitResult) => void
+	): Promise<MCPInitResult[]> {
 		if (servers && servers.length > 0) {
 			this.mcpClient = new MCPClient();
 			this.mcpAdapter = new MCPToolAdapter(this.mcpClient);
 
-			await this.mcpClient.connectToServers(servers);
+			const results = await this.mcpClient.connectToServers(servers, onProgress);
 
 			// Register MCP tools
 			this.mcpAdapter.registerMCPTools(this.toolRegistry);
@@ -34,7 +37,10 @@ export class ToolManager {
 			// Add MCP tools to the tool list
 			const mcpTools = this.mcpClient.getAllTools();
 			this.allTools = [...staticTools, ...mcpTools];
+
+			return results;
 		}
+		return [];
 	}
 
 	/**

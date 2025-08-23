@@ -21,6 +21,7 @@ function getLogLevelDescription(level: LogLevel): React.ReactNode {
 					<Text color={colors.white}>
 						Only showing errors and essential messages
 					</Text>
+					.
 				</>
 			);
 		case 'normal':
@@ -30,6 +31,7 @@ function getLogLevelDescription(level: LogLevel): React.ReactNode {
 					<Text color={colors.white}>
 						Showing standard output without debug info
 					</Text>
+					.
 				</>
 			);
 		case 'verbose':
@@ -39,6 +41,7 @@ function getLogLevelDescription(level: LogLevel): React.ReactNode {
 					<Text color={colors.white}>
 						Showing all debug and diagnostic information
 					</Text>
+					.
 				</>
 			);
 		default:
@@ -66,7 +69,7 @@ function Debug({currentLevel, newLevel, action, invalidArg}: DebugProps) {
 						<Text color={colors.white}>{currentLevel}</Text> to{' '}
 						<Text color={colors.white}>{newLevel}</Text>.
 					</Text>
-					<Box marginTop={1}>
+					<Box>
 						<Text color={colors.blue}>{getLogLevelDescription(newLevel)}</Text>
 					</Box>
 				</>
