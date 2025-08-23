@@ -144,6 +144,10 @@ export default function App() {
 				const newModel = newClient.getCurrentModel();
 				setCurrentModel(newModel);
 
+				// Clear message history when switching providers
+				setMessages([]);
+				await newClient.clearContext();
+
 				// Update preferences - use the actualProvider (which is what was successfully created)
 				updateLastUsed(actualProvider, newModel);
 
@@ -151,7 +155,7 @@ export default function App() {
 				addToChatQueue(
 					<SuccessMessage
 						key={`provider-changed-${Date.now()}`}
-						message={`Provider changed to: ${actualProvider}, model: ${newModel}`}
+						message={`Provider changed to: ${actualProvider}, model: ${newModel}. Chat history cleared.`}
 						hideBox={true}
 					/>,
 				);
@@ -389,12 +393,17 @@ export default function App() {
 				await customCommandExecutor?.execute(customCommand, args);
 			} else {
 				// Handle special commands that need app state access
-				if (commandName === 'model') {
+				if (commandName === 'clear') {
+					// Clear message history and client context
+					setMessages([]);
+					if (client) {
+						await client.clearContext();
+					}
+					// Still show the clear command result
+				} else if (commandName === 'model') {
 					enterModelSelectionMode();
 					return;
-				}
-
-				if (commandName === 'provider') {
+				} else if (commandName === 'provider') {
 					enterProviderSelectionMode();
 					return;
 				}
