@@ -176,7 +176,7 @@ export default function App() {
 
 	// Handle chat message processing
 	const handleChatMessage = async (message: string) => {
-		if (!client) return;
+		if (!client || !toolManager) return;
 
 		// Add user message to chat
 		addToChatQueue(
@@ -188,39 +188,123 @@ export default function App() {
 
 		// Add user message to conversation history
 		const userMessage: Message = { role: 'user', content: message };
-		setMessages(prev => [...prev, userMessage]);
+		const updatedMessages = [...messages, userMessage];
+		setMessages(updatedMessages);
 
-		// Start thinking indicator
+		// Start thinking indicator and streaming
 		setIsThinking(true);
 		
+		// Initialize streaming stats
+		const startTime = Date.now();
+		let tokenCount = 0;
+		let fullContent = '';
+		
+		// Setup timer for thinking indicator updates
+		const timerInterval = setInterval(() => {
+			const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+			const systemTokens = Math.ceil(300 / 4); // Approximate system prompt tokens
+			const conversationTokens = updatedMessages.reduce((total, msg) => {
+				return total + Math.ceil((msg.content?.length || 0) / 4);
+			}, 0);
+			const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
+			
+			setThinkingStats({
+				tokenCount,
+				elapsedSeconds,
+				contextSize: client.getContextSize(),
+				totalTokensUsed,
+			});
+		}, 1000);
+		
 		try {
-			// Placeholder for streaming response - for now just simulate
-			console.log('=== TOOL EXECUTION PLACEHOLDER ===');
-			console.log('Processing message:', message);
-			console.log('Current provider:', currentProvider);
-			console.log('Current model:', currentModel);
-			console.log('Available tools:', toolManager?.getAllTools().length || 0);
-			console.log('================================');
+			// Create stream request
+			const systemMessage: Message = {
+				role: 'system',
+				content: 'You are a helpful AI assistant.',
+			};
 			
-			// Simulate thinking for 2 seconds
-			await new Promise(resolve => setTimeout(resolve, 2000));
-			
-			// Add mock assistant response
-			const assistantMessage = `This is a placeholder response for: "${message}". Tool execution would happen here.`;
-			
-			addToChatQueue(
-				<AssistantMessage 
-					key={`assistant-${Date.now()}`}
-					message={assistantMessage}
-					model={currentModel}
-				/>
+			const stream = await client.chatStream(
+				[systemMessage, ...updatedMessages],
+				toolManager.getAllTools()
 			);
 
+			let toolCalls: any = null;
+			let hasContent = false;
+			
+			// Process streaming response
+			for await (const chunk of stream) {
+				hasContent = true;
+
+				if (chunk.message?.content) {
+					fullContent += chunk.message.content;
+					tokenCount = Math.ceil(fullContent.length / 4);
+				}
+
+				if (chunk.eval_count) {
+					tokenCount = chunk.eval_count;
+				}
+
+				if (chunk.message?.tool_calls) {
+					toolCalls = chunk.message.tool_calls;
+				}
+
+				// Update thinking stats in real-time
+				if (!chunk.done) {
+					const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+					const systemTokens = Math.ceil(300 / 4);
+					const conversationTokens = updatedMessages.reduce((total, msg) => {
+						return total + Math.ceil((msg.content?.length || 0) / 4);
+					}, 0);
+					const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
+					
+					setThinkingStats({
+						tokenCount,
+						elapsedSeconds,
+						contextSize: client.getContextSize(),
+						totalTokensUsed,
+					});
+				}
+			}
+
+			clearInterval(timerInterval);
+
+			if (!hasContent) {
+				throw new Error('No response received from model');
+			}
+
+			// Display the assistant response
+			if (fullContent) {
+				addToChatQueue(
+					<AssistantMessage 
+						key={`assistant-${Date.now()}`}
+						message={fullContent}
+						model={currentModel}
+					/>
+				);
+			}
+
 			// Add assistant message to conversation history
-			const assistantMsg: Message = { role: 'assistant', content: assistantMessage };
-			setMessages(prev => [...prev, assistantMsg]);
+			const assistantMsg: Message = { 
+				role: 'assistant', 
+				content: fullContent,
+				tool_calls: toolCalls 
+			};
+			setMessages([...updatedMessages, assistantMsg]);
+
+			// Handle tool calls if present
+			if (toolCalls && toolCalls.length > 0) {
+				// For now, just show placeholder for tool calls
+				addToChatQueue(
+					<InfoMessage
+						key={`tools-placeholder-${Date.now()}`}
+						message={`Tool calls detected: ${toolCalls.length} tool(s) - execution placeholder`}
+						hideBox={true}
+					/>
+				);
+			}
 			
 		} catch (error) {
+			clearInterval(timerInterval);
 			addToChatQueue(
 				<ErrorMessage 
 					key={`error-${Date.now()}`}
