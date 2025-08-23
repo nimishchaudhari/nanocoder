@@ -38,6 +38,9 @@ import {
 	mcpCommand,
 } from './commands/index.js';
 import SuccessMessage from './components/success-message.js';
+import UserMessage from './components/user-message.js';
+import AssistantMessage from './components/assistant-message.js';
+import ThinkingIndicator from './components/thinking-indicator.js';
 import Spinner from 'ink-spinner';
 
 export default function App() {
@@ -64,6 +67,15 @@ export default function App() {
 
 	const [startChat, setStartChat] = useState<boolean>(false);
 	const [mcpInitialized, setMcpInitialized] = useState<boolean>(false);
+	
+	// Thinking indicator state
+	const [isThinking, setIsThinking] = useState<boolean>(false);
+	const [thinkingStats, setThinkingStats] = useState({
+		tokenCount: 0,
+		elapsedSeconds: 0,
+		contextSize: 0,
+		totalTokensUsed: 0,
+	});
 
 	// Model selection mode
 	const [isModelSelectionMode, setIsModelSelectionMode] =
@@ -162,6 +174,64 @@ export default function App() {
 		setIsProviderSelectionMode(false);
 	};
 
+	// Handle chat message processing
+	const handleChatMessage = async (message: string) => {
+		if (!client) return;
+
+		// Add user message to chat
+		addToChatQueue(
+			<UserMessage 
+				key={`user-${Date.now()}`} 
+				message={message}
+			/>
+		);
+
+		// Add user message to conversation history
+		const userMessage: Message = { role: 'user', content: message };
+		setMessages(prev => [...prev, userMessage]);
+
+		// Start thinking indicator
+		setIsThinking(true);
+		
+		try {
+			// Placeholder for streaming response - for now just simulate
+			console.log('=== TOOL EXECUTION PLACEHOLDER ===');
+			console.log('Processing message:', message);
+			console.log('Current provider:', currentProvider);
+			console.log('Current model:', currentModel);
+			console.log('Available tools:', toolManager?.getAllTools().length || 0);
+			console.log('================================');
+			
+			// Simulate thinking for 2 seconds
+			await new Promise(resolve => setTimeout(resolve, 2000));
+			
+			// Add mock assistant response
+			const assistantMessage = `This is a placeholder response for: "${message}". Tool execution would happen here.`;
+			
+			addToChatQueue(
+				<AssistantMessage 
+					key={`assistant-${Date.now()}`}
+					message={assistantMessage}
+					model={currentModel}
+				/>
+			);
+
+			// Add assistant message to conversation history
+			const assistantMsg: Message = { role: 'assistant', content: assistantMessage };
+			setMessages(prev => [...prev, assistantMsg]);
+			
+		} catch (error) {
+			addToChatQueue(
+				<ErrorMessage 
+					key={`error-${Date.now()}`}
+					message={`Chat error: ${error}`}
+				/>
+			);
+		} finally {
+			setIsThinking(false);
+		}
+	};
+
 	useEffect(() => {
 		const initializeApp = async () => {
 			setClient(null);
@@ -257,11 +327,8 @@ export default function App() {
 				}
 			}
 		} else {
-			// Regular message - for now just log it
-			console.log('=== COMPLETE MESSAGE ===');
-			console.log('Length:', message.length);
-			console.log('JSON:', JSON.stringify(message));
-			console.log('=========================');
+			// Regular chat message - process with AI
+			await handleChatMessage(message);
 		}
 	};
 
@@ -401,6 +468,14 @@ export default function App() {
 						]}
 						queuedComponents={chatComponents}
 					/>
+					{isThinking && (
+						<ThinkingIndicator 
+							tokenCount={thinkingStats.tokenCount}
+							elapsedSeconds={thinkingStats.elapsedSeconds}
+							contextSize={thinkingStats.contextSize}
+							totalTokensUsed={thinkingStats.totalTokensUsed}
+						/>
+					)}
 					{isModelSelectionMode ? (
 						<ModelSelector
 							client={client}

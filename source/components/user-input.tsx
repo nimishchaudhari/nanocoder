@@ -286,7 +286,12 @@ export default function UserInput({
 
 		// Handle character input
 		if (inputChar) {
-			updateInput(input + inputChar);
+			// Normalize line endings for pasted content
+			let normalizedChar = inputChar;
+			if (inputChar.includes('\r') || inputChar.includes('\n')) {
+				normalizedChar = inputChar.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+			}
+			updateInput(input + normalizedChar);
 		}
 	});
 
