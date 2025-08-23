@@ -286,11 +286,13 @@ export default function UserInput({
 
 		// Handle character input
 		if (inputChar) {
-			// Normalize line endings for pasted content
+			// Normalize line endings and tabs for pasted content
 			let normalizedChar = inputChar;
 			if (inputChar.includes('\r') || inputChar.includes('\n')) {
 				normalizedChar = inputChar.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 			}
+			// Convert tabs to 2 spaces for more compact display
+			normalizedChar = normalizedChar.replace(/\t/g, '  ');
 			updateInput(input + normalizedChar);
 		}
 	});
