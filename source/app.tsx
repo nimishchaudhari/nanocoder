@@ -38,6 +38,7 @@ import {
 	mcpCommand,
 } from './commands/index.js';
 import SuccessMessage from './components/success-message.js';
+import Spinner from 'ink-spinner';
 
 export default function App() {
 	const [client, setClient] = useState<LLMClient | null>(null);
@@ -104,6 +105,7 @@ export default function App() {
 				<SuccessMessage
 					key={`model-changed-${Date.now()}`}
 					message={`Model changed to: ${selectedModel}`}
+					hideBox={true}
 				/>,
 			);
 		}
@@ -138,14 +140,16 @@ export default function App() {
 					<SuccessMessage
 						key={`provider-changed-${Date.now()}`}
 						message={`Provider changed to: ${actualProvider}, model: ${newModel}`}
+						hideBox={true}
 					/>,
 				);
 			} catch (error) {
 				// Add error message if provider change fails
 				addToChatQueue(
-					<InfoMessage
+					<ErrorMessage
 						key={`provider-error-${Date.now()}`}
 						message={`Failed to change provider: ${error}`}
+						hideBox={true}
 					/>,
 				);
 			}
@@ -176,9 +180,10 @@ export default function App() {
 
 			// Add info message to chat queue when preferences are loaded
 			addToChatQueue(
-				<InfoMessage
+				<SuccessMessage
 					key="preferences-loaded"
 					message="User preferences loaded..."
+					hideBox={true}
 				/>,
 			);
 
@@ -322,6 +327,7 @@ export default function App() {
 					message={`Connecting to ${appConfig.mcpServers.length} MCP server${
 						appConfig.mcpServers.length > 1 ? 's' : ''
 					}...`}
+					hideBox={true}
 				/>,
 			);
 
@@ -332,6 +338,7 @@ export default function App() {
 						<SuccessMessage
 							key={`mcp-success-${result.serverName}-${Date.now()}`}
 							message={`Connected to MCP server "${result.serverName}" with ${result.toolCount} tools`}
+							hideBox={true}
 						/>,
 					);
 				} else {
@@ -339,6 +346,7 @@ export default function App() {
 						<ErrorMessage
 							key={`mcp-error-${result.serverName}-${Date.now()}`}
 							message={`Failed to connect to MCP server "${result.serverName}": ${result.error}`}
+							hideBox={true}
 						/>,
 					);
 				}
@@ -351,6 +359,7 @@ export default function App() {
 					<ErrorMessage
 						key={`mcp-fatal-error-${Date.now()}`}
 						message={`Failed to initialize MCP servers: ${error}`}
+						hideBox={true}
 					/>,
 				);
 			}
@@ -411,7 +420,9 @@ export default function App() {
 							onSubmit={handleMessageSubmit}
 						/>
 					) : (
-						<Text color={colors.secondary}>Loading...</Text>
+						<Text color={colors.secondary}>
+							<Spinner type="dots2" /> Loading...
+						</Text>
 					)}
 				</>
 			)}

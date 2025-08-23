@@ -11,6 +11,9 @@ export const exitCommand: Command = {
 			process.exit(0);
 		}, 500); // 500ms delay to allow message to render
 
-		return React.createElement(InfoMessage, {message: 'Goodbye! 👋'});
+		return React.createElement(InfoMessage, {
+			message: 'Goodbye! 👋',
+			hideTitle: true,
+		});
 	},
 };

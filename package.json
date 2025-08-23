@@ -46,6 +46,7 @@
 		"@nanostores/react": "^1.0.0",
 		"ink": "^4.1.0",
 		"ink-select-input": "^6.2.0",
+		"ink-spinner": "^5.0.0",
 		"meow": "^11.0.0",
 		"nanostores": "^1.0.1",
 		"ollama": "^0.5.17",

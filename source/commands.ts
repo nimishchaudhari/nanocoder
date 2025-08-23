@@ -34,6 +34,7 @@ export class CommandRegistry {
 			return React.createElement(ErrorMessage, {
 				key: `error-${Date.now()}`,
 				message: 'Invalid command. Type /help for available commands.',
+				hideBox: true,
 			});
 		}
 
@@ -44,6 +45,7 @@ export class CommandRegistry {
 			return React.createElement(ErrorMessage, {
 				key: `error-${Date.now()}`,
 				message: `Unknown command: ${commandName}. Type /help for available commands.`,
+				hideBox: true,
 			});
 		}
 
