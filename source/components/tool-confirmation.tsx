@@ -21,10 +21,16 @@ export default function ToolConfirmation({
 	onConfirm,
 	onCancel,
 }: ToolConfirmationProps) {
-	// Handle escape key to cancel
-	useInput((_, key) => {
+	const [showFullContent, setShowFullContent] = React.useState(false);
+
+	// Handle escape key to cancel and Ctrl+B to toggle full content  
+	useInput((inputChar, key) => {
 		if (key.escape) {
 			onCancel();
+		}
+		// Ctrl+B to toggle full content
+		if (key.ctrl && inputChar === 'b') {
+			setShowFullContent(prev => !prev);
 		}
 	});
 
@@ -38,7 +44,7 @@ export default function ToolConfirmation({
 	};
 
 	// Format tool call details for display
-	const formatToolCall = (toolCall: ToolCall) => {
+	const formatToolCall = (toolCall: ToolCall, showFull: boolean = false) => {
 		const args = toolCall.function.arguments;
 		const argKeys = Object.keys(args);
 
@@ -50,13 +56,20 @@ export default function ToolConfirmation({
 			.map(key => {
 				let value = args[key];
 
-				// Truncate long values for display
-				if (typeof value === 'string' && value.length > 50) {
-					value = value.substring(0, 47) + '...';
-				} else if (typeof value === 'object') {
-					value = JSON.stringify(value);
-					if (value.length > 50) {
+				// Truncate long values for display unless showing full content
+				if (!showFull) {
+					if (typeof value === 'string' && value.length > 50) {
 						value = value.substring(0, 47) + '...';
+					} else if (typeof value === 'object') {
+						value = JSON.stringify(value);
+						if (value.length > 50) {
+							value = value.substring(0, 47) + '...';
+						}
+					}
+				} else {
+					// Show full content - format objects nicely
+					if (typeof value === 'object') {
+						value = JSON.stringify(value, null, 2);
 					}
 				}
 
@@ -81,7 +94,7 @@ export default function ToolConfirmation({
 				<Box marginTop={1} marginBottom={1}>
 					<Box flexDirection="column">
 						<Text color={colors.secondary}>Arguments:</Text>
-						<Text color={colors.white}>{formatToolCall(toolCall)}</Text>
+						<Text color={colors.white}>{formatToolCall(toolCall, showFullContent)}</Text>
 					</Box>
 				</Box>
 
@@ -91,8 +104,9 @@ export default function ToolConfirmation({
 
 				<SelectInput items={options} onSelect={handleSelect} />
 
-				<Box marginTop={1}>
+				<Box marginTop={1} flexDirection="column">
 					<Text color={colors.secondary}>Press Escape to cancel</Text>
+					<Text color={colors.secondary}>Press Ctrl+B to {showFullContent ? 'collapse' : 'expand'} content</Text>
 				</Box>
 			</Box>
 		</TitledBox>

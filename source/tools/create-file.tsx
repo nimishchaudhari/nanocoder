@@ -43,7 +43,7 @@ const formatter = async (args: any): Promise<React.ReactElement> => {
 
 			{newContent.length > 0 ? (
 				<Box flexDirection="column" marginTop={1}>
-					<Text color={colors.secondary}>File content:</Text>
+					<Text color={colors.white}>File content:</Text>
 					{newContent.split('\n').map((line: string, i: number) => {
 						const lineNumStr = String(i + 1).padStart(4, ' ');
 						const ext = path.split('.').pop()?.toLowerCase();

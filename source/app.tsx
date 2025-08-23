@@ -335,6 +335,7 @@ export default function App() {
 		}));
 
 		// Update conversation history with tool results
+		// Note: assistantMsg is already included in updatedMessages, just add tool results
 		const updatedMessagesWithTools = [
 			...updatedMessages,
 			assistantMsg,
@@ -377,8 +378,10 @@ export default function App() {
 				tokenCount = Math.ceil(fullContent.length / 4);
 			}
 
+			// If server provides eval_count, use it as it's more accurate
+			// But ensure we don't reset to a lower count if content tokens are higher
 			if (chunk.eval_count) {
-				tokenCount = chunk.eval_count;
+				tokenCount = Math.max(tokenCount, chunk.eval_count);
 			}
 
 			if (chunk.message?.tool_calls) {
@@ -458,17 +461,43 @@ export default function App() {
 			let toolCalls: any = null;
 			let fullContent = '';
 			let hasContent = false;
+			let tokenCount = 0;
+			const startTime = Date.now();
 
-			// Process streaming response
+			// Process streaming response with progress updates
 			for await (const chunk of stream) {
 				hasContent = true;
 				
 				if (chunk.message?.content) {
 					fullContent += chunk.message.content;
+					tokenCount = Math.ceil(fullContent.length / 4);
+				}
+
+				// If server provides eval_count, use it as it's more accurate
+				// But ensure we don't reset to a lower count if content tokens are higher
+				if (chunk.eval_count) {
+					tokenCount = Math.max(tokenCount, chunk.eval_count);
 				}
 
 				if (chunk.message?.tool_calls) {
 					toolCalls = chunk.message.tool_calls;
+				}
+
+				// Update thinking stats in real-time (similar to initial response)
+				if (!chunk.done) {
+					const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+					const systemTokens = Math.ceil(300 / 4);
+					const conversationTokens = messages.reduce((total, msg) => {
+						return total + Math.ceil((msg.content?.length || 0) / 4);
+					}, 0);
+					const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
+
+					setThinkingStats({
+						tokenCount,
+						elapsedSeconds,
+						contextSize: client.getContextSize(),
+						totalTokensUsed,
+					});
 				}
 			}
 
@@ -555,20 +584,19 @@ export default function App() {
 		// Start thinking indicator and streaming
 		setIsThinking(true);
 
-		// Reset per-message stats but keep context size
-		const currentContextSize = client.getContextSize();
+		// Reset per-message stats
 		setThinkingStats({
 			tokenCount: 0,
 			elapsedSeconds: 0,
-			contextSize: currentContextSize,
-			totalTokensUsed: currentContextSize, // Start with current context as baseline
+			contextSize: client.getContextSize(),
+			totalTokensUsed: 0, // Start fresh, will be calculated properly in the interval
 		});
 
 		const startTime = Date.now();
 		let tokenCount = 0;
 		let fullContent = '';
 
-		// Setup timer for thinking indicator updates
+		// Setup timer for thinking indicator updates (less frequent to reduce jitter)
 		const timerInterval = setInterval(() => {
 			const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
 			const systemTokens = Math.ceil(300 / 4); // Approximate system prompt tokens
@@ -583,7 +611,7 @@ export default function App() {
 				contextSize: client.getContextSize(),
 				totalTokensUsed,
 			});
-		}, 1000);
+		}, 1500); // Update every 1.5 seconds instead of 1 second to reduce jitter
 
 		try {
 			// Create stream request

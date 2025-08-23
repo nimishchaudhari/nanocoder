@@ -16,15 +16,19 @@ export default function ThinkingIndicator({
 	contextSize,
 	totalTokensUsed,
 }: ThinkingIndicatorProps) {
-	const percentage = contextSize > 0 ? Math.round((totalTokensUsed / contextSize) * 100) : 0;
-	
+	const percentage =
+		contextSize > 0 ? Math.round((totalTokensUsed / contextSize) * 100) : 0;
+
+	// Clamp percentage to prevent display jitter from values over 100%
+	const displayPercentage = Math.min(percentage, 100);
+
 	return (
 		<Box flexDirection="column" marginBottom={1}>
 			<Box>
-				<Spinner type="dots" />
+				<Spinner type="dots2" />
 				<Text color={colors.secondary}> Thinking... </Text>
 				<Text color={colors.white}>
-					{tokenCount} tokens • {elapsedSeconds}s • {percentage}% context used
+					{tokenCount} tokens • {elapsedSeconds}s • {displayPercentage}% context used
 				</Text>
 			</Box>
 		</Box>
