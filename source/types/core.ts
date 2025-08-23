@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface Message {
   role: "user" | "assistant" | "system" | "tool";
   content: string;
@@ -39,7 +41,7 @@ export type ToolHandler = (input: any) => Promise<string>;
 export interface ToolDefinition {
   handler: ToolHandler;
   config: Tool;
-  formatter?: (args: any) => string | Promise<string>;
+  formatter?: (args: any) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>;
 }
 
 export interface LLMClient {

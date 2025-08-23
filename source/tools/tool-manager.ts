@@ -1,7 +1,9 @@
+import React from 'react';
 import type {Tool, ToolHandler, MCPInitResult} from '../types/index.js';
 import {
 	tools as staticTools,
 	toolRegistry as staticToolRegistry,
+	toolFormatters as staticToolFormatters,
 } from './index.js';
 import {MCPClient} from '../mcp/mcp-client.js';
 import {MCPToolAdapter} from '../mcp/mcp-tool-adapter.js';
@@ -13,11 +15,13 @@ export class ToolManager {
 	private mcpClient: MCPClient | null = null;
 	private mcpAdapter: MCPToolAdapter | null = null;
 	private toolRegistry: Record<string, ToolHandler> = {};
+	private toolFormatters: Record<string, (args: any) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>> = {};
 	private allTools: Tool[] = [];
 
 	constructor() {
 		// Initialize with static tools
 		this.toolRegistry = {...staticToolRegistry};
+		this.toolFormatters = {...staticToolFormatters};
 		this.allTools = [...staticTools];
 	}
 
@@ -62,6 +66,13 @@ export class ToolManager {
 	 */
 	getToolHandler(toolName: string): ToolHandler | undefined {
 		return this.toolRegistry[toolName];
+	}
+
+	/**
+	 * Get a specific tool formatter
+	 */
+	getToolFormatter(toolName: string): ((args: any) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>) | undefined {
+		return this.toolFormatters[toolName];
 	}
 
 	/**

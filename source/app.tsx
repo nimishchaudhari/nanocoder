@@ -15,6 +15,7 @@ import type {UserPreferences, MCPInitResult} from './types/index.js';
 import {
 	setToolRegistryGetter,
 	setToolManagerGetter,
+	getToolManager,
 } from './message-handler.js';
 import {commandRegistry} from './commands.js';
 import {shouldLog} from './config/logging.js';
@@ -41,7 +42,14 @@ import SuccessMessage from './components/success-message.js';
 import UserMessage from './components/user-message.js';
 import AssistantMessage from './components/assistant-message.js';
 import ThinkingIndicator from './components/thinking-indicator.js';
+import ToolMessage from './components/tool-message.js';
+import ToolConfirmation from './components/tool-confirmation.js';
 import Spinner from 'ink-spinner';
+import {
+	parseToolCallsFromContent,
+	cleanContentFromToolCalls,
+} from './tool-calling/index.js';
+import {processToolUse} from './message-handler.js';
 
 export default function App() {
 	const [client, setClient] = useState<LLMClient | null>(null);
@@ -67,7 +75,7 @@ export default function App() {
 
 	const [startChat, setStartChat] = useState<boolean>(false);
 	const [mcpInitialized, setMcpInitialized] = useState<boolean>(false);
-	
+
 	// Thinking indicator state
 	const [isThinking, setIsThinking] = useState<boolean>(false);
 	const [thinkingStats, setThinkingStats] = useState({
@@ -84,6 +92,18 @@ export default function App() {
 	// Provider selection mode
 	const [isProviderSelectionMode, setIsProviderSelectionMode] =
 		useState<boolean>(false);
+
+	// Tool confirmation mode
+	const [isToolConfirmationMode, setIsToolConfirmationMode] =
+		useState<boolean>(false);
+	const [pendingToolCalls, setPendingToolCalls] = useState<any[]>([]);
+	const [currentToolIndex, setCurrentToolIndex] = useState<number>(0);
+	const [completedToolResults, setCompletedToolResults] = useState<any[]>([]);
+	const [currentConversationContext, setCurrentConversationContext] = useState<{
+		updatedMessages: Message[];
+		assistantMsg: Message;
+		systemMessage: Message;
+	} | null>(null);
 
 	// Chat queue for components
 	const [chatComponents, setChatComponents] = useState<React.ReactNode[]>([]);
@@ -178,26 +198,363 @@ export default function App() {
 		setIsProviderSelectionMode(false);
 	};
 
+	// Handle tool confirmation
+	const handleToolConfirmation = async (confirmed: boolean) => {
+		if (!confirmed) {
+			// User cancelled - show message and reset state
+			addToChatQueue(
+				<InfoMessage
+					key={`tool-cancelled-${Date.now()}`}
+					message="Tool execution cancelled by user"
+					hideBox={true}
+				/>,
+			);
+			resetToolConfirmationState();
+			return;
+		}
+
+		// Execute the current tool
+		const currentTool = pendingToolCalls[currentToolIndex];
+		try {
+			const result = await processToolUse(currentTool);
+			
+			const newResults = [...completedToolResults, result];
+			setCompletedToolResults(newResults);
+
+			// Display the tool result
+			await displayToolResult(currentTool, result);
+
+			// Move to next tool or complete the process
+			if (currentToolIndex + 1 < pendingToolCalls.length) {
+				setCurrentToolIndex(currentToolIndex + 1);
+			} else {
+				// All tools executed, continue conversation loop with the updated results
+				await continueConversationWithToolResults(newResults);
+			}
+		} catch (error) {
+			addToChatQueue(
+				<ErrorMessage
+					key={`tool-exec-error-${Date.now()}`}
+					message={`Tool execution error: ${error}`}
+				/>,
+			);
+			resetToolConfirmationState();
+		}
+	};
+
+	// Handle tool confirmation cancel
+	const handleToolConfirmationCancel = () => {
+		addToChatQueue(
+			<InfoMessage
+				key={`tool-cancelled-${Date.now()}`}
+				message="Tool execution cancelled by user"
+				hideBox={true}
+			/>,
+		);
+		resetToolConfirmationState();
+	};
+
+	// Reset tool confirmation state
+	const resetToolConfirmationState = () => {
+		setIsToolConfirmationMode(false);
+		setPendingToolCalls([]);
+		setCurrentToolIndex(0);
+		setCompletedToolResults([]);
+		setCurrentConversationContext(null);
+	};
+
+	// Display tool result with proper formatting
+	const displayToolResult = async (toolCall: any, result: any) => {
+		const toolManager = getToolManager();
+		if (toolManager) {
+			const formatter = toolManager.getToolFormatter(result.name);
+			if (formatter) {
+				try {
+					const formattedResult = await formatter(toolCall.function.arguments);
+
+					if (React.isValidElement(formattedResult)) {
+						addToChatQueue(
+							React.cloneElement(formattedResult, {
+								key: `tool-result-${result.tool_call_id}-${Date.now()}`,
+							}),
+						);
+					} else {
+						addToChatQueue(
+							<ToolMessage
+								key={`tool-result-${result.tool_call_id}-${Date.now()}`}
+								title={`⚒ ${result.name}`}
+								message={String(formattedResult)}
+								hideBox={true}
+							/>,
+						);
+					}
+				} catch (formatterError) {
+					// If formatter fails, show raw result
+					addToChatQueue(
+						<ToolMessage
+							key={`tool-result-${result.tool_call_id}-${Date.now()}`}
+							title={`⚒ ${result.name}`}
+							message={result.content}
+							hideBox={true}
+						/>,
+					);
+				}
+			} else {
+				// No formatter, show raw result
+				addToChatQueue(
+					<ToolMessage
+						key={`tool-result-${result.tool_call_id}-${Date.now()}`}
+						title={`⚒ ${result.name}`}
+						message={result.content}
+						hideBox={true}
+					/>,
+				);
+			}
+		}
+	};
+
+	// Continue conversation with tool results - maintains the proper loop
+	const continueConversationWithToolResults = async (toolResults?: any[]) => {
+		if (!currentConversationContext || !client) {
+			resetToolConfirmationState();
+			return;
+		}
+
+		// Use passed results or fallback to state (for backwards compatibility)
+		const resultsToUse = toolResults || completedToolResults;
+
+		const {updatedMessages, assistantMsg, systemMessage} =
+			currentConversationContext;
+
+		// Add tool results to conversation history
+		const toolMessages: Message[] = resultsToUse.map(result => ({
+			role: 'tool' as const,
+			content: result.content,
+			tool_call_id: result.tool_call_id,
+			name: result.name,
+		}));
+
+		// Update conversation history with tool results
+		const updatedMessagesWithTools = [
+			...updatedMessages,
+			assistantMsg,
+			...toolMessages,
+		];
+		setMessages(updatedMessagesWithTools);
+
+		// Reset tool confirmation state since we're continuing the conversation
+		resetToolConfirmationState();
+
+		// Continue the main conversation loop with tool results as context
+		await processAssistantResponse(systemMessage, updatedMessagesWithTools);
+	};
+
+	// Process assistant response with token tracking (for initial user messages)
+	const processAssistantResponseWithTokenTracking = async (
+		systemMessage: Message, 
+		messages: Message[], 
+		timerInterval: NodeJS.Timeout,
+		startTime: number
+	) => {
+		if (!client) return;
+
+		const stream = await client.chatStream(
+			[systemMessage, ...messages],
+			toolManager?.getAllTools() || [],
+		);
+
+		let toolCalls: any = null;
+		let fullContent = '';
+		let tokenCount = 0;
+		let hasContent = false;
+
+		// Process streaming response
+		for await (const chunk of stream) {
+			hasContent = true;
+
+			if (chunk.message?.content) {
+				fullContent += chunk.message.content;
+				tokenCount = Math.ceil(fullContent.length / 4);
+			}
+
+			if (chunk.eval_count) {
+				tokenCount = chunk.eval_count;
+			}
+
+			if (chunk.message?.tool_calls) {
+				toolCalls = chunk.message.tool_calls;
+			}
+
+			// Update thinking stats in real-time
+			if (!chunk.done) {
+				const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+				const systemTokens = Math.ceil(300 / 4);
+				const conversationTokens = messages.reduce((total, msg) => {
+					return total + Math.ceil((msg.content?.length || 0) / 4);
+				}, 0);
+				const totalTokensUsed =
+					systemTokens + conversationTokens + tokenCount;
+
+				setThinkingStats({
+					tokenCount,
+					elapsedSeconds,
+					contextSize: client.getContextSize(),
+					totalTokensUsed,
+				});
+			}
+		}
+
+		clearInterval(timerInterval);
+
+		if (!hasContent) {
+			throw new Error('No response received from model');
+		}
+
+		// Parse any tool calls from the content itself
+		const parsedToolCalls = parseToolCallsFromContent(fullContent);
+		const cleanedContent = cleanContentFromToolCalls(fullContent, parsedToolCalls);
+
+		// Display the assistant response (cleaned of any tool calls)
+		if (cleanedContent.trim()) {
+			addToChatQueue(
+				<AssistantMessage
+					key={`assistant-${Date.now()}`}
+					message={cleanedContent}
+					model={currentModel}
+				/>,
+			);
+		}
+
+		// Merge structured tool calls with content-parsed tool calls
+		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
+
+		// Add assistant message to conversation history
+		const assistantMsg: Message = {
+			role: 'assistant',
+			content: cleanedContent,
+			tool_calls: allToolCalls.length > 0 ? allToolCalls : undefined,
+		};
+		setMessages([...messages, assistantMsg]);
+
+		// Handle tool calls if present - this continues the loop
+		if (allToolCalls && allToolCalls.length > 0) {
+			// Start tool confirmation flow
+			startToolConfirmationFlow(allToolCalls, messages, assistantMsg, systemMessage);
+		}
+	};
+
+	// Process assistant response - handles the conversation loop with potential tool calls (for follow-ups)
+	const processAssistantResponse = async (systemMessage: Message, messages: Message[]) => {
+		if (!client) return;
+
+		try {
+			setIsThinking(true);
+
+			const stream = await client.chatStream(
+				[systemMessage, ...messages],
+				toolManager?.getAllTools() || [],
+			);
+
+			let toolCalls: any = null;
+			let fullContent = '';
+			let hasContent = false;
+
+			// Process streaming response
+			for await (const chunk of stream) {
+				hasContent = true;
+				
+				if (chunk.message?.content) {
+					fullContent += chunk.message.content;
+				}
+
+				if (chunk.message?.tool_calls) {
+					toolCalls = chunk.message.tool_calls;
+				}
+			}
+
+			if (!hasContent) {
+				throw new Error('No response received from model');
+			}
+
+			// Parse any tool calls from the content itself
+			const parsedToolCalls = parseToolCallsFromContent(fullContent);
+			const cleanedContent = cleanContentFromToolCalls(fullContent, parsedToolCalls);
+
+			// Display the assistant response (cleaned of any tool calls)
+			if (cleanedContent.trim()) {
+				addToChatQueue(
+					<AssistantMessage
+						key={`assistant-${Date.now()}`}
+						message={cleanedContent}
+						model={currentModel}
+					/>,
+				);
+			}
+
+			// Merge structured tool calls with content-parsed tool calls
+			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
+
+			// Add assistant message to conversation history
+			const assistantMsg: Message = {
+				role: 'assistant',
+				content: cleanedContent,
+				tool_calls: allToolCalls.length > 0 ? allToolCalls : undefined,
+			};
+			setMessages([...messages, assistantMsg]);
+
+			// Handle tool calls if present - this continues the loop
+			if (allToolCalls && allToolCalls.length > 0) {
+				// Start tool confirmation flow
+				startToolConfirmationFlow(allToolCalls, messages, assistantMsg, systemMessage);
+			}
+			// If no tool calls, the conversation naturally ends here
+		} catch (error) {
+			addToChatQueue(
+				<ErrorMessage
+					key={`error-${Date.now()}`}
+					message={`Conversation error: ${error}`}
+				/>,
+			);
+		} finally {
+			setIsThinking(false);
+		}
+	};
+
+	// Start tool confirmation flow
+	const startToolConfirmationFlow = (
+		toolCalls: any[],
+		updatedMessages: Message[],
+		assistantMsg: Message,
+		systemMessage: Message,
+	) => {
+		setPendingToolCalls(toolCalls);
+		setCurrentToolIndex(0);
+		setCompletedToolResults([]);
+		setCurrentConversationContext({
+			updatedMessages,
+			assistantMsg,
+			systemMessage,
+		});
+		setIsToolConfirmationMode(true);
+	};
+
 	// Handle chat message processing
 	const handleChatMessage = async (message: string) => {
 		if (!client || !toolManager) return;
 
 		// Add user message to chat
 		addToChatQueue(
-			<UserMessage 
-				key={`user-${Date.now()}`} 
-				message={message}
-			/>
+			<UserMessage key={`user-${Date.now()}`} message={message} />,
 		);
 
 		// Add user message to conversation history
-		const userMessage: Message = { role: 'user', content: message };
+		const userMessage: Message = {role: 'user', content: message};
 		const updatedMessages = [...messages, userMessage];
 		setMessages(updatedMessages);
 
 		// Start thinking indicator and streaming
 		setIsThinking(true);
-		
+
 		// Reset per-message stats but keep context size
 		const currentContextSize = client.getContextSize();
 		setThinkingStats({
@@ -206,11 +563,11 @@ export default function App() {
 			contextSize: currentContextSize,
 			totalTokensUsed: currentContextSize, // Start with current context as baseline
 		});
-		
+
 		const startTime = Date.now();
 		let tokenCount = 0;
 		let fullContent = '';
-		
+
 		// Setup timer for thinking indicator updates
 		const timerInterval = setInterval(() => {
 			const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
@@ -219,7 +576,7 @@ export default function App() {
 				return total + Math.ceil((msg.content?.length || 0) / 4);
 			}, 0);
 			const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
-			
+
 			setThinkingStats({
 				tokenCount,
 				elapsedSeconds,
@@ -227,101 +584,23 @@ export default function App() {
 				totalTokensUsed,
 			});
 		}, 1000);
-		
+
 		try {
 			// Create stream request
 			const systemMessage: Message = {
 				role: 'system',
 				content: 'You are a helpful AI assistant.',
 			};
-			
-			const stream = await client.chatStream(
-				[systemMessage, ...updatedMessages],
-				toolManager.getAllTools()
-			);
 
-			let toolCalls: any = null;
-			let hasContent = false;
-			
-			// Process streaming response
-			for await (const chunk of stream) {
-				hasContent = true;
-
-				if (chunk.message?.content) {
-					fullContent += chunk.message.content;
-					tokenCount = Math.ceil(fullContent.length / 4);
-				}
-
-				if (chunk.eval_count) {
-					tokenCount = chunk.eval_count;
-				}
-
-				if (chunk.message?.tool_calls) {
-					toolCalls = chunk.message.tool_calls;
-				}
-
-				// Update thinking stats in real-time
-				if (!chunk.done) {
-					const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
-					const systemTokens = Math.ceil(300 / 4);
-					const conversationTokens = updatedMessages.reduce((total, msg) => {
-						return total + Math.ceil((msg.content?.length || 0) / 4);
-					}, 0);
-					const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
-					
-					setThinkingStats({
-						tokenCount,
-						elapsedSeconds,
-						contextSize: client.getContextSize(),
-						totalTokensUsed,
-					});
-				}
-			}
-
-			clearInterval(timerInterval);
-
-			if (!hasContent) {
-				throw new Error('No response received from model');
-			}
-
-			// Display the assistant response
-			if (fullContent) {
-				addToChatQueue(
-					<AssistantMessage 
-						key={`assistant-${Date.now()}`}
-						message={fullContent}
-						model={currentModel}
-					/>
-				);
-			}
-
-			// Add assistant message to conversation history
-			const assistantMsg: Message = { 
-				role: 'assistant', 
-				content: fullContent,
-				tool_calls: toolCalls 
-			};
-			setMessages([...updatedMessages, assistantMsg]);
-
-			// Handle tool calls if present
-			if (toolCalls && toolCalls.length > 0) {
-				// For now, just show placeholder for tool calls
-				addToChatQueue(
-					<InfoMessage
-						key={`tools-placeholder-${Date.now()}`}
-						message={`Tool calls detected: ${toolCalls.length} tool(s) - execution placeholder`}
-						hideBox={true}
-					/>
-				);
-			}
-			
+			// Use the new conversation loop
+			await processAssistantResponseWithTokenTracking(systemMessage, updatedMessages, timerInterval, startTime);
 		} catch (error) {
 			clearInterval(timerInterval);
 			addToChatQueue(
-				<ErrorMessage 
+				<ErrorMessage
 					key={`error-${Date.now()}`}
 					message={`Chat error: ${error}`}
-				/>
+				/>,
 			);
 		} finally {
 			setIsThinking(false);
@@ -570,7 +849,7 @@ export default function App() {
 						queuedComponents={chatComponents}
 					/>
 					{isThinking && (
-						<ThinkingIndicator 
+						<ThinkingIndicator
 							tokenCount={thinkingStats.tokenCount}
 							elapsedSeconds={thinkingStats.elapsedSeconds}
 							contextSize={thinkingStats.contextSize}
@@ -589,6 +868,12 @@ export default function App() {
 							currentProvider={currentProvider}
 							onProviderSelect={handleProviderSelect}
 							onCancel={handleProviderSelectionCancel}
+						/>
+					) : isToolConfirmationMode && pendingToolCalls[currentToolIndex] ? (
+						<ToolConfirmation
+							toolCall={pendingToolCalls[currentToolIndex]}
+							onConfirm={handleToolConfirmation}
+							onCancel={handleToolConfirmationCancel}
 						/>
 					) : mcpInitialized ? (
 						<UserInput

@@ -1,0 +1,89 @@
+import {resolve} from 'node:path';
+import {readFile} from 'node:fs/promises';
+import React from 'react';
+import {Text, Box} from 'ink';
+import type {ToolHandler, ToolDefinition} from '../types/index.js';
+import {colors} from '../config/index.js';
+import ToolMessage from '../components/tool-message.js';
+
+const handler: ToolHandler = async (args: {path: string}): Promise<string> => {
+	const content = await readFile(resolve(args.path), 'utf-8');
+	const lines = content.split('\n');
+
+	// Return content with line numbers for precise editing
+	let result = '';
+	for (let i = 0; i < lines.length; i++) {
+		const lineNum = String(i + 1).padStart(4, ' ');
+		result += `${lineNum}: ${lines[i]}\n`;
+	}
+
+	return result.slice(0, -1); // Remove trailing newline
+};
+
+const formatter = async (args: any): Promise<React.ReactElement> => {
+	const path = args.path || args.file_path || 'unknown';
+
+	// Read the file to get size info for token estimation
+	let fileSize = 0;
+	let estimatedTokens = 0;
+	try {
+		const content = await readFile(resolve(path), 'utf-8');
+		fileSize = content.length;
+		estimatedTokens = Math.ceil(fileSize / 4); // ~4 characters per token
+	} catch (error) {
+		// If we can't read the file, we'll show 0
+	}
+
+	const messageContent = (
+		<Box flexDirection="column">
+			<Text color={colors.tool}>⚒ read_file</Text>
+
+			<Box>
+				<Text color={colors.secondary}>Path: </Text>
+				<Text color={colors.white}>{path}</Text>
+			</Box>
+
+			<Box>
+				<Text color={colors.secondary}>Size: </Text>
+				<Text color={colors.white}>
+					{fileSize} characters (~{estimatedTokens} tokens)
+				</Text>
+			</Box>
+
+			{(args.offset || args.limit) && (
+				<Box marginTop={1}>
+					<Text color={colors.secondary}>Range: </Text>
+					<Text color={colors.primary}>
+						{args.offset && `from line ${args.offset} `}
+						{args.limit && `(${args.limit} lines)`}
+					</Text>
+				</Box>
+			)}
+		</Box>
+	);
+
+	return <ToolMessage message={messageContent} hideBox={true} />;
+};
+
+export const readFileTool: ToolDefinition = {
+	handler,
+	formatter,
+	config: {
+		type: 'function',
+		function: {
+			name: 'read_file',
+			description:
+				'Read the contents of a file with line numbers (use line numbers with edit_file tool for precise editing)',
+			parameters: {
+				type: 'object',
+				properties: {
+					path: {
+						type: 'string',
+						description: 'The path to the file to read.',
+					},
+				},
+				required: ['path'],
+			},
+		},
+	},
+};
