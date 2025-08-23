@@ -198,7 +198,15 @@ export default function App() {
 		// Start thinking indicator and streaming
 		setIsThinking(true);
 		
-		// Initialize streaming stats
+		// Reset per-message stats but keep context size
+		const currentContextSize = client.getContextSize();
+		setThinkingStats({
+			tokenCount: 0,
+			elapsedSeconds: 0,
+			contextSize: currentContextSize,
+			totalTokensUsed: currentContextSize, // Start with current context as baseline
+		});
+		
 		const startTime = Date.now();
 		let tokenCount = 0;
 		let fullContent = '';
