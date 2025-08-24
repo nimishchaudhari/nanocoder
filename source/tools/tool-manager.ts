@@ -71,7 +71,7 @@ export class ToolManager {
 	/**
 	 * Get a specific tool formatter
 	 */
-	getToolFormatter(toolName: string): ((args: any) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>) | undefined {
+	getToolFormatter(toolName: string): ((args: any, result?: string) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>) | undefined {
 		return this.toolFormatters[toolName];
 	}
 

@@ -41,7 +41,7 @@ export type ToolHandler = (input: any) => Promise<string>;
 export interface ToolDefinition {
   handler: ToolHandler;
   config: Tool;
-  formatter?: (args: any) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>;
+  formatter?: (args: any, result?: string) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>;
 }
 
 export interface LLMClient {

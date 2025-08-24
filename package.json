@@ -38,7 +38,7 @@
 	},
 	"files": [
 		"dist",
-		"src/prompt.md"
+		"source/prompt.md"
 	],
 	"dependencies": {
 		"@mishieck/ink-titled-box": "^0.3.0",

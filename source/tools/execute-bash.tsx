@@ -36,7 +36,7 @@ const handler: ToolHandler = async (args: {
 	});
 };
 
-const formatter = async (args: any): Promise<React.ReactElement> => {
+const formatter = async (args: any, result?: string): Promise<React.ReactElement> => {
 	const command = args.command || 'unknown';
 
 	let highlightedCommand;
@@ -49,6 +49,14 @@ const formatter = async (args: any): Promise<React.ReactElement> => {
 		highlightedCommand = command;
 	}
 
+	// Calculate token estimation for the output if result is provided
+	let outputSize = 0;
+	let estimatedTokens = 0;
+	if (result) {
+		outputSize = result.length;
+		estimatedTokens = Math.ceil(outputSize / 4); // ~4 characters per token
+	}
+
 	const messageContent = (
 		<Box flexDirection="column">
 			<Text color={colors.tool}>⚒ execute_bash</Text>
@@ -57,6 +65,15 @@ const formatter = async (args: any): Promise<React.ReactElement> => {
 				<Text color={colors.secondary}>Command: </Text>
 				<Text color={colors.primary}>{command}</Text>
 			</Box>
+
+			{result && (
+				<Box>
+					<Text color={colors.secondary}>Output: </Text>
+					<Text color={colors.white}>
+						{outputSize} characters (~{estimatedTokens} tokens)
+					</Text>
+				</Box>
+			)}
 		</Box>
 	);
 

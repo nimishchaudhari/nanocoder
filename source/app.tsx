@@ -19,7 +19,8 @@ import {
 } from './message-handler.js';
 import {commandRegistry} from './commands.js';
 import {shouldLog} from './config/logging.js';
-import {appConfig, colors} from './config/index.js';
+import {appConfig, colors, promptPath} from './config/index.js';
+import {readFileSync, existsSync} from 'fs';
 import {createLLMClient} from './client-factory.js';
 import UserInput from './components/user-input.js';
 import Status from './components/status.js';
@@ -294,7 +295,7 @@ export default function App() {
 			const formatter = toolManager.getToolFormatter(result.name);
 			if (formatter) {
 				try {
-					const formattedResult = await formatter(toolCall.function.arguments);
+					const formattedResult = await formatter(toolCall.function.arguments, result.content);
 
 					if (React.isValidElement(formattedResult)) {
 						addToChatQueue(
@@ -652,10 +653,20 @@ export default function App() {
 		}, 2000); // Update every 2 seconds to further reduce jitter
 
 		try {
+			// Load system prompt from prompt.md file
+			let systemPrompt = 'You are a helpful AI assistant.'; // fallback
+			if (existsSync(promptPath)) {
+				try {
+					systemPrompt = readFileSync(promptPath, 'utf-8');
+				} catch (error) {
+					console.warn(`Failed to load system prompt from ${promptPath}: ${error}`);
+				}
+			}
+
 			// Create stream request
 			const systemMessage: Message = {
 				role: 'system',
-				content: 'You are a helpful AI assistant.',
+				content: systemPrompt,
 			};
 
 			// Use the new conversation loop
