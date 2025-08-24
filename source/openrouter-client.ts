@@ -231,15 +231,46 @@ export class OpenRouterClient implements LLMClient {
 							// Yield final result with accumulated tool calls
 							if (accumulatedToolCalls.length > 0) {
 								// Parse arguments as JSON objects
-								const processedToolCalls = accumulatedToolCalls.map(tool => ({
-									...tool,
-									function: {
-										...tool.function,
-										arguments: tool.function.arguments
-											? JSON.parse(tool.function.arguments)
-											: {},
-									},
-								}));
+								const processedToolCalls = accumulatedToolCalls.map(tool => {
+									let parsedArgs = {};
+									if (tool.function.arguments) {
+										try {
+											// Handle cases where the model appends extra content after JSON
+											const argsString = tool.function.arguments;
+											// Find the first valid JSON object by looking for matching braces
+											let braceCount = 0;
+											let jsonEndIndex = -1;
+											for (let i = 0; i < argsString.length; i++) {
+												if (argsString[i] === '{') braceCount++;
+												else if (argsString[i] === '}') {
+													braceCount--;
+													if (braceCount === 0) {
+														jsonEndIndex = i + 1;
+														break;
+													}
+												}
+											}
+											
+											if (jsonEndIndex > 0) {
+												const jsonPart = argsString.substring(0, jsonEndIndex);
+												parsedArgs = JSON.parse(jsonPart);
+											} else {
+												parsedArgs = JSON.parse(argsString);
+											}
+										} catch (e) {
+											// If JSON parsing fails, return empty object as fallback
+											parsedArgs = {};
+										}
+									}
+									
+									return {
+										...tool,
+										function: {
+											...tool.function,
+											arguments: parsedArgs,
+										},
+									};
+								});
 
 								yield {
 									message: {

@@ -190,7 +190,14 @@ export function useChatHandler({
 
 	// Process assistant response - handles the conversation loop with potential tool calls (for follow-ups)
 	const processAssistantResponse = async (systemMessage: Message, messages: Message[]) => {
-		if (!client || !abortController) return;
+		if (!client) return;
+		
+		// Ensure we have an abort controller for this request
+		let controller = abortController;
+		if (!controller) {
+			controller = new AbortController();
+			setAbortController(controller);
+		}
 
 		try {
 			setIsThinking(true);
@@ -207,7 +214,7 @@ export function useChatHandler({
 			const startTime = Date.now();
 
 			// Process streaming response with progress updates and cancellation support
-			const cancellableStream = makeCancellableStream(stream, abortController.signal);
+			const cancellableStream = makeCancellableStream(stream, controller.signal);
 			for await (const chunk of cancellableStream) {
 				hasContent = true;
 				
@@ -300,6 +307,7 @@ export function useChatHandler({
 		} finally {
 			setIsThinking(false);
 			setIsCancelling(false);
+			setAbortController(null);
 		}
 	};
 
