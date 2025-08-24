@@ -125,9 +125,7 @@ export async function formatEditPreview(args: any): Promise<React.ReactElement> 
 					</Box>
 				)}
 
-				<Box marginTop={1}>
-					{previewContent}
-				</Box>
+				{previewContent}
 			</Box>
 		);
 
@@ -175,7 +173,7 @@ async function formatFindReplacePreview({
 	// Use same logic as handler - check if text exists first
 	if (!fileContent.includes(oldText)) {
 		return (
-			<Box flexDirection="column">
+			<Box flexDirection="column" marginTop={1}>
 				<Text color={colors.error}>✗ Text not found in file</Text>
 				<Box>
 					<Text color={colors.secondary}>Looking for: </Text>
@@ -241,7 +239,7 @@ async function formatFindReplacePreview({
 				
 				contextBefore.push(
 					<Box key={`before-${i}`}>
-						<Text color={colors.secondary}> {lineNumStr}  </Text>
+						<Text color={colors.secondary}>{lineNumStr}  </Text>
 						<Text wrap="wrap">{displayLine}</Text>
 					</Box>
 				);
@@ -269,7 +267,7 @@ async function formatFindReplacePreview({
 				
 				contextAfter.push(
 					<Box key={`after-${i}`}>
-						<Text color={colors.secondary}> {lineNumStr}  </Text>
+						<Text color={colors.secondary}>{lineNumStr}  </Text>
 						<Text wrap="wrap">{displayLine}</Text>
 					</Box>
 				);
@@ -280,12 +278,10 @@ async function formatFindReplacePreview({
 					<Text color={colors.secondary}>Line {lineNum}:</Text>
 					{contextBefore}
 					<Box>
-						<Text color={colors.secondary}>{lineNumStr}  </Text>
-						<Text backgroundColor="red" color="white" wrap="wrap">- {oldLine}</Text>
+						<Text backgroundColor="red" color="white" wrap="wrap">{lineNumStr}  - {oldLine}</Text>
 					</Box>
 					<Box>
-						<Text color={colors.secondary}>{lineNumStr}  </Text>
-						<Text backgroundColor="green" color="white" wrap="wrap">+ {newLine}</Text>
+						<Text backgroundColor="green" color="white" wrap="wrap">{lineNumStr}  + {newLine}</Text>
 					</Box>
 					{contextAfter}
 				</Box>
@@ -293,7 +289,7 @@ async function formatFindReplacePreview({
 		}
 
 		return (
-			<Box flexDirection="column">
+			<Box flexDirection="column" marginTop={1}>
 				<Text color={colors.success}>
 					✓ {changesToShow.length} change{changesToShow.length > 1 ? 's' : ''} found
 				</Text>
@@ -308,7 +304,7 @@ async function formatFindReplacePreview({
 	} else {
 		// Handle multiline text
 		return (
-			<Box flexDirection="column">
+			<Box flexDirection="column" marginTop={1}>
 				<Text color={colors.error}>✗ Could not locate text in file</Text>
 				<Box>
 					<Text color={colors.secondary}>Looking for text starting with: </Text>
@@ -334,7 +330,7 @@ async function formatInsertPreview({
 }): Promise<React.ReactElement> {
 	if (!lineNumber || lineNumber < 1 || lineNumber > lines.length + 1) {
 		return (
-			<Box flexDirection="column">
+			<Box flexDirection="column" marginTop={1}>
 				<Text color={colors.error}>
 					✗ Line number {lineNumber} is out of range (file has {lines.length} lines)
 				</Text>
@@ -363,7 +359,7 @@ async function formatInsertPreview({
 
 		contextBefore.push(
 			<Box key={`before-${i}`}>
-				<Text color={colors.secondary}> {lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr}  </Text>
 				<Text>{displayLine}</Text>
 			</Box>
 		);
@@ -382,8 +378,7 @@ async function formatInsertPreview({
 
 		insertedLines.push(
 			<Box key={`insert-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
-				<Text backgroundColor="green" color="white" wrap="wrap">+ {displayLine}</Text>
+				<Text backgroundColor="green" color="white" wrap="wrap">{lineNumStr}  + {displayLine}</Text>
 			</Box>
 		);
 	}
@@ -401,14 +396,14 @@ async function formatInsertPreview({
 
 		contextAfter.push(
 			<Box key={`after-${i}`}>
-				<Text color={colors.secondary}> {lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr}  </Text>
 				<Text>{displayLine}</Text>
 			</Box>
 		);
 	}
 
 	return (
-		<Box flexDirection="column">
+		<Box flexDirection="column" marginTop={1}>
 			<Text color={colors.success}>
 				✓ Inserting {newLines.length} line{newLines.length > 1 ? 's' : ''}
 			</Text>
@@ -457,7 +452,7 @@ async function formatReplacePreview({
 
 		contextBefore.push(
 			<Box key={`before-${i}`}>
-				<Text color={colors.secondary}> {lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr}  </Text>
 				<Text>{displayLine}</Text>
 			</Box>
 		);
@@ -476,8 +471,7 @@ async function formatReplacePreview({
 
 		removedLines.push(
 			<Box key={`remove-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
-				<Text backgroundColor="red" color="white" wrap="wrap">- {displayLine}</Text>
+				<Text backgroundColor="red" color="white" wrap="wrap">{lineNumStr}  - {displayLine}</Text>
 			</Box>
 		);
 	}
@@ -495,8 +489,7 @@ async function formatReplacePreview({
 
 		addedLines.push(
 			<Box key={`add-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
-				<Text backgroundColor="green" color="white" wrap="wrap">+ {displayLine}</Text>
+				<Text backgroundColor="green" color="white" wrap="wrap">{lineNumStr}  + {displayLine}</Text>
 			</Box>
 		);
 	}
@@ -514,14 +507,14 @@ async function formatReplacePreview({
 
 		contextAfter.push(
 			<Box key={`after-${i}`}>
-				<Text color={colors.secondary}> {lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr}  </Text>
 				<Text>{displayLine}</Text>
 			</Box>
 		);
 	}
 
 	return (
-		<Box flexDirection="column">
+		<Box flexDirection="column" marginTop={1}>
 			<Text color={colors.success}>
 				✓ Replacing {linesToRemove} line{linesToRemove > 1 ? 's' : ''} with{' '}
 				{newLines.length} line{newLines.length > 1 ? 's' : ''}
@@ -568,7 +561,7 @@ async function formatDeletePreview({
 
 		contextBefore.push(
 			<Box key={`before-${i}`}>
-				<Text color={colors.secondary}> {lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr}  </Text>
 				<Text>{displayLine}</Text>
 			</Box>
 		);
@@ -587,8 +580,7 @@ async function formatDeletePreview({
 
 		deletedLines.push(
 			<Box key={`delete-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
-				<Text backgroundColor="red" color="white" wrap="wrap">- {displayLine}</Text>
+				<Text backgroundColor="red" color="white" wrap="wrap">{lineNumStr}  - {displayLine}</Text>
 			</Box>
 		);
 	}
@@ -606,14 +598,14 @@ async function formatDeletePreview({
 
 		contextAfter.push(
 			<Box key={`after-${i}`}>
-				<Text color={colors.secondary}> {lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr}  </Text>
 				<Text>{displayLine}</Text>
 			</Box>
 		);
 	}
 
 	return (
-		<Box flexDirection="column">
+		<Box flexDirection="column" marginTop={1}>
 			<Text color={colors.success}>
 				✓ Deleting {linesToRemove} line{linesToRemove > 1 ? 's' : ''}
 			</Text>
@@ -641,7 +633,7 @@ async function formatMovePreview({
 }): Promise<React.ReactElement> {
 	if (!targetLine || targetLine < 1 || targetLine > lines.length + 1) {
 		return (
-			<Box flexDirection="column">
+			<Box flexDirection="column" marginTop={1}>
 				<Text color={colors.error}>✗ Target line {targetLine} is invalid</Text>
 			</Box>
 		);
@@ -662,7 +654,7 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		sourceSection.push(
 			<Box key={`src-before-${i}`}>
-				<Text color={colors.secondary}> {lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr}  </Text>
 				<Text wrap="wrap">{line}</Text>
 			</Box>
 		);
@@ -673,8 +665,7 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		sourceSection.push(
 			<Box key={`src-move-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
-				<Text backgroundColor="red" color="white" wrap="wrap">- {line}</Text>
+				<Text backgroundColor="red" color="white" wrap="wrap">{lineNumStr}  - {line}</Text>
 			</Box>
 		);
 	}
@@ -684,7 +675,7 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		sourceSection.push(
 			<Box key={`src-after-${i}`}>
-				<Text color={colors.secondary}> {lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr}  </Text>
 				<Text wrap="wrap">{line}</Text>
 			</Box>
 		);
@@ -696,7 +687,7 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		targetSection.push(
 			<Box key={`tgt-before-${i}`}>
-				<Text color={colors.secondary}> {lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr}  </Text>
 				<Text wrap="wrap">{line}</Text>
 			</Box>
 		);
@@ -707,8 +698,7 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		targetSection.push(
 			<Box key={`tgt-move-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
-				<Text backgroundColor="green" color="white" wrap="wrap">+ {line}</Text>
+				<Text backgroundColor="green" color="white" wrap="wrap">{lineNumStr}  + {line}</Text>
 			</Box>
 		);
 	}
@@ -718,14 +708,14 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		targetSection.push(
 			<Box key={`tgt-after-${i}`}>
-				<Text color={colors.secondary}> {lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr}  </Text>
 				<Text wrap="wrap">{line}</Text>
 			</Box>
 		);
 	}
 
 	return (
-		<Box flexDirection="column">
+		<Box flexDirection="column" marginTop={1}>
 			<Text color={colors.success}>
 				✓ Moving {linesToMove} line{linesToMove > 1 ? 's' : ''} to line {targetLine}
 			</Text>
