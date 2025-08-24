@@ -359,9 +359,11 @@ export function useChatHandler({
 				const oldPercentage = prevStats.contextSize > 0 ? 
 					Math.round((prevStats.totalTokensUsed / prevStats.contextSize) * 100) : 0;
 				
-				if (prevStats.tokenCount === tokenCount && 
-				    prevStats.elapsedSeconds === elapsedSeconds &&
-				    Math.abs(newPercentage - oldPercentage) < 1) {
+				// Always update if elapsedSeconds has changed, otherwise only update if tokens or percentage changed meaningfully
+				if (prevStats.elapsedSeconds !== elapsedSeconds) {
+					// Time has changed, always update
+				} else if (prevStats.tokenCount === tokenCount && 
+				          Math.abs(newPercentage - oldPercentage) < 1) {
 					return prevStats; // No meaningful change, skip update
 				}
 				
@@ -372,7 +374,7 @@ export function useChatHandler({
 					totalTokensUsed,
 				};
 			});
-		}, 2000); // Update every 2 seconds to further reduce jitter
+		}, 1000); // Update every second to match elapsedSeconds precision
 
 		try {
 			// Load system prompt from prompt.md file

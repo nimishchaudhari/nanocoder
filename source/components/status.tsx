@@ -1,16 +1,19 @@
 import {Text} from 'ink';
+import {memo} from 'react';
 
 import {colors} from '../config/index.js';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 
-export default function Status({
+// Get CWD once at module load time
+const cwd = process.cwd();
+
+export default memo(function Status({
 	provider,
 	model,
 }: {
 	provider: string;
 	model: string;
 }) {
-	const cwd = process.cwd();
 
 	return (
 		<TitledBox
@@ -35,4 +38,4 @@ export default function Status({
 			</Text>
 		</TitledBox>
 	);
-}
+});

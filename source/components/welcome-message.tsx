@@ -1,5 +1,6 @@
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
+import {memo} from 'react';
 
 import {colors} from '../config/index.js';
 
@@ -9,11 +10,13 @@ import {fileURLToPath} from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Read package.json once at module load time to avoid repeated file reads
 const packageJson = JSON.parse(
 	fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'),
 );
 
-export default function WelcomeMessage() {
+export default memo(function WelcomeMessage() {
 	return (
 		<TitledBox
 			borderStyle="round"
@@ -46,4 +49,4 @@ export default function WelcomeMessage() {
 			<Text color={colors.white}>/help for help</Text>
 		</TitledBox>
 	);
-}
+});

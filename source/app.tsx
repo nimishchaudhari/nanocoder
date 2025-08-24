@@ -106,19 +106,20 @@ export default function App() {
 		customCommandCache: appState.customCommandCache,
 	});
 
-	// Create clear messages handler
-	const clearMessages = createClearMessagesHandler(appState.setMessages, appState.client);
+	// Memoize handlers to prevent unnecessary re-renders
+	const clearMessages = React.useMemo(
+		() => createClearMessagesHandler(appState.setMessages, appState.client),
+		[appState.setMessages, appState.client]
+	);
 	
-	// Handle cancellation
-	const handleCancel = () => {
+	const handleCancel = React.useCallback(() => {
 		if (appState.abortController) {
 			appState.setIsCancelling(true);
 			appState.abortController.abort();
 		}
-	};
+	}, [appState.abortController, appState.setIsCancelling]);
 
-	// Handle message submission
-	const handleMessageSubmit = async (message: string) => {
+	const handleMessageSubmit = React.useCallback(async (message: string) => {
 		await handleMessageSubmission(message, {
 			customCommandCache: appState.customCommandCache,
 			customCommandLoader: appState.customCommandLoader,
@@ -130,7 +131,26 @@ export default function App() {
 			onAddToChatQueue: appState.addToChatQueue,
 			componentKeyCounter: appState.componentKeyCounter,
 		});
-	};
+	}, [
+		appState.customCommandCache,
+		appState.customCommandLoader,
+		appState.customCommandExecutor,
+		clearMessages,
+		modeHandlers.enterModelSelectionMode,
+		modeHandlers.enterProviderSelectionMode,
+		chatHandler.handleChatMessage,
+		appState.addToChatQueue,
+		appState.componentKeyCounter,
+	]);
+
+	// Memoize static components to prevent unnecessary re-renders
+	const staticComponents = React.useMemo(() => [
+		<Status
+			key="status"
+			provider={appState.currentProvider}
+			model={appState.currentModel}
+		/>,
+	], [appState.currentProvider, appState.currentModel]);
 
 	return (
 		<Box flexDirection="column" padding={1} width="100%">
@@ -139,13 +159,7 @@ export default function App() {
 			{appState.startChat && (
 				<>
 					<ChatQueue
-						staticComponents={[
-							<Status
-								key="status"
-								provider={appState.currentProvider}
-								model={appState.currentModel}
-							/>,
-						]}
+						staticComponents={staticComponents}
 						queuedComponents={appState.chatComponents}
 					/>
 					{appState.isCancelling ? (

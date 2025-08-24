@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState, useCallback} from 'react';
 import {LLMClient, Message, ProviderType} from '../../types/core.js';
 import {ToolManager} from '../../tools/tool-manager.js';
 import {CustomCommandLoader} from '../../custom-commands/loader.js';
@@ -59,10 +59,19 @@ export function useAppState() {
 	const [componentKeyCounter, setComponentKeyCounter] = useState(0);
 
 	// Helper function to add components to the chat queue with stable keys
-	const addToChatQueue = (component: React.ReactNode) => {
-		setChatComponents(prev => [...prev, component]);
-		setComponentKeyCounter(prev => prev + 1);
-	};
+	const addToChatQueue = useCallback((component: React.ReactNode) => {
+		const newCounter = componentKeyCounter + 1;
+		setComponentKeyCounter(newCounter);
+
+		let componentWithKey = component;
+		if (React.isValidElement(component) && !component.key) {
+			componentWithKey = React.cloneElement(component, {
+				key: `chat-component-${newCounter}`
+			});
+		}
+
+		setChatComponents(prevComponents => [...prevComponents, componentWithKey]);
+	}, [componentKeyCounter]);
 
 	// Reset tool confirmation state
 	const resetToolConfirmationState = () => {

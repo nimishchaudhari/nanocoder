@@ -27,21 +27,15 @@ export default memo(function ThinkingIndicator({
 			<Box>
 				<Spinner type="dots2" />
 				<Text color={colors.secondary}> Thinking... </Text>
-				<Text color={colors.white}>
-					{tokenCount} tokens • {elapsedSeconds}s • {displayPercentage}% context used
-				</Text>
+				<Box width={40} justifyContent="flex-start">
+					<Text color={colors.white}>
+						{tokenCount} tokens • {elapsedSeconds}s • {displayPercentage}% context used
+					</Text>
+				</Box>
 			</Box>
 			<Box marginTop={1}>
 				<Text color={colors.secondary}>Press Escape to cancel</Text>
 			</Box>
 		</Box>
-	);
-}, (prevProps, nextProps) => {
-	// Only re-render if values actually changed significantly
-	return (
-		prevProps.tokenCount === nextProps.tokenCount &&
-		prevProps.elapsedSeconds === nextProps.elapsedSeconds &&
-		Math.floor(prevProps.totalTokensUsed / prevProps.contextSize * 100) === 
-		Math.floor(nextProps.totalTokensUsed / nextProps.contextSize * 100)
 	);
 });

@@ -63,45 +63,6 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 
 				<Box flexDirection="column" marginTop={1}>
 					<Text color={colors.success}>✓ Edit completed successfully</Text>
-					<Box marginTop={1}>
-						{(() => {
-							const ext = path.split('.').pop()?.toLowerCase();
-							const language = getLanguageFromExtension(ext);
-							
-							// Split result into lines and apply syntax highlighting
-							const resultLines = result.split('\n');
-							const highlightedLines = resultLines.map((line, index) => {
-								// Skip the first line which is usually "File edited successfully."
-								if (index === 0 || line.trim() === '') {
-									return <Text key={index} wrap="wrap">{line}</Text>;
-								}
-								
-								// Check if this is a file content line (has line number)
-								const match = line.match(/^\s*(\d+)([→ ])(.*)/);
-								if (match) {
-									const [, lineNum, marker, content] = match;
-									let highlightedContent: string;
-									try {
-										highlightedContent = highlight(content, { language, theme: 'default' });
-									} catch {
-										highlightedContent = content;
-									}
-									
-									return (
-										<Box key={index}>
-											<Text color={colors.secondary}>{lineNum}{marker}</Text>
-											<Text wrap="wrap">{highlightedContent}</Text>
-										</Box>
-									);
-								} else {
-									// Non-code line, just display as-is
-									return <Text key={index} wrap="wrap">{line}</Text>;
-								}
-							});
-							
-							return <Box flexDirection="column">{highlightedLines}</Box>;
-						})()}
-					</Box>
 				</Box>
 			</Box>
 		);
@@ -285,25 +246,49 @@ async function formatFindReplacePreview({
 
 	// Find all occurrences for diff display
 	const occurrences: LineChange[] = [];
-
-	for (let i = 0; i < lines.length; i++) {
-		const lineContent = lines[i];
-		if (!lineContent) continue;
-
+	
+	// Handle multiline text by searching in the full file content
+	if (oldText.includes('\n')) {
+		// For multiline text, find all occurrences in the full content
 		let searchFrom = 0;
-
 		while (true) {
-			const pos = lineContent.indexOf(oldText, searchFrom);
+			const pos = fileContent.indexOf(oldText, searchFrom);
 			if (pos === -1) break;
 
+			// Find which line this occurrence starts on
+			const textBeforeMatch = fileContent.substring(0, pos);
+			const lineNum = textBeforeMatch.split('\n').length;
+			
 			occurrences.push({
-				lineNum: i + 1,
-				lineContent,
-				startPos: pos,
+				lineNum,
+				lineContent: lines[lineNum - 1] || '',
+				startPos: pos - textBeforeMatch.lastIndexOf('\n') - 1,
 			});
 
 			if (!replaceAll) break;
 			searchFrom = pos + oldText.length;
+		}
+	} else {
+		// Original single-line logic
+		for (let i = 0; i < lines.length; i++) {
+			const lineContent = lines[i];
+			if (!lineContent) continue;
+
+			let searchFrom = 0;
+
+			while (true) {
+				const pos = lineContent.indexOf(oldText, searchFrom);
+				if (pos === -1) break;
+
+				occurrences.push({
+					lineNum: i + 1,
+					lineContent,
+					startPos: pos,
+				});
+
+				if (!replaceAll) break;
+				searchFrom = pos + oldText.length;
+			}
 		}
 	}
 
