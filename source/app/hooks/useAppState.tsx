@@ -45,6 +45,7 @@ export function useAppState() {
 	const [isModelSelectionMode, setIsModelSelectionMode] = useState<boolean>(false);
 	const [isProviderSelectionMode, setIsProviderSelectionMode] = useState<boolean>(false);
 	const [isToolConfirmationMode, setIsToolConfirmationMode] = useState<boolean>(false);
+	const [isToolExecuting, setIsToolExecuting] = useState<boolean>(false);
 
 	// Tool confirmation state
 	const [pendingToolCalls, setPendingToolCalls] = useState<any[]>([]);
@@ -74,6 +75,7 @@ export function useAppState() {
 	// Reset tool confirmation state
 	const resetToolConfirmationState = () => {
 		setIsToolConfirmationMode(false);
+		setIsToolExecuting(false);
 		setPendingToolCalls([]);
 		setCurrentToolIndex(0);
 		setCompletedToolResults([]);
@@ -99,6 +101,7 @@ export function useAppState() {
 		isModelSelectionMode,
 		isProviderSelectionMode,
 		isToolConfirmationMode,
+		isToolExecuting,
 		pendingToolCalls,
 		currentToolIndex,
 		completedToolResults,
@@ -124,6 +127,7 @@ export function useAppState() {
 		setIsModelSelectionMode,
 		setIsProviderSelectionMode,
 		setIsToolConfirmationMode,
+		setIsToolExecuting,
 		setPendingToolCalls,
 		setCurrentToolIndex,
 		setCompletedToolResults,

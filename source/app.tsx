@@ -10,6 +10,7 @@ import ProviderSelector from './components/provider-selector.js';
 import ThinkingIndicator from './components/thinking-indicator.js';
 import CancellingIndicator from './components/cancelling-indicator.js';
 import ToolConfirmation from './components/tool-confirmation.js';
+import ToolExecutionIndicator from './components/tool-execution-indicator.js';
 import {setGlobalMessageQueue} from './utils/message-queue.js';
 import Spinner from 'ink-spinner';
 
@@ -68,6 +69,7 @@ export default function App() {
 		setCompletedToolResults: appState.setCompletedToolResults,
 		setCurrentConversationContext: appState.setCurrentConversationContext,
 		setIsToolConfirmationMode: appState.setIsToolConfirmationMode,
+		setIsToolExecuting: appState.setIsToolExecuting,
 		setMessages: appState.setMessages,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
@@ -194,11 +196,18 @@ export default function App() {
 							onConfirm={toolHandler.handleToolConfirmation}
 							onCancel={toolHandler.handleToolConfirmationCancel}
 						/>
+					) : appState.isToolExecuting &&
+					  appState.pendingToolCalls[appState.currentToolIndex] ? (
+						<ToolExecutionIndicator
+							toolName={appState.pendingToolCalls[appState.currentToolIndex].function.name}
+							currentIndex={appState.currentToolIndex}
+							totalTools={appState.pendingToolCalls.length}
+						/>
 					) : appState.mcpInitialized && appState.client ? (
 						<UserInput
 							customCommands={Array.from(appState.customCommandCache.keys())}
 							onSubmit={handleMessageSubmit}
-							disabled={appState.isThinking}
+							disabled={appState.isThinking || appState.isToolExecuting}
 							onCancel={handleCancel}
 						/>
 					) : appState.mcpInitialized && !appState.client ? (

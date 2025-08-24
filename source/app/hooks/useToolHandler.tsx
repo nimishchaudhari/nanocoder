@@ -16,6 +16,7 @@ interface UseToolHandlerProps {
 	setCompletedToolResults: (results: any[]) => void;
 	setCurrentConversationContext: (context: ConversationContext | null) => void;
 	setIsToolConfirmationMode: (mode: boolean) => void;
+	setIsToolExecuting: (executing: boolean) => void;
 	setMessages: (messages: Message[]) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
@@ -33,6 +34,7 @@ export function useToolHandler({
 	setCompletedToolResults,
 	setCurrentConversationContext,
 	setIsToolConfirmationMode,
+	setIsToolExecuting,
 	setMessages,
 	addToChatQueue,
 	componentKeyCounter,
@@ -141,7 +143,18 @@ export function useToolHandler({
 			return;
 		}
 
-		// Execute the current tool
+		// Move to tool execution state - this allows UI to update immediately
+		setIsToolConfirmationMode(false);
+		setIsToolExecuting(true);
+
+		// Execute tools asynchronously
+		setImmediate(() => {
+			executeCurrentTool();
+		});
+	};
+
+	// Execute the current tool asynchronously
+	const executeCurrentTool = async () => {
 		const currentTool = pendingToolCalls[currentToolIndex];
 		try {
 			const result = await processToolUse(currentTool);
@@ -155,11 +168,17 @@ export function useToolHandler({
 			// Move to next tool or complete the process
 			if (currentToolIndex + 1 < pendingToolCalls.length) {
 				setCurrentToolIndex(currentToolIndex + 1);
+				// Continue with next tool
+				setImmediate(() => {
+					executeCurrentTool();
+				});
 			} else {
 				// All tools executed, continue conversation loop with the updated results
+				setIsToolExecuting(false);
 				await continueConversationWithToolResults(newResults);
 			}
 		} catch (error) {
+			setIsToolExecuting(false);
 			addToChatQueue(
 				<ErrorMessage
 					key={`tool-exec-error-${componentKeyCounter}`}
@@ -206,5 +225,6 @@ export function useToolHandler({
 		startToolConfirmationFlow,
 		displayToolResult,
 		continueConversationWithToolResults,
+		executeCurrentTool,
 	};
 }

@@ -1,0 +1,38 @@
+import React from 'react';
+import {Box, Text} from 'ink';
+import Spinner from 'ink-spinner';
+import {colors} from '../config/index.js';
+
+interface ToolExecutionIndicatorProps {
+	toolName: string;
+	currentIndex: number;
+	totalTools: number;
+}
+
+export default function ToolExecutionIndicator({
+	toolName,
+	currentIndex,
+	totalTools,
+}: ToolExecutionIndicatorProps) {
+	return (
+		<Box flexDirection="column" marginBottom={1}>
+			<Box>
+				<Spinner type="dots2" />
+				<Text color={colors.tool}> Executing tool: </Text>
+				<Text color={colors.primary}>{toolName}</Text>
+			</Box>
+			
+			{totalTools > 1 && (
+				<Box marginTop={1}>
+					<Text color={colors.secondary}>
+						Tool {currentIndex + 1} of {totalTools}
+					</Text>
+				</Box>
+			)}
+			
+			<Box marginTop={1}>
+				<Text color={colors.secondary}>Press Escape to cancel</Text>
+			</Box>
+		</Box>
+	);
+}
