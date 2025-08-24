@@ -12,12 +12,12 @@ export default function UserMessage({message}: UserMessageProps) {
 		return (
 			<Box flexDirection="column" marginBottom={1}>
 				<Box>
-					<Text color={colors.primary} bold>
+					<Text color={colors.secondary} bold>
 						You:
 					</Text>
 				</Box>
 				<Box>
-					<Text color={colors.secondary}>
+					<Text color={colors.white}>
 						[{message.length} characters, {lineCount} lines]
 					</Text>
 				</Box>
@@ -30,7 +30,7 @@ export default function UserMessage({message}: UserMessageProps) {
 	return (
 		<Box flexDirection="column" marginBottom={1}>
 			<Box>
-				<Text color={colors.primary} bold>
+				<Text color={colors.secondary} bold>
 					You:
 				</Text>
 			</Box>

@@ -8,6 +8,7 @@ interface ChatProps {
 	onSubmit?: (message: string) => void;
 	placeholder?: string;
 	customCommands?: string[]; // List of custom command names and aliases
+	disabled?: boolean; // Disable input when AI is processing
 }
 
 // Types for better organization
@@ -79,8 +80,9 @@ export default function UserInput({
 	onSubmit,
 	placeholder = 'Type `/` and then press Tab for command suggestions. Use ↑/↓ for history.',
 	customCommands = [],
+	disabled = false,
 }: ChatProps) {
-	const {isFocused} = useFocus({autoFocus: true});
+	const {isFocused} = useFocus({autoFocus: !disabled});
 	const inputState = useInputState();
 	const uiState = useUIState();
 
@@ -116,14 +118,14 @@ export default function UserInput({
 
 	// Blinking cursor effect
 	useEffect(() => {
-		if (!isFocused) return;
+		if (!isFocused || disabled) return;
 
 		const interval = setInterval(() => {
 			setCursorVisible(prev => !prev);
 		}, 500);
 
 		return () => clearInterval(interval);
-	}, [isFocused, setCursorVisible]);
+	}, [isFocused, disabled, setCursorVisible]);
 
 	// Helper functions
 	const resetCursorBlink = useCallback(() => {
@@ -225,6 +227,11 @@ export default function UserInput({
 	);
 
 	useInput((inputChar, key) => {
+		// Block all input when disabled
+		if (disabled) {
+			return;
+		}
+
 		resetCursorBlink();
 
 		// Handle special keys
@@ -322,13 +329,13 @@ export default function UserInput({
 	return (
 		<Box flexDirection="column" paddingY={1} width={100}>
 			<Box flexDirection="column">
-				<Text color={colors.primary} bold>
-					What would you like me to help with?
+				<Text color={disabled ? colors.secondary : colors.primary} bold>
+					{disabled ? 'Please wait, AI is thinking...' : 'What would you like me to help with?'}
 				</Text>
 
-				<Text color={input ? colors.white : colors.secondary}>
-					{'>'} {renderDisplayContent()}
-					{input && isFocused && cursorVisible && (
+				<Text color={disabled ? colors.secondary : (input ? colors.white : colors.secondary)}>
+					{'>'} {disabled ? '...' : renderDisplayContent()}
+					{!disabled && input && isFocused && cursorVisible && (
 						<Text backgroundColor={colors.white} color={colors.black}>
 							{' '}
 						</Text>

@@ -978,6 +978,7 @@ export default function App() {
 						<UserInput
 							customCommands={Array.from(customCommandCache.keys())}
 							onSubmit={handleMessageSubmit}
+							disabled={isThinking}
 						/>
 					) : mcpInitialized && !client ? (
 						<Text color={colors.secondary}>
