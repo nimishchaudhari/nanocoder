@@ -1,997 +1,175 @@
 import {Box, Text} from 'ink';
 import WelcomeMessage from './components/welcome-message.js';
-import {useEffect, useState} from 'react';
 import React from 'react';
-import {LLMClient, Message, ProviderType} from './types/core.js';
-import {ToolManager} from './tools/tool-manager.js';
-import {CustomCommandLoader} from './custom-commands/loader.js';
-import {CustomCommandExecutor} from './custom-commands/executor.js';
-import {
-	getLastUsedModel,
-	loadPreferences,
-	updateLastUsed,
-} from './config/preferences.js';
-import type {UserPreferences, MCPInitResult} from './types/index.js';
-import {
-	setToolRegistryGetter,
-	setToolManagerGetter,
-	getToolManager,
-} from './message-handler.js';
-import {commandRegistry} from './commands.js';
-import {shouldLog} from './config/logging.js';
-import {appConfig, colors, promptPath} from './config/index.js';
-import {readFileSync, existsSync} from 'fs';
-import {createLLMClient} from './client-factory.js';
+import {colors} from './config/index.js';
 import UserInput from './components/user-input.js';
 import Status from './components/status.js';
 import ChatQueue from './components/chat-queue.js';
-import InfoMessage from './components/info-message.js';
-import ErrorMessage from './components/error-message.js';
 import ModelSelector from './components/model-selector.js';
 import ProviderSelector from './components/provider-selector.js';
-import {
-	helpCommand,
-	exitCommand,
-	clearCommand,
-	modelCommand,
-	providerCommand,
-	commandsCommand,
-	debugCommand,
-	mcpCommand,
-} from './commands/index.js';
-import SuccessMessage from './components/success-message.js';
-import UserMessage from './components/user-message.js';
-import AssistantMessage from './components/assistant-message.js';
 import ThinkingIndicator from './components/thinking-indicator.js';
-import ToolMessage from './components/tool-message.js';
 import ToolConfirmation from './components/tool-confirmation.js';
 import {setGlobalMessageQueue} from './utils/message-queue.js';
 import Spinner from 'ink-spinner';
-import {
-	parseToolCallsFromContent,
-	cleanContentFromToolCalls,
-} from './tool-calling/index.js';
-import {processToolUse} from './message-handler.js';
+
+// Import extracted hooks and utilities
+import {useAppState} from './app/hooks/useAppState.js';
+import {useChatHandler} from './app/hooks/useChatHandler.js';
+import {useToolHandler} from './app/hooks/useToolHandler.js';
+import {useModeHandlers} from './app/hooks/useModeHandlers.js';
+import {useAppInitialization} from './app/hooks/useAppInitialization.js';
+import {handleMessageSubmission, createClearMessagesHandler} from './app/utils/appUtils.js';
 
 export default function App() {
-	const [client, setClient] = useState<LLMClient | null>(null);
-
-	const [messages, setMessages] = useState<Message[]>([]);
-
-	const [currentModel, setCurrentModel] = useState<string>('');
-
-	const [currentProvider, setCurrentProvider] =
-		useState<ProviderType>('ollama');
-
-	const [toolManager, setToolManager] = useState<ToolManager | null>(null);
-
-	const [customCommandLoader, setCustomCommandLoader] =
-		useState<CustomCommandLoader | null>(null);
-
-	const [customCommandExecutor, setCustomCommandExecutor] =
-		useState<CustomCommandExecutor | null>(null);
-
-	const [customCommandCache, setCustomCommandCache] = useState<
-		Map<string, any>
-	>(new Map());
-
-	const [startChat, setStartChat] = useState<boolean>(false);
-	const [mcpInitialized, setMcpInitialized] = useState<boolean>(false);
-
-	// Thinking indicator state
-	const [isThinking, setIsThinking] = useState<boolean>(false);
-	const [thinkingStats, setThinkingStats] = useState({
-		tokenCount: 0,
-		elapsedSeconds: 0,
-		contextSize: 0,
-		totalTokensUsed: 0,
-	});
-
-	// Model selection mode
-	const [isModelSelectionMode, setIsModelSelectionMode] =
-		useState<boolean>(false);
-
-	// Provider selection mode
-	const [isProviderSelectionMode, setIsProviderSelectionMode] =
-		useState<boolean>(false);
-
-	// Tool confirmation mode
-	const [isToolConfirmationMode, setIsToolConfirmationMode] =
-		useState<boolean>(false);
-	const [pendingToolCalls, setPendingToolCalls] = useState<any[]>([]);
-	const [currentToolIndex, setCurrentToolIndex] = useState<number>(0);
-	const [completedToolResults, setCompletedToolResults] = useState<any[]>([]);
-	const [currentConversationContext, setCurrentConversationContext] = useState<{
-		updatedMessages: Message[];
-		assistantMsg: Message;
-		systemMessage: Message;
-	} | null>(null);
-
-	// Chat queue for components
-	const [chatComponents, setChatComponents] = useState<React.ReactNode[]>([]);
+	// Use extracted hooks
+	const appState = useAppState();
 	
-	// Stable key counter for chat components
-	const [componentKeyCounter, setComponentKeyCounter] = useState(0);
-
-	// Helper function to add components to the chat queue with stable keys
-	const addToChatQueue = (component: React.ReactNode) => {
-		setChatComponents(prev => [...prev, component]);
-		setComponentKeyCounter(prev => prev + 1);
-	};
-
 	// Initialize global message queue on component mount
 	React.useEffect(() => {
-		setGlobalMessageQueue(addToChatQueue);
+		setGlobalMessageQueue(appState.addToChatQueue);
 	}, []);
 
-	// Helper function to enter model selection mode
-	const enterModelSelectionMode = () => {
-		setIsModelSelectionMode(true);
-	};
-
-	// Helper function to enter provider selection mode
-	const enterProviderSelectionMode = () => {
-		setIsProviderSelectionMode(true);
-	};
-
-	// Handle model selection
-	const handleModelSelect = async (selectedModel: string) => {
-		if (client && selectedModel !== currentModel) {
-			client.setModel(selectedModel);
-			setCurrentModel(selectedModel);
-
-			// Update preferences
-			updateLastUsed(currentProvider, selectedModel);
-
-			// Add success message to chat queue
-			addToChatQueue(
-				<SuccessMessage
-					key={`model-changed-${componentKeyCounter}`}
-					message={`Model changed to: ${selectedModel}`}
-					hideBox={true}
-				/>,
-			);
-		}
-		setIsModelSelectionMode(false);
-	};
-
-	// Handle model selection cancel
-	const handleModelSelectionCancel = () => {
-		setIsModelSelectionMode(false);
-	};
-
-	// Handle provider selection
-	const handleProviderSelect = async (selectedProvider: ProviderType) => {
-		if (selectedProvider !== currentProvider) {
-			try {
-				// Create new client for the selected provider
-				const {client: newClient, actualProvider} = await createLLMClient(
-					selectedProvider,
-				);
-				
-				// Check if we got the provider we requested
-				if (actualProvider !== selectedProvider) {
-					// Provider was forced to a different one (likely due to missing config)
-					addToChatQueue(
-						<ErrorMessage
-							key={`provider-forced-${componentKeyCounter}`}
-							message={`${selectedProvider} is not available. Please ensure it's properly configured in agents.config.json.`}
-							hideBox={true}
-						/>,
-					);
-					return; // Don't change anything
-				}
-				
-				setClient(newClient);
-				setCurrentProvider(actualProvider);
-
-				// Set the model from the new client
-				const newModel = newClient.getCurrentModel();
-				setCurrentModel(newModel);
-
-				// Clear message history when switching providers
-				setMessages([]);
-				await newClient.clearContext();
-
-				// Update preferences - use the actualProvider (which is what was successfully created)
-				updateLastUsed(actualProvider, newModel);
-
-				// Add success message to chat queue
-				addToChatQueue(
-					<SuccessMessage
-						key={`provider-changed-${componentKeyCounter}`}
-						message={`Provider changed to: ${actualProvider}, model: ${newModel}. Chat history cleared.`}
-						hideBox={true}
-					/>,
-				);
-			} catch (error) {
-				// Add error message if provider change fails
-				addToChatQueue(
-					<ErrorMessage
-						key={`provider-error-${componentKeyCounter}`}
-						message={`Failed to change provider to ${selectedProvider}: ${error}`}
-						hideBox={true}
-					/>,
-				);
-			}
-		}
-		setIsProviderSelectionMode(false);
-	};
-
-	// Handle provider selection cancel
-	const handleProviderSelectionCancel = () => {
-		setIsProviderSelectionMode(false);
-	};
-
-	// Handle tool confirmation
-	const handleToolConfirmation = async (confirmed: boolean) => {
-		if (!confirmed) {
-			// User cancelled - show message and reset state
-			addToChatQueue(
-				<InfoMessage
-					key={`tool-cancelled-${componentKeyCounter}`}
-					message="Tool execution cancelled by user"
-					hideBox={true}
-				/>,
-			);
-			resetToolConfirmationState();
-			return;
-		}
-
-		// Execute the current tool
-		const currentTool = pendingToolCalls[currentToolIndex];
-		try {
-			const result = await processToolUse(currentTool);
-			
-			const newResults = [...completedToolResults, result];
-			setCompletedToolResults(newResults);
-
-			// Display the tool result
-			await displayToolResult(currentTool, result);
-
-			// Move to next tool or complete the process
-			if (currentToolIndex + 1 < pendingToolCalls.length) {
-				setCurrentToolIndex(currentToolIndex + 1);
-			} else {
-				// All tools executed, continue conversation loop with the updated results
-				await continueConversationWithToolResults(newResults);
-			}
-		} catch (error) {
-			addToChatQueue(
-				<ErrorMessage
-					key={`tool-exec-error-${componentKeyCounter}`}
-					message={`Tool execution error: ${error}`}
-				/>,
-			);
-			resetToolConfirmationState();
-		}
-	};
-
-	// Handle tool confirmation cancel
-	const handleToolConfirmationCancel = () => {
-		addToChatQueue(
-			<InfoMessage
-				key={`tool-cancelled-${componentKeyCounter}`}
-				message="Tool execution cancelled by user"
-				hideBox={true}
-			/>,
-		);
-		resetToolConfirmationState();
-	};
-
-	// Reset tool confirmation state
-	const resetToolConfirmationState = () => {
-		setIsToolConfirmationMode(false);
-		setPendingToolCalls([]);
-		setCurrentToolIndex(0);
-		setCompletedToolResults([]);
-		setCurrentConversationContext(null);
-	};
-
-	// Display tool result with proper formatting
-	const displayToolResult = async (toolCall: any, result: any) => {
-		const toolManager = getToolManager();
-		if (toolManager) {
-			const formatter = toolManager.getToolFormatter(result.name);
-			if (formatter) {
-				try {
-					const formattedResult = await formatter(toolCall.function.arguments, result.content);
-
-					if (React.isValidElement(formattedResult)) {
-						addToChatQueue(
-							React.cloneElement(formattedResult, {
-								key: `tool-result-${result.tool_call_id}-${componentKeyCounter}`,
-							}),
-						);
-					} else {
-						addToChatQueue(
-							<ToolMessage
-								key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
-								title={`⚒ ${result.name}`}
-								message={String(formattedResult)}
-								hideBox={true}
-							/>,
-						);
-					}
-				} catch (formatterError) {
-					// If formatter fails, show raw result
-					addToChatQueue(
-						<ToolMessage
-							key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
-							title={`⚒ ${result.name}`}
-							message={result.content}
-							hideBox={true}
-						/>,
-					);
-				}
-			} else {
-				// No formatter, show raw result
-				addToChatQueue(
-					<ToolMessage
-						key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
-						title={`⚒ ${result.name}`}
-						message={result.content}
-						hideBox={true}
-					/>,
-				);
-			}
-		}
-	};
-
-	// Continue conversation with tool results - maintains the proper loop
-	const continueConversationWithToolResults = async (toolResults?: any[]) => {
-		if (!currentConversationContext || !client) {
-			resetToolConfirmationState();
-			return;
-		}
-
-		// Use passed results or fallback to state (for backwards compatibility)
-		const resultsToUse = toolResults || completedToolResults;
-
-		const {updatedMessages, assistantMsg, systemMessage} =
-			currentConversationContext;
-
-		// Add tool results to conversation history
-		const toolMessages: Message[] = resultsToUse.map(result => ({
-			role: 'tool' as const,
-			content: result.content,
-			tool_call_id: result.tool_call_id,
-			name: result.name,
-		}));
-
-		// Update conversation history with tool results
-		// Note: assistantMsg is already included in updatedMessages, just add tool results
-		const updatedMessagesWithTools = [
-			...updatedMessages,
-			assistantMsg,
-			...toolMessages,
-		];
-		setMessages(updatedMessagesWithTools);
-
-		// Reset tool confirmation state since we're continuing the conversation
-		resetToolConfirmationState();
-
-		// Continue the main conversation loop with tool results as context
-		await processAssistantResponse(systemMessage, updatedMessagesWithTools);
-	};
-
-	// Process assistant response with token tracking (for initial user messages)
-	const processAssistantResponseWithTokenTracking = async (
-		systemMessage: Message, 
-		messages: Message[], 
-		timerInterval: NodeJS.Timeout,
-		startTime: number
-	) => {
-		if (!client) return;
-
-		const stream = await client.chatStream(
-			[systemMessage, ...messages],
-			toolManager?.getAllTools() || [],
-		);
-
-		let toolCalls: any = null;
-		let fullContent = '';
-		let tokenCount = 0;
-		let hasContent = false;
-
-		// Process streaming response
-		for await (const chunk of stream) {
-			hasContent = true;
-
-			if (chunk.message?.content) {
-				fullContent += chunk.message.content;
-				tokenCount = Math.ceil(fullContent.length / 4);
-			}
-
-			// If server provides eval_count, use it as it's more accurate
-			// But ensure we don't reset to a lower count if content tokens are higher
-			if (chunk.eval_count) {
-				tokenCount = Math.max(tokenCount, chunk.eval_count);
-			}
-
-			if (chunk.message?.tool_calls) {
-				toolCalls = chunk.message.tool_calls;
-			}
-
-			// Update thinking stats in real-time
-			if (!chunk.done) {
-				const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
-				const systemTokens = Math.ceil(300 / 4);
-				const conversationTokens = messages.reduce((total, msg) => {
-					return total + Math.ceil((msg.content?.length || 0) / 4);
-				}, 0);
-				const totalTokensUsed =
-					systemTokens + conversationTokens + tokenCount;
-
-				setThinkingStats({
-					tokenCount,
-					elapsedSeconds,
-					contextSize: client.getContextSize(),
-					totalTokensUsed,
-				});
-			}
-		}
-
-		clearInterval(timerInterval);
-
-		if (!hasContent) {
-			throw new Error('No response received from model');
-		}
-
-		// Parse any tool calls from the content itself
-		const parsedToolCalls = parseToolCallsFromContent(fullContent);
-		const cleanedContent = cleanContentFromToolCalls(fullContent, parsedToolCalls);
-
-		// Display the assistant response (cleaned of any tool calls)
-		if (cleanedContent.trim()) {
-			addToChatQueue(
-				<AssistantMessage
-					key={`assistant-${componentKeyCounter}`}
-					message={cleanedContent}
-					model={currentModel}
-				/>,
-			);
-		}
-
-		// Merge structured tool calls with content-parsed tool calls
-		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-
-		// Add assistant message to conversation history
-		const assistantMsg: Message = {
-			role: 'assistant',
-			content: cleanedContent,
-			tool_calls: allToolCalls.length > 0 ? allToolCalls : undefined,
-		};
-		setMessages([...messages, assistantMsg]);
-
-		// Handle tool calls if present - this continues the loop
-		if (allToolCalls && allToolCalls.length > 0) {
-			// Start tool confirmation flow
-			startToolConfirmationFlow(allToolCalls, messages, assistantMsg, systemMessage);
-		}
-	};
-
-	// Process assistant response - handles the conversation loop with potential tool calls (for follow-ups)
-	const processAssistantResponse = async (systemMessage: Message, messages: Message[]) => {
-		if (!client) return;
-
-		try {
-			setIsThinking(true);
-
-			const stream = await client.chatStream(
-				[systemMessage, ...messages],
-				toolManager?.getAllTools() || [],
-			);
-
-			let toolCalls: any = null;
-			let fullContent = '';
-			let hasContent = false;
-			let tokenCount = 0;
-			const startTime = Date.now();
-
-			// Process streaming response with progress updates
-			for await (const chunk of stream) {
-				hasContent = true;
-				
-				if (chunk.message?.content) {
-					fullContent += chunk.message.content;
-					tokenCount = Math.ceil(fullContent.length / 4);
-				}
-
-				// If server provides eval_count, use it as it's more accurate
-				// But ensure we don't reset to a lower count if content tokens are higher
-				if (chunk.eval_count) {
-					tokenCount = Math.max(tokenCount, chunk.eval_count);
-				}
-
-				if (chunk.message?.tool_calls) {
-					toolCalls = chunk.message.tool_calls;
-				}
-
-				// Update thinking stats in real-time (similar to initial response)
-				if (!chunk.done) {
-					const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
-					const systemTokens = Math.ceil(300 / 4);
-					const conversationTokens = messages.reduce((total, msg) => {
-						return total + Math.ceil((msg.content?.length || 0) / 4);
-					}, 0);
-					const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
-
-					setThinkingStats({
-						tokenCount,
-						elapsedSeconds,
-						contextSize: client.getContextSize(),
-						totalTokensUsed,
-					});
-				}
-			}
-
-			if (!hasContent) {
-				throw new Error('No response received from model');
-			}
-
-			// Parse any tool calls from the content itself
-			const parsedToolCalls = parseToolCallsFromContent(fullContent);
-			const cleanedContent = cleanContentFromToolCalls(fullContent, parsedToolCalls);
-
-			// Display the assistant response (cleaned of any tool calls)
-			if (cleanedContent.trim()) {
-				addToChatQueue(
-					<AssistantMessage
-						key={`assistant-${componentKeyCounter}`}
-						message={cleanedContent}
-						model={currentModel}
-					/>,
-				);
-			}
-
-			// Merge structured tool calls with content-parsed tool calls
-			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-
-			// Add assistant message to conversation history
-			const assistantMsg: Message = {
-				role: 'assistant',
-				content: cleanedContent,
-				tool_calls: allToolCalls.length > 0 ? allToolCalls : undefined,
-			};
-			setMessages([...messages, assistantMsg]);
-
-			// Handle tool calls if present - this continues the loop
-			if (allToolCalls && allToolCalls.length > 0) {
-				// Start tool confirmation flow
-				startToolConfirmationFlow(allToolCalls, messages, assistantMsg, systemMessage);
-			}
-			// If no tool calls, the conversation naturally ends here
-		} catch (error) {
-			addToChatQueue(
-				<ErrorMessage
-					key={`error-${componentKeyCounter}`}
-					message={`Conversation error: ${error}`}
-				/>,
-			);
-		} finally {
-			setIsThinking(false);
-		}
-	};
-
-	// Start tool confirmation flow
-	const startToolConfirmationFlow = (
-		toolCalls: any[],
-		updatedMessages: Message[],
-		assistantMsg: Message,
-		systemMessage: Message,
-	) => {
-		setPendingToolCalls(toolCalls);
-		setCurrentToolIndex(0);
-		setCompletedToolResults([]);
-		setCurrentConversationContext({
-			updatedMessages,
-			assistantMsg,
-			systemMessage,
-		});
-		setIsToolConfirmationMode(true);
-	};
-
-	// Handle chat message processing
-	const handleChatMessage = async (message: string) => {
-		if (!client || !toolManager) return;
-
-		// Add user message to chat
-		addToChatQueue(
-			<UserMessage key={`user-${componentKeyCounter}`} message={message} />,
-		);
-
-		// Add user message to conversation history
-		const userMessage: Message = {role: 'user', content: message};
-		const updatedMessages = [...messages, userMessage];
-		setMessages(updatedMessages);
-
-		// Start thinking indicator and streaming
-		setIsThinking(true);
-
-		// Reset per-message stats
-		setThinkingStats({
-			tokenCount: 0,
-			elapsedSeconds: 0,
-			contextSize: client.getContextSize(),
-			totalTokensUsed: 0, // Start fresh, will be calculated properly in the interval
-		});
-
-		const startTime = Date.now();
-		let tokenCount = 0;
-		let fullContent = '';
-
-		// Setup timer for thinking indicator updates (optimized to reduce jitter)
-		const timerInterval = setInterval(() => {
-			const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
-			const systemTokens = Math.ceil(300 / 4); // Approximate system prompt tokens
-			const conversationTokens = updatedMessages.reduce((total, msg) => {
-				return total + Math.ceil((msg.content?.length || 0) / 4);
-			}, 0);
-			const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
-
-			setThinkingStats(prevStats => {
-				// Only update if values have meaningfully changed to reduce re-renders
-				const newPercentage = client.getContextSize() > 0 ? 
-					Math.round((totalTokensUsed / client.getContextSize()) * 100) : 0;
-				const oldPercentage = prevStats.contextSize > 0 ? 
-					Math.round((prevStats.totalTokensUsed / prevStats.contextSize) * 100) : 0;
-				
-				if (prevStats.tokenCount === tokenCount && 
-				    prevStats.elapsedSeconds === elapsedSeconds &&
-				    Math.abs(newPercentage - oldPercentage) < 1) {
-					return prevStats; // No meaningful change, skip update
-				}
-				
-				return {
-					tokenCount,
-					elapsedSeconds,
-					contextSize: client.getContextSize(),
-					totalTokensUsed,
-				};
+	// Setup chat handler
+	const chatHandler = useChatHandler({
+		client: appState.client,
+		toolManager: appState.toolManager,
+		messages: appState.messages,
+		setMessages: appState.setMessages,
+		currentModel: appState.currentModel,
+		setIsThinking: appState.setIsThinking,
+		setThinkingStats: appState.setThinkingStats,
+		addToChatQueue: appState.addToChatQueue,
+		componentKeyCounter: appState.componentKeyCounter,
+		onStartToolConfirmationFlow: (toolCalls, updatedMessages, assistantMsg, systemMessage) => {
+			appState.setPendingToolCalls(toolCalls);
+			appState.setCurrentToolIndex(0);
+			appState.setCompletedToolResults([]);
+			appState.setCurrentConversationContext({
+				updatedMessages,
+				assistantMsg,
+				systemMessage,
 			});
-		}, 2000); // Update every 2 seconds to further reduce jitter
+			appState.setIsToolConfirmationMode(true);
+		},
+	});
 
-		try {
-			// Load system prompt from prompt.md file
-			let systemPrompt = 'You are a helpful AI assistant.'; // fallback
-			if (existsSync(promptPath)) {
-				try {
-					systemPrompt = readFileSync(promptPath, 'utf-8');
-				} catch (error) {
-					console.warn(`Failed to load system prompt from ${promptPath}: ${error}`);
-				}
-			}
+	// Setup tool handler
+	const toolHandler = useToolHandler({
+		pendingToolCalls: appState.pendingToolCalls,
+		currentToolIndex: appState.currentToolIndex,
+		completedToolResults: appState.completedToolResults,
+		currentConversationContext: appState.currentConversationContext,
+		setPendingToolCalls: appState.setPendingToolCalls,
+		setCurrentToolIndex: appState.setCurrentToolIndex,
+		setCompletedToolResults: appState.setCompletedToolResults,
+		setCurrentConversationContext: appState.setCurrentConversationContext,
+		setIsToolConfirmationMode: appState.setIsToolConfirmationMode,
+		setMessages: appState.setMessages,
+		addToChatQueue: appState.addToChatQueue,
+		componentKeyCounter: appState.componentKeyCounter,
+		resetToolConfirmationState: appState.resetToolConfirmationState,
+		onProcessAssistantResponse: chatHandler.processAssistantResponse,
+	});
 
-			// Create stream request
-			const systemMessage: Message = {
-				role: 'system',
-				content: systemPrompt,
-			};
+	// Setup mode handlers
+	const modeHandlers = useModeHandlers({
+		client: appState.client,
+		currentModel: appState.currentModel,
+		currentProvider: appState.currentProvider,
+		setClient: appState.setClient,
+		setCurrentModel: appState.setCurrentModel,
+		setCurrentProvider: appState.setCurrentProvider,
+		setMessages: appState.setMessages,
+		setIsModelSelectionMode: appState.setIsModelSelectionMode,
+		setIsProviderSelectionMode: appState.setIsProviderSelectionMode,
+		addToChatQueue: appState.addToChatQueue,
+		componentKeyCounter: appState.componentKeyCounter,
+	});
 
-			// Use the new conversation loop
-			await processAssistantResponseWithTokenTracking(systemMessage, updatedMessages, timerInterval, startTime);
-		} catch (error) {
-			clearInterval(timerInterval);
-			addToChatQueue(
-				<ErrorMessage
-					key={`error-${componentKeyCounter}`}
-					message={`Chat error: ${error}`}
-				/>,
-			);
-		} finally {
-			setIsThinking(false);
-		}
-	};
+	// Setup initialization
+	useAppInitialization({
+		setClient: appState.setClient,
+		setCurrentModel: appState.setCurrentModel,
+		setCurrentProvider: appState.setCurrentProvider,
+		setToolManager: appState.setToolManager,
+		setCustomCommandLoader: appState.setCustomCommandLoader,
+		setCustomCommandExecutor: appState.setCustomCommandExecutor,
+		setCustomCommandCache: appState.setCustomCommandCache,
+		setStartChat: appState.setStartChat,
+		setMcpInitialized: appState.setMcpInitialized,
+		addToChatQueue: appState.addToChatQueue,
+		componentKeyCounter: appState.componentKeyCounter,
+		customCommandCache: appState.customCommandCache,
+	});
 
-	useEffect(() => {
-		const initializeApp = async () => {
-			setClient(null);
-			setCurrentModel('');
-
-			const newToolManager = new ToolManager();
-			const newCustomCommandLoader = new CustomCommandLoader();
-			const newCustomCommandExecutor = new CustomCommandExecutor();
-
-			setToolManager(newToolManager);
-			setCustomCommandLoader(newCustomCommandLoader);
-			setCustomCommandExecutor(newCustomCommandExecutor);
-
-			// Load preferences - we'll pass them directly to avoid state timing issues
-			const preferences = loadPreferences();
-
-			// Add info message to chat queue when preferences are loaded
-			addToChatQueue(
-				<SuccessMessage
-					key="preferences-loaded"
-					message="User preferences loaded..."
-					hideBox={true}
-				/>,
-			);
-
-			// Set up the tool registry getter for the message handler
-			setToolRegistryGetter(() => newToolManager.getToolRegistry());
-
-			// Set up the tool manager getter for commands that need it
-			setToolManagerGetter(() => newToolManager);
-
-			commandRegistry.register([
-				helpCommand,
-				exitCommand,
-				clearCommand,
-				modelCommand,
-				providerCommand,
-				commandsCommand,
-				debugCommand,
-				mcpCommand,
-			]);
-
-			// Now start with the properly initialized objects (excluding MCP)
-			await start(newToolManager, newCustomCommandLoader, preferences);
-			setStartChat(true);
-
-			// Initialize MCP servers after UI is shown
-			await initializeMCPServers(newToolManager);
-		};
-
-		initializeApp();
-	}, []);
+	// Create clear messages handler
+	const clearMessages = createClearMessagesHandler(appState.setMessages, appState.client);
 
 	// Handle message submission
 	const handleMessageSubmit = async (message: string) => {
-		if (message.startsWith('/')) {
-			const commandName = message.slice(1).split(' ')[0];
-
-			// Check for custom command first
-			const customCommand =
-				customCommandCache.get(commandName) ||
-				customCommandLoader?.getCommand(commandName);
-
-			if (customCommand) {
-				// Execute custom command with any arguments
-				const args = message
-					.slice(commandName.length + 1)
-					.trim()
-					.split(/\s+/)
-					.filter(arg => arg);
-				const processedPrompt = await customCommandExecutor?.execute(customCommand, args);
-				
-				// Send the processed prompt to the AI
-				if (processedPrompt) {
-					await handleChatMessage(processedPrompt);
-				}
-			} else {
-				// Handle special commands that need app state access
-				if (commandName === 'clear') {
-					// Clear message history and client context
-					setMessages([]);
-					if (client) {
-						await client.clearContext();
-					}
-					// Still show the clear command result
-				} else if (commandName === 'model') {
-					enterModelSelectionMode();
-					return;
-				} else if (commandName === 'provider') {
-					enterProviderSelectionMode();
-					return;
-				}
-
-				// Execute built-in command
-				const result = await commandRegistry.execute(message.slice(1)); // Remove the leading '/'
-				if (result) {
-					// Check if result is JSX (React element)
-					if (React.isValidElement(result)) {
-						addToChatQueue(result);
-					} else if (typeof result === 'string' && result.trim()) {
-						addToChatQueue(
-							<InfoMessage
-								key={`command-result-${componentKeyCounter}`}
-								message={result}
-								hideBox={true}
-							/>,
-						);
-					}
-				}
-			}
-		} else {
-			// Regular chat message - process with AI
-			await handleChatMessage(message);
-		}
+		await handleMessageSubmission(message, {
+			customCommandCache: appState.customCommandCache,
+			customCommandLoader: appState.customCommandLoader,
+			customCommandExecutor: appState.customCommandExecutor,
+			onClearMessages: clearMessages,
+			onEnterModelSelectionMode: modeHandlers.enterModelSelectionMode,
+			onEnterProviderSelectionMode: modeHandlers.enterProviderSelectionMode,
+			onHandleChatMessage: chatHandler.handleChatMessage,
+			onAddToChatQueue: appState.addToChatQueue,
+			componentKeyCounter: appState.componentKeyCounter,
+		});
 	};
-
-	// Initialize LLM client and model
-	const initializeClient = async (preferredProvider?: ProviderType) => {
-		const {client, actualProvider} = await createLLMClient(preferredProvider);
-		setClient(client);
-		setCurrentProvider(actualProvider);
-
-		// Try to use the last used model for this provider
-		const lastUsedModel = getLastUsedModel(actualProvider);
-
-		let finalModel: string;
-		if (lastUsedModel) {
-			const availableModels = await client.getAvailableModels();
-			if (availableModels.includes(lastUsedModel)) {
-				client.setModel(lastUsedModel);
-				finalModel = lastUsedModel;
-			} else {
-				finalModel = client.getCurrentModel();
-			}
-		} else {
-			finalModel = client.getCurrentModel();
-		}
-
-		setCurrentModel(finalModel);
-
-		// Save the preference - use actualProvider and the model that was actually set
-		updateLastUsed(actualProvider, finalModel);
-	};
-
-	// Load and cache custom commands
-	const loadCustomCommands = async (loader: CustomCommandLoader) => {
-		await loader.loadCommands();
-		const customCommands = loader.getAllCommands() || [];
-
-		// Populate command cache for better performance
-		customCommandCache.clear();
-		for (const command of customCommands) {
-			customCommandCache.set(command.name, command);
-			// Also cache aliases for quick lookup
-			if (command.metadata?.aliases) {
-				for (const alias of command.metadata.aliases) {
-					customCommandCache.set(alias, command);
-				}
-			}
-		}
-
-		if (customCommands.length > 0 && shouldLog('info')) {
-			addToChatQueue(
-				<InfoMessage
-					key={`custom-commands-loaded-${componentKeyCounter}`}
-					message={`Loaded ${customCommands.length} custom commands from .nanocoder/commands`}
-					hideBox={true}
-				/>,
-			);
-		}
-	};
-
-	// Initialize MCP servers if configured
-	const initializeMCPServers = async (toolManager: ToolManager) => {
-		if (appConfig.mcpServers && appConfig.mcpServers.length > 0) {
-			// Add connecting message to chat queue
-			addToChatQueue(
-				<InfoMessage
-					key={`mcp-connecting-${componentKeyCounter}`}
-					message={`Connecting to ${appConfig.mcpServers.length} MCP server${
-						appConfig.mcpServers.length > 1 ? 's' : ''
-					}...`}
-					hideBox={true}
-				/>,
-			);
-
-			// Define progress callback to show live updates
-			const onProgress = (result: MCPInitResult) => {
-				if (result.success) {
-					addToChatQueue(
-						<SuccessMessage
-							key={`mcp-success-${result.serverName}-${componentKeyCounter}`}
-							message={`Connected to MCP server "${result.serverName}" with ${result.toolCount} tools`}
-							hideBox={true}
-						/>,
-					);
-				} else {
-					addToChatQueue(
-						<ErrorMessage
-							key={`mcp-error-${result.serverName}-${componentKeyCounter}`}
-							message={`Failed to connect to MCP server "${result.serverName}": ${result.error}`}
-							hideBox={true}
-						/>,
-					);
-				}
-			};
-
-			try {
-				await toolManager.initializeMCP(appConfig.mcpServers, onProgress);
-			} catch (error) {
-				addToChatQueue(
-					<ErrorMessage
-						key={`mcp-fatal-error-${componentKeyCounter}`}
-						message={`Failed to initialize MCP servers: ${error}`}
-						hideBox={true}
-					/>,
-				);
-			}
-			// Mark MCP as initialized whether successful or not
-			setMcpInitialized(true);
-		} else {
-			// No MCP servers configured, mark as initialized immediately
-			setMcpInitialized(true);
-		}
-	};
-
-	async function start(
-		newToolManager: ToolManager,
-		newCustomCommandLoader: CustomCommandLoader,
-		preferences: UserPreferences,
-	): Promise<void> {
-		try {
-			await initializeClient(preferences.lastProvider);
-		} catch (error) {
-			// Don't crash the app - just show the error and continue without a client
-			addToChatQueue(
-				<ErrorMessage
-					key={`init-error-${componentKeyCounter}`}
-					message={`No providers available: ${error}\n\nThe app will remain running but chat functionality is disabled until you fix the provider configuration.`}
-					hideBox={true}
-				/>,
-			);
-			// Leave client as null - the UI will handle this gracefully
-		}
-		
-		try {
-			await loadCustomCommands(newCustomCommandLoader);
-		} catch (error) {
-			addToChatQueue(
-				<ErrorMessage
-					key={`commands-error-${componentKeyCounter}`}
-					message={`Failed to load custom commands: ${error}`}
-					hideBox={true}
-				/>,
-			);
-		}
-	}
 
 	return (
 		<Box flexDirection="column" padding={1} width="100%">
 			<WelcomeMessage />
 
-			{startChat && (
+			{appState.startChat && (
 				<>
 					<ChatQueue
 						staticComponents={[
 							<Status
 								key="status"
-								provider={currentProvider}
-								model={currentModel}
+								provider={appState.currentProvider}
+								model={appState.currentModel}
 							/>,
 						]}
-						queuedComponents={chatComponents}
+						queuedComponents={appState.chatComponents}
 					/>
-					{isThinking && (
+					{appState.isThinking && (
 						<ThinkingIndicator
-							tokenCount={thinkingStats.tokenCount}
-							elapsedSeconds={thinkingStats.elapsedSeconds}
-							contextSize={thinkingStats.contextSize}
-							totalTokensUsed={thinkingStats.totalTokensUsed}
+							tokenCount={appState.thinkingStats.tokenCount}
+							elapsedSeconds={appState.thinkingStats.elapsedSeconds}
+							contextSize={appState.thinkingStats.contextSize}
+							totalTokensUsed={appState.thinkingStats.totalTokensUsed}
 						/>
 					)}
-					{isModelSelectionMode ? (
+					{appState.isModelSelectionMode ? (
 						<ModelSelector
-							client={client}
-							currentModel={currentModel}
-							onModelSelect={handleModelSelect}
-							onCancel={handleModelSelectionCancel}
+							client={appState.client}
+							currentModel={appState.currentModel}
+							onModelSelect={modeHandlers.handleModelSelect}
+							onCancel={modeHandlers.handleModelSelectionCancel}
 						/>
-					) : isProviderSelectionMode ? (
+					) : appState.isProviderSelectionMode ? (
 						<ProviderSelector
-							currentProvider={currentProvider}
-							onProviderSelect={handleProviderSelect}
-							onCancel={handleProviderSelectionCancel}
+							currentProvider={appState.currentProvider}
+							onProviderSelect={modeHandlers.handleProviderSelect}
+							onCancel={modeHandlers.handleProviderSelectionCancel}
 						/>
-					) : isToolConfirmationMode && pendingToolCalls[currentToolIndex] ? (
+					) : appState.isToolConfirmationMode && appState.pendingToolCalls[appState.currentToolIndex] ? (
 						<ToolConfirmation
-							toolCall={pendingToolCalls[currentToolIndex]}
-							onConfirm={handleToolConfirmation}
-							onCancel={handleToolConfirmationCancel}
+							toolCall={appState.pendingToolCalls[appState.currentToolIndex]}
+							onConfirm={toolHandler.handleToolConfirmation}
+							onCancel={toolHandler.handleToolConfirmationCancel}
 						/>
-					) : mcpInitialized && client ? (
+					) : appState.mcpInitialized && appState.client ? (
 						<UserInput
-							customCommands={Array.from(customCommandCache.keys())}
+							customCommands={Array.from(appState.customCommandCache.keys())}
 							onSubmit={handleMessageSubmit}
-							disabled={isThinking}
+							disabled={appState.isThinking}
 						/>
-					) : mcpInitialized && !client ? (
+					) : appState.mcpInitialized && !appState.client ? (
 						<Text color={colors.secondary}>
 							⚠️ No LLM provider available. Chat is disabled. Please fix your provider configuration and restart.
 						</Text>
