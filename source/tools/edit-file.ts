@@ -8,8 +8,8 @@ const handler: ToolHandler = async (args: EditArgs): Promise<string> => {
 	return await executeEdit(args);
 };
 
-const formatter = async (args: any): Promise<React.ReactElement> => {
-	return await formatEditPreview(args);
+const formatter = async (args: any, result?: string): Promise<React.ReactElement> => {
+	return await formatEditPreview(args, result);
 };
 
 export const editFileTool: ToolDefinition = {
