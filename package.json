@@ -31,10 +31,11 @@
 		"node": ">=16"
 	},
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc && chmod +x dist/cli.js",
 		"dev": "tsc --watch",
 		"start": "node dist/cli.js",
-		"test": "prettier --check . && xo && ava"
+		"test": "prettier --check . && xo && ava",
+		"prepublishOnly": "npm run build"
 	},
 	"files": [
 		"dist",
