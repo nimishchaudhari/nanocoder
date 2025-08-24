@@ -4,6 +4,7 @@ import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {colors} from '../config/index.js';
 import type {ToolCall} from '../types/core.js';
+import {toolFormatters} from '../tools/index.js';
 
 interface ToolConfirmationProps {
 	toolCall: ToolCall;
@@ -21,16 +22,36 @@ export default function ToolConfirmation({
 	onConfirm,
 	onCancel,
 }: ToolConfirmationProps) {
-	const [showFullContent, setShowFullContent] = React.useState(false);
+	const [formatterPreview, setFormatterPreview] = React.useState<React.ReactElement | string | null>(null);
+	const [isLoadingPreview, setIsLoadingPreview] = React.useState(false);
 
-	// Handle escape key to cancel and Ctrl+B to toggle full content  
+	// Load formatter preview
+	React.useEffect(() => {
+		const loadPreview = async () => {
+			const formatter = toolFormatters[toolCall.function.name];
+			if (formatter) {
+				setIsLoadingPreview(true);
+				try {
+					const preview = await formatter(toolCall.function.arguments);
+					setFormatterPreview(preview);
+				} catch (error) {
+					console.error('Error loading formatter preview:', error);
+					setFormatterPreview(
+						<Text color={colors.error}>Error loading preview: {String(error)}</Text>
+					);
+				} finally {
+					setIsLoadingPreview(false);
+				}
+			}
+		};
+
+		loadPreview();
+	}, [toolCall]);
+
+	// Handle escape key to cancel
 	useInput((inputChar, key) => {
 		if (key.escape) {
 			onCancel();
-		}
-		// Ctrl+B to toggle full content
-		if (key.ctrl && inputChar === 'b') {
-			setShowFullContent(prev => !prev);
 		}
 	});
 
@@ -43,40 +64,6 @@ export default function ToolConfirmation({
 		onConfirm(item.value);
 	};
 
-	// Format tool call details for display
-	const formatToolCall = (toolCall: ToolCall, showFull: boolean = false) => {
-		const args = toolCall.function.arguments;
-		const argKeys = Object.keys(args);
-
-		if (argKeys.length === 0) {
-			return 'No arguments';
-		}
-
-		return argKeys
-			.map(key => {
-				let value = args[key];
-
-				// Truncate long values for display unless showing full content
-				if (!showFull) {
-					if (typeof value === 'string' && value.length > 50) {
-						value = value.substring(0, 47) + '...';
-					} else if (typeof value === 'object') {
-						value = JSON.stringify(value);
-						if (value.length > 50) {
-							value = value.substring(0, 47) + '...';
-						}
-					}
-				} else {
-					// Show full content - format objects nicely
-					if (typeof value === 'object') {
-						value = JSON.stringify(value, null, 2);
-					}
-				}
-
-				return `${key}: ${value}`;
-			})
-			.join('\n');
-	};
 
 	return (
 		<TitledBox
@@ -91,12 +78,24 @@ export default function ToolConfirmation({
 		>
 			<Box flexDirection="column">
 				<Text color={colors.white}>Tool: {toolCall.function.name}</Text>
-				<Box marginTop={1} marginBottom={1}>
-					<Box flexDirection="column">
-						<Text color={colors.secondary}>Arguments:</Text>
-						<Text color={colors.white}>{formatToolCall(toolCall, showFullContent)}</Text>
+
+				{/* Formatter preview */}
+				{isLoadingPreview && (
+					<Box marginBottom={1}>
+						<Text color={colors.secondary}>Loading preview...</Text>
 					</Box>
-				</Box>
+				)}
+				
+				{formatterPreview && !isLoadingPreview && (
+					<Box marginBottom={1} flexDirection="column">
+						<Text color={colors.secondary}>Preview:</Text>
+						<Box marginTop={1}>
+							{React.isValidElement(formatterPreview) ? formatterPreview : (
+								<Text color={colors.white}>{String(formatterPreview)}</Text>
+							)}
+						</Box>
+					</Box>
+				)}
 
 				<Box marginBottom={1}>
 					<Text color={colors.tool}>Do you want to execute this tool?</Text>
@@ -104,9 +103,8 @@ export default function ToolConfirmation({
 
 				<SelectInput items={options} onSelect={handleSelect} />
 
-				<Box marginTop={1} flexDirection="column">
+				<Box marginTop={1}>
 					<Text color={colors.secondary}>Press Escape to cancel</Text>
-					<Text color={colors.secondary}>Press Ctrl+B to {showFullContent ? 'collapse' : 'expand'} content</Text>
 				</Box>
 			</Box>
 		</TitledBox>

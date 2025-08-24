@@ -1,7 +1,7 @@
 import {readFileTool} from './read-file.js';
 import {createFileTool} from './create-file.js';
-// import { editFileTool } from "./edit-file.js";
-// import { readManyFilesTool } from "./read-many-files.js";
+import {editFileTool} from './edit-file.js';
+import {readManyFilesTool} from './read-many-files.js';
 import {executeBashTool} from './execute-bash.js';
 import React from 'react';
 import type {ToolHandler, Tool, ToolDefinition} from '../types/index.js';
@@ -9,8 +9,8 @@ import type {ToolHandler, Tool, ToolDefinition} from '../types/index.js';
 export const toolDefinitions: ToolDefinition[] = [
 	readFileTool,
 	createFileTool,
-	// editFileTool,
-	// readManyFilesTool,
+	editFileTool,
+	readManyFilesTool,
 	executeBashTool,
 ];
 
