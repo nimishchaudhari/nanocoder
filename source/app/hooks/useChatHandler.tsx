@@ -1,9 +1,11 @@
-import {useEffect} from 'react';
 import {LLMClient, Message} from '../../types/core.js';
 import {ToolManager} from '../../tools/tool-manager.js';
 import {readFileSync, existsSync} from 'fs';
 import {promptPath} from '../../config/index.js';
-import {parseToolCallsFromContent, cleanContentFromToolCalls} from '../../tool-calling/index.js';
+import {
+	parseToolCallsFromContent,
+	cleanContentFromToolCalls,
+} from '../../tool-calling/index.js';
 import UserMessage from '../../components/user-message.js';
 import AssistantMessage from '../../components/assistant-message.js';
 import ErrorMessage from '../../components/error-message.js';
@@ -18,7 +20,9 @@ interface UseChatHandlerProps {
 	currentModel: string;
 	setIsThinking: (thinking: boolean) => void;
 	setIsCancelling: (cancelling: boolean) => void;
-	setThinkingStats: (stats: ThinkingStats | ((prev: ThinkingStats) => ThinkingStats)) => void;
+	setThinkingStats: (
+		stats: ThinkingStats | ((prev: ThinkingStats) => ThinkingStats),
+	) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 	abortController: AbortController | null;
@@ -46,11 +50,10 @@ export function useChatHandler({
 	setAbortController,
 	onStartToolConfirmationFlow,
 }: UseChatHandlerProps) {
-
 	// Helper to make async iterator cancellable with frequent abort checking
 	const makeCancellableStream = async function* (
 		stream: AsyncIterable<any>,
-		abortSignal?: AbortSignal
+		abortSignal?: AbortSignal,
 	): AsyncIterable<any> {
 		const iterator = stream[Symbol.asyncIterator]();
 		try {
@@ -58,29 +61,32 @@ export function useChatHandler({
 				if (abortSignal?.aborted) {
 					throw new Error('Operation was cancelled');
 				}
-				
+
 				// Use Promise.race to make iterator.next() cancellable with frequent checking
 				const nextPromise = iterator.next();
-				const timeoutPromise = new Promise((resolve) => {
+				const timeoutPromise = new Promise(resolve => {
 					const checkInterval = setInterval(() => {
 						if (abortSignal?.aborted) {
 							clearInterval(checkInterval);
-							resolve({ done: false, cancelled: true });
+							resolve({done: false, cancelled: true});
 						}
 					}, 100); // Check every 100ms
-					
+
 					// Clear interval when next() completes
 					nextPromise.finally(() => clearInterval(checkInterval));
 				});
-				
-				const result = await Promise.race([nextPromise, timeoutPromise]) as any;
-				
+
+				const result = (await Promise.race([
+					nextPromise,
+					timeoutPromise,
+				])) as any;
+
 				if (result.cancelled || abortSignal?.aborted) {
 					throw new Error('Operation was cancelled');
 				}
-				
+
 				if (result.done) break;
-				
+
 				yield result.value;
 			}
 		} finally {
@@ -92,11 +98,9 @@ export function useChatHandler({
 
 	// Process assistant response with token tracking (for initial user messages)
 	const processAssistantResponseWithTokenTracking = async (
-		systemMessage: Message, 
-		messages: Message[], 
-		timerInterval: NodeJS.Timeout,
-		startTime: number,
-		controller: AbortController
+		systemMessage: Message,
+		messages: Message[],
+		controller: AbortController,
 	) => {
 		if (!client) return;
 
@@ -132,24 +136,19 @@ export function useChatHandler({
 
 			// Update thinking stats in real-time
 			if (!chunk.done) {
-				const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
 				const systemTokens = Math.ceil(300 / 4);
 				const conversationTokens = messages.reduce((total, msg) => {
 					return total + Math.ceil((msg.content?.length || 0) / 4);
 				}, 0);
-				const totalTokensUsed =
-					systemTokens + conversationTokens + tokenCount;
+				const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
 
 				setThinkingStats({
 					tokenCount,
-					elapsedSeconds,
 					contextSize: client.getContextSize(),
 					totalTokensUsed,
 				});
 			}
 		}
-
-		clearInterval(timerInterval);
 
 		if (!hasContent) {
 			throw new Error('No response received from model');
@@ -157,7 +156,10 @@ export function useChatHandler({
 
 		// Parse any tool calls from the content itself
 		const parsedToolCalls = parseToolCallsFromContent(fullContent);
-		const cleanedContent = cleanContentFromToolCalls(fullContent, parsedToolCalls);
+		const cleanedContent = cleanContentFromToolCalls(
+			fullContent,
+			parsedToolCalls,
+		);
 
 		// Display the assistant response (cleaned of any tool calls)
 		if (cleanedContent.trim()) {
@@ -184,14 +186,22 @@ export function useChatHandler({
 		// Handle tool calls if present - this continues the loop
 		if (allToolCalls && allToolCalls.length > 0) {
 			// Start tool confirmation flow
-			onStartToolConfirmationFlow(allToolCalls, messages, assistantMsg, systemMessage);
+			onStartToolConfirmationFlow(
+				allToolCalls,
+				messages,
+				assistantMsg,
+				systemMessage,
+			);
 		}
 	};
 
 	// Process assistant response - handles the conversation loop with potential tool calls (for follow-ups)
-	const processAssistantResponse = async (systemMessage: Message, messages: Message[]) => {
+	const processAssistantResponse = async (
+		systemMessage: Message,
+		messages: Message[],
+	) => {
 		if (!client) return;
-		
+
 		// Ensure we have an abort controller for this request
 		let controller = abortController;
 		if (!controller) {
@@ -214,10 +224,13 @@ export function useChatHandler({
 			const startTime = Date.now();
 
 			// Process streaming response with progress updates and cancellation support
-			const cancellableStream = makeCancellableStream(stream, controller.signal);
+			const cancellableStream = makeCancellableStream(
+				stream,
+				controller.signal,
+			);
 			for await (const chunk of cancellableStream) {
 				hasContent = true;
-				
+
 				if (chunk.message?.content) {
 					fullContent += chunk.message.content;
 					tokenCount = Math.ceil(fullContent.length / 4);
@@ -235,16 +248,15 @@ export function useChatHandler({
 
 				// Update thinking stats in real-time (similar to initial response)
 				if (!chunk.done) {
-					const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
 					const systemTokens = Math.ceil(300 / 4);
 					const conversationTokens = messages.reduce((total, msg) => {
 						return total + Math.ceil((msg.content?.length || 0) / 4);
 					}, 0);
-					const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
+					const totalTokensUsed =
+						systemTokens + conversationTokens + tokenCount;
 
 					setThinkingStats({
 						tokenCount,
-						elapsedSeconds,
 						contextSize: client.getContextSize(),
 						totalTokensUsed,
 					});
@@ -257,7 +269,10 @@ export function useChatHandler({
 
 			// Parse any tool calls from the content itself
 			const parsedToolCalls = parseToolCallsFromContent(fullContent);
-			const cleanedContent = cleanContentFromToolCalls(fullContent, parsedToolCalls);
+			const cleanedContent = cleanContentFromToolCalls(
+				fullContent,
+				parsedToolCalls,
+			);
 
 			// Display the assistant response (cleaned of any tool calls)
 			if (cleanedContent.trim()) {
@@ -284,11 +299,19 @@ export function useChatHandler({
 			// Handle tool calls if present - this continues the loop
 			if (allToolCalls && allToolCalls.length > 0) {
 				// Start tool confirmation flow
-				onStartToolConfirmationFlow(allToolCalls, messages, assistantMsg, systemMessage);
+				onStartToolConfirmationFlow(
+					allToolCalls,
+					messages,
+					assistantMsg,
+					systemMessage,
+				);
 			}
 			// If no tool calls, the conversation naturally ends here
 		} catch (error) {
-			if (error instanceof Error && error.message === 'Operation was cancelled') {
+			if (
+				error instanceof Error &&
+				error.message === 'Operation was cancelled'
+			) {
 				addToChatQueue(
 					<ErrorMessage
 						key={`cancelled-${componentKeyCounter}`}
@@ -328,53 +351,16 @@ export function useChatHandler({
 		// Create abort controller for cancellation
 		const controller = new AbortController();
 		setAbortController(controller);
-		
+
 		// Start thinking indicator and streaming
 		setIsThinking(true);
 
 		// Reset per-message stats
 		setThinkingStats({
 			tokenCount: 0,
-			elapsedSeconds: 0,
 			contextSize: client.getContextSize(),
 			totalTokensUsed: 0, // Start fresh, will be calculated properly in the interval
 		});
-
-		const startTime = Date.now();
-		let tokenCount = 0;
-
-		// Setup timer for thinking indicator updates (optimized to reduce jitter)
-		const timerInterval = setInterval(() => {
-			const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
-			const systemTokens = Math.ceil(300 / 4); // Approximate system prompt tokens
-			const conversationTokens = updatedMessages.reduce((total, msg) => {
-				return total + Math.ceil((msg.content?.length || 0) / 4);
-			}, 0);
-			const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
-
-			setThinkingStats(prevStats => {
-				// Only update if values have meaningfully changed to reduce re-renders
-				const newPercentage = client.getContextSize() > 0 ? 
-					Math.round((totalTokensUsed / client.getContextSize()) * 100) : 0;
-				const oldPercentage = prevStats.contextSize > 0 ? 
-					Math.round((prevStats.totalTokensUsed / prevStats.contextSize) * 100) : 0;
-				
-				// Always update if elapsedSeconds has changed, otherwise only update if tokens or percentage changed meaningfully
-				if (prevStats.elapsedSeconds !== elapsedSeconds) {
-					// Time has changed, always update
-				} else if (prevStats.tokenCount === tokenCount && 
-				          Math.abs(newPercentage - oldPercentage) < 1) {
-					return prevStats; // No meaningful change, skip update
-				}
-				
-				return {
-					tokenCount,
-					elapsedSeconds,
-					contextSize: client.getContextSize(),
-					totalTokensUsed,
-				};
-			});
-		}, 1000); // Update every second to match elapsedSeconds precision
 
 		try {
 			// Load system prompt from prompt.md file
@@ -383,7 +369,9 @@ export function useChatHandler({
 				try {
 					systemPrompt = readFileSync(promptPath, 'utf-8');
 				} catch (error) {
-					console.warn(`Failed to load system prompt from ${promptPath}: ${error}`);
+					console.warn(
+						`Failed to load system prompt from ${promptPath}: ${error}`,
+					);
 				}
 			}
 
@@ -394,10 +382,16 @@ export function useChatHandler({
 			};
 
 			// Use the new conversation loop
-			await processAssistantResponseWithTokenTracking(systemMessage, updatedMessages, timerInterval, startTime, controller);
+			await processAssistantResponseWithTokenTracking(
+				systemMessage,
+				updatedMessages,
+				controller,
+			);
 		} catch (error) {
-			clearInterval(timerInterval);
-			if (error instanceof Error && error.message === 'Operation was cancelled') {
+			if (
+				error instanceof Error &&
+				error.message === 'Operation was cancelled'
+			) {
 				addToChatQueue(
 					<ErrorMessage
 						key={`cancelled-${componentKeyCounter}`}

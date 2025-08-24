@@ -154,20 +154,22 @@ export default function App() {
 
 	return (
 		<Box flexDirection="column" padding={1} width="100%">
-			<WelcomeMessage />
-
-			{appState.startChat && (
-				<>
+			<Box flexGrow={1} flexDirection="column" minHeight={0}>
+				<WelcomeMessage />
+				{appState.startChat && (
 					<ChatQueue
 						staticComponents={staticComponents}
 						queuedComponents={appState.chatComponents}
 					/>
+				)}
+			</Box>
+			{appState.startChat && (
+				<Box flexDirection="column">
 					{appState.isCancelling ? (
 						<CancellingIndicator />
 					) : appState.isThinking ? (
 						<ThinkingIndicator
 							tokenCount={appState.thinkingStats.tokenCount}
-							elapsedSeconds={appState.thinkingStats.elapsedSeconds}
 							contextSize={appState.thinkingStats.contextSize}
 							totalTokensUsed={appState.thinkingStats.totalTokensUsed}
 						/>
@@ -185,7 +187,8 @@ export default function App() {
 							onProviderSelect={modeHandlers.handleProviderSelect}
 							onCancel={modeHandlers.handleProviderSelectionCancel}
 						/>
-					) : appState.isToolConfirmationMode && appState.pendingToolCalls[appState.currentToolIndex] ? (
+					) : appState.isToolConfirmationMode &&
+					  appState.pendingToolCalls[appState.currentToolIndex] ? (
 						<ToolConfirmation
 							toolCall={appState.pendingToolCalls[appState.currentToolIndex]}
 							onConfirm={toolHandler.handleToolConfirmation}
@@ -200,14 +203,15 @@ export default function App() {
 						/>
 					) : appState.mcpInitialized && !appState.client ? (
 						<Text color={colors.secondary}>
-							⚠️ No LLM provider available. Chat is disabled. Please fix your provider configuration and restart.
+							⚠️ No LLM provider available. Chat is disabled. Please fix your
+							provider configuration and restart.
 						</Text>
 					) : (
 						<Text color={colors.secondary}>
 							<Spinner type="dots2" /> Loading...
 						</Text>
 					)}
-				</>
+				</Box>
 			)}
 		</Box>
 	);

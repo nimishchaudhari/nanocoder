@@ -7,7 +7,6 @@ import React from 'react';
 
 export interface ThinkingStats {
 	tokenCount: number;
-	elapsedSeconds: number;
 	contextSize: number;
 	totalTokensUsed: number;
 }
@@ -35,26 +34,10 @@ export function useAppState() {
 	const [isCancelling, setIsCancelling] = useState<boolean>(false);
 	const [thinkingStats, setThinkingStats] = useState<ThinkingStats>({
 		tokenCount: 0,
-		elapsedSeconds: 0,
 		contextSize: 0,
 		totalTokensUsed: 0,
 	});
 
-	React.useEffect(() => {
-		let timer: NodeJS.Timeout;
-		if (isThinking) {
-			timer = setInterval(() => {
-				setThinkingStats(prevStats => ({
-					...prevStats,
-					elapsedSeconds: prevStats.elapsedSeconds + 1,
-				}));
-			}, 1000);
-		}
-		return () => {
-			clearInterval(timer);
-		};
-	}, [isThinking]);
-	
 	// Cancellation state
 	const [abortController, setAbortController] = useState<AbortController | null>(null);
 

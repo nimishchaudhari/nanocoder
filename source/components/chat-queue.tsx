@@ -36,17 +36,7 @@ export default function ChatQueue({
 						? component.key
 						: `component-${index}`;
 
-				// Return component directly if it already has a key, otherwise wrap in Fragment
-				if (
-					component &&
-					typeof component === 'object' &&
-					'key' in component &&
-					component.key
-				) {
-					return component;
-				}
-
-				return <Fragment key={key}>{component}</Fragment>;
+						return <Fragment key={key}>{component}</Fragment>;
 			})}
 		</Box>
 	);
