@@ -1,4 +1,5 @@
 import {loadPreferences, savePreferences} from './preferences.js';
+import {logInfo, logError} from '../utils/message-queue.js';
 
 import type {LogLevel} from '../types/index.js';
 
@@ -43,27 +44,27 @@ export function shouldLog(level: 'info' | 'warn' | 'error' | 'debug'): boolean {
 export const logger = {
 	info: (...args: any[]) => {
 		if (shouldLog('info')) {
-			console.log(...args);
+			logInfo(args.join(' '));
 		}
 	},
 	warn: (...args: any[]) => {
 		if (shouldLog('warn')) {
-			console.warn(...args);
+			logError(args.join(' '));
 		}
 	},
 	error: (...args: any[]) => {
 		if (shouldLog('error')) {
-			console.error(...args);
+			logError(args.join(' '));
 		}
 	},
 	debug: (...args: any[]) => {
 		if (shouldLog('debug')) {
-			console.log(...args);
+			logInfo(args.join(' '));
 		}
 	},
 };
 
 // Special logging for important user-facing messages that should always show
 export function logImportant(...args: any[]): void {
-	console.log(...args);
+	logInfo(args.join(' '));
 }

@@ -1,4 +1,5 @@
 import type {Message, Tool, LLMClient} from './types/index.js';
+import {logError} from './utils/message-queue.js';
 
 export class OpenAICompatibleClient implements LLMClient {
 	private baseUrl: string;
@@ -63,7 +64,7 @@ export class OpenAICompatibleClient implements LLMClient {
 				return models;
 			}
 		} catch (error) {
-			console.warn('Failed to fetch models from OpenAI-compatible API:', error);
+			logError(`Failed to fetch models from OpenAI-compatible API: ${error}`);
 		}
 
 		return this.availableModels;
@@ -150,7 +151,7 @@ export class OpenAICompatibleClient implements LLMClient {
 				// If we can't parse the error response, use the basic message
 			}
 
-			console.error(errorMessage);
+			logError(errorMessage);
 			return null;
 		}
 
@@ -214,13 +215,13 @@ export class OpenAICompatibleClient implements LLMClient {
 				// If we can't parse the error response, use the basic message
 			}
 
-			console.error(errorMessage);
+			logError(errorMessage);
 			return;
 		}
 
 		const reader = response.body?.getReader();
 		if (!reader) {
-			console.error('Failed to get response reader');
+			logError('Failed to get response reader');
 			return;
 		}
 

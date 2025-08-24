@@ -3,6 +3,7 @@ import { join } from "path";
 import { homedir } from "os";
 import type { ProviderType } from '../types/index.js';
 import { shouldLog } from "./logging.js";
+import {logError} from '../utils/message-queue.js';
 
 import type { UserPreferences } from '../types/index.js';
 
@@ -15,7 +16,7 @@ export function loadPreferences(): UserPreferences {
       return JSON.parse(data);
     } catch (error) {
       if (shouldLog("warn")) {
-        console.warn("Failed to load preferences:", error);
+        logError(`Failed to load preferences: ${error}`);
       }
     }
   }
@@ -27,7 +28,7 @@ export function savePreferences(preferences: UserPreferences): void {
     writeFileSync(PREFERENCES_PATH, JSON.stringify(preferences, null, 2));
   } catch (error) {
     if (shouldLog("warn")) {
-      console.warn("Failed to save preferences:", error);
+      logError(`Failed to save preferences: ${error}`);
     }
   }
 }

@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
+import {logError} from './utils/message-queue.js';
 
 const HISTORY_FILE = path.join(os.homedir(), ".nano-coder-history");
 const MAX_HISTORY_SIZE = 100;
@@ -26,7 +27,7 @@ class PromptHistory {
       await fs.writeFile(HISTORY_FILE, this.history.join("\n"), "utf8");
     } catch (error) {
       // Silently fail to avoid disrupting the user experience
-      console.warn("Failed to save prompt history:", error);
+      logError(`Failed to save prompt history: ${error}`);
     }
   }
 

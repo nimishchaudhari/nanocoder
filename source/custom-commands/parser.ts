@@ -1,4 +1,5 @@
 import {readFileSync} from 'fs';
+import {logError} from '../utils/message-queue.js';
 import type {
 	CustomCommandMetadata,
 	ParsedCustomCommand,
@@ -159,7 +160,7 @@ export function parseCommandFile(filePath: string): ParsedCustomCommand {
 			metadata = parseEnhancedFrontmatter(frontmatter);
 		} catch (error) {
 			// If parsing fails, treat entire file as content
-			console.warn(`Failed to parse frontmatter in ${filePath}:`, error);
+			logError(`Failed to parse frontmatter in ${filePath}: ${error}`);
 			return {
 				metadata: {},
 				content: fileContent,

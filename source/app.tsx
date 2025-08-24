@@ -44,6 +44,7 @@ import AssistantMessage from './components/assistant-message.js';
 import ThinkingIndicator from './components/thinking-indicator.js';
 import ToolMessage from './components/tool-message.js';
 import ToolConfirmation from './components/tool-confirmation.js';
+import {setGlobalMessageQueue} from './utils/message-queue.js';
 import Spinner from 'ink-spinner';
 import {
 	parseToolCallsFromContent,
@@ -117,6 +118,11 @@ export default function App() {
 		setComponentKeyCounter(prev => prev + 1);
 	};
 
+	// Initialize global message queue on component mount
+	React.useEffect(() => {
+		setGlobalMessageQueue(addToChatQueue);
+	}, []);
+
 	// Helper function to enter model selection mode
 	const enterModelSelectionMode = () => {
 		setIsModelSelectionMode(true);
@@ -161,6 +167,20 @@ export default function App() {
 				const {client: newClient, actualProvider} = await createLLMClient(
 					selectedProvider,
 				);
+				
+				// Check if we got the provider we requested
+				if (actualProvider !== selectedProvider) {
+					// Provider was forced to a different one (likely due to missing config)
+					addToChatQueue(
+						<ErrorMessage
+							key={`provider-forced-${componentKeyCounter}`}
+							message={`${selectedProvider} is not available. Please ensure it's properly configured in agents.config.json.`}
+							hideBox={true}
+						/>,
+					);
+					return; // Don't change anything
+				}
+				
 				setClient(newClient);
 				setCurrentProvider(actualProvider);
 
@@ -188,7 +208,7 @@ export default function App() {
 				addToChatQueue(
 					<ErrorMessage
 						key={`provider-error-${componentKeyCounter}`}
-						message={`Failed to change provider: ${error}`}
+						message={`Failed to change provider to ${selectedProvider}: ${error}`}
 						hideBox={true}
 					/>,
 				);
@@ -748,7 +768,13 @@ export default function App() {
 					if (React.isValidElement(result)) {
 						addToChatQueue(result);
 					} else if (typeof result === 'string' && result.trim()) {
-						console.log(result);
+						addToChatQueue(
+							<InfoMessage
+								key={`command-result-${componentKeyCounter}`}
+								message={result}
+								hideBox={true}
+							/>,
+						);
 					}
 				}
 			}
@@ -804,8 +830,12 @@ export default function App() {
 		}
 
 		if (customCommands.length > 0 && shouldLog('info')) {
-			console.log(
-				`Loaded ${customCommands.length} custom commands from .nanocoder/commands`,
+			addToChatQueue(
+				<InfoMessage
+					key={`custom-commands-loaded-${componentKeyCounter}`}
+					message={`Loaded ${customCommands.length} custom commands from .nanocoder/commands`}
+					hideBox={true}
+				/>,
 			);
 		}
 	};
@@ -871,10 +901,28 @@ export default function App() {
 	): Promise<void> {
 		try {
 			await initializeClient(preferences.lastProvider);
+		} catch (error) {
+			// Don't crash the app - just show the error and continue without a client
+			addToChatQueue(
+				<ErrorMessage
+					key={`init-error-${componentKeyCounter}`}
+					message={`No providers available: ${error}\n\nThe app will remain running but chat functionality is disabled until you fix the provider configuration.`}
+					hideBox={true}
+				/>,
+			);
+			// Leave client as null - the UI will handle this gracefully
+		}
+		
+		try {
 			await loadCustomCommands(newCustomCommandLoader);
 		} catch (error) {
-			console.error(`Failed to initialize provider:`, error);
-			process.exit(1);
+			addToChatQueue(
+				<ErrorMessage
+					key={`commands-error-${componentKeyCounter}`}
+					message={`Failed to load custom commands: ${error}`}
+					hideBox={true}
+				/>,
+			);
 		}
 	}
 
@@ -921,11 +969,15 @@ export default function App() {
 							onConfirm={handleToolConfirmation}
 							onCancel={handleToolConfirmationCancel}
 						/>
-					) : mcpInitialized ? (
+					) : mcpInitialized && client ? (
 						<UserInput
 							customCommands={Array.from(customCommandCache.keys())}
 							onSubmit={handleMessageSubmit}
 						/>
+					) : mcpInitialized && !client ? (
+						<Text color={colors.secondary}>
+							⚠️ No LLM provider available. Chat is disabled. Please fix your provider configuration and restart.
+						</Text>
 					) : (
 						<Text color={colors.secondary}>
 							<Spinner type="dots2" /> Loading...

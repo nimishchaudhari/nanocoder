@@ -1,5 +1,6 @@
 import {Ollama} from 'ollama';
 import {ollamaConfig} from './config/index.js';
+import {logError} from './utils/message-queue.js';
 import type {Message, Tool, LLMClient} from './types/index.js';
 
 export class OllamaClient implements LLMClient {
@@ -19,10 +20,10 @@ export class OllamaClient implements LLMClient {
 			if (availableModels.length > 0 && availableModels[0]) {
 				this.currentModel = availableModels[0];
 			} else {
-				console.error('No Ollama models available');
+				logError('No Ollama models available');
 			}
 		} catch (error) {
-			console.error(`Failed to fetch available models: ${error}`);
+			logError(`Failed to fetch available models: ${error}`);
 		}
 	}
 
@@ -47,7 +48,7 @@ export class OllamaClient implements LLMClient {
 			const response = await this.ollama.list();
 			return response.models.map((model: any) => model.name);
 		} catch (error) {
-			console.error('Failed to fetch available models:', error);
+			logError(`Failed to fetch available models: ${error}`);
 			return [];
 		}
 	}
@@ -89,7 +90,7 @@ export class OllamaClient implements LLMClient {
 				},
 			});
 		} catch (error) {
-			console.error('Failed to clear model context:', error);
+			logError(`Failed to clear model context: ${error}`);
 		}
 	}
 }

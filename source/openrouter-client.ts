@@ -1,4 +1,5 @@
 import type {Message, Tool, LLMClient} from './types/index.js';
+import {logError} from './utils/message-queue.js';
 
 export class OpenRouterClient implements LLMClient {
 	private apiKey: string;
@@ -38,7 +39,7 @@ export class OpenRouterClient implements LLMClient {
 				}
 			}
 		} catch (error) {
-			console.warn('Failed to fetch OpenRouter model info:', error);
+			logError(`Failed to fetch OpenRouter model info: ${error}`);
 		}
 	}
 
@@ -124,7 +125,7 @@ export class OpenRouterClient implements LLMClient {
 				// If we can't parse the error response, use the basic message
 			}
 
-			console.error(errorMessage);
+			logError(errorMessage);
 			return null; // Return null to indicate error
 		}
 
@@ -198,13 +199,13 @@ export class OpenRouterClient implements LLMClient {
 				// If we can't parse the error response, use the basic message
 			}
 
-			console.error(errorMessage);
+			logError(errorMessage);
 			return; // Gracefully exit the generator without yielding any chunks
 		}
 
 		const reader = response.body?.getReader();
 		if (!reader) {
-			console.error('Failed to get response reader');
+			logError('Failed to get response reader');
 			return;
 		}
 

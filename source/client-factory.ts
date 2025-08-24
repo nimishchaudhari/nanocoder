@@ -5,53 +5,80 @@ import {appConfig} from './config/index.js';
 import {loadPreferences} from './config/preferences.js';
 import type {LLMClient, ProviderType} from './types/index.js';
 import {Ollama} from 'ollama';
+// No longer need message queue imports for error logging
+import {existsSync} from 'fs';
+import {join} from 'path';
 
 export async function createLLMClient(
 	provider?: ProviderType,
 ): Promise<{client: LLMClient; actualProvider: ProviderType}> {
-	// If no provider specified, check user preferences
+	// Check if agents.config.json exists
+	const agentsJsonPath = join(process.cwd(), 'agents.config.json');
+	const hasConfigFile = existsSync(agentsJsonPath);
+	
+	// If no provider specified, check user preferences (but only if config exists)
 	if (!provider) {
-		const preferences = loadPreferences();
-		provider = preferences.lastProvider || 'ollama';
-	}
-
-	// Try the preferred/specified provider first
-	try {
-		if (provider === 'openrouter') {
-			const client = await createOpenRouterClient();
-			return {client, actualProvider: 'openrouter'};
-		}
-
-		if (provider === 'openai-compatible') {
-			const client = await createOpenAICompatibleClient();
-			return {client, actualProvider: 'openai-compatible'};
-		}
-
-		// Default to Ollama
-		const client = await createOllamaClient();
-		return {client, actualProvider: 'ollama'};
-	} catch (preferredError: any) {
-		// If preferred provider failed and it wasn't Ollama, try Ollama as fallback
-		if (provider !== 'ollama') {
-			console.error(`${provider} unavailable: ${preferredError.message}`);
-			console.log('Falling back to Ollama...');
-
-			try {
-				const client = await createOllamaClient();
-				return {client, actualProvider: 'ollama'};
-			} catch (ollamaError: any) {
-				console.error(`Ollama unavailable: ${ollamaError.message}\n\nPlease either:\n
-1. Install and run Ollama with a model: ollama pull qwen3:0.6b
-2. Configure your preferred provider in an \`agents.config.json\` file in the current directory`),
-					process.exit(1);
-			}
+		if (hasConfigFile) {
+			const preferences = loadPreferences();
+			provider = preferences.lastProvider || 'ollama';
 		} else {
-			console.error(`Ollama unavailable: ${preferredError.message}\n\nPlease either:\n
-1. Install and run Ollama with a model: ollama pull qwen3:0.6b
-2. Configure your preferred provider in an \`agents.config.json\` file in the current directory`),
-				process.exit(1);
+			// No config file - force Ollama only
+			provider = 'ollama';
 		}
 	}
+	
+	// If no config file exists but user requested non-Ollama provider, force Ollama
+	if (!hasConfigFile && provider !== 'ollama') {
+		provider = 'ollama';
+	}
+	
+	// Define available providers based on config file presence
+	const allProviders: ProviderType[] = hasConfigFile 
+		? ['ollama', 'openrouter', 'openai-compatible']
+		: ['ollama'];
+	
+	// Put the requested provider first, then try others (if config exists)
+	const tryOrder = hasConfigFile 
+		? [provider, ...allProviders.filter(p => p !== provider)]
+		: ['ollama'];
+	
+	const errors: string[] = [];
+
+	// Try each provider in order
+	for (const currentProvider of tryOrder as ProviderType[]) {
+		try {
+			let client: LLMClient;
+			
+			if (currentProvider === 'openrouter') {
+				client = await createOpenRouterClient();
+			} else if (currentProvider === 'openai-compatible') {
+				client = await createOpenAICompatibleClient();
+			} else {
+				// Default to Ollama
+				client = await createOllamaClient();
+			}
+			
+			// If we get here, the provider worked
+			return {client, actualProvider: currentProvider};
+			
+		} catch (error: any) {
+			const errorMsg = `${currentProvider}: ${error.message}`;
+			errors.push(errorMsg);
+		}
+	}
+
+	// If we get here, all providers failed
+	let combinedError: string;
+	
+	if (!hasConfigFile) {
+		// No config file - only tried Ollama
+		combinedError = `Ollama unavailable: ${errors[0]?.split(': ')[1] || 'Unknown error'}\n\nPlease install and run Ollama with a model:\n  ollama pull qwen3:0.6b\n\nOr create an agents.config.json file to configure other providers.`;
+	} else {
+		// Config file exists - tried multiple providers
+		combinedError = `All configured providers failed:\n${errors.map(e => `• ${e}`).join('\n')}\n\nPlease either:\n1. Install and run Ollama with a model: ollama pull qwen3:0.6b\n2. Check your provider configuration in agents.config.json`;
+	}
+	
+	throw new Error(combinedError);
 }
 
 async function createOllamaClient(): Promise<LLMClient> {

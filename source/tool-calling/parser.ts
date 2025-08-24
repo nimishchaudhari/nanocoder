@@ -1,4 +1,5 @@
 import type {ToolCall} from '../types/index.js';
+import {logError} from '../utils/message-queue.js';
 
 /**
  * Validates if a tool name and inner content are valid for tool call processing
@@ -47,7 +48,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 				return extractedCalls;
 			}
 		} catch (e) {
-			console.warn('Tool call failed to parse from JSON code block.');
+			logError('Tool call failed to parse from JSON code block.');
 		}
 	}
 
@@ -68,7 +69,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 				});
 			}
 		} catch (e) {
-			console.warn('Tool call failed to parse from JSON block.');
+			logError('Tool call failed to parse from JSON block.');
 		}
 	}
 
@@ -146,7 +147,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 					});
 				}
 			} catch (e) {
-				console.warn(`Failed to parse direct MCP tool call: ${toolName}`);
+				logError(`Failed to parse direct MCP tool call: ${toolName}`);
 			}
 		}
 	}
@@ -170,7 +171,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 				});
 			}
 		} catch (e) {
-			console.warn('MCP tool call failed to parse from XML.');
+			logError('MCP tool call failed to parse from XML.');
 		}
 	}
 
@@ -193,7 +194,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 				});
 			}
 		} catch (e) {
-			console.warn('Tool call failed to parse from XML.');
+			logError('Tool call failed to parse from XML.');
 		}
 	}
 
@@ -223,7 +224,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 					},
 				});
 			} catch (e) {
-				console.warn('Tool call failed to parse from content.');
+				logError('Tool call failed to parse from content.');
 			}
 		}
 	}

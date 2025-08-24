@@ -2,6 +2,7 @@ import type {AppConfig, Colors} from '../types/index.js';
 import {existsSync, readFileSync} from 'fs';
 import {join, dirname} from 'path';
 import {fileURLToPath} from 'url';
+import {logError} from '../utils/message-queue.js';
 
 // Function to load app configuration from agents.config.json if it exists
 function loadAppConfig(): AppConfig {
@@ -19,7 +20,7 @@ function loadAppConfig(): AppConfig {
 				};
 			}
 		} catch (error) {
-			console.warn('Failed to parse agents.config.json:', error);
+			logError(`Failed to parse agents.config.json: ${error}`);
 		}
 	}
 

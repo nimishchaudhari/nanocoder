@@ -2,6 +2,7 @@ import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
 import type {Tool} from '../types/index.js';
 import {shouldLog} from '../config/logging.js';
+import {logInfo, logError} from '../utils/message-queue.js';
 
 import type {MCPServer, MCPTool, MCPInitResult} from '../types/index.js';
 
@@ -209,9 +210,9 @@ export class MCPClient {
 		for (const [serverName, client] of this.clients.entries()) {
 			try {
 				await client.close();
-				console.log(`Disconnected from MCP server: ${serverName}`);
+				logInfo(`Disconnected from MCP server: ${serverName}`);
 			} catch (error) {
-				console.log(`Error disconnecting from ${serverName}: ${error}`);
+				logError(`Error disconnecting from ${serverName}: ${error}`);
 			}
 		}
 

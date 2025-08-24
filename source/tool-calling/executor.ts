@@ -1,4 +1,5 @@
 import {processToolUse} from '../message-handler.js';
+import {logInfo} from '../utils/message-queue.js';
 import type {
 	ToolCall,
 	ToolResult,
@@ -12,10 +13,9 @@ export async function executeToolCall(
 
 	if (shouldExecute) {
 		const toolResult = await processToolUse(toolCall);
-		console.log(toolCall, toolResult);
 		return toolResult;
 	} else {
-		console.log('Tool execution cancelled. Returning to user input...');
+		logInfo('Tool execution cancelled. Returning to user input...');
 		return null;
 	}
 }
