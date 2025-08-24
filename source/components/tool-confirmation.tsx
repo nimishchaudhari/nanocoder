@@ -69,7 +69,7 @@ export default function ToolConfirmation({
 	};
 
 	return (
-		<Box borderStyle="round" width={75} marginBottom={1}>
+		<Box width={75} marginBottom={1}>
 			<Box flexDirection="column">
 				{/* Formatter preview */}
 				{isLoadingPreview && (

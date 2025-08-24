@@ -1,4 +1,4 @@
-import {memo, useState, useEffect} from 'react';
+import {memo, useState, useEffect, useRef} from 'react';
 import {Box, Text} from 'ink';
 import Spinner from 'ink-spinner';
 import {colors} from '../config/index.js';
@@ -15,10 +15,18 @@ export default memo(function ThinkingIndicator({
 	totalTokensUsed,
 }: ThinkingIndicatorProps) {
 	const [elapsedSeconds, setElapsedSeconds] = useState(0);
+	const startTimeRef = useRef<number>(Date.now());
+
+	useEffect(() => {
+		startTimeRef.current = Date.now();
+		setElapsedSeconds(0);
+	}, []);
 
 	useEffect(() => {
 		const timer = setInterval(() => {
-			setElapsedSeconds(prev => prev + 1);
+			const currentTime = Date.now();
+			const elapsed = Math.floor((currentTime - startTimeRef.current) / 1000);
+			setElapsedSeconds(elapsed);
 		}, 1000);
 
 		return () => {

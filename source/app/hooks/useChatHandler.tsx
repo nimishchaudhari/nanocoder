@@ -50,6 +50,23 @@ export function useChatHandler({
 	setAbortController,
 	onStartToolConfirmationFlow,
 }: UseChatHandlerProps) {
+	// Throttle thinking stats updates to reduce re-renders
+	const throttledSetThinkingStats = React.useCallback(
+		(() => {
+			let lastUpdate = 0;
+			const throttleMs = 250; // Update at most 4 times per second
+			
+			return (stats: ThinkingStats | ((prev: ThinkingStats) => ThinkingStats)) => {
+				const now = Date.now();
+				if (now - lastUpdate >= throttleMs) {
+					lastUpdate = now;
+					setThinkingStats(stats);
+				}
+			};
+		})(),
+		[setThinkingStats]
+	);
+
 	// Helper to make async iterator cancellable with frequent abort checking
 	const makeCancellableStream = async function* (
 		stream: AsyncIterable<any>,
@@ -142,7 +159,7 @@ export function useChatHandler({
 				}, 0);
 				const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
 
-				setThinkingStats({
+				throttledSetThinkingStats({
 					tokenCount,
 					contextSize: client.getContextSize(),
 					totalTokensUsed,
@@ -255,7 +272,7 @@ export function useChatHandler({
 					const totalTokensUsed =
 						systemTokens + conversationTokens + tokenCount;
 
-					setThinkingStats({
+					throttledSetThinkingStats({
 						tokenCount,
 						contextSize: client.getContextSize(),
 						totalTokensUsed,

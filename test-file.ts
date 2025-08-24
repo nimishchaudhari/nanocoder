@@ -3,7 +3,7 @@
 /**
  * Greets a person by name
  * @param name - The name of the person to greet
- * @returns A greeting message
+ * @returns A greeting string
  */
 export function greet(name: string): string {
   return `Hello ${name}!`;
@@ -20,7 +20,7 @@ export function add(a: number, b: number): number {
 }
 
 /**
- * Multiplies two numbers
+ * Multiplies two numbers together
  * @param x - The first number
  * @param y - The second number
  * @returns The product of x and y
@@ -32,21 +32,21 @@ export function multiply(x: number, y: number): number {
 // More functions to make a medium-sized file
 
 /**
- * Subtracts one number from another
- * @param a - The number to subtract from
- * @param b - The number to subtract
- * @returns The result of a minus b
+ * Subtracts the second number from the first number
+ * @param a - The first number
+ * @param b - The second number
+ * @returns The difference of a and b
  */
 export function subtract(a: number, b: number): number {
   return a - b;
 }
 
 /**
- * Divides one number by another
+ * Divides the first number by the second number
  * @param a - The dividend
  * @param b - The divisor
- * @returns The result of a divided by b
- * @throws Error if attempting to divide by zero
+ * @returns The quotient of a and b
+ * @throws Error if b is zero
  */
 export function divide(a: number, b: number): number {
   if (b === 0) {
@@ -56,10 +56,10 @@ export function divide(a: number, b: number): number {
 }
 
 /**
- * Raises a base number to a power
+ * Raises a base number to the power of an exponent
  * @param base - The base number
  * @param exponent - The exponent
- * @returns The result of base raised to the exponent
+ * @returns The result of base raised to the power of exponent
  */
 export function power(base: number, exponent: number): number {
   return Math.pow(base, exponent);
@@ -67,7 +67,7 @@ export function power(base: number, exponent: number): number {
 
 /**
  * Calculates the square root of a number
- * @param n - The number to calculate square root for
+ * @param n - The number to calculate the square root of
  * @returns The square root of n
  */
 export function sqrt(n: number): number {
@@ -76,7 +76,7 @@ export function sqrt(n: number): number {
 
 /**
  * Returns the absolute value of a number
- * @param n - The number
+ * @param n - The number to get the absolute value of
  * @returns The absolute value of n
  */
 export function abs(n: number): number {
@@ -86,7 +86,7 @@ export function abs(n: number): number {
 /**
  * Rounds a number to the nearest integer
  * @param n - The number to round
- * @returns The rounded integer
+ * @returns The rounded value of n
  */
 export function round(n: number): number {
   return Math.round(n);
@@ -95,7 +95,7 @@ export function round(n: number): number {
 /**
  * Rounds a number down to the nearest integer
  * @param n - The number to round down
- * @returns The largest integer less than or equal to n
+ * @returns The floor value of n
  */
 export function floor(n: number): number {
   return Math.floor(n);
@@ -104,12 +104,10 @@ export function floor(n: number): number {
 /**
  * Rounds a number up to the nearest integer
  * @param n - The number to round up
- * @returns The smallest integer greater than or equal to n
+ * @returns The ceiling value of n
  */
 export function ceil(n: number): number {
   return Math.ceil(n);
 }
-
-// End of test file
 
 // End of test file
