@@ -22,7 +22,7 @@ export default memo(function WelcomeMessage() {
 	return (
 		<>
 			<Gradient colors={[colors.primary, colors.tool]}>
-				<BigText text="Nanocoder" />
+				<BigText text="Nanocoder" font="tiny" />
 			</Gradient>
 
 			<TitledBox

@@ -69,16 +69,7 @@ export default function ToolConfirmation({
 	};
 
 	return (
-		<TitledBox
-			borderStyle="round"
-			titles={['Tool Execution Confirmation']}
-			titleStyles={titleStyles.pill}
-			width={75}
-			borderColor={colors.tool}
-			paddingX={2}
-			paddingY={1}
-			marginBottom={1}
-		>
+		<Box borderStyle="round" width={75} marginBottom={1}>
 			<Box flexDirection="column">
 				{/* Formatter preview */}
 				{isLoadingPreview && (
@@ -89,7 +80,7 @@ export default function ToolConfirmation({
 
 				{formatterPreview && !isLoadingPreview && (
 					<Box marginBottom={1} flexDirection="column">
-						<Box marginTop={1}>
+						<Box>
 							{React.isValidElement(formatterPreview) ? (
 								formatterPreview
 							) : (
@@ -109,6 +100,6 @@ export default function ToolConfirmation({
 					<Text color={colors.secondary}>Press Escape to cancel</Text>
 				</Box>
 			</Box>
-		</TitledBox>
+		</Box>
 	);
 }
