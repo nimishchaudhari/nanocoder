@@ -107,10 +107,14 @@ export default function App() {
 
 	// Chat queue for components
 	const [chatComponents, setChatComponents] = useState<React.ReactNode[]>([]);
+	
+	// Stable key counter for chat components
+	const [componentKeyCounter, setComponentKeyCounter] = useState(0);
 
-	// Helper function to add components to the chat queue
+	// Helper function to add components to the chat queue with stable keys
 	const addToChatQueue = (component: React.ReactNode) => {
 		setChatComponents(prev => [...prev, component]);
+		setComponentKeyCounter(prev => prev + 1);
 	};
 
 	// Helper function to enter model selection mode
@@ -135,7 +139,7 @@ export default function App() {
 			// Add success message to chat queue
 			addToChatQueue(
 				<SuccessMessage
-					key={`model-changed-${Date.now()}`}
+					key={`model-changed-${componentKeyCounter}`}
 					message={`Model changed to: ${selectedModel}`}
 					hideBox={true}
 				/>,
@@ -174,7 +178,7 @@ export default function App() {
 				// Add success message to chat queue
 				addToChatQueue(
 					<SuccessMessage
-						key={`provider-changed-${Date.now()}`}
+						key={`provider-changed-${componentKeyCounter}`}
 						message={`Provider changed to: ${actualProvider}, model: ${newModel}. Chat history cleared.`}
 						hideBox={true}
 					/>,
@@ -183,7 +187,7 @@ export default function App() {
 				// Add error message if provider change fails
 				addToChatQueue(
 					<ErrorMessage
-						key={`provider-error-${Date.now()}`}
+						key={`provider-error-${componentKeyCounter}`}
 						message={`Failed to change provider: ${error}`}
 						hideBox={true}
 					/>,
@@ -204,7 +208,7 @@ export default function App() {
 			// User cancelled - show message and reset state
 			addToChatQueue(
 				<InfoMessage
-					key={`tool-cancelled-${Date.now()}`}
+					key={`tool-cancelled-${componentKeyCounter}`}
 					message="Tool execution cancelled by user"
 					hideBox={true}
 				/>,
@@ -234,7 +238,7 @@ export default function App() {
 		} catch (error) {
 			addToChatQueue(
 				<ErrorMessage
-					key={`tool-exec-error-${Date.now()}`}
+					key={`tool-exec-error-${componentKeyCounter}`}
 					message={`Tool execution error: ${error}`}
 				/>,
 			);
@@ -246,7 +250,7 @@ export default function App() {
 	const handleToolConfirmationCancel = () => {
 		addToChatQueue(
 			<InfoMessage
-				key={`tool-cancelled-${Date.now()}`}
+				key={`tool-cancelled-${componentKeyCounter}`}
 				message="Tool execution cancelled by user"
 				hideBox={true}
 			/>,
@@ -275,13 +279,13 @@ export default function App() {
 					if (React.isValidElement(formattedResult)) {
 						addToChatQueue(
 							React.cloneElement(formattedResult, {
-								key: `tool-result-${result.tool_call_id}-${Date.now()}`,
+								key: `tool-result-${result.tool_call_id}-${componentKeyCounter}`,
 							}),
 						);
 					} else {
 						addToChatQueue(
 							<ToolMessage
-								key={`tool-result-${result.tool_call_id}-${Date.now()}`}
+								key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
 								title={`⚒ ${result.name}`}
 								message={String(formattedResult)}
 								hideBox={true}
@@ -292,7 +296,7 @@ export default function App() {
 					// If formatter fails, show raw result
 					addToChatQueue(
 						<ToolMessage
-							key={`tool-result-${result.tool_call_id}-${Date.now()}`}
+							key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
 							title={`⚒ ${result.name}`}
 							message={result.content}
 							hideBox={true}
@@ -303,7 +307,7 @@ export default function App() {
 				// No formatter, show raw result
 				addToChatQueue(
 					<ToolMessage
-						key={`tool-result-${result.tool_call_id}-${Date.now()}`}
+						key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
 						title={`⚒ ${result.name}`}
 						message={result.content}
 						hideBox={true}
@@ -421,7 +425,7 @@ export default function App() {
 		if (cleanedContent.trim()) {
 			addToChatQueue(
 				<AssistantMessage
-					key={`assistant-${Date.now()}`}
+					key={`assistant-${componentKeyCounter}`}
 					message={cleanedContent}
 					model={currentModel}
 				/>,
@@ -513,7 +517,7 @@ export default function App() {
 			if (cleanedContent.trim()) {
 				addToChatQueue(
 					<AssistantMessage
-						key={`assistant-${Date.now()}`}
+						key={`assistant-${componentKeyCounter}`}
 						message={cleanedContent}
 						model={currentModel}
 					/>,
@@ -540,7 +544,7 @@ export default function App() {
 		} catch (error) {
 			addToChatQueue(
 				<ErrorMessage
-					key={`error-${Date.now()}`}
+					key={`error-${componentKeyCounter}`}
 					message={`Conversation error: ${error}`}
 				/>,
 			);
@@ -573,7 +577,7 @@ export default function App() {
 
 		// Add user message to chat
 		addToChatQueue(
-			<UserMessage key={`user-${Date.now()}`} message={message} />,
+			<UserMessage key={`user-${componentKeyCounter}`} message={message} />,
 		);
 
 		// Add user message to conversation history
@@ -596,7 +600,7 @@ export default function App() {
 		let tokenCount = 0;
 		let fullContent = '';
 
-		// Setup timer for thinking indicator updates (less frequent to reduce jitter)
+		// Setup timer for thinking indicator updates (optimized to reduce jitter)
 		const timerInterval = setInterval(() => {
 			const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
 			const systemTokens = Math.ceil(300 / 4); // Approximate system prompt tokens
@@ -605,13 +609,27 @@ export default function App() {
 			}, 0);
 			const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
 
-			setThinkingStats({
-				tokenCount,
-				elapsedSeconds,
-				contextSize: client.getContextSize(),
-				totalTokensUsed,
+			setThinkingStats(prevStats => {
+				// Only update if values have meaningfully changed to reduce re-renders
+				const newPercentage = client.getContextSize() > 0 ? 
+					Math.round((totalTokensUsed / client.getContextSize()) * 100) : 0;
+				const oldPercentage = prevStats.contextSize > 0 ? 
+					Math.round((prevStats.totalTokensUsed / prevStats.contextSize) * 100) : 0;
+				
+				if (prevStats.tokenCount === tokenCount && 
+				    prevStats.elapsedSeconds === elapsedSeconds &&
+				    Math.abs(newPercentage - oldPercentage) < 1) {
+					return prevStats; // No meaningful change, skip update
+				}
+				
+				return {
+					tokenCount,
+					elapsedSeconds,
+					contextSize: client.getContextSize(),
+					totalTokensUsed,
+				};
 			});
-		}, 1500); // Update every 1.5 seconds instead of 1 second to reduce jitter
+		}, 2000); // Update every 2 seconds to further reduce jitter
 
 		try {
 			// Create stream request
@@ -626,7 +644,7 @@ export default function App() {
 			clearInterval(timerInterval);
 			addToChatQueue(
 				<ErrorMessage
-					key={`error-${Date.now()}`}
+					key={`error-${componentKeyCounter}`}
 					message={`Chat error: ${error}`}
 				/>,
 			);
@@ -798,7 +816,7 @@ export default function App() {
 			// Add connecting message to chat queue
 			addToChatQueue(
 				<InfoMessage
-					key={`mcp-connecting-${Date.now()}`}
+					key={`mcp-connecting-${componentKeyCounter}`}
 					message={`Connecting to ${appConfig.mcpServers.length} MCP server${
 						appConfig.mcpServers.length > 1 ? 's' : ''
 					}...`}
@@ -811,7 +829,7 @@ export default function App() {
 				if (result.success) {
 					addToChatQueue(
 						<SuccessMessage
-							key={`mcp-success-${result.serverName}-${Date.now()}`}
+							key={`mcp-success-${result.serverName}-${componentKeyCounter}`}
 							message={`Connected to MCP server "${result.serverName}" with ${result.toolCount} tools`}
 							hideBox={true}
 						/>,
@@ -819,7 +837,7 @@ export default function App() {
 				} else {
 					addToChatQueue(
 						<ErrorMessage
-							key={`mcp-error-${result.serverName}-${Date.now()}`}
+							key={`mcp-error-${result.serverName}-${componentKeyCounter}`}
 							message={`Failed to connect to MCP server "${result.serverName}": ${result.error}`}
 							hideBox={true}
 						/>,
@@ -832,7 +850,7 @@ export default function App() {
 			} catch (error) {
 				addToChatQueue(
 					<ErrorMessage
-						key={`mcp-fatal-error-${Date.now()}`}
+						key={`mcp-fatal-error-${componentKeyCounter}`}
 						message={`Failed to initialize MCP servers: ${error}`}
 						hideBox={true}
 					/>,

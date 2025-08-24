@@ -1,4 +1,4 @@
-import React from 'react';
+import {memo} from 'react';
 import {Box, Text} from 'ink';
 import Spinner from 'ink-spinner';
 import {colors} from '../config/index.js';
@@ -10,7 +10,7 @@ interface ThinkingIndicatorProps {
 	totalTokensUsed: number;
 }
 
-export default function ThinkingIndicator({
+export default memo(function ThinkingIndicator({
 	tokenCount,
 	elapsedSeconds,
 	contextSize,
@@ -33,4 +33,12 @@ export default function ThinkingIndicator({
 			</Box>
 		</Box>
 	);
-}
+}, (prevProps, nextProps) => {
+	// Only re-render if values actually changed significantly
+	return (
+		prevProps.tokenCount === nextProps.tokenCount &&
+		prevProps.elapsedSeconds === nextProps.elapsedSeconds &&
+		Math.floor(prevProps.totalTokensUsed / prevProps.contextSize * 100) === 
+		Math.floor(nextProps.totalTokensUsed / nextProps.contextSize * 100)
+	);
+});
