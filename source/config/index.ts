@@ -40,7 +40,7 @@ export const colors: Colors = {
 	black: '#1a1b26',
 	primary: '#bb9af7',
 	tool: '#7dcfff',
-	success: '#9ece6a',
+	success: '#7AF778',
 	error: '#f7768e',
 	secondary: '#565f89',
 	blue: '#7aa2f7',

@@ -743,7 +743,12 @@ export default function App() {
 					.trim()
 					.split(/\s+/)
 					.filter(arg => arg);
-				await customCommandExecutor?.execute(customCommand, args);
+				const processedPrompt = await customCommandExecutor?.execute(customCommand, args);
+				
+				// Send the processed prompt to the AI
+				if (processedPrompt) {
+					await handleChatMessage(processedPrompt);
+				}
 			} else {
 				// Handle special commands that need app state access
 				if (commandName === 'clear') {

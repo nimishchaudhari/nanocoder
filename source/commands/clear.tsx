@@ -17,9 +17,7 @@ function Clear() {
 			flexDirection="column"
 			marginBottom={1}
 		>
-			<Text color={colors.success} bold>
-				Chat Cleared...
-			</Text>
+			<Text color={colors.success}>Chat Cleared...</Text>
 		</TitledBox>
 	);
 }
