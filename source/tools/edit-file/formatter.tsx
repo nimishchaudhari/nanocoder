@@ -278,10 +278,10 @@ async function formatFindReplacePreview({
 					<Text color={colors.secondary}>Line {lineNum}:</Text>
 					{contextBefore}
 					<Box>
-						<Text backgroundColor="red" color="white" wrap="wrap">{lineNumStr}  - {oldLine}</Text>
+						<Text backgroundColor={colors.diffRemoved} color={colors.diffRemovedText} wrap="wrap">{lineNumStr}  - {oldLine}</Text>
 					</Box>
 					<Box>
-						<Text backgroundColor="green" color="white" wrap="wrap">{lineNumStr}  + {newLine}</Text>
+						<Text backgroundColor={colors.diffAdded} color={colors.diffAddedText} wrap="wrap">{lineNumStr}  + {newLine}</Text>
 					</Box>
 					{contextAfter}
 				</Box>
@@ -378,7 +378,7 @@ async function formatInsertPreview({
 
 		insertedLines.push(
 			<Box key={`insert-${i}`}>
-				<Text backgroundColor="green" color="white" wrap="wrap">{lineNumStr}  + {displayLine}</Text>
+				<Text backgroundColor={colors.diffAdded} color={colors.diffAddedText} wrap="wrap">{lineNumStr}  + {displayLine}</Text>
 			</Box>
 		);
 	}
@@ -471,7 +471,7 @@ async function formatReplacePreview({
 
 		removedLines.push(
 			<Box key={`remove-${i}`}>
-				<Text backgroundColor="red" color="white" wrap="wrap">{lineNumStr}  - {displayLine}</Text>
+				<Text backgroundColor={colors.diffRemoved} color={colors.diffRemovedText} wrap="wrap">{lineNumStr}  - {displayLine}</Text>
 			</Box>
 		);
 	}
@@ -489,7 +489,7 @@ async function formatReplacePreview({
 
 		addedLines.push(
 			<Box key={`add-${i}`}>
-				<Text backgroundColor="green" color="white" wrap="wrap">{lineNumStr}  + {displayLine}</Text>
+				<Text backgroundColor={colors.diffAdded} color={colors.diffAddedText} wrap="wrap">{lineNumStr}  + {displayLine}</Text>
 			</Box>
 		);
 	}
@@ -580,7 +580,7 @@ async function formatDeletePreview({
 
 		deletedLines.push(
 			<Box key={`delete-${i}`}>
-				<Text backgroundColor="red" color="white" wrap="wrap">{lineNumStr}  - {displayLine}</Text>
+				<Text backgroundColor={colors.diffRemoved} color={colors.diffRemovedText} wrap="wrap">{lineNumStr}  - {displayLine}</Text>
 			</Box>
 		);
 	}
@@ -665,7 +665,7 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		sourceSection.push(
 			<Box key={`src-move-${i}`}>
-				<Text backgroundColor="red" color="white" wrap="wrap">{lineNumStr}  - {line}</Text>
+				<Text backgroundColor={colors.diffRemoved} color={colors.diffRemovedText} wrap="wrap">{lineNumStr}  - {line}</Text>
 			</Box>
 		);
 	}
@@ -698,7 +698,7 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		targetSection.push(
 			<Box key={`tgt-move-${i}`}>
-				<Text backgroundColor="green" color="white" wrap="wrap">{lineNumStr}  + {line}</Text>
+				<Text backgroundColor={colors.diffAdded} color={colors.diffAddedText} wrap="wrap">{lineNumStr}  + {line}</Text>
 			</Box>
 		);
 	}

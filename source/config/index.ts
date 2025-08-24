@@ -45,6 +45,11 @@ export const colors: Colors = {
 	secondary: '#565f89',
 	blue: '#7aa2f7',
 	orange: '#ff9e64',
+	// Diff highlight colors (Tokyo Night theme)
+	diffAdded: '#1e2f1e',      // Dark green background for added lines
+	diffRemoved: '#2f1e1e',    // Dark red background for removed lines
+	diffAddedText: '#9ece6a',   // Green text for added content
+	diffRemovedText: '#f7768e', // Red text for removed content
 };
 
 // Get the package root directory (where this module is installed)
