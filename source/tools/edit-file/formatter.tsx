@@ -24,50 +24,160 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 	const isResult = result !== undefined;
 	const displayTitle = isResult ? '✓' : '⚒';
 
-	// If this is a result (after edit), show a simple summary
+	// If this is a result (after edit), show summary and context around the edit
 	if (isResult) {
-		const messageContent = (
-			<Box flexDirection="column">
-				<Text color={colors.tool}>{displayTitle} edit_file</Text>
+		try {
+			// Read the updated file content
+			const fileContent = await readFile(resolve(path), 'utf-8');
+			const lines = fileContent.split('\n');
+			const ext = path.split('.').pop()?.toLowerCase();
+			const language = getLanguageFromExtension(ext);
+
+			// Import context calculation functions
+			const { calculateActualEditRange } = await import('./context.js');
+
+			// Calculate the actual edit range in the updated file
+			const { startLine: actualStartLine, endLine: actualEndLine } = calculateActualEditRange(
+				mode,
+				lineNumber,
+				endLine,
+				content,
+				targetLine
+			);
+
+			// Show context around the edit (10 lines before and after)
+			const contextLines = 10;
+			const showStart = Math.max(0, actualStartLine - 1 - contextLines);
+			const showEnd = Math.min(lines.length - 1, actualEndLine - 1 + contextLines);
+
+			// Create syntax-highlighted context content
+			const contextElements: React.ReactElement[] = [];
+			
+			for (let i = showStart; i <= showEnd; i++) {
+				const lineNumStr = String(i + 1).padStart(4, ' ');
+				const line = lines[i] || '';
+				const isInEditRange = (i + 1) >= actualStartLine && (i + 1) <= actualEndLine;
 				
-				<Box>
-					<Text color={colors.secondary}>Path: </Text>
-					<Text color={colors.primary}>{path}</Text>
-				</Box>
+				let displayLine: string;
+				try {
+					displayLine = highlight(line, { language, theme: 'default' });
+				} catch {
+					displayLine = line;
+				}
 
-				<Box>
-					<Text color={colors.secondary}>Mode: </Text>
-					<Text color={colors.white}>{mode}</Text>
-				</Box>
+				if (isInEditRange) {
+					// Use background highlighting for edited lines
+					contextElements.push(
+						<Box key={`context-${i}`}>
+							<Text backgroundColor={colors.diffAdded} color={colors.diffAddedText} wrap="wrap">
+								{lineNumStr}  + {displayLine}
+							</Text>
+						</Box>
+					);
+				} else {
+					// Normal context lines
+					contextElements.push(
+						<Box key={`context-${i}`}>
+							<Text color={colors.secondary}>{lineNumStr}  </Text>
+							<Text>{displayLine}</Text>
+						</Box>
+					);
+				}
+			}
 
-				{mode === 'find_replace' ? (
+			const messageContent = (
+				<Box flexDirection="column">
+					<Text color={colors.tool}>{displayTitle} edit_file</Text>
+					
 					<Box>
-						<Text color={colors.secondary}>Operation: </Text>
-						<Text color={colors.white}>{replaceAll ? 'Replace all' : 'Replace first'}</Text>
+						<Text color={colors.secondary}>Path: </Text>
+						<Text color={colors.primary}>{path}</Text>
 					</Box>
-				) : (
-					<Box>
-						<Text color={colors.secondary}>Range: </Text>
-						<Text color={colors.white}>
-							{lineNumber === endLine ? `line ${lineNumber}` : `lines ${lineNumber}-${endLine}`}
-						</Text>
-					</Box>
-				)}
 
-				{mode === 'move' && targetLine && (
 					<Box>
-						<Text color={colors.secondary}>Target: </Text>
-						<Text color={colors.white}>line {targetLine}</Text>
+						<Text color={colors.secondary}>Mode: </Text>
+						<Text color={colors.white}>{mode}</Text>
 					</Box>
-				)}
 
-				<Box flexDirection="column" marginTop={1}>
-					<Text color={colors.success}>✓ Edit completed successfully</Text>
+					{mode === 'find_replace' ? (
+						<Box>
+							<Text color={colors.secondary}>Operation: </Text>
+							<Text color={colors.white}>{replaceAll ? 'Replace all' : 'Replace first'}</Text>
+						</Box>
+					) : (
+						<Box>
+							<Text color={colors.secondary}>Range: </Text>
+							<Text color={colors.white}>
+								{lineNumber === endLine ? `line ${lineNumber}` : `lines ${lineNumber}-${endLine}`}
+							</Text>
+						</Box>
+					)}
+
+					{mode === 'move' && targetLine && (
+						<Box>
+							<Text color={colors.secondary}>Target: </Text>
+							<Text color={colors.white}>line {targetLine}</Text>
+						</Box>
+					)}
+
+					<Box flexDirection="column" marginTop={1}>
+						<Text color={colors.success}>✓ Edit completed successfully</Text>
+					</Box>
+
+					<Box flexDirection="column" marginTop={1}>
+						<Text color={colors.secondary}>Context around edit:</Text>
+						{contextElements}
+					</Box>
 				</Box>
-			</Box>
-		);
+			);
 
-		return <ToolMessage message={messageContent} hideBox={true} />;
+			return <ToolMessage message={messageContent} hideBox={true} />;
+		} catch (error) {
+			// Fallback to simple summary if file reading fails
+			const messageContent = (
+				<Box flexDirection="column">
+					<Text color={colors.tool}>{displayTitle} edit_file</Text>
+					
+					<Box>
+						<Text color={colors.secondary}>Path: </Text>
+						<Text color={colors.primary}>{path}</Text>
+					</Box>
+
+					<Box>
+						<Text color={colors.secondary}>Mode: </Text>
+						<Text color={colors.white}>{mode}</Text>
+					</Box>
+
+					{mode === 'find_replace' ? (
+						<Box>
+							<Text color={colors.secondary}>Operation: </Text>
+							<Text color={colors.white}>{replaceAll ? 'Replace all' : 'Replace first'}</Text>
+						</Box>
+					) : (
+						<Box>
+							<Text color={colors.secondary}>Range: </Text>
+							<Text color={colors.white}>
+								{lineNumber === endLine ? `line ${lineNumber}` : `lines ${lineNumber}-${endLine}`}
+							</Text>
+						</Box>
+					)}
+
+					{mode === 'move' && targetLine && (
+						<Box>
+							<Text color={colors.secondary}>Target: </Text>
+							<Text color={colors.white}>line {targetLine}</Text>
+						</Box>
+					)}
+
+					<Box flexDirection="column" marginTop={1}>
+						<Text color={colors.success}>✓ Edit completed successfully</Text>
+						<Text color={colors.error}>Note: Could not display file context</Text>
+					</Box>
+				</Box>
+			);
+
+			return <ToolMessage message={messageContent} hideBox={true} />;
+		}
 	}
 
 	// This is a preview (before edit) - show the detailed diff view
