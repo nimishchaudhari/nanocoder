@@ -327,13 +327,23 @@ export default function UserInput({
 	};
 
 	return (
-		<Box flexDirection="column" paddingY={1} width={100}>
+		<Box flexDirection="column" paddingY={1} width={100} marginTop={1}>
 			<Box flexDirection="column">
 				<Text color={disabled ? colors.secondary : colors.primary} bold>
-					{disabled ? 'Please wait, AI is thinking...' : 'What would you like me to help with?'}
+					{disabled
+						? 'Please wait, AI is thinking...'
+						: 'What would you like me to help with?'}
 				</Text>
 
-				<Text color={disabled ? colors.secondary : (input ? colors.white : colors.secondary)}>
+				<Text
+					color={
+						disabled
+							? colors.secondary
+							: input
+							? colors.white
+							: colors.secondary
+					}
+				>
 					{'>'} {disabled ? '...' : renderDisplayContent()}
 					{!disabled && input && isFocused && cursorVisible && (
 						<Text backgroundColor={colors.white} color={colors.black}>

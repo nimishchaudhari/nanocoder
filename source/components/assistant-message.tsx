@@ -11,7 +11,7 @@ export default function AssistantMessage({
 	model,
 }: AssistantMessageProps) {
 	return (
-		<Box flexDirection="column" marginBottom={1}>
+		<Box flexDirection="column">
 			<Box>
 				<Text color={colors.primary} bold>
 					{model}:
