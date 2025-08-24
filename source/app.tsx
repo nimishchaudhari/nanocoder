@@ -8,6 +8,7 @@ import ChatQueue from './components/chat-queue.js';
 import ModelSelector from './components/model-selector.js';
 import ProviderSelector from './components/provider-selector.js';
 import ThinkingIndicator from './components/thinking-indicator.js';
+import CancellingIndicator from './components/cancelling-indicator.js';
 import ToolConfirmation from './components/tool-confirmation.js';
 import {setGlobalMessageQueue} from './utils/message-queue.js';
 import Spinner from 'ink-spinner';
@@ -37,9 +38,12 @@ export default function App() {
 		setMessages: appState.setMessages,
 		currentModel: appState.currentModel,
 		setIsThinking: appState.setIsThinking,
+		setIsCancelling: appState.setIsCancelling,
 		setThinkingStats: appState.setThinkingStats,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
+		abortController: appState.abortController,
+		setAbortController: appState.setAbortController,
 		onStartToolConfirmationFlow: (toolCalls, updatedMessages, assistantMsg, systemMessage) => {
 			appState.setPendingToolCalls(toolCalls);
 			appState.setCurrentToolIndex(0);
@@ -104,6 +108,14 @@ export default function App() {
 
 	// Create clear messages handler
 	const clearMessages = createClearMessagesHandler(appState.setMessages, appState.client);
+	
+	// Handle cancellation
+	const handleCancel = () => {
+		if (appState.abortController) {
+			appState.setIsCancelling(true);
+			appState.abortController.abort();
+		}
+	};
 
 	// Handle message submission
 	const handleMessageSubmit = async (message: string) => {
@@ -136,14 +148,16 @@ export default function App() {
 						]}
 						queuedComponents={appState.chatComponents}
 					/>
-					{appState.isThinking && (
+					{appState.isCancelling ? (
+						<CancellingIndicator />
+					) : appState.isThinking ? (
 						<ThinkingIndicator
 							tokenCount={appState.thinkingStats.tokenCount}
 							elapsedSeconds={appState.thinkingStats.elapsedSeconds}
 							contextSize={appState.thinkingStats.contextSize}
 							totalTokensUsed={appState.thinkingStats.totalTokensUsed}
 						/>
-					)}
+					) : null}
 					{appState.isModelSelectionMode ? (
 						<ModelSelector
 							client={appState.client}
@@ -168,6 +182,7 @@ export default function App() {
 							customCommands={Array.from(appState.customCommandCache.keys())}
 							onSubmit={handleMessageSubmit}
 							disabled={appState.isThinking}
+							onCancel={handleCancel}
 						/>
 					) : appState.mcpInitialized && !appState.client ? (
 						<Text color={colors.secondary}>

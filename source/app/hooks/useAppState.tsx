@@ -32,12 +32,16 @@ export function useAppState() {
 
 	// Thinking indicator state
 	const [isThinking, setIsThinking] = useState<boolean>(false);
+	const [isCancelling, setIsCancelling] = useState<boolean>(false);
 	const [thinkingStats, setThinkingStats] = useState<ThinkingStats>({
 		tokenCount: 0,
 		elapsedSeconds: 0,
 		contextSize: 0,
 		totalTokensUsed: 0,
 	});
+	
+	// Cancellation state
+	const [abortController, setAbortController] = useState<AbortController | null>(null);
 
 	// Mode states
 	const [isModelSelectionMode, setIsModelSelectionMode] = useState<boolean>(false);
@@ -82,7 +86,9 @@ export function useAppState() {
 		startChat,
 		mcpInitialized,
 		isThinking,
+		isCancelling,
 		thinkingStats,
+		abortController,
 		isModelSelectionMode,
 		isProviderSelectionMode,
 		isToolConfirmationMode,
@@ -105,7 +111,9 @@ export function useAppState() {
 		setStartChat,
 		setMcpInitialized,
 		setIsThinking,
+		setIsCancelling,
 		setThinkingStats,
+		setAbortController,
 		setIsModelSelectionMode,
 		setIsProviderSelectionMode,
 		setIsToolConfirmationMode,

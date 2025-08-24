@@ -31,6 +31,9 @@ export default memo(function ThinkingIndicator({
 					{tokenCount} tokens • {elapsedSeconds}s • {displayPercentage}% context used
 				</Text>
 			</Box>
+			<Box marginTop={1}>
+				<Text color={colors.secondary}>Press Escape to cancel</Text>
+			</Box>
 		</Box>
 	);
 }, (prevProps, nextProps) => {

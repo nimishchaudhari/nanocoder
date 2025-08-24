@@ -17,9 +17,12 @@ interface UseChatHandlerProps {
 	setMessages: (messages: Message[]) => void;
 	currentModel: string;
 	setIsThinking: (thinking: boolean) => void;
+	setIsCancelling: (cancelling: boolean) => void;
 	setThinkingStats: (stats: ThinkingStats | ((prev: ThinkingStats) => ThinkingStats)) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
+	abortController: AbortController | null;
+	setAbortController: (controller: AbortController | null) => void;
 	onStartToolConfirmationFlow: (
 		toolCalls: any[],
 		updatedMessages: Message[],
@@ -35,18 +38,65 @@ export function useChatHandler({
 	setMessages,
 	currentModel,
 	setIsThinking,
+	setIsCancelling,
 	setThinkingStats,
 	addToChatQueue,
 	componentKeyCounter,
+	abortController,
+	setAbortController,
 	onStartToolConfirmationFlow,
 }: UseChatHandlerProps) {
+
+	// Helper to make async iterator cancellable with frequent abort checking
+	const makeCancellableStream = async function* (
+		stream: AsyncIterable<any>,
+		abortSignal?: AbortSignal
+	): AsyncIterable<any> {
+		const iterator = stream[Symbol.asyncIterator]();
+		try {
+			while (true) {
+				if (abortSignal?.aborted) {
+					throw new Error('Operation was cancelled');
+				}
+				
+				// Use Promise.race to make iterator.next() cancellable with frequent checking
+				const nextPromise = iterator.next();
+				const timeoutPromise = new Promise((resolve) => {
+					const checkInterval = setInterval(() => {
+						if (abortSignal?.aborted) {
+							clearInterval(checkInterval);
+							resolve({ done: false, cancelled: true });
+						}
+					}, 100); // Check every 100ms
+					
+					// Clear interval when next() completes
+					nextPromise.finally(() => clearInterval(checkInterval));
+				});
+				
+				const result = await Promise.race([nextPromise, timeoutPromise]) as any;
+				
+				if (result.cancelled || abortSignal?.aborted) {
+					throw new Error('Operation was cancelled');
+				}
+				
+				if (result.done) break;
+				
+				yield result.value;
+			}
+		} finally {
+			if (iterator.return) {
+				await iterator.return();
+			}
+		}
+	};
 
 	// Process assistant response with token tracking (for initial user messages)
 	const processAssistantResponseWithTokenTracking = async (
 		systemMessage: Message, 
 		messages: Message[], 
 		timerInterval: NodeJS.Timeout,
-		startTime: number
+		startTime: number,
+		controller: AbortController
 	) => {
 		if (!client) return;
 
@@ -60,8 +110,9 @@ export function useChatHandler({
 		let tokenCount = 0;
 		let hasContent = false;
 
-		// Process streaming response
-		for await (const chunk of stream) {
+		// Process streaming response with cancellation support
+		const cancellableStream = makeCancellableStream(stream, controller.signal);
+		for await (const chunk of cancellableStream) {
 			hasContent = true;
 
 			if (chunk.message?.content) {
@@ -139,7 +190,7 @@ export function useChatHandler({
 
 	// Process assistant response - handles the conversation loop with potential tool calls (for follow-ups)
 	const processAssistantResponse = async (systemMessage: Message, messages: Message[]) => {
-		if (!client) return;
+		if (!client || !abortController) return;
 
 		try {
 			setIsThinking(true);
@@ -155,8 +206,9 @@ export function useChatHandler({
 			let tokenCount = 0;
 			const startTime = Date.now();
 
-			// Process streaming response with progress updates
-			for await (const chunk of stream) {
+			// Process streaming response with progress updates and cancellation support
+			const cancellableStream = makeCancellableStream(stream, abortController.signal);
+			for await (const chunk of cancellableStream) {
 				hasContent = true;
 				
 				if (chunk.message?.content) {
@@ -229,14 +281,25 @@ export function useChatHandler({
 			}
 			// If no tool calls, the conversation naturally ends here
 		} catch (error) {
-			addToChatQueue(
-				<ErrorMessage
-					key={`error-${componentKeyCounter}`}
-					message={`Conversation error: ${error}`}
-				/>,
-			);
+			if (error instanceof Error && error.message === 'Operation was cancelled') {
+				addToChatQueue(
+					<ErrorMessage
+						key={`cancelled-${componentKeyCounter}`}
+						message="Operation was cancelled by user"
+						hideBox={true}
+					/>,
+				);
+			} else {
+				addToChatQueue(
+					<ErrorMessage
+						key={`error-${componentKeyCounter}`}
+						message={`Conversation error: ${error}`}
+					/>,
+				);
+			}
 		} finally {
 			setIsThinking(false);
+			setIsCancelling(false);
 		}
 	};
 
@@ -254,6 +317,10 @@ export function useChatHandler({
 		const updatedMessages = [...messages, userMessage];
 		setMessages(updatedMessages);
 
+		// Create abort controller for cancellation
+		const controller = new AbortController();
+		setAbortController(controller);
+		
 		// Start thinking indicator and streaming
 		setIsThinking(true);
 
@@ -317,17 +384,29 @@ export function useChatHandler({
 			};
 
 			// Use the new conversation loop
-			await processAssistantResponseWithTokenTracking(systemMessage, updatedMessages, timerInterval, startTime);
+			await processAssistantResponseWithTokenTracking(systemMessage, updatedMessages, timerInterval, startTime, controller);
 		} catch (error) {
 			clearInterval(timerInterval);
-			addToChatQueue(
-				<ErrorMessage
-					key={`error-${componentKeyCounter}`}
-					message={`Chat error: ${error}`}
-				/>,
-			);
+			if (error instanceof Error && error.message === 'Operation was cancelled') {
+				addToChatQueue(
+					<ErrorMessage
+						key={`cancelled-${componentKeyCounter}`}
+						message="Operation was cancelled by user"
+						hideBox={true}
+					/>,
+				);
+			} else {
+				addToChatQueue(
+					<ErrorMessage
+						key={`error-${componentKeyCounter}`}
+						message={`Chat error: ${error}`}
+					/>,
+				);
+			}
 		} finally {
 			setIsThinking(false);
+			setIsCancelling(false);
+			setAbortController(null);
 		}
 	};
 

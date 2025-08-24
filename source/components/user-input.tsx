@@ -9,6 +9,7 @@ interface ChatProps {
 	placeholder?: string;
 	customCommands?: string[]; // List of custom command names and aliases
 	disabled?: boolean; // Disable input when AI is processing
+	onCancel?: () => void; // Callback when user presses escape while thinking
 }
 
 // Types for better organization
@@ -81,6 +82,7 @@ export default function UserInput({
 	placeholder = 'Type `/` and then press Tab for command suggestions. Use ↑/↓ for history.',
 	customCommands = [],
 	disabled = false,
+	onCancel,
 }: ChatProps) {
 	const {isFocused} = useFocus({autoFocus: !disabled});
 	const inputState = useInputState();
@@ -227,7 +229,13 @@ export default function UserInput({
 	);
 
 	useInput((inputChar, key) => {
-		// Block all input when disabled
+		// Handle escape for cancellation even when disabled
+		if (key.escape && disabled && onCancel) {
+			onCancel();
+			return;
+		}
+		
+		// Block all other input when disabled
 		if (disabled) {
 			return;
 		}
