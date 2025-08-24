@@ -39,6 +39,21 @@ export function useAppState() {
 		contextSize: 0,
 		totalTokensUsed: 0,
 	});
+
+	React.useEffect(() => {
+		let timer: NodeJS.Timeout;
+		if (isThinking) {
+			timer = setInterval(() => {
+				setThinkingStats(prevStats => ({
+					...prevStats,
+					elapsedSeconds: prevStats.elapsedSeconds + 1,
+				}));
+			}, 1000);
+		}
+		return () => {
+			clearInterval(timer);
+		};
+	}, [isThinking]);
 	
 	// Cancellation state
 	const [abortController, setAbortController] = useState<AbortController | null>(null);
