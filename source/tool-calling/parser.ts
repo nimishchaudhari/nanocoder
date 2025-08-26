@@ -38,13 +38,14 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 			const parsed = JSON.parse(trimmedContent);
 
 			if (parsed.name && parsed.arguments !== undefined) {
-				extractedCalls.push({
+				const toolCall = {
 					id: `call_${Date.now()}`,
 					function: {
 						name: parsed.name || '',
 						arguments: parsed.arguments || {},
 					},
-				});
+				};
+				extractedCalls.push(toolCall);
 				return extractedCalls;
 			}
 		} catch (e) {
@@ -60,13 +61,14 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 		try {
 			const parsed = JSON.parse(jsonMatch[0]);
 			if (parsed.name && parsed.arguments !== undefined) {
-				extractedCalls.push({
+				const toolCall = {
 					id: `call_${Date.now()}_${extractedCalls.length}`,
 					function: {
 						name: parsed.name || '',
 						arguments: parsed.arguments || {},
 					},
-				});
+				};
+				extractedCalls.push(toolCall);
 			}
 		} catch (e) {
 			logError('Tool call failed to parse from JSON block.');

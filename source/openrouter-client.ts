@@ -230,8 +230,16 @@ export class OpenRouterClient implements LLMClient {
 						if (data === '[DONE]') {
 							// Yield final result with accumulated tool calls
 							if (accumulatedToolCalls.length > 0) {
+								// Filter out empty/invalid tool calls before processing
+								const validToolCalls = accumulatedToolCalls.filter(
+									tool =>
+										tool.id &&
+										tool.function?.name &&
+										tool.function.name.trim() !== '',
+								);
+
 								// Parse arguments as JSON objects
-								const processedToolCalls = accumulatedToolCalls.map(tool => {
+								const processedToolCalls = validToolCalls.map(tool => {
 									let parsedArgs = {};
 									if (tool.function.arguments) {
 										try {
@@ -250,7 +258,7 @@ export class OpenRouterClient implements LLMClient {
 													}
 												}
 											}
-											
+
 											if (jsonEndIndex > 0) {
 												const jsonPart = argsString.substring(0, jsonEndIndex);
 												parsedArgs = JSON.parse(jsonPart);
@@ -262,7 +270,7 @@ export class OpenRouterClient implements LLMClient {
 											parsedArgs = {};
 										}
 									}
-									
+
 									return {
 										...tool,
 										function: {
@@ -272,13 +280,18 @@ export class OpenRouterClient implements LLMClient {
 									};
 								});
 
-								yield {
-									message: {
-										content: '', // Don't re-yield accumulated content, it's already been yielded during streaming
-										tool_calls: processedToolCalls,
-									},
-									done: true,
-								};
+								// Only yield if we have valid processed tool calls
+								if (processedToolCalls.length > 0) {
+									yield {
+										message: {
+											content: '', // Don't re-yield accumulated content, it's already been yielded during streaming
+											tool_calls: processedToolCalls,
+										},
+										done: true,
+									};
+								} else {
+									yield {done: true};
+								}
 							} else {
 								yield {done: true};
 							}

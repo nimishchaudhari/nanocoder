@@ -54,13 +54,13 @@ export function useToolHandler({
 					if (React.isValidElement(formattedResult)) {
 						addToChatQueue(
 							React.cloneElement(formattedResult, {
-								key: `tool-result-${result.tool_call_id}-${componentKeyCounter}`,
+								key: `tool-result-${result.tool_call_id}-${componentKeyCounter}-${Date.now()}`,
 							}),
 						);
 					} else {
 						addToChatQueue(
 							<ToolMessage
-								key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
+								key={`tool-result-${result.tool_call_id}-${componentKeyCounter}-${Date.now()}`}
 								title={`⚒ ${result.name}`}
 								message={String(formattedResult)}
 								hideBox={true}
@@ -168,10 +168,9 @@ export function useToolHandler({
 			// Move to next tool or complete the process
 			if (currentToolIndex + 1 < pendingToolCalls.length) {
 				setCurrentToolIndex(currentToolIndex + 1);
-				// Continue with next tool
-				setImmediate(() => {
-					executeCurrentTool();
-				});
+				// Return to confirmation mode for next tool
+				setIsToolExecuting(false);
+				setIsToolConfirmationMode(true);
 			} else {
 				// All tools executed, continue conversation loop with the updated results
 				setIsToolExecuting(false);

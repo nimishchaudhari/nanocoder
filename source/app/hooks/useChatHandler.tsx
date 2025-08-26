@@ -12,6 +12,45 @@ import ErrorMessage from '../../components/error-message.js';
 import {ThinkingStats} from './useAppState.js';
 import React from 'react';
 
+// Helper function to filter out invalid tool calls and deduplicate by ID and function
+const filterValidToolCalls = (toolCalls: any[], availableTools: any[]): any[] => {
+	const availableToolNames = new Set(availableTools.map(tool => tool.function.name));
+	const seenIds = new Set<string>();
+	const seenFunctionCalls = new Set<string>();
+	
+	return toolCalls.filter(toolCall => {
+		// Filter out completely empty tool calls
+		if (!toolCall.id || !toolCall.function?.name) {
+			return false;
+		}
+		
+		// Filter out tool calls with empty names
+		if (toolCall.function.name.trim() === '') {
+			return false;
+		}
+		
+		// Filter out tool calls for tools that don't exist
+		if (!availableToolNames.has(toolCall.function.name)) {
+			return false;
+		}
+		
+		// Filter out duplicate tool call IDs (GPT-5 issue)
+		if (seenIds.has(toolCall.id)) {
+			return false;
+		}
+		
+		// Filter out functionally identical tool calls (same tool + args)
+		const functionSignature = `${toolCall.function.name}:${JSON.stringify(toolCall.function.arguments)}`;
+		if (seenFunctionCalls.has(functionSignature)) {
+			return false;
+		}
+		
+		seenIds.add(toolCall.id);
+		seenFunctionCalls.add(functionSignature);
+		return true;
+	});
+};
+
 interface UseChatHandlerProps {
 	client: LLMClient | null;
 	toolManager: ToolManager | null;
@@ -121,7 +160,7 @@ export function useChatHandler({
 	) => {
 		if (!client) return;
 
-		const stream = await client.chatStream(
+		const stream = client.chatStream(
 			[systemMessage, ...messages],
 			toolManager?.getAllTools() || [],
 		);
@@ -191,20 +230,23 @@ export function useChatHandler({
 
 		// Merge structured tool calls with content-parsed tool calls
 		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
+		
+		// Filter out invalid tool calls
+		const validToolCalls = filterValidToolCalls(allToolCalls, toolManager?.getAllTools() || []);
 
 		// Add assistant message to conversation history
 		const assistantMsg: Message = {
 			role: 'assistant',
 			content: cleanedContent,
-			tool_calls: allToolCalls.length > 0 ? allToolCalls : undefined,
+			tool_calls: validToolCalls.length > 0 ? validToolCalls : undefined,
 		};
 		setMessages([...messages, assistantMsg]);
 
 		// Handle tool calls if present - this continues the loop
-		if (allToolCalls && allToolCalls.length > 0) {
+		if (validToolCalls && validToolCalls.length > 0) {
 			// Start tool confirmation flow
 			onStartToolConfirmationFlow(
-				allToolCalls,
+				validToolCalls,
 				messages,
 				assistantMsg,
 				systemMessage,
@@ -229,7 +271,7 @@ export function useChatHandler({
 		try {
 			setIsThinking(true);
 
-			const stream = await client.chatStream(
+			const stream = client.chatStream(
 				[systemMessage, ...messages],
 				toolManager?.getAllTools() || [],
 			);
@@ -238,7 +280,6 @@ export function useChatHandler({
 			let fullContent = '';
 			let hasContent = false;
 			let tokenCount = 0;
-			const startTime = Date.now();
 
 			// Process streaming response with progress updates and cancellation support
 			const cancellableStream = makeCancellableStream(
@@ -304,20 +345,23 @@ export function useChatHandler({
 
 			// Merge structured tool calls with content-parsed tool calls
 			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
+			
+			// Filter out invalid tool calls
+			const validToolCalls = filterValidToolCalls(allToolCalls, toolManager?.getAllTools() || []);
 
 			// Add assistant message to conversation history
 			const assistantMsg: Message = {
 				role: 'assistant',
 				content: cleanedContent,
-				tool_calls: allToolCalls.length > 0 ? allToolCalls : undefined,
+				tool_calls: validToolCalls.length > 0 ? validToolCalls : undefined,
 			};
 			setMessages([...messages, assistantMsg]);
 
 			// Handle tool calls if present - this continues the loop
-			if (allToolCalls && allToolCalls.length > 0) {
+			if (validToolCalls && validToolCalls.length > 0) {
 				// Start tool confirmation flow
 				onStartToolConfirmationFlow(
-					allToolCalls,
+					validToolCalls,
 					messages,
 					assistantMsg,
 					systemMessage,
