@@ -199,6 +199,17 @@ const formatter = async (args: SearchArgs): Promise<React.ReactElement> => {
 	const searchDescription =
 		searchTypes.length > 0 ? searchTypes.join(', ') : 'all files';
 
+	// Get the actual search result content to estimate tokens
+	let outputSize = 0;
+	let estimatedTokens = 0;
+	try {
+		const result = await handler(args);
+		outputSize = result.length;
+		estimatedTokens = Math.ceil(outputSize / 4); // ~4 characters per token
+	} catch (error) {
+		// If search fails, we'll show 0
+	}
+
 	const messageContent = (
 		<Box flexDirection="column">
 			<Text color={colors.tool}>⚒ search_files</Text>
@@ -212,6 +223,13 @@ const formatter = async (args: SearchArgs): Promise<React.ReactElement> => {
 				<Text color={colors.secondary}>Base: </Text>
 				<Text color={colors.white}>
 					{args.base_path || 'current directory'}
+				</Text>
+			</Box>
+
+			<Box>
+				<Text color={colors.secondary}>Output: </Text>
+				<Text color={colors.white}>
+					{outputSize} characters (~{estimatedTokens} tokens)
 				</Text>
 			</Box>
 
