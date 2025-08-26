@@ -3,6 +3,7 @@ import {createFileTool} from './create-file.js';
 import {editFileTool} from './edit-file.js';
 import {readManyFilesTool} from './read-many-files.js';
 import {executeBashTool} from './execute-bash.js';
+import {searchFilesTool} from './search-files.js';
 import React from 'react';
 import type {ToolHandler, Tool, ToolDefinition} from '../types/index.js';
 
@@ -12,6 +13,7 @@ export const toolDefinitions: ToolDefinition[] = [
 	editFileTool,
 	readManyFilesTool,
 	executeBashTool,
+	searchFilesTool,
 ];
 
 export const toolRegistry: Record<string, ToolHandler> = Object.fromEntries(
