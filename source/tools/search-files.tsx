@@ -13,22 +13,22 @@ function simpleGlobMatch(pattern: string, text: string): boolean {
 		.replace(/\./g, '\\.')
 		.replace(/\*/g, '.*')
 		.replace(/\?/g, '.');
-	
+
 	// Handle ** for directory traversal
 	regexPattern = regexPattern.replace(/\*\*\//g, '(.*/)?');
-	
+
 	const regex = new RegExp(`^${regexPattern}$`, 'i');
 	return regex.test(text);
 }
 
 interface SearchArgs {
-	pattern?: string;           // File name/glob pattern
-	content?: string;          // Search in file contents  
-	path?: string;             // Path contains substring
-	exclude?: string[];        // Patterns to exclude
-	limit?: number;            // Max results (default 50)
-	context_lines?: number;    // Lines around content matches (default 3)
-	base_path?: string;        // Base directory to search (default: cwd)
+	pattern?: string; // File name/glob pattern
+	content?: string; // Search in file contents
+	path?: string; // Path contains substring
+	exclude?: string[]; // Patterns to exclude
+	limit?: number; // Max results (default 50)
+	context_lines?: number; // Lines around content matches (default 3)
+	base_path?: string; // Base directory to search (default: cwd)
 }
 
 interface SearchResult {
@@ -50,7 +50,7 @@ const DEFAULT_EXCLUDES = [
 	'**/coverage/**',
 	'**/*.log',
 	'**/tmp/**',
-	'**/temp/**'
+	'**/temp/**',
 ];
 
 const handler: ToolHandler = async (args: SearchArgs): Promise<string> => {
@@ -58,84 +58,93 @@ const handler: ToolHandler = async (args: SearchArgs): Promise<string> => {
 	const limit = args.limit || 50;
 	const contextLines = args.context_lines || 3;
 	const excludePatterns = [...DEFAULT_EXCLUDES, ...(args.exclude || [])];
-	
+
 	const results: SearchResult[] = [];
 
 	async function searchRecursive(dir: string): Promise<void> {
 		if (results.length >= limit) return;
-		
+
 		try {
 			const entries = await readdir(dir, {withFileTypes: true});
-			
+
 			for (const entry of entries) {
 				if (results.length >= limit) break;
-				
+
 				const fullPath = join(dir, entry.name);
 				const relativePath = relative(basePath, fullPath);
-				
+
 				// Check exclusions
-				const shouldExclude = excludePatterns.some(pattern => 
-					simpleGlobMatch(pattern, relativePath) || simpleGlobMatch(pattern, fullPath)
+				const shouldExclude = excludePatterns.some(
+					pattern =>
+						simpleGlobMatch(pattern, relativePath) ||
+						simpleGlobMatch(pattern, fullPath),
 				);
-				
+
 				if (shouldExclude) continue;
-				
+
 				if (entry.isDirectory()) {
 					await searchRecursive(fullPath);
 				} else if (entry.isFile()) {
 					let matchFound = false;
-					
+
 					// File name pattern matching
 					if (args.pattern && simpleGlobMatch(args.pattern, entry.name)) {
 						results.push({
 							type: 'file',
 							file_path: fullPath,
-							relative_path: relativePath
+							relative_path: relativePath,
 						});
 						matchFound = true;
 					}
-					
+
 					// Path substring matching
-					if (!matchFound && args.path && relativePath.toLowerCase().includes(args.path.toLowerCase())) {
+					if (
+						!matchFound &&
+						args.path &&
+						relativePath.toLowerCase().includes(args.path.toLowerCase())
+					) {
 						results.push({
 							type: 'file',
 							file_path: fullPath,
-							relative_path: relativePath
+							relative_path: relativePath,
 						});
 						matchFound = true;
 					}
-					
+
 					// Content searching
 					if (args.content && !matchFound) {
 						try {
 							// Only search text files
 							const fileStats = await stat(fullPath);
 							if (fileStats.size > 1024 * 1024) continue; // Skip files > 1MB
-							
+
 							const content = await readFile(fullPath, 'utf-8');
 							const lines = content.split('\n');
 							const regex = new RegExp(args.content, 'gi');
-							
+
 							for (let i = 0; i < lines.length; i++) {
 								if (results.length >= limit) break;
-								
+
 								if (regex.test(lines[i])) {
 									const contextStart = Math.max(0, i - contextLines);
-									const contextEnd = Math.min(lines.length - 1, i + contextLines);
+									const contextEnd = Math.min(
+										lines.length - 1,
+										i + contextLines,
+									);
 									const contextArray = [];
-									
+
 									for (let j = contextStart; j <= contextEnd; j++) {
 										const marker = j === i ? '>' : ' ';
 										contextArray.push(`${marker} ${j + 1}: ${lines[j]}`);
 									}
-									
+
 									results.push({
 										type: 'content',
 										file_path: fullPath,
 										relative_path: relativePath,
 										line_number: i + 1,
 										content_match: lines[i],
-										context_lines: contextArray
+										context_lines: contextArray,
 									});
 								}
 							}
@@ -153,18 +162,20 @@ const handler: ToolHandler = async (args: SearchArgs): Promise<string> => {
 	}
 
 	await searchRecursive(basePath);
-	
+
 	if (results.length === 0) {
 		return 'No matches found.';
 	}
-	
-	let output = `Found ${results.length} match${results.length === 1 ? '' : 'es'}${results.length >= limit ? ` (limited to ${limit})` : ''}:\n\n`;
-	
+
+	let output = `Found ${results.length} match${
+		results.length === 1 ? '' : 'es'
+	}${results.length >= limit ? ` (limited to ${limit})` : ''}:\n\n`;
+
 	for (const result of results) {
 		if (result.type === 'file') {
-			output += `📁 ${result.relative_path}\n`;
+			output += `⚒ ${result.relative_path}\n`;
 		} else if (result.type === 'content') {
-			output += `🔍 ${result.relative_path}:${result.line_number}\n`;
+			output += `⚒ ${result.relative_path}:${result.line_number}\n`;
 			output += `   Match: ${result.content_match?.trim()}\n`;
 			if (result.context_lines && result.context_lines.length > 1) {
 				output += '   Context:\n';
@@ -175,7 +186,7 @@ const handler: ToolHandler = async (args: SearchArgs): Promise<string> => {
 			output += '\n';
 		}
 	}
-	
+
 	return output.trim();
 };
 
@@ -184,15 +195,14 @@ const formatter = async (args: SearchArgs): Promise<React.ReactElement> => {
 	if (args.pattern) searchTypes.push(`pattern: ${args.pattern}`);
 	if (args.content) searchTypes.push(`content: ${args.content}`);
 	if (args.path) searchTypes.push(`path: ${args.path}`);
-	
-	const searchDescription = searchTypes.length > 0 
-		? searchTypes.join(', ') 
-		: 'all files';
+
+	const searchDescription =
+		searchTypes.length > 0 ? searchTypes.join(', ') : 'all files';
 
 	const messageContent = (
 		<Box flexDirection="column">
-			<Text color={colors.tool}>🔎 search_files</Text>
-			
+			<Text color={colors.tool}>⚒ search_files</Text>
+
 			<Box>
 				<Text color={colors.secondary}>Search: </Text>
 				<Text color={colors.white}>{searchDescription}</Text>
@@ -200,7 +210,9 @@ const formatter = async (args: SearchArgs): Promise<React.ReactElement> => {
 
 			<Box>
 				<Text color={colors.secondary}>Base: </Text>
-				<Text color={colors.white}>{args.base_path || 'current directory'}</Text>
+				<Text color={colors.white}>
+					{args.base_path || 'current directory'}
+				</Text>
 			</Box>
 
 			{args.limit && (
@@ -209,7 +221,7 @@ const formatter = async (args: SearchArgs): Promise<React.ReactElement> => {
 					<Text color={colors.primary}>{args.limit} results</Text>
 				</Box>
 			)}
-			
+
 			{args.exclude && args.exclude.length > 0 && (
 				<Box>
 					<Text color={colors.secondary}>Excluding: </Text>
@@ -229,44 +241,49 @@ export const searchFilesTool: ToolDefinition = {
 		type: 'function',
 		function: {
 			name: 'search_files',
-			description: 'Search for files by name patterns, content, or path. Provides structured file discovery without bash commands.',
+			description:
+				'Search for files by name patterns, content, or path. Provides structured file discovery without bash commands.',
 			parameters: {
 				type: 'object',
 				properties: {
 					pattern: {
 						type: 'string',
-						description: 'Glob pattern for file names (e.g., "*.js", "**/*.tsx", "test*")'
+						description:
+							'Glob pattern for file names (e.g., "*.js", "**/*.tsx", "test*")',
 					},
 					content: {
 						type: 'string',
-						description: 'Search for this text/regex within file contents'
+						description: 'Search for this text/regex within file contents',
 					},
 					path: {
-						type: 'string', 
-						description: 'Find files whose path contains this substring'
+						type: 'string',
+						description: 'Find files whose path contains this substring',
 					},
 					exclude: {
 						type: 'array',
 						items: {type: 'string'},
-						description: 'Additional glob patterns to exclude (beyond defaults like node_modules)'
+						description:
+							'Additional glob patterns to exclude (beyond defaults like node_modules)',
 					},
 					limit: {
 						type: 'number',
 						description: 'Maximum number of results to return (default: 50)',
-						default: 50
+						default: 50,
 					},
 					context_lines: {
 						type: 'number',
-						description: 'Number of context lines around content matches (default: 3)',
-						default: 3
+						description:
+							'Number of context lines around content matches (default: 3)',
+						default: 3,
 					},
 					base_path: {
 						type: 'string',
-						description: 'Base directory to search from (default: current working directory)'
-					}
+						description:
+							'Base directory to search from (default: current working directory)',
+					},
 				},
-				required: []
-			}
-		}
-	}
+				required: [],
+			},
+		},
+	},
 };
