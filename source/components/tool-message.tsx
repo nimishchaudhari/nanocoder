@@ -3,6 +3,7 @@ import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 
 import {colors} from '../config/index.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 export default function ToolMessage({
 	title,
@@ -15,6 +16,7 @@ export default function ToolMessage({
 	hideTitle?: boolean;
 	hideBox?: boolean;
 }) {
+	const boxWidth = useTerminalWidth();
 	// Handle both string and ReactNode messages
 	const messageContent =
 		typeof message === 'string' ? (
@@ -26,13 +28,13 @@ export default function ToolMessage({
 	return (
 		<>
 			{hideBox ? (
-				<Box width={75} flexDirection="column" marginBottom={1}>
+				<Box width={boxWidth} flexDirection="column" marginBottom={1}>
 					{messageContent}
 				</Box>
 			) : hideTitle ? (
 				<Box
 					borderStyle="round"
-					width={75}
+					width={boxWidth}
 					borderColor={colors.tool}
 					paddingX={2}
 					paddingY={0}
@@ -45,7 +47,7 @@ export default function ToolMessage({
 					borderStyle="round"
 					titles={[title || 'Tool Message']}
 					titleStyles={titleStyles.pill}
-					width={75}
+					width={boxWidth}
 					borderColor={colors.tool}
 					paddingX={2}
 					paddingY={1}

@@ -4,6 +4,7 @@ import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {colors} from '../config/index.js';
 import {ProviderType} from '../types/core.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 interface ProviderSelectorProps {
 	currentProvider: ProviderType;
@@ -21,6 +22,7 @@ export default function ProviderSelector({
 	onProviderSelect,
 	onCancel,
 }: ProviderSelectorProps) {
+	const boxWidth = useTerminalWidth();
 	const [providers] = useState<ProviderOption[]>([
 		{
 			label: `Ollama${currentProvider === 'ollama' ? ' (current)' : ''}`,
@@ -56,7 +58,7 @@ export default function ProviderSelector({
 			borderStyle="round"
 			titles={['Select a Provider']}
 			titleStyles={titleStyles.pill}
-			width={75}
+			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
 			paddingY={1}

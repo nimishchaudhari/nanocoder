@@ -3,14 +3,16 @@ import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {colors} from '../config/index.js';
 import {Text} from 'ink';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 function Clear() {
+	const boxWidth = useTerminalWidth();
 	return (
 		<TitledBox
 			borderStyle="round"
 			titles={['/clear']}
 			titleStyles={titleStyles.pill}
-			width={75}
+			width={boxWidth}
 			borderColor={colors.success}
 			paddingX={2}
 			paddingY={1}

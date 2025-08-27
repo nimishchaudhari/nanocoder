@@ -42,15 +42,13 @@ export default memo(function ThinkingIndicator({
 
 	return (
 		<Box flexDirection="column" marginBottom={1}>
-			<Box>
+			<Box flexWrap="wrap">
 				<Spinner type="dots2" />
 				<Text color={colors.secondary}> Thinking... </Text>
-				<Box width={40} justifyContent="flex-start">
-					<Text color={colors.white}>
-						{tokenCount} tokens • {elapsedSeconds}s • {displayPercentage}%
-						context used
-					</Text>
-				</Box>
+				<Text color={colors.white}>
+					{tokenCount} tokens • {elapsedSeconds}s • {displayPercentage}%
+					context used
+				</Text>
 			</Box>
 			<Box marginTop={1}>
 				<Text color={colors.secondary}>Press Escape to cancel</Text>

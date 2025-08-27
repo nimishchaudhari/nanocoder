@@ -335,7 +335,7 @@ export default function UserInput({
 	};
 
 	return (
-		<Box flexDirection="column" paddingY={1} width={100} marginTop={1}>
+		<Box flexDirection="column" paddingY={1} width="100%" marginTop={1}>
 			<Box flexDirection="column">
 				<Text color={disabled ? colors.secondary : colors.primary} bold>
 					{disabled

@@ -2,6 +2,7 @@ import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 import {colors} from '../config/index.js';
 import type {CustomCommand} from '../types/index.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 interface CustomCommandsProps {
 	commands: CustomCommand[];
@@ -29,6 +30,7 @@ function formatCommand(cmd: CustomCommand): string {
 }
 
 export default function CustomCommands({commands}: CustomCommandsProps) {
+	const boxWidth = useTerminalWidth();
 	// Sort commands alphabetically by full name
 	const sortedCommands = [...commands].sort((a, b) =>
 		a.fullName.localeCompare(b.fullName),
@@ -39,7 +41,7 @@ export default function CustomCommands({commands}: CustomCommandsProps) {
 			borderStyle="round"
 			titles={['/custom-commands']}
 			titleStyles={titleStyles.pill}
-			width={75}
+			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
 			paddingY={1}

@@ -4,6 +4,7 @@ import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 import {colors} from '../config/index.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 interface DebugProps {
 	currentLevel: LogLevel;
@@ -50,12 +51,13 @@ function getLogLevelDescription(level: LogLevel): React.ReactNode {
 }
 
 function Debug({currentLevel, newLevel, action, invalidArg}: DebugProps) {
+	const boxWidth = useTerminalWidth();
 	return (
 		<TitledBox
 			borderStyle="round"
 			titles={['/debug']}
 			titleStyles={titleStyles.pill}
-			width={75}
+			width={boxWidth}
 			borderColor={colors.blue}
 			paddingX={2}
 			paddingY={1}

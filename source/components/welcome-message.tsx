@@ -3,6 +3,7 @@ import {Box, Text} from 'ink';
 import {memo} from 'react';
 
 import {colors} from '../config/index.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 import fs from 'fs';
 import path from 'path';
@@ -19,6 +20,8 @@ const packageJson = JSON.parse(
 );
 
 export default memo(function WelcomeMessage() {
+	const boxWidth = useTerminalWidth();
+
 	return (
 		<>
 			<Gradient colors={[colors.primary, colors.tool]}>
@@ -29,7 +32,7 @@ export default memo(function WelcomeMessage() {
 				borderStyle="round"
 				titles={[`✻ Welcome to Nanocoder ${packageJson.version}`]}
 				titleStyles={titleStyles.pill}
-				width={75}
+				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
 				paddingY={1}

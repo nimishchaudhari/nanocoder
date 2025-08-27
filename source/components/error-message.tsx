@@ -2,6 +2,7 @@ import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 
 import {colors} from '../config/index.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 export default function ErrorMessage({
 	message,
@@ -12,16 +13,17 @@ export default function ErrorMessage({
 	hideTitle?: boolean;
 	hideBox?: boolean;
 }) {
+	const boxWidth = useTerminalWidth();
 	return (
 		<>
 			{hideBox ? (
-				<Box width={75} flexDirection="column" marginBottom={1}>
+				<Box width={boxWidth} flexDirection="column" marginBottom={1}>
 					<Text color={colors.error}>{message}</Text>
 				</Box>
 			) : hideTitle ? (
 				<Box
 					borderStyle="round"
-					width={75}
+					width={boxWidth}
 					borderColor={colors.error}
 					paddingX={2}
 					paddingY={0}
@@ -34,7 +36,7 @@ export default function ErrorMessage({
 					borderStyle="round"
 					titles={['Error']}
 					titleStyles={titleStyles.pill}
-					width={75}
+					width={boxWidth}
 					borderColor={colors.error}
 					paddingX={2}
 					paddingY={1}

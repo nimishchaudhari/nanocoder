@@ -4,6 +4,7 @@ import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {colors} from '../config/index.js';
 import {LLMClient} from '../types/core.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 interface ModelSelectorProps {
 	client: LLMClient | null;
@@ -23,6 +24,7 @@ export default function ModelSelector({
 	onModelSelect,
 	onCancel,
 }: ModelSelectorProps) {
+	const boxWidth = useTerminalWidth();
 	const [models, setModels] = useState<ModelOption[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export default function ModelSelector({
 				borderStyle="round"
 				titles={['Model Selection']}
 				titleStyles={titleStyles.pill}
-				width={75}
+				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
 				paddingY={1}
@@ -94,7 +96,7 @@ export default function ModelSelector({
 				borderStyle="round"
 				titles={['Model Selection - Error']}
 				titleStyles={titleStyles.pill}
-				width={75}
+				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}
 				paddingY={1}
@@ -116,7 +118,7 @@ export default function ModelSelector({
 			borderStyle="round"
 			titles={['Select a Model']}
 			titleStyles={titleStyles.pill}
-			width={75}
+			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
 			paddingY={1}

@@ -5,12 +5,14 @@ import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 import {colors} from '../config/index.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 interface MCPProps {
 	toolManager: ToolManager | null;
 }
 
 export function MCP({toolManager}: MCPProps) {
+	const boxWidth = useTerminalWidth();
 	const connectedServers = toolManager?.getConnectedServers() || [];
 
 	return (
@@ -18,7 +20,7 @@ export function MCP({toolManager}: MCPProps) {
 			borderStyle="round"
 			titles={['/mcp']}
 			titleStyles={titleStyles.pill}
-			width={75}
+			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
 			paddingY={1}

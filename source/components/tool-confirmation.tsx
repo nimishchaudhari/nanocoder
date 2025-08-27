@@ -5,6 +5,7 @@ import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {colors} from '../config/index.js';
 import type {ToolCall} from '../types/core.js';
 import {toolFormatters} from '../tools/index.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 interface ToolConfirmationProps {
 	toolCall: ToolCall;
@@ -22,6 +23,7 @@ export default function ToolConfirmation({
 	onConfirm,
 	onCancel,
 }: ToolConfirmationProps) {
+	const boxWidth = useTerminalWidth();
 	const [formatterPreview, setFormatterPreview] = React.useState<
 		React.ReactElement | string | null
 	>(null);
@@ -69,7 +71,7 @@ export default function ToolConfirmation({
 	};
 
 	return (
-		<Box width={75} marginBottom={1}>
+		<Box width={boxWidth} marginBottom={1}>
 			<Box flexDirection="column">
 				{/* Formatter preview */}
 				{isLoadingPreview && (

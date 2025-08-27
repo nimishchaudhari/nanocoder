@@ -7,6 +7,7 @@ import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 import {colors} from '../config/index.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,12 +22,13 @@ function Help({
 	version: string;
 	commands: Array<{name: string; description: string}>;
 }) {
+	const boxWidth = useTerminalWidth();
 	return (
 		<TitledBox
 			borderStyle="round"
 			titles={['/help']}
 			titleStyles={titleStyles.pill}
-			width={75}
+			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
 			paddingY={1}
