@@ -71,11 +71,11 @@ jobs:
 
       - name: Verify build output
         run: |
-          if [ ! -f "dist/index.js" ]; then
-            echo "❌ Build failed: dist/index.js not found"
+          if [ ! -f "dist/cli.js" ]; then
+            echo "❌ Build failed: dist/cli.js not found"
             exit 1
           fi
-          echo "✅ Build successful: dist/index.js exists"
+          echo "✅ Build successful: dist/cli.js exists"
 
       - name: Publish to NPM
         run: npm publish --access public
