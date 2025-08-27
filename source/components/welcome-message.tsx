@@ -53,7 +53,7 @@ export default memo(function WelcomeMessage() {
 						3. Be specific as you would with another engineer for best results.
 					</Text>
 					<Text color={colors.secondary}>
-						4. Type /exit or press Ctrl+C to quite.
+						4. Type /exit or press Ctrl+C to quit.
 					</Text>
 				</Box>
 				<Text color={colors.white}>/help for help</Text>
