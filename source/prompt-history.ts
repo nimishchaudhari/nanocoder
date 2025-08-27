@@ -5,6 +5,7 @@ import {logError} from './utils/message-queue.js';
 
 const HISTORY_FILE = path.join(os.homedir(), ".nano-coder-history");
 const MAX_HISTORY_SIZE = 100;
+const ENTRY_SEPARATOR = '\n---ENTRY_SEPARATOR---\n';
 
 class PromptHistory {
   private history: string[] = [];
@@ -13,7 +14,13 @@ class PromptHistory {
   async loadHistory(): Promise<void> {
     try {
       const content = await fs.readFile(HISTORY_FILE, "utf8");
-      this.history = content.split("\n").filter(line => line.trim() !== "");
+      if (content.includes(ENTRY_SEPARATOR)) {
+        // New format with separator
+        this.history = content.split(ENTRY_SEPARATOR).filter(entry => entry.trim() !== "");
+      } else {
+        // Legacy format - assume single lines only
+        this.history = content.split("\n").filter(line => line.trim() !== "");
+      }
       this.currentIndex = -1;
     } catch {
       // File doesn't exist yet, start with empty history
@@ -24,7 +31,7 @@ class PromptHistory {
 
   async saveHistory(): Promise<void> {
     try {
-      await fs.writeFile(HISTORY_FILE, this.history.join("\n"), "utf8");
+      await fs.writeFile(HISTORY_FILE, this.history.join(ENTRY_SEPARATOR), "utf8");
     } catch (error) {
       // Silently fail to avoid disrupting the user experience
       logError(`Failed to save prompt history: ${error}`);
