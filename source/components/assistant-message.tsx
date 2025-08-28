@@ -1,4 +1,5 @@
 import {Text, Box} from 'ink';
+import {memo} from 'react';
 import {colors} from '../config/index.js';
 
 interface AssistantMessageProps {
@@ -6,7 +7,7 @@ interface AssistantMessageProps {
 	model: string;
 }
 
-export default function AssistantMessage({
+export default memo(function AssistantMessage({
 	message,
 	model,
 }: AssistantMessageProps) {
@@ -20,4 +21,4 @@ export default function AssistantMessage({
 			<Text color={colors.white}>{message}</Text>
 		</Box>
 	);
-}
+});

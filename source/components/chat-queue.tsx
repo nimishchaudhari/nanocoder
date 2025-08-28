@@ -1,5 +1,5 @@
 import {Box} from 'ink';
-import {ReactNode, useMemo, Fragment} from 'react';
+import {ReactNode, useMemo, Fragment, memo} from 'react';
 
 interface ChatQueueProps {
 	staticComponents?: ReactNode[];
@@ -9,7 +9,7 @@ interface ChatQueueProps {
 
 const defaultDisplayCount = 20;
 
-export default function ChatQueue({
+export default memo(function ChatQueue({
 	staticComponents = [],
 	queuedComponents = [],
 	displayCount = defaultDisplayCount,
@@ -40,4 +40,4 @@ export default function ChatQueue({
 			})}
 		</Box>
 	);
-}
+});

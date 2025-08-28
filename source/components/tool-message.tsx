@@ -1,11 +1,11 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 
 import {colors} from '../config/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
-export default function ToolMessage({
+export default memo(function ToolMessage({
 	title,
 	message,
 	hideTitle = false,
@@ -58,4 +58,4 @@ export default function ToolMessage({
 			)}
 		</>
 	);
-}
+});

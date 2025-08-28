@@ -1,10 +1,11 @@
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
+import {memo} from 'react';
 
 import {colors} from '../config/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
-export default function ErrorMessage({
+export default memo(function ErrorMessage({
 	message,
 	hideTitle = false,
 	hideBox = false,
@@ -47,4 +48,4 @@ export default function ErrorMessage({
 			)}
 		</>
 	);
-}
+});
