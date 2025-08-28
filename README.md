@@ -84,7 +84,7 @@ npm run dev
 **Option A: Ollama (Local AI)**
 
 ```bash
-ollama pull qwen3:0.6b  # or any other model
+ollama pull qwen2.5-coder:14b  # or any other model
 ```
 
 **Option B: OpenRouter (Cloud AI)**
@@ -93,12 +93,12 @@ Create `agents.config.json` in your **working directory** (where you run `nanoco
 
 ```json
 {
-  "nanocoder": {
-    "openRouter": {
-      "apiKey": "your-api-key-here",
-      "models": ["foo-model", "bar-model"]
-    }
-  }
+	"nanocoder": {
+		"openRouter": {
+			"apiKey": "your-api-key-here",
+			"models": ["foo-model", "bar-model"]
+		}
+	}
 }
 ```
 
@@ -108,13 +108,13 @@ Configure any OpenAI-compatible API endpoint (e.g., LM Studio, Ollama Web API, v
 
 ```json
 {
-  "nanocoder": {
-    "openAICompatible": {
-      "baseUrl": "http://localhost:1234",
-      "apiKey": "optional-api-key",
-      "models": ["model-1", "model-2"]
-    }
-  }
+	"nanocoder": {
+		"openAICompatible": {
+			"baseUrl": "http://localhost:1234",
+			"apiKey": "optional-api-key",
+			"models": ["model-1", "model-2"]
+		}
+	}
 }
 ```
 
@@ -132,34 +132,34 @@ Nanocoder supports connecting to MCP servers to extend its capabilities with add
 
 ```json
 {
-  "nanocoder": {
-    "mcpServers": [
-      {
-        "name": "filesystem",
-        "command": "npx",
-        "args": [
-          "@modelcontextprotocol/server-filesystem",
-          "/path/to/allowed/directory"
-        ]
-      },
-      {
-        "name": "github",
-        "command": "npx",
-        "args": ["@modelcontextprotocol/server-github"],
-        "env": {
-          "GITHUB_TOKEN": "your-github-token"
-        }
-      },
-      {
-        "name": "custom-server",
-        "command": "python",
-        "args": ["path/to/server.py"],
-        "env": {
-          "API_KEY": "your-api-key"
-        }
-      }
-    ]
-  }
+	"nanocoder": {
+		"mcpServers": [
+			{
+				"name": "filesystem",
+				"command": "npx",
+				"args": [
+					"@modelcontextprotocol/server-filesystem",
+					"/path/to/allowed/directory"
+				]
+			},
+			{
+				"name": "github",
+				"command": "npx",
+				"args": ["@modelcontextprotocol/server-github"],
+				"env": {
+					"GITHUB_TOKEN": "your-github-token"
+				}
+			},
+			{
+				"name": "custom-server",
+				"command": "python",
+				"args": ["path/to/server.py"],
+				"env": {
+					"API_KEY": "your-api-key"
+				}
+			}
+		]
+	}
 }
 ```
 
@@ -223,11 +223,11 @@ Nanocoder supports custom commands defined as markdown files in the `.nanocoder/
 
 ```markdown
 ---
-description: "Generate comprehensive unit tests for the specified component"
-aliases: ["testing", "spec"]
+description: 'Generate comprehensive unit tests for the specified component'
+aliases: ['testing', 'spec']
 parameters:
-  - name: "component"
-    description: "The component or function to test"
+  - name: 'component'
+    description: 'The component or function to test'
     required: true
 ---
 
