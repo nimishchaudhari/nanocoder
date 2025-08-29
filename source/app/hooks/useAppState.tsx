@@ -46,6 +46,8 @@ export function useAppState() {
 	const [isProviderSelectionMode, setIsProviderSelectionMode] = useState<boolean>(false);
 	const [isToolConfirmationMode, setIsToolConfirmationMode] = useState<boolean>(false);
 	const [isToolExecuting, setIsToolExecuting] = useState<boolean>(false);
+	const [isBashExecuting, setIsBashExecuting] = useState<boolean>(false);
+	const [currentBashCommand, setCurrentBashCommand] = useState<string>('');
 
 	// Tool confirmation state
 	const [pendingToolCalls, setPendingToolCalls] = useState<any[]>([]);
@@ -102,6 +104,8 @@ export function useAppState() {
 		isProviderSelectionMode,
 		isToolConfirmationMode,
 		isToolExecuting,
+		isBashExecuting,
+		currentBashCommand,
 		pendingToolCalls,
 		currentToolIndex,
 		completedToolResults,
@@ -128,6 +132,8 @@ export function useAppState() {
 		setIsProviderSelectionMode,
 		setIsToolConfirmationMode,
 		setIsToolExecuting,
+		setIsBashExecuting,
+		setCurrentBashCommand,
 		setPendingToolCalls,
 		setCurrentToolIndex,
 		setCompletedToolResults,

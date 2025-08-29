@@ -3,6 +3,7 @@ import {useState, useEffect, useCallback} from 'react';
 import {colors} from '../config/index.js';
 import {promptHistory} from '../prompt-history.js';
 import {commandRegistry} from '../commands.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 interface ChatProps {
 	onSubmit?: (message: string) => void;
@@ -76,7 +77,7 @@ function useUIState() {
 
 export default function UserInput({
 	onSubmit,
-	placeholder = 'Type `/` and then press Tab for command suggestions. Use ↑/↓ for history.',
+	placeholder = 'Type `/` and then press Tab for command suggestions or `!` to execute bash commands. Use ↑/↓ for history.',
 	customCommands = [],
 	disabled = false,
 	onCancel,
@@ -84,6 +85,7 @@ export default function UserInput({
 	const {isFocused} = useFocus({autoFocus: !disabled});
 	const inputState = useInputState();
 	const uiState = useUIState();
+	const boxWidth = useTerminalWidth();
 
 	const {
 		input,
@@ -108,11 +110,13 @@ export default function UserInput({
 		resetUIState,
 	} = uiState;
 
+	// Check if we're in bash mode (input starts with !)
+	const isBashMode = input.trim().startsWith('!');
+
 	// Load history on mount
 	useEffect(() => {
 		promptHistory.loadHistory();
 	}, []);
-
 
 	// Helper functions
 
@@ -216,12 +220,11 @@ export default function UserInput({
 			onCancel();
 			return;
 		}
-		
+
 		// Block all other input when disabled
 		if (disabled) {
 			return;
 		}
-
 
 		// Handle special keys
 		if (key.escape) {
@@ -317,12 +320,22 @@ export default function UserInput({
 
 	return (
 		<Box flexDirection="column" paddingY={1} width="100%" marginTop={1}>
-			<Box flexDirection="column">
-				<Text color={disabled ? colors.secondary : colors.primary} bold>
-					{disabled
-						? 'Please wait, AI is thinking...'
-						: 'What would you like me to help with?'}
-				</Text>
+			<Box
+				flexDirection="column"
+				borderStyle={isBashMode ? 'round' : undefined}
+				borderColor={isBashMode ? colors.tool : undefined}
+				paddingX={isBashMode ? 1 : 0}
+				width={isBashMode ? boxWidth : undefined}
+			>
+				{!isBashMode && (
+					<>
+						<Text color={disabled ? colors.secondary : colors.primary} bold>
+							{disabled
+								? 'Please wait, AI is thinking...'
+								: 'What would you like me to help with?'}
+						</Text>
+					</>
+				)}
 
 				<Text
 					color={
@@ -340,6 +353,11 @@ export default function UserInput({
 						</Text>
 					)}
 				</Text>
+				{isBashMode && (
+					<Text color={colors.tool} dimColor>
+						Bash Mode
+					</Text>
+				)}
 				{showClearMessage && (
 					<Text color={colors.secondary} dimColor>
 						Press escape again to clear

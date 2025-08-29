@@ -11,6 +11,7 @@ import ThinkingIndicator from './components/thinking-indicator.js';
 import CancellingIndicator from './components/cancelling-indicator.js';
 import ToolConfirmation from './components/tool-confirmation.js';
 import ToolExecutionIndicator from './components/tool-execution-indicator.js';
+import BashExecutionIndicator from './components/bash-execution-indicator.js';
 import {setGlobalMessageQueue} from './utils/message-queue.js';
 import Spinner from 'ink-spinner';
 
@@ -132,6 +133,10 @@ export default function App() {
 			onHandleChatMessage: chatHandler.handleChatMessage,
 			onAddToChatQueue: appState.addToChatQueue,
 			componentKeyCounter: appState.componentKeyCounter,
+			setMessages: appState.setMessages,
+			messages: appState.messages,
+			setIsBashExecuting: appState.setIsBashExecuting,
+			setCurrentBashCommand: appState.setCurrentBashCommand,
 		});
 	}, [
 		appState.customCommandCache,
@@ -143,6 +148,10 @@ export default function App() {
 		chatHandler.handleChatMessage,
 		appState.addToChatQueue,
 		appState.componentKeyCounter,
+		appState.setMessages,
+		appState.messages,
+		appState.setIsBashExecuting,
+		appState.setCurrentBashCommand,
 	]);
 
 	// Memoize static components to prevent unnecessary re-renders
@@ -203,11 +212,13 @@ export default function App() {
 							currentIndex={appState.currentToolIndex}
 							totalTools={appState.pendingToolCalls.length}
 						/>
+					) : appState.isBashExecuting ? (
+						<BashExecutionIndicator command={appState.currentBashCommand} />
 					) : appState.mcpInitialized && appState.client ? (
 						<UserInput
 							customCommands={Array.from(appState.customCommandCache.keys())}
 							onSubmit={handleMessageSubmit}
-							disabled={appState.isThinking || appState.isToolExecuting}
+							disabled={appState.isThinking || appState.isToolExecuting || appState.isBashExecuting}
 							onCancel={handleCancel}
 						/>
 					) : appState.mcpInitialized && !appState.client ? (

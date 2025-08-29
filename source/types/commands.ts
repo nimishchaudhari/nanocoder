@@ -9,6 +9,9 @@ export interface ParsedCommand {
   command?: string;
   args?: string[];
   fullCommand?: string;
+  // Bash command properties
+  isBashCommand?: boolean;
+  bashCommand?: string;
 }
 
 export interface CustomCommandMetadata {
