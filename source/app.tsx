@@ -174,6 +174,7 @@ export default function App() {
 							tokenCount={appState.thinkingStats.tokenCount}
 							contextSize={appState.thinkingStats.contextSize}
 							totalTokensUsed={appState.thinkingStats.totalTokensUsed}
+							tokensPerSecond={appState.thinkingStats.tokensPerSecond}
 						/>
 					) : null}
 					{appState.isModelSelectionMode ? (

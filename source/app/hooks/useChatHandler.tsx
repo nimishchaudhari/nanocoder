@@ -202,6 +202,7 @@ export function useChatHandler({
 					tokenCount,
 					contextSize: client.getContextSize(),
 					totalTokensUsed,
+					tokensPerSecond: chunk.tokens_per_second,
 				});
 			}
 		}
@@ -317,6 +318,7 @@ export function useChatHandler({
 						tokenCount,
 						contextSize: client.getContextSize(),
 						totalTokensUsed,
+						tokensPerSecond: chunk.tokens_per_second,
 					});
 				}
 			}

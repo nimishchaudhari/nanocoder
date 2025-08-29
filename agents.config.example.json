@@ -9,6 +9,13 @@
       "apiKey": "optional-api-key-if-needed",
       "models": ["local-model-1", "local-model-2"]
     },
+    "llamaCpp": {
+      "baseUrl": "http://localhost:8080",
+      "apiKey": "",
+      "models": [],
+      "timeout": 30000,
+      "maxRetries": 3
+    },
     "mcpServers": [
       {
         "name": "filesystem",

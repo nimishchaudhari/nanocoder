@@ -40,6 +40,12 @@ export default function ProviderSelector({
 			}`,
 			value: 'openai-compatible',
 		},
+		{
+			label: `llama.cpp${
+				currentProvider === 'llama-cpp' ? ' (current)' : ''
+			}`,
+			value: 'llama-cpp',
+		},
 	]);
 
 	// Handle escape key to cancel

@@ -54,7 +54,7 @@ export interface LLMClient {
   clearContext(): Promise<void>;
 }
 
-export type ProviderType = "ollama" | "openrouter" | "openai-compatible";
+export type ProviderType = "ollama" | "openrouter" | "openai-compatible" | "llama-cpp";
 
 export interface ToolExecutionResult {
   executed: boolean;

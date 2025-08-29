@@ -67,11 +67,16 @@ const formatter = async (args: any, result?: string): Promise<React.ReactElement
 			</Box>
 
 			{result && (
-				<Box>
-					<Text color={colors.secondary}>Output: </Text>
-					<Text color={colors.white}>
-						{outputSize} characters (~{estimatedTokens} tokens)
-					</Text>
+				<Box flexDirection="column">
+					<Box>
+						<Text color={colors.secondary}>Output: </Text>
+						<Text color={colors.white}>
+							{outputSize} characters (~{estimatedTokens} tokens)
+						</Text>
+					</Box>
+					<Box marginTop={1}>
+						<Text color={colors.white}>{result}</Text>
+					</Box>
 				</Box>
 			)}
 		</Box>
