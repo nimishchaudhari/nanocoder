@@ -3,6 +3,17 @@ import type { ParsedCommand } from './types/index.js';
 export function parseInput(input: string): ParsedCommand {
   const trimmed = input.trim();
   
+  // Check for bash command (prefixed with !)
+  if (trimmed.startsWith('!')) {
+    const bashCommand = trimmed.slice(1);
+    return {
+      isCommand: false, // Not a regular command
+      isBashCommand: true,
+      bashCommand: bashCommand
+    };
+  }
+  
+  // Check for regular command (prefixed with /)
   if (!trimmed.startsWith('/')) {
     return { isCommand: false };
   }
@@ -26,4 +37,8 @@ export function parseInput(input: string): ParsedCommand {
 
 export function isCommandInput(input: string): boolean {
   return input.trim().startsWith('/');
+}
+
+export function isBashCommandInput(input: string): boolean {
+  return input.trim().startsWith('!');
 }

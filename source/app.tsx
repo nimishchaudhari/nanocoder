@@ -132,6 +132,8 @@ export default function App() {
 			onHandleChatMessage: chatHandler.handleChatMessage,
 			onAddToChatQueue: appState.addToChatQueue,
 			componentKeyCounter: appState.componentKeyCounter,
+			setMessages: appState.setMessages,
+			messages: appState.messages,
 		});
 	}, [
 		appState.customCommandCache,
@@ -143,6 +145,8 @@ export default function App() {
 		chatHandler.handleChatMessage,
 		appState.addToChatQueue,
 		appState.componentKeyCounter,
+		appState.setMessages,
+		appState.messages,
 	]);
 
 	// Memoize static components to prevent unnecessary re-renders

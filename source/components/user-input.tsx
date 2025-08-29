@@ -76,7 +76,7 @@ function useUIState() {
 
 export default function UserInput({
 	onSubmit,
-	placeholder = 'Type `/` and then press Tab for command suggestions. Use ↑/↓ for history.',
+	placeholder = 'Type `/` and then press Tab for command suggestions or `!` to execute bash commands. Use ↑/↓ for history.',
 	customCommands = [],
 	disabled = false,
 	onCancel,
