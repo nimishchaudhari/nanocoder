@@ -108,6 +108,9 @@ export default function UserInput({
 		resetUIState,
 	} = uiState;
 
+	// Check if we're in bash mode (input starts with !)
+	const isBashMode = input.trim().startsWith('!');
+
 	// Load history on mount
 	useEffect(() => {
 		promptHistory.loadHistory();
@@ -317,12 +320,19 @@ export default function UserInput({
 
 	return (
 		<Box flexDirection="column" paddingY={1} width="100%" marginTop={1}>
-			<Box flexDirection="column">
-				<Text color={disabled ? colors.secondary : colors.primary} bold>
-					{disabled
-						? 'Please wait, AI is thinking...'
-						: 'What would you like me to help with?'}
-				</Text>
+			<Box 
+				flexDirection="column"
+				borderStyle={isBashMode ? "round" : undefined}
+				borderColor={isBashMode ? colors.error : undefined}
+				paddingX={isBashMode ? 1 : 0}
+			>
+				{!isBashMode && (
+					<Text color={disabled ? colors.secondary : colors.primary} bold>
+						{disabled
+							? 'Please wait, AI is thinking...'
+							: 'What would you like me to help with?'}
+					</Text>
+				)}
 
 				<Text
 					color={
@@ -340,6 +350,11 @@ export default function UserInput({
 						</Text>
 					)}
 				</Text>
+				{isBashMode && (
+					<Text color={colors.error} dimColor>
+						bash mode
+					</Text>
+				)}
 				{showClearMessage && (
 					<Text color={colors.secondary} dimColor>
 						Press escape again to clear

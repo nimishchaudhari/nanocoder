@@ -83,6 +83,7 @@ ${result.fullOutput || "(No output)"}`;
 					title: "Bash Command Output",
 					message: commandOutput,
 					hideBox: false,
+					isBashMode: true,
 				})
 			);
 			
