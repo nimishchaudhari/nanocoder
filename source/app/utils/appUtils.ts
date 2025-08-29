@@ -20,11 +20,13 @@ export interface MessageSubmissionOptions {
 	componentKeyCounter: number;
 	setMessages: (messages: any[]) => void;
 	messages: any[];
+	setIsBashExecuting: (executing: boolean) => void;
+	setCurrentBashCommand: (command: string) => void;
 }
 
 export async function handleMessageSubmission(
 	message: string,
-	options: MessageSubmissionOptions
+	options: MessageSubmissionOptions,
 ): Promise<void> {
 	const {
 		customCommandCache,
@@ -38,6 +40,8 @@ export async function handleMessageSubmission(
 		componentKeyCounter,
 		setMessages,
 		messages,
+		setIsBashExecuting,
+		setCurrentBashCommand,
 	} = options;
 
 	// Parse the input to determine its type
@@ -46,56 +50,59 @@ export async function handleMessageSubmission(
 	// Handle bash commands (prefixed with !)
 	if (parsedInput.isBashCommand && parsedInput.bashCommand) {
 		const bashCommand = parsedInput.bashCommand;
-		
-		// Show "Executing: command..." message immediately
-		onAddToChatQueue(
-			React.createElement(InfoMessage, {
-				key: `bash-executing-${componentKeyCounter}`,
-				message: `Executing: ${bashCommand}`,
-				hideBox: true,
-			})
-		);
+
+		// Set bash execution state to show spinner
+		setCurrentBashCommand(bashCommand);
+		setIsBashExecuting(true);
 
 		try {
 			// Execute the bash command
-			const resultString = await toolRegistry.execute_bash({ command: bashCommand });
-			
+			const resultString = await toolRegistry.execute_bash({
+				command: bashCommand,
+			});
+
 			// Parse the result
-			let result: { fullOutput: string; llmContext: string };
+			let result: {fullOutput: string; llmContext: string};
 			try {
 				result = JSON.parse(resultString);
 			} catch (e) {
 				// If parsing fails, treat as plain string
 				result = {
 					fullOutput: resultString,
-					llmContext: resultString.length > 4000 ? resultString.substring(0, 4000) : resultString
+					llmContext:
+						resultString.length > 4000
+							? resultString.substring(0, 4000)
+							: resultString,
 				};
 			}
-			
+
 			// Create a proper display of the command and its full output
 			const commandOutput = `$ ${bashCommand}
-${result.fullOutput || "(No output)"}`;
-			
+${result.fullOutput || '(No output)'}`;
+
 			// Add the command and its output to the chat queue
 			onAddToChatQueue(
 				React.createElement(ToolMessage, {
 					key: `bash-result-${componentKeyCounter}`,
-					title: "Bash Command Output",
 					message: commandOutput,
-					hideBox: false,
+					hideBox: true,
 					isBashMode: true,
-				})
+				}),
 			);
-			
+
 			// Add the truncated output to the LLM context for future interactions
 			if (result.llmContext) {
 				const toolMessage = {
 					role: 'tool',
 					content: result.llmContext,
-					name: 'execute_bash'
+					name: 'execute_bash',
 				};
 				setMessages([...messages, toolMessage]);
 			}
+
+			// Clear bash execution state
+			setIsBashExecuting(false);
+			setCurrentBashCommand('');
 			return;
 		} catch (error: any) {
 			// Show error message if command fails
@@ -103,9 +110,13 @@ ${result.fullOutput || "(No output)"}`;
 				React.createElement(ErrorMessage, {
 					key: `bash-error-${componentKeyCounter}`,
 					message: `Error executing command: ${error.message}`,
-				})
+				}),
 			);
-			
+
+			// Clear bash execution state
+			setIsBashExecuting(false);
+			setCurrentBashCommand('');
+
 			// Don't send to LLM - just return here
 			return;
 		}
@@ -127,8 +138,11 @@ ${result.fullOutput || "(No output)"}`;
 				.trim()
 				.split(/\s+/)
 				.filter(arg => arg);
-			const processedPrompt = await customCommandExecutor?.execute(customCommand, args);
-			
+			const processedPrompt = await customCommandExecutor?.execute(
+				customCommand,
+				args,
+			);
+
 			// Send the processed prompt to the AI
 			if (processedPrompt) {
 				await onHandleChatMessage(processedPrompt);
@@ -158,12 +172,12 @@ ${result.fullOutput || "(No output)"}`;
 							key: `command-result-${componentKeyCounter}`,
 							message: result,
 							hideBox: true,
-						})
+						}),
 					);
 				}
 			}
 		}
-		
+
 		// Return here to avoid sending to LLM
 		return;
 	}
@@ -174,7 +188,7 @@ ${result.fullOutput || "(No output)"}`;
 
 export function createClearMessagesHandler(
 	setMessages: (messages: any[]) => void,
-	client: any
+	client: any,
 ) {
 	return async () => {
 		// Clear message history and client context

@@ -22,21 +22,26 @@ export default memo(function ToolMessage({
 	// Handle both string and ReactNode messages
 	const messageContent =
 		typeof message === 'string' ? (
-			<Text color={isBashMode ? colors.error : colors.tool}>{message}</Text>
+			<Text color={colors.white}>{message}</Text>
 		) : (
 			message
 		);
 
-	const borderColor = isBashMode ? colors.error : colors.tool;
-	const borderStyle = "round"; // Use rounded corners for consistency
+	const borderColor = colors.tool;
+	const borderStyle = 'round';
 
 	return (
 		<>
 			{hideBox ? (
 				<Box width={boxWidth} flexDirection="column" marginBottom={1}>
+					{isBashMode && (
+						<Text color={colors.tool} bold>
+							Bash Command Output
+						</Text>
+					)}
 					{messageContent}
 					{isBashMode && (
-						<Text color={colors.error} dimColor>
+						<Text color={colors.secondary} dimColor>
 							Output truncated to 4k characters to save context
 						</Text>
 					)}
@@ -52,7 +57,7 @@ export default memo(function ToolMessage({
 				>
 					{messageContent}
 					{isBashMode && (
-						<Text color={colors.error} dimColor>
+						<Text color={colors.white} dimColor>
 							Output truncated to 4k characters to save context
 						</Text>
 					)}
@@ -67,10 +72,11 @@ export default memo(function ToolMessage({
 					paddingX={2}
 					paddingY={1}
 					flexDirection="column"
+					marginBottom={1}
 				>
 					{messageContent}
 					{isBashMode && (
-						<Text color={colors.error} dimColor>
+						<Text color={colors.tool} dimColor>
 							Output truncated to 4k characters to save context
 						</Text>
 					)}

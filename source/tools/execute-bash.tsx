@@ -38,15 +38,18 @@ ${stdout}`;
 			} else {
 				fullOutput = stdout;
 			}
-			
+
 			// Limit the context for LLM to first 4000 characters
-			const llmContext = fullOutput.length > 4000 ? fullOutput.substring(0, 4000) : fullOutput;
-			
+			const llmContext =
+				fullOutput.length > 4000 ? fullOutput.substring(0, 4000) : fullOutput;
+
 			// Return as JSON string to maintain compatibility with ToolHandler type
-			resolve(JSON.stringify({
-				fullOutput,
-				llmContext
-			} as BashToolResult));
+			resolve(
+				JSON.stringify({
+					fullOutput,
+					llmContext,
+				} as BashToolResult),
+			);
 		});
 
 		proc.on('error', error => {
@@ -55,7 +58,10 @@ ${stdout}`;
 	});
 };
 
-const formatter = async (args: any, result?: string): Promise<React.ReactElement> => {
+const formatter = async (
+	args: any,
+	result?: string,
+): Promise<React.ReactElement> => {
 	const command = args.command || 'unknown';
 
 	let highlightedCommand;
@@ -69,7 +75,7 @@ const formatter = async (args: any, result?: string): Promise<React.ReactElement
 	}
 
 	// Parse the result if it's a JSON string
-	let parsedResult: { fullOutput: string; llmContext: string } | null = null;
+	let parsedResult: {fullOutput: string; llmContext: string} | null = null;
 	if (result) {
 		try {
 			parsedResult = JSON.parse(result);
@@ -77,7 +83,7 @@ const formatter = async (args: any, result?: string): Promise<React.ReactElement
 			// If parsing fails, treat as plain string
 			parsedResult = {
 				fullOutput: result,
-				llmContext: result.length > 4000 ? result.substring(0, 4000) : result
+				llmContext: result.length > 4000 ? result.substring(0, 4000) : result,
 			};
 		}
 	}

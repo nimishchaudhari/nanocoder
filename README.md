@@ -214,6 +214,7 @@ Nanocoder automatically saves your preferences to remember your choices across s
 - `/debug` - Toggle logging levels (silent/normal/verbose)
 - `/custom-commands` - List all custom commands
 - `/exit` - Exit the application
+- `!command` - Execute bash commands directly without leaving Nanocoder (output becomes context for the LLM)
 
 #### Custom Commands
 

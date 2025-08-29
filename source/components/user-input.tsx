@@ -3,6 +3,7 @@ import {useState, useEffect, useCallback} from 'react';
 import {colors} from '../config/index.js';
 import {promptHistory} from '../prompt-history.js';
 import {commandRegistry} from '../commands.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 interface ChatProps {
 	onSubmit?: (message: string) => void;
@@ -84,6 +85,7 @@ export default function UserInput({
 	const {isFocused} = useFocus({autoFocus: !disabled});
 	const inputState = useInputState();
 	const uiState = useUIState();
+	const boxWidth = useTerminalWidth();
 
 	const {
 		input,
@@ -115,7 +117,6 @@ export default function UserInput({
 	useEffect(() => {
 		promptHistory.loadHistory();
 	}, []);
-
 
 	// Helper functions
 
@@ -219,12 +220,11 @@ export default function UserInput({
 			onCancel();
 			return;
 		}
-		
+
 		// Block all other input when disabled
 		if (disabled) {
 			return;
 		}
-
 
 		// Handle special keys
 		if (key.escape) {
@@ -320,18 +320,21 @@ export default function UserInput({
 
 	return (
 		<Box flexDirection="column" paddingY={1} width="100%" marginTop={1}>
-			<Box 
+			<Box
 				flexDirection="column"
-				borderStyle={isBashMode ? "round" : undefined}
-				borderColor={isBashMode ? colors.error : undefined}
+				borderStyle={isBashMode ? 'round' : undefined}
+				borderColor={isBashMode ? colors.tool : undefined}
 				paddingX={isBashMode ? 1 : 0}
+				width={isBashMode ? boxWidth : undefined}
 			>
 				{!isBashMode && (
-					<Text color={disabled ? colors.secondary : colors.primary} bold>
-						{disabled
-							? 'Please wait, AI is thinking...'
-							: 'What would you like me to help with?'}
-					</Text>
+					<>
+						<Text color={disabled ? colors.secondary : colors.primary} bold>
+							{disabled
+								? 'Please wait, AI is thinking...'
+								: 'What would you like me to help with?'}
+						</Text>
+					</>
 				)}
 
 				<Text
@@ -351,8 +354,8 @@ export default function UserInput({
 					)}
 				</Text>
 				{isBashMode && (
-					<Text color={colors.error} dimColor>
-						bash mode
+					<Text color={colors.tool} dimColor>
+						Bash Mode
 					</Text>
 				)}
 				{showClearMessage && (
