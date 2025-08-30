@@ -1,0 +1,22 @@
+{
+  "nanocoder": {
+    "mcpServers": [
+      {
+        "name": "playwright",
+        "command": "npx",
+        "args": [
+          "@playwright/mcp@latest",
+          "--headless"]
+      },
+      {
+        "name": "github",
+        "command": "npx",
+        "args": ["@modelcontextprotocol/server-github"],
+        "env": {
+          "GITHUB_TOKEN": "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"
+        }
+      }      
+      
+    ]
+  }
+}
