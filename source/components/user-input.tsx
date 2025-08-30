@@ -369,7 +369,7 @@ export default function UserInput({
 						{completions.map((completion, index) => (
 							<Text
 								key={index}
-								color={completion.isCustom ? colors.blue : colors.primary}
+								color={completion.isCustom ? colors.info : colors.primary}
 							>
 								/{completion.name}
 							</Text>

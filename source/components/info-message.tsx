@@ -18,18 +18,18 @@ export default function InfoMessage({
 		<>
 			{hideBox ? (
 				<Box width={boxWidth} flexDirection="column" marginBottom={1}>
-					<Text color={colors.blue}>{message}</Text>
+					<Text color={colors.info}>{message}</Text>
 				</Box>
 			) : hideTitle ? (
 				<Box
 					borderStyle="round"
 					width={boxWidth}
-					borderColor={colors.blue}
+					borderColor={colors.info}
 					paddingX={2}
 					paddingY={0}
 					flexDirection="column"
 				>
-					<Text color={colors.blue}>{message}</Text>
+					<Text color={colors.info}>{message}</Text>
 				</Box>
 			) : (
 				<TitledBox
@@ -37,12 +37,12 @@ export default function InfoMessage({
 					titles={['Info']}
 					titleStyles={titleStyles.pill}
 					width={boxWidth}
-					borderColor={colors.blue}
+					borderColor={colors.info}
 					paddingX={2}
 					paddingY={1}
 					flexDirection="column"
 				>
-					<Text color={colors.blue}>{message}</Text>
+					<Text color={colors.info}>{message}</Text>
 				</TitledBox>
 			)}
 		</>

@@ -31,6 +31,7 @@ export interface UserPreferences {
   providerModels?: {
     [key in ProviderType]?: string;
   };
+  lastUpdateCheck?: number;
 }
 
 export type LogLevel = "silent" | "normal" | "verbose";
