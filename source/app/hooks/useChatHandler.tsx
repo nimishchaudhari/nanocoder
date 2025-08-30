@@ -13,38 +13,36 @@ import {ThinkingStats} from './useAppState.js';
 import React from 'react';
 
 // Helper function to filter out invalid tool calls and deduplicate by ID and function
-const filterValidToolCalls = (toolCalls: any[], availableTools: any[]): any[] => {
-	const availableToolNames = new Set(availableTools.map(tool => tool.function.name));
+const filterValidToolCalls = (toolCalls: any[]): any[] => {
 	const seenIds = new Set<string>();
 	const seenFunctionCalls = new Set<string>();
-	
+
 	return toolCalls.filter(toolCall => {
 		// Filter out completely empty tool calls
 		if (!toolCall.id || !toolCall.function?.name) {
 			return false;
 		}
-		
+
 		// Filter out tool calls with empty names
 		if (toolCall.function.name.trim() === '') {
 			return false;
 		}
-		
+
 		// Filter out tool calls for tools that don't exist
-		if (!availableToolNames.has(toolCall.function.name)) {
-			return false;
-		}
-		
+
 		// Filter out duplicate tool call IDs (GPT-5 issue)
 		if (seenIds.has(toolCall.id)) {
 			return false;
 		}
-		
+
 		// Filter out functionally identical tool calls (same tool + args)
-		const functionSignature = `${toolCall.function.name}:${JSON.stringify(toolCall.function.arguments)}`;
+		const functionSignature = `${toolCall.function.name}:${JSON.stringify(
+			toolCall.function.arguments,
+		)}`;
 		if (seenFunctionCalls.has(functionSignature)) {
 			return false;
 		}
-		
+
 		seenIds.add(toolCall.id);
 		seenFunctionCalls.add(functionSignature);
 		return true;
@@ -94,8 +92,10 @@ export function useChatHandler({
 		(() => {
 			let lastUpdate = 0;
 			const throttleMs = 250; // Update at most 4 times per second
-			
-			return (stats: ThinkingStats | ((prev: ThinkingStats) => ThinkingStats)) => {
+
+			return (
+				stats: ThinkingStats | ((prev: ThinkingStats) => ThinkingStats),
+			) => {
 				const now = Date.now();
 				if (now - lastUpdate >= throttleMs) {
 					lastUpdate = now;
@@ -103,7 +103,7 @@ export function useChatHandler({
 				}
 			};
 		})(),
-		[setThinkingStats]
+		[setThinkingStats],
 	);
 
 	// Helper to make async iterator cancellable with frequent abort checking
@@ -231,9 +231,10 @@ export function useChatHandler({
 
 		// Merge structured tool calls with content-parsed tool calls
 		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-		
+
 		// Filter out invalid tool calls
-		const validToolCalls = filterValidToolCalls(allToolCalls, toolManager?.getAllTools() || []);
+		// const validToolCalls = filterValidToolCalls(allToolCalls, toolManager?.getAllTools() || []);
+		const validToolCalls = allToolCalls; // Temporarily disabled filtering
 
 		// Add assistant message to conversation history
 		const assistantMsg: Message = {
@@ -347,9 +348,9 @@ export function useChatHandler({
 
 			// Merge structured tool calls with content-parsed tool calls
 			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-			
+
 			// Filter out invalid tool calls
-			const validToolCalls = filterValidToolCalls(allToolCalls, toolManager?.getAllTools() || []);
+			const validToolCalls = filterValidToolCalls(allToolCalls);
 
 			// Add assistant message to conversation history
 			const assistantMsg: Message = {
