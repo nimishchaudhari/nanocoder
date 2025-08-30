@@ -1,6 +1,7 @@
 import {OllamaClient} from './ollama-client.js';
 import {OpenRouterClient} from './openrouter-client.js';
 import {OpenAICompatibleClient} from './openai-compatible-client.js';
+import {LlamaCppClient} from './llama-cpp-client.js';
 import {appConfig} from './config/index.js';
 import {loadPreferences} from './config/preferences.js';
 import type {LLMClient, ProviderType} from './types/index.js';
@@ -34,7 +35,7 @@ export async function createLLMClient(
 	
 	// Define available providers based on config file presence
 	const allProviders: ProviderType[] = hasConfigFile 
-		? ['ollama', 'openrouter', 'openai-compatible']
+		? ['ollama', 'openrouter', 'openai-compatible', 'llama-cpp']
 		: ['ollama'];
 	
 	// Put the requested provider first, then try others (if config exists)
@@ -53,6 +54,8 @@ export async function createLLMClient(
 				client = await createOpenRouterClient();
 			} else if (currentProvider === 'openai-compatible') {
 				client = await createOpenAICompatibleClient();
+			} else if (currentProvider === 'llama-cpp') {
+				client = await createLlamaCppClient();
 			} else {
 				// Default to Ollama
 				client = await createOllamaClient();
@@ -119,4 +122,25 @@ async function createOpenAICompatibleClient(): Promise<LLMClient> {
 		appConfig.openAICompatible.apiKey,
 		appConfig.openAICompatible.models,
 	);
+}
+
+async function createLlamaCppClient(): Promise<LLMClient> {
+	// Test connection to the server first
+	const baseUrl = appConfig.llamaCpp?.baseUrl || 'http://localhost:8080';
+	
+	try {
+		const response = await fetch(`${baseUrl}/health`, { 
+			method: 'GET',
+			signal: AbortSignal.timeout(5000)
+		});
+		if (!response.ok) {
+			throw new Error(`llama.cpp server not accessible at ${baseUrl}`);
+		}
+	} catch (error) {
+		throw new Error(`llama.cpp connection failed: ${(error as Error).message}. Ensure llama.cpp server is running at ${baseUrl}`);
+	}
+
+	const client = new LlamaCppClient(appConfig.llamaCpp);
+	await client.initialize();
+	return client;
 }
