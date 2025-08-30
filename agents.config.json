@@ -1,13 +1,13 @@
 {
-  "nanocoder": {
-    "openAICompatible": {
-      "baseUrl": "http://localhost:11434/v1",
-      "apiKey": "ollama",
-      "models": ["qwen3-coder:latest"]
-    },
-    "openRouter": {
-      "apiKey": "your-openrouter-key",
-      "models": ["openai/gpt-3.5-turbo"]
-    }
-  }
+	"nanocoder": {
+		"openAICompatible": {
+			"baseUrl": "http://localhost:11434/v1",
+			"apiKey": "ollama",
+			"models": ["qwen2.5-coder:7b"]
+		},
+		"openRouter": {
+			"apiKey": "your-openrouter-key",
+			"models": ["openai/gpt-3.5-turbo"]
+		}
+	}
 }

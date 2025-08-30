@@ -163,6 +163,14 @@ export class LangChainClient implements LLMClient {
         const formattedChunk = this.formatStreamChunk(chunk);
         yield formattedChunk;
       }
+      
+      // Yield final chunk to signal completion
+      yield {
+        message: {
+          content: '',
+        },
+        done: true
+      };
     } catch (error) {
       throw new Error(`Chat streaming failed: ${error}`);
     }

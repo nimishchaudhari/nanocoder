@@ -1,13 +1,9 @@
-import {OllamaClient} from './ollama-client.js';
-import {OpenRouterClient} from './openrouter-client.js';
-import {OpenAICompatibleClient} from './openai-compatible-client.js';
 import {appConfig} from './config/index.js';
 import {loadPreferences} from './config/preferences.js';
 import type {LLMClient, ProviderType} from './types/index.js';
-import {Ollama} from 'ollama';
-// No longer need message queue imports for error logging
 import {existsSync} from 'fs';
 import {join} from 'path';
+import {createLangChainLLMClient} from './langchain-factory.js';
 
 export async function createLLMClient(
   provider?: ProviderType,
@@ -20,47 +16,66 @@ export async function createLLMClient(
 	if (!provider) {
 		if (hasConfigFile) {
 			const preferences = loadPreferences();
-			provider = preferences.lastProvider || 'ollama';
+			provider = preferences.lastProvider || 'openai-compatible';
 		} else {
-			// No config file - force Ollama only
-			provider = 'ollama';
+			// No config file - force OpenAI-compatible only
+			provider = 'openai-compatible';
 		}
 	}
 	
-	// If no config file exists but user requested non-Ollama provider, force Ollama
-	if (!hasConfigFile && provider !== 'ollama') {
-		provider = 'ollama';
+	// If no config file exists but user requested non-supported provider, force OpenAI-compatible
+	if (!hasConfigFile && provider !== 'openai-compatible' && provider !== 'openrouter') {
+		provider = 'openai-compatible';
 	}
 	
 	// Define available providers based on config file presence
 	const allProviders: ProviderType[] = hasConfigFile 
-		? ['ollama', 'openrouter', 'openai-compatible']
-		: ['ollama'];
+		? ['openai-compatible', 'openrouter']
+		: ['openai-compatible'];
 	
 	// Put the requested provider first, then try others (if config exists)
 	const tryOrder = hasConfigFile 
 		? [provider, ...allProviders.filter(p => p !== provider)]
-		: ['ollama'];
+		: ['openai-compatible'];
 	
 	const errors: string[] = [];
 
 	// Try each provider in order
 	for (const currentProvider of tryOrder as ProviderType[]) {
 		try {
-			let client: LLMClient;
-			
-			if (currentProvider === 'openrouter') {
-				client = await createOpenRouterClient();
-			} else if (currentProvider === 'openai-compatible') {
-				client = await createOpenAICompatibleClient();
-			} else {
-				// Default to Ollama
-				client = await createOllamaClient();
+			// Only try OpenAI-compatible and OpenRouter providers
+			if (currentProvider === 'openai-compatible' || currentProvider === 'openrouter') {
+				// Pass configuration from appConfig to the LangChain factory
+				let config;
+				if (currentProvider === 'openai-compatible') {
+					if (!appConfig.openAICompatible?.baseUrl) {
+						throw new Error('OpenAI-compatible API requires baseUrl in config');
+					}
+					config = {
+						baseUrl: appConfig.openAICompatible.baseUrl,
+						apiKey: appConfig.openAICompatible.apiKey,
+						models: appConfig.openAICompatible.models,
+						model: appConfig.openAICompatible.models?.[0],
+					};
+				} else {
+					// OpenRouter
+					if (!appConfig.openRouter?.apiKey) {
+						throw new Error('OpenRouter requires API key in config');
+					}
+					if (!appConfig.openRouter?.models || appConfig.openRouter.models.length === 0) {
+						throw new Error('OpenRouter requires models array in config');
+					}
+					config = {
+						baseUrl: "https://openrouter.ai/api/v1",
+						apiKey: appConfig.openRouter.apiKey,
+						models: appConfig.openRouter.models,
+						model: appConfig.openRouter.models?.[0],
+					};
+				}
+				
+				const result = await createLangChainLLMClient(currentProvider, config);
+				return result;
 			}
-			
-			// If we get here, the provider worked
-			return {client, actualProvider: currentProvider};
-			
 		} catch (error: any) {
 			const errorMsg = `${currentProvider}: ${error.message}`;
 			errors.push(errorMsg);
@@ -83,42 +98,3 @@ export async function createLLMClient(
   throw new Error(combinedError);
 }
 
-async function createOllamaClient(): Promise<LLMClient> {
-	const ollama = new Ollama();
-	const models = await ollama.list();
-
-	if (models.models.length === 0) {
-		throw new Error('No Ollama models found');
-	}
-
-	const client = new OllamaClient();
-	await client.waitForInitialization();
-	return client;
-}
-
-async function createOpenRouterClient(): Promise<LLMClient> {
-	if (!appConfig.openRouter?.apiKey) {
-		throw new Error('OpenRouter requires API key in config');
-	}
-	if (
-		!appConfig.openRouter?.models ||
-		appConfig.openRouter.models.length === 0
-	) {
-		throw new Error('OpenRouter requires models array in config');
-	}
-	return new OpenRouterClient(
-		appConfig.openRouter.apiKey,
-		appConfig.openRouter.models,
-	);
-}
-
-async function createOpenAICompatibleClient(): Promise<LLMClient> {
-	if (!appConfig.openAICompatible?.baseUrl) {
-		throw new Error('OpenAI-compatible API requires baseUrl in config');
-	}
-	return new OpenAICompatibleClient(
-		appConfig.openAICompatible.baseUrl,
-		appConfig.openAICompatible.apiKey,
-		appConfig.openAICompatible.models,
-	);
-}

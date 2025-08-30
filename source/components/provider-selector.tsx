@@ -25,10 +25,6 @@ export default function ProviderSelector({
 	const boxWidth = useTerminalWidth();
 	const [providers] = useState<ProviderOption[]>([
 		{
-			label: `Ollama${currentProvider === 'ollama' ? ' (current)' : ''}`,
-			value: 'ollama',
-		},
-		{
 			label: `OpenRouter${
 				currentProvider === 'openrouter' ? ' (current)' : ''
 			}`,

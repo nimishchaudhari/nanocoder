@@ -22,7 +22,7 @@ export function useAppState() {
 	const [client, setClient] = useState<LLMClient | null>(null);
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [currentModel, setCurrentModel] = useState<string>('');
-	const [currentProvider, setCurrentProvider] = useState<ProviderType>('ollama');
+	const [currentProvider, setCurrentProvider] = useState<ProviderType>('openai-compatible');
 	const [toolManager, setToolManager] = useState<ToolManager | null>(null);
 	const [customCommandLoader, setCustomCommandLoader] = useState<CustomCommandLoader | null>(null);
 	const [customCommandExecutor, setCustomCommandExecutor] = useState<CustomCommandExecutor | null>(null);
