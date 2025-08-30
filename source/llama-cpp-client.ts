@@ -65,7 +65,7 @@ export class LlamaCppClient implements LLMClient {
       });
       
       if (response.ok) {
-        const props = await response.json();
+        const props = await response.json() as any;
         if (props.default_generation_settings?.n_ctx) {
           this.contextSize = props.default_generation_settings.n_ctx;
         }
@@ -99,7 +99,7 @@ export class LlamaCppClient implements LLMClient {
         throw new Error(`Models fetch failed: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
       const modelList = data.data || [];
       const modelNames = modelList.map((model: any) => model.id || model.model).filter(Boolean);
       
