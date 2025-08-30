@@ -35,16 +35,16 @@ export default function ProviderSelector({
 			value: 'openrouter',
 		},
 		{
-			label: `OpenAI Compatible${
-				currentProvider === 'openai-compatible' ? ' (current)' : ''
-			}`,
-			value: 'openai-compatible',
-		},
-		{
 			label: `llama.cpp${
 				currentProvider === 'llama-cpp' ? ' (current)' : ''
 			}`,
 			value: 'llama-cpp',
+		},
+		{
+			label: `OpenAI Compatible${
+				currentProvider === 'openai-compatible' ? ' (current)' : ''
+			}`,
+			value: 'openai-compatible',
 		},
 	]);
 
