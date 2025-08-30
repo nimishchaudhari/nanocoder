@@ -10,6 +10,13 @@ export interface AppConfig {
     apiKey?: string;
     models?: string[];
   };
+  llamaCpp?: {
+    baseUrl?: string;
+    apiKey?: string;
+    models?: string[];
+    timeout?: number;
+    maxRetries?: number;
+  };
   mcpServers?: {
     name: string;
     command: string;
@@ -24,6 +31,7 @@ export interface UserPreferences {
   providerModels?: {
     [key in ProviderType]?: string;
   };
+  lastUpdateCheck?: number;
 }
 
 export type LogLevel = "silent" | "normal" | "verbose";

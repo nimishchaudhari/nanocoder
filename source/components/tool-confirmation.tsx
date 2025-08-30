@@ -36,7 +36,16 @@ export default function ToolConfirmation({
 			if (formatter) {
 				setIsLoadingPreview(true);
 				try {
-					const preview = await formatter(toolCall.function.arguments);
+					// Parse arguments if they're a JSON string
+					let parsedArgs = toolCall.function.arguments;
+					if (typeof parsedArgs === 'string') {
+						try {
+							parsedArgs = JSON.parse(parsedArgs);
+						} catch (e) {
+							// If parsing fails, use as-is
+						}
+					}
+					const preview = await formatter(parsedArgs);
 					setFormatterPreview(preview);
 				} catch (error) {
 					console.error('Error loading formatter preview:', error);

@@ -49,7 +49,16 @@ export function useToolHandler({
 			const formatter = toolManager.getToolFormatter(result.name);
 			if (formatter) {
 				try {
-					const formattedResult = await formatter(toolCall.function.arguments, result.content);
+					// Parse arguments if they're a JSON string
+					let parsedArgs = toolCall.function.arguments;
+					if (typeof parsedArgs === 'string') {
+						try {
+							parsedArgs = JSON.parse(parsedArgs);
+						} catch (e) {
+							// If parsing fails, use as-is
+						}
+					}
+					const formattedResult = await formatter(parsedArgs, result.content);
 
 					if (React.isValidElement(formattedResult)) {
 						addToChatQueue(

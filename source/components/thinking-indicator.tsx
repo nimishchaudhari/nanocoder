@@ -7,12 +7,14 @@ interface ThinkingIndicatorProps {
 	tokenCount: number;
 	contextSize: number;
 	totalTokensUsed: number;
+	tokensPerSecond?: number;
 }
 
 export default memo(function ThinkingIndicator({
 	tokenCount,
 	contextSize,
 	totalTokensUsed,
+	tokensPerSecond,
 }: ThinkingIndicatorProps) {
 	const [elapsedSeconds, setElapsedSeconds] = useState(0);
 	const startTimeRef = useRef<number>(Date.now());
@@ -40,13 +42,18 @@ export default memo(function ThinkingIndicator({
 	// Clamp percentage to prevent display jitter from values over 100%
 	const displayPercentage = Math.min(percentage, 100);
 
+	// Format tokens per second display
+	const tokensPerSecondDisplay = tokensPerSecond !== undefined && tokensPerSecond > 0 
+		? ` • ${tokensPerSecond} tok/s` 
+		: '';
+
 	return (
 		<Box flexDirection="column" marginBottom={1}>
 			<Box flexWrap="wrap">
 				<Spinner type="dots2" />
 				<Text color={colors.secondary}> Thinking... </Text>
 				<Text color={colors.white}>
-					{tokenCount} tokens • {elapsedSeconds}s • {displayPercentage}%
+					{tokenCount} tokens • {elapsedSeconds}s{tokensPerSecondDisplay} • {displayPercentage}%
 					context used
 				</Text>
 			</Box>

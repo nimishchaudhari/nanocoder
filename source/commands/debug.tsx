@@ -58,7 +58,7 @@ function Debug({currentLevel, newLevel, action, invalidArg}: DebugProps) {
 			titles={['/debug']}
 			titleStyles={titleStyles.pill}
 			width={boxWidth}
-			borderColor={colors.blue}
+			borderColor={colors.info}
 			paddingX={2}
 			paddingY={1}
 			flexDirection="column"
@@ -66,38 +66,38 @@ function Debug({currentLevel, newLevel, action, invalidArg}: DebugProps) {
 		>
 			{action === 'changed' && newLevel ? (
 				<>
-					<Text color={colors.blue}>
+					<Text color={colors.info}>
 						Logging level changed from{' '}
 						<Text color={colors.white}>{currentLevel}</Text> to{' '}
 						<Text color={colors.white}>{newLevel}</Text>.
 					</Text>
 					<Box>
-						<Text color={colors.blue}>{getLogLevelDescription(newLevel)}</Text>
+						<Text color={colors.info}>{getLogLevelDescription(newLevel)}</Text>
 					</Box>
 				</>
 			) : action === 'set' && newLevel ? (
 				<>
-					<Text color={colors.blue}>
+					<Text color={colors.info}>
 						Logging level set to <Text color={colors.white}>{newLevel}</Text>.
 					</Text>
 					<Box marginTop={1}>
-						<Text color={colors.blue}>{getLogLevelDescription(newLevel)}</Text>
+						<Text color={colors.info}>{getLogLevelDescription(newLevel)}</Text>
 					</Box>
 				</>
 			) : (
 				<Box flexDirection="column">
 					<Text color={colors.error}>Invalid log level: {invalidArg}</Text>
 					<Box marginTop={1} flexDirection="column">
-						<Text color={colors.blue}>
+						<Text color={colors.info}>
 							Current logging level:{' '}
 							<Text color={colors.white}>{currentLevel}</Text>
 						</Text>
-						<Text color={colors.blue}>
+						<Text color={colors.info}>
 							{getLogLevelDescription(currentLevel)}
 						</Text>
 					</Box>
 					<Box marginTop={1} flexDirection="column">
-						<Text color={colors.blue}>Available levels:</Text>
+						<Text color={colors.info}>Available levels:</Text>
 						<Text color={colors.secondary}>
 							{' '}
 							• <Text color={colors.white}>silent</Text> - Minimal output
@@ -115,7 +115,7 @@ function Debug({currentLevel, newLevel, action, invalidArg}: DebugProps) {
 						</Text>
 					</Box>
 					<Box marginTop={1}>
-						<Text color={colors.blue}>
+						<Text color={colors.info}>
 							Usage:{' '}
 							<Text color={colors.white}>/debug [silent|normal|verbose]</Text>{' '}
 							or just <Text color={colors.white}>/debug</Text> to cycle

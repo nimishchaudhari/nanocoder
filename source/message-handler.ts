@@ -31,7 +31,16 @@ export async function processToolUse(toolCall: ToolCall): Promise<ToolResult> {
   }
 
   try {
-    const result = await handler(toolCall.function.arguments);
+    // Parse arguments if they're a JSON string
+    let parsedArgs = toolCall.function.arguments;
+    if (typeof parsedArgs === 'string') {
+      try {
+        parsedArgs = JSON.parse(parsedArgs);
+      } catch (e) {
+        throw new Error(`Invalid tool arguments: ${(e as Error).message}`);
+      }
+    }
+    const result = await handler(parsedArgs);
     return {
       tool_call_id: toolCall.id,
       role: "tool",

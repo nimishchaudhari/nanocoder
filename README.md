@@ -102,7 +102,31 @@ Create `agents.config.json` in your **working directory** (where you run `nanoco
 }
 ```
 
-**Option C: OpenAI-Compatible APIs (Local or Remote)**
+**Option C: llama.cpp (Local Inference)**
+
+Configure llama.cpp server for local model inference:
+
+```json
+{
+	"nanocoder": {
+		"llamaCpp": {
+			"baseUrl": "http://localhost:8080",
+			"apiKey": "optional-api-key",
+			"models": ["your-model"],
+			"timeout": 30000,
+			"maxRetries": 3
+		}
+	}
+}
+```
+
+To set up llama.cpp server:
+
+1. Install llama.cpp: Follow the [official installation guide](https://github.com/ggerganov/llama.cpp)
+2. Download a GGUF model (e.g., from Hugging Face)
+3. Start the server: `./llama-server -m your-model.gguf -c 4096 --host 0.0.0.0 --port 8080`
+
+**Option D: OpenAI-Compatible APIs (Local or Remote)**
 
 Configure any OpenAI-compatible API endpoint (e.g., LM Studio, Ollama Web API, vLLM, LocalAI, etc.):
 
@@ -263,6 +287,7 @@ Generate comprehensive unit tests for {{component}}. Include:
 
 - **Ollama**: Local inference with privacy and no API costs
 - **OpenRouter**: Access to premium models (Claude, GPT-4, etc.)
+- **llama.cpp**: Direct local inference with GGUF models and optimized performance
 - **OpenAI-Compatible APIs**: Support for LM Studio, vLLM, LocalAI, and any OpenAI-spec API
 - **Smart fallback**: Automatically switches to available providers if one fails
 - **Per-provider preferences**: Remembers your preferred model for each provider

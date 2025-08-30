@@ -43,12 +43,12 @@ export const colors: Colors = {
 	success: '#7AF778',
 	error: '#f7768e',
 	secondary: '#565f89',
-	blue: '#7aa2f7',
-	orange: '#ff9e64',
+	info: '#2ac3de',
+	warning: '#e0af68',
 	// Diff highlight colors (Tokyo Night theme)
-	diffAdded: '#1e2f1e',      // Dark green background for added lines
-	diffRemoved: '#2f1e1e',    // Dark red background for removed lines
-	diffAddedText: '#9ece6a',   // Green text for added content
+	diffAdded: '#1e2f1e', // Dark green background for added lines
+	diffRemoved: '#2f1e1e', // Dark red background for removed lines
+	diffAddedText: '#9ece6a', // Green text for added content
 	diffRemovedText: '#f7768e', // Red text for removed content
 };
 

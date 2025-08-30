@@ -9,6 +9,7 @@ export interface ThinkingStats {
 	tokenCount: number;
 	contextSize: number;
 	totalTokensUsed: number;
+	tokensPerSecond?: number;
 }
 
 export interface ConversationContext {
