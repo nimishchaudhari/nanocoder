@@ -1,7 +1,6 @@
 import {OllamaClient} from './ollama-client.js';
 import {OpenRouterClient} from './openrouter-client.js';
 import {OpenAICompatibleClient} from './openai-compatible-client.js';
-import {LlamaCppClient} from './llama-cpp-client.js';
 import {appConfig} from './config/index.js';
 import {loadPreferences} from './config/preferences.js';
 import type {LLMClient, ProviderType} from './types/index.js';
@@ -11,7 +10,7 @@ import {existsSync} from 'fs';
 import {join} from 'path';
 
 export async function createLLMClient(
-	provider?: ProviderType,
+  provider?: ProviderType,
 ): Promise<{client: LLMClient; actualProvider: ProviderType}> {
 	// Check if agents.config.json exists
 	const agentsJsonPath = join(process.cwd(), 'agents.config.json');
@@ -35,7 +34,7 @@ export async function createLLMClient(
 	
 	// Define available providers based on config file presence
 	const allProviders: ProviderType[] = hasConfigFile 
-		? ['ollama', 'openrouter', 'openai-compatible', 'llama-cpp']
+		? ['ollama', 'openrouter', 'openai-compatible']
 		: ['ollama'];
 	
 	// Put the requested provider first, then try others (if config exists)
@@ -54,8 +53,6 @@ export async function createLLMClient(
 				client = await createOpenRouterClient();
 			} else if (currentProvider === 'openai-compatible') {
 				client = await createOpenAICompatibleClient();
-			} else if (currentProvider === 'llama-cpp') {
-				client = await createLlamaCppClient();
 			} else {
 				// Default to Ollama
 				client = await createOllamaClient();
@@ -70,18 +67,20 @@ export async function createLLMClient(
 		}
 	}
 
-	// If we get here, all providers failed
-	let combinedError: string;
-	
-	if (!hasConfigFile) {
-		// No config file - only tried Ollama
-		combinedError = `Ollama unavailable: ${errors[0]?.split(': ')[1] || 'Unknown error'}\n\nPlease install and run Ollama with a model:\n  ollama pull qwen3:0.6b\n\nOr create an agents.config.json file to configure other providers.`;
-	} else {
-		// Config file exists - tried multiple providers
-		combinedError = `All configured providers failed:\n${errors.map(e => `• ${e}`).join('\n')}\n\nPlease either:\n1. Install and run Ollama with a model: ollama pull qwen3:0.6b\n2. Check your provider configuration in agents.config.json`;
-	}
-	
-	throw new Error(combinedError);
+  // If we get here, all providers failed
+  let combinedError: string;
+  
+  if (!hasConfigFile) {
+    // No config file - only tried OpenAI-compatible
+    combinedError = `OpenAI-compatible API unavailable: ${errors[0]?.split(': ')[1] || 'Unknown error'}\n\n` +
+      `Please ensure your OpenAI-compatible API is running and configured properly.`;
+  } else {
+    // Config file exists - tried multiple providers
+    combinedError = `All configured providers failed:\n${errors.map(e => `• ${e}`).join('\n')}\n\n` +
+      `Please check your provider configuration in agents.config.json`;
+  }
+  
+  throw new Error(combinedError);
 }
 
 async function createOllamaClient(): Promise<LLMClient> {
@@ -122,25 +121,4 @@ async function createOpenAICompatibleClient(): Promise<LLMClient> {
 		appConfig.openAICompatible.apiKey,
 		appConfig.openAICompatible.models,
 	);
-}
-
-async function createLlamaCppClient(): Promise<LLMClient> {
-	// Test connection to the server first
-	const baseUrl = appConfig.llamaCpp?.baseUrl || 'http://localhost:8080';
-	
-	try {
-		const response = await fetch(`${baseUrl}/health`, { 
-			method: 'GET',
-			signal: AbortSignal.timeout(5000)
-		});
-		if (!response.ok) {
-			throw new Error(`llama.cpp server not accessible at ${baseUrl}`);
-		}
-	} catch (error) {
-		throw new Error(`llama.cpp connection failed: ${(error as Error).message}. Ensure llama.cpp server is running at ${baseUrl}`);
-	}
-
-	const client = new LlamaCppClient(appConfig.llamaCpp);
-	await client.initialize();
-	return client;
 }

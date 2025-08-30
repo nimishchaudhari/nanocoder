@@ -131,7 +131,6 @@ package-lock.json
 yarn.lock
 
 # Agents configuration
-agents.config.json
 .claude
 agents
 CLAUDE.md
