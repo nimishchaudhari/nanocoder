@@ -183,9 +183,6 @@ export class LangChainClient implements LLMClient {
             this.supportsNativeTools = true; // Cache that it works
           } catch (error) {
             // Fallback to prompt-based tool calling for non-tool-calling models
-            if (this.supportsNativeTools === null) {
-              logError(`Native tool calling failed, falling back to prompt-based: ${error}`);
-            }
             this.supportsNativeTools = false; // Cache that it doesn't work
             result = await this.invokeWithPromptBasedTools(langchainMessages, tools);
           }
@@ -212,122 +209,44 @@ export class LangChainClient implements LLMClient {
 
   async *chatStream(messages: Message[], tools: Tool[]): AsyncIterable<any> {
     try {
-      const langchainMessages = messages.map(convertToLangChainMessage);
-      const langchainTools = tools.map(convertToLangChainTool);
-
-      let stream;
-      let usePromptBasedTools = false;
+      // Use the non-streaming chat method which handles tool calls properly
+      const result = await this.chat(messages, tools);
       
-      if (langchainTools.length > 0) {
-        if (this.supportsNativeTools === false) {
-          // We already know this model doesn't support native tools, skip directly to prompt-based
-          usePromptBasedTools = true;
-          const messagesWithTools = this.addToolsToMessages(langchainMessages, tools);
-          stream = await this.chatModel.stream(messagesWithTools);
-        } else {
-          try {
-            // Try native tool calling first
-            const modelWithTools = this.chatModel.bindTools!(langchainTools);
-            stream = await modelWithTools.stream(langchainMessages);
-            this.supportsNativeTools = true; // Cache that it works
-          } catch (error) {
-            // Fallback to prompt-based tool calling
-            if (this.supportsNativeTools === null) {
-              logError(`Native tool calling failed, falling back to prompt-based: ${error}`);
-            }
-            this.supportsNativeTools = false; // Cache that it doesn't work
-            usePromptBasedTools = true;
-            const messagesWithTools = this.addToolsToMessages(langchainMessages, tools);
-            stream = await this.chatModel.stream(messagesWithTools);
-          }
-        }
-      } else {
-        stream = await this.chatModel.stream(langchainMessages);
+      if (!result) {
+        yield { done: true };
+        return;
       }
-
-      let accumulatedContent = '';
-      let accumulatedToolCalls: any[] = [];
-
-      for await (const chunk of stream) {
-        if (chunk.content) {
-          const deltaContent = chunk.content as string;
-          accumulatedContent += deltaContent;
-          
-          if (!usePromptBasedTools) {
-            // For native tool calling, yield content normally
-            yield {
-              message: {
-                content: deltaContent,
-              },
-              done: false,
-            };
-          }
-          // For prompt-based tools, we'll process content at the end and only yield if no tools found
-        }
-
-        if (chunk.tool_calls && chunk.tool_calls.length > 0) {
-          // Accumulate tool calls (native tool calling)
-          for (const toolCall of chunk.tool_calls) {
-            const existingIndex = accumulatedToolCalls.findIndex(tc => tc.id === toolCall.id);
-            if (existingIndex >= 0) {
-              // Update existing tool call
-              accumulatedToolCalls[existingIndex] = {
-                ...accumulatedToolCalls[existingIndex],
-                ...toolCall,
-              };
-            } else {
-              // Add new tool call
-              accumulatedToolCalls.push({
-                id: toolCall.id,
-                function: {
-                  name: toolCall.name,
-                  arguments: toolCall.args,
-                },
-              });
-            }
-          }
-        }
-      }
-
-      // For prompt-based tools, parse the accumulated content for tool calls
-      if (usePromptBasedTools && accumulatedContent) {
-        const parsedToolCalls = this.parseToolCallsFromContent(accumulatedContent);
-        console.log(`[DEBUG] Prompt-based parsing found ${parsedToolCalls.length} tool calls in content:`, accumulatedContent.slice(0, 200));
-        if (parsedToolCalls.length > 0) {
-          accumulatedToolCalls = parsedToolCalls;
-          // Yield final result with parsed tool calls (no content)
-          yield {
-            message: {
-              content: '', // Clear content since we extracted tool calls
-              tool_calls: accumulatedToolCalls,
-            },
-            done: true,
-          };
-          return; // Exit early
-        } else {
-          // No tool calls found in prompt-based response, yield the content normally
-          console.log('[DEBUG] No tool calls found in prompt-based response, treating as normal text');
-          // Yield the accumulated content that we didn't yield during streaming
-          if (accumulatedContent.trim()) {
-            yield {
-              message: {
-                content: accumulatedContent,
-              },
-              done: false,
-            };
-          }
-        }
-      }
-
-      // Yield final result with native tool calls if any, or just done
-      if (accumulatedToolCalls.length > 0) {
+      
+      const message = result.choices[0].message;
+      
+      // If there are tool calls, yield them directly
+      if (message.tool_calls && message.tool_calls.length > 0) {
         yield {
           message: {
             content: '',
-            tool_calls: accumulatedToolCalls,
+            tool_calls: message.tool_calls,
           },
           done: true,
         };
+      } else if (message.content) {
+        // If there's content, simulate streaming by yielding it in chunks
+        const content = message.content as string;
+        const chunkSize = 50; // Characters per chunk
+        
+        for (let i = 0; i < content.length; i += chunkSize) {
+          const chunk = content.slice(i, i + chunkSize);
+          yield {
+            message: {
+              content: chunk,
+            },
+            done: false,
+          };
+          
+          // Small delay to simulate streaming
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        
+        yield { done: true };
       } else {
         yield { done: true };
       }
@@ -485,7 +404,7 @@ IMPORTANT: Only use the JSON tool format if you actually need to use a tool. If 
           }
         }
       } catch (error) {
-        console.log('[DEBUG] Failed to parse JSON in tool call block:', match[1]);
+        console.log('[DEBUG] Failed to parse JSON in tool call block:', match[1], 'Error:', error);
         // Skip invalid JSON
         continue;
       }
