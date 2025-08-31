@@ -1,5 +1,4 @@
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { ChatOllama } from '@langchain/ollama';
 import { ChatOpenAI } from '@langchain/openai';
 import { AIMessage, HumanMessage, SystemMessage, ToolMessage, BaseMessage } from '@langchain/core/messages';
 import { StructuredTool } from '@langchain/core/tools';
@@ -101,13 +100,6 @@ export class LangChainClient implements LLMClient {
     const { type, config } = this.providerConfig;
 
     switch (type) {
-      case 'ollama':
-        return new ChatOllama({
-          baseUrl: config.baseUrl || 'http://localhost:11434',
-          model: this.currentModel,
-          ...config,
-        });
-
       case 'openai':
       case 'openai-compatible':
         return new ChatOpenAI({

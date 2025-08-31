@@ -3,7 +3,7 @@ import type { ProviderType } from "./core.js";
 // LangChain provider configurations
 export interface LangChainProviderConfig {
   name: string;
-  type: "ollama" | "openai" | "anthropic" | "openai-compatible" | string;
+  type: "openai" | "anthropic" | "openai-compatible" | string;
   models: string[];
   config: Record<string, any>;
 }

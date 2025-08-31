@@ -26,14 +26,8 @@ async function createLangChainClient(
 	
 	if (providers.length === 0) {
 		if (!hasConfigFile) {
-			// No config file - try Ollama default
-			const defaultOllamaConfig: LangChainProviderConfig = {
-				name: 'ollama',
-				type: 'ollama',
-				models: ['qwen3:0.6b'],
-				config: { baseUrl: 'http://localhost:11434' }
-			};
-			providers.push(defaultOllamaConfig);
+			// No config file - suggest creating one
+			throw new Error('No agents.config.json found. Please create a configuration file with openRouter or openAICompatible provider settings.');
 		} else {
 			throw new Error('No providers configured in agents.config.json');
 		}
@@ -44,7 +38,7 @@ async function createLangChainClient(
 	if (requestedProvider) {
 		targetProvider = requestedProvider;
 	} else {
-		// Use preferences or default to ollama
+		// Use preferences or default to openai-compatible
 		const preferences = loadPreferences();
 		targetProvider = preferences.lastProvider || 'openai-compatible';
 	}

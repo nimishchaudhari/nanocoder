@@ -29,8 +29,8 @@ function loadAppConfig(): AppConfig {
 
 export const appConfig = loadAppConfig();
 
-// Legacy exports for backwards compatibility
-export const ollamaConfig = {
+// Legacy config for backwards compatibility (no longer specific to any provider)
+export const legacyConfig = {
 	maxTokens: 4096,
 	contextSize: 4000,
 };
