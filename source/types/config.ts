@@ -1,6 +1,15 @@
 import type { ProviderType } from "./core.js";
 
+// LangChain provider configurations
+export interface LangChainProviderConfig {
+  name: string;
+  type: "ollama" | "openai" | "anthropic" | "openai-compatible" | string;
+  models: string[];
+  config: Record<string, any>;
+}
+
 export interface AppConfig {
+  // Provider configs - now backed by LangChain
   openRouter?: {
     apiKey: string;
     models: string[];
@@ -17,6 +26,7 @@ export interface AppConfig {
     timeout?: number;
     maxRetries?: number;
   };
+  
   mcpServers?: {
     name: string;
     command: string;

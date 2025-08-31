@@ -53,8 +53,8 @@ export default memo(function ThinkingIndicator({
 				<Spinner type="dots2" />
 				<Text color={colors.secondary}> Thinking... </Text>
 				<Text color={colors.white}>
-					{tokenCount} tokens • {elapsedSeconds}s{tokensPerSecondDisplay} • {displayPercentage}%
-					context used
+					{tokenCount} tokens • {elapsedSeconds}s{tokensPerSecondDisplay}
+					{contextSize > 0 ? ` • ${displayPercentage}% context used` : ''}
 				</Text>
 			</Box>
 			<Box marginTop={1}>

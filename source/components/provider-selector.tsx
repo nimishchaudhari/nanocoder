@@ -25,20 +25,10 @@ export default function ProviderSelector({
 	const boxWidth = useTerminalWidth();
 	const [providers] = useState<ProviderOption[]>([
 		{
-			label: `Ollama${currentProvider === 'ollama' ? ' (current)' : ''}`,
-			value: 'ollama',
-		},
-		{
 			label: `OpenRouter${
 				currentProvider === 'openrouter' ? ' (current)' : ''
 			}`,
 			value: 'openrouter',
-		},
-		{
-			label: `llama.cpp${
-				currentProvider === 'llama-cpp' ? ' (current)' : ''
-			}`,
-			value: 'llama-cpp',
 		},
 		{
 			label: `OpenAI Compatible${

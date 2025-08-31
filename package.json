@@ -42,6 +42,10 @@
 		"source/prompt.md"
 	],
 	"dependencies": {
+		"@langchain/community": "^0.3.53",
+		"@langchain/core": "^0.3.72",
+		"@langchain/ollama": "^0.2.3",
+		"@langchain/openai": "^0.6.9",
 		"@mishieck/ink-titled-box": "^0.3.0",
 		"@modelcontextprotocol/sdk": "^1.17.3",
 		"@nanostores/react": "^1.0.0",
