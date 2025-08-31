@@ -177,6 +177,56 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 		}
 	}
 
+	// Look for XML-style tool calls with parameter= syntax like <function=execute_bash><parameter=command>ls -la</parameter></function>
+	const parameterXmlRegex =
+		/<function=([a-zA-Z_][a-zA-Z0-9_]*)\s*>([\s\S]*?)<\/function>/g;
+	let paramMatch;
+	while ((paramMatch = parameterXmlRegex.exec(content)) !== null) {
+		const [, toolName, innerContent] = paramMatch;
+		try {
+			if (toolName && innerContent) {
+				// Parse nested <parameter=name>value</parameter> tags
+				const paramRegex = /<parameter=([^>]+)>([\s\S]*?)<\/parameter>/g;
+				let nestedParamMatch;
+				const args: Record<string, any> = {};
+
+				while ((nestedParamMatch = paramRegex.exec(innerContent)) !== null) {
+					const [, paramName, paramValue] = nestedParamMatch;
+					if (paramName && paramValue !== undefined) {
+						const trimmedValue = paramValue.trim();
+						// Try to parse as JSON if it looks like JSON, otherwise use as string
+						if (trimmedValue.startsWith('{') || trimmedValue.startsWith('[')) {
+							try {
+								args[paramName] = JSON.parse(trimmedValue);
+							} catch {
+								args[paramName] = trimmedValue;
+							}
+						} else if (trimmedValue === 'true' || trimmedValue === 'false') {
+							args[paramName] = trimmedValue === 'true';
+						} else if (!isNaN(Number(trimmedValue))) {
+							args[paramName] = Number(trimmedValue);
+						} else {
+							args[paramName] = trimmedValue;
+						}
+					}
+				}
+
+				// Only add if we found parameters
+				if (Object.keys(args).length > 0) {
+					extractedCalls.push({
+						id: `call_${Date.now()}_${extractedCalls.length}`,
+						function: {
+							name: toolName,
+							arguments: args,
+						},
+					});
+				}
+			}
+		} catch (e) {
+			logError('Function parameter tool call failed to parse from XML.');
+		}
+	}
+
 	// Look for XML-style tool calls like <execute_bash>
 	const xmlToolCallRegex =
 		/<([a-zA-Z_][a-zA-Z0-9_]*)\s*>\s*\{\s*"?([^"]*)"?\s*:\s*"([^"]*)"\s*\}\s*<\/\1>/g;
@@ -307,6 +357,11 @@ export function cleanContentFromToolCalls(
 			return match;
 		},
 	);
+
+	// Remove function parameter XML-style tool calls
+	const parameterXmlRegex =
+		/<function=([a-zA-Z_][a-zA-Z0-9_]*)\s*>[\s\S]*?<\/function>/g;
+	cleanedContent = cleanedContent.replace(parameterXmlRegex, '').trim();
 
 	// Remove XML-style tool calls
 	const xmlToolCallRegex =
