@@ -7,9 +7,10 @@ import {
 } from './index.js';
 import {MCPClient} from '../mcp/mcp-client.js';
 import {MCPToolAdapter} from '../mcp/mcp-tool-adapter.js';
+import {LangChainToolOrchestrator} from './langchain-orchestrator.js';
 
 /**
- * Manages both static tools and dynamic MCP tools
+ * Manages both static tools and dynamic MCP tools, with LangChain orchestration
  */
 export class ToolManager {
 	private mcpClient: MCPClient | null = null;
@@ -17,12 +18,16 @@ export class ToolManager {
 	private toolRegistry: Record<string, ToolHandler> = {};
 	private toolFormatters: Record<string, (args: any) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>> = {};
 	private allTools: Tool[] = [];
+	private orchestrator: LangChainToolOrchestrator;
 
 	constructor() {
 		// Initialize with static tools
 		this.toolRegistry = {...staticToolRegistry};
 		this.toolFormatters = {...staticToolFormatters};
 		this.allTools = [...staticTools];
+		
+		// Initialize LangChain orchestrator
+		this.orchestrator = new LangChainToolOrchestrator(this);
 	}
 
 	async initializeMCP(
@@ -112,5 +117,37 @@ export class ToolManager {
 	 */
 	getServerTools(serverName: string): any[] {
 		return this.mcpClient?.getServerTools(serverName) || [];
+	}
+
+	/**
+	 * Get the LangChain orchestrator for workflow automation
+	 */
+	getOrchestrator(): LangChainToolOrchestrator {
+		return this.orchestrator;
+	}
+
+	/**
+	 * Initialize LangChain orchestrator with a chat model
+	 */
+	async initializeLangChain(chatModel: any): Promise<void> {
+		this.orchestrator.setChatModel(chatModel);
+	}
+
+	/**
+	 * Execute a complex workflow using LangChain orchestration with approval callback
+	 */
+	async executeWorkflow(
+		task: string, 
+		context?: string[], 
+		onApproval?: (step: any, stepIndex: number, totalSteps: number) => Promise<'approve' | 'decline' | 'skip'>
+	): Promise<any> {
+		return this.orchestrator.executeTask(task, context, undefined, onApproval);
+	}
+
+	/**
+	 * Plan a workflow without executing it
+	 */
+	async planWorkflow(task: string, context?: string[]): Promise<any> {
+		return this.orchestrator.planWorkflow(task, context);
 	}
 }

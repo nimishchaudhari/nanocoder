@@ -93,7 +93,6 @@ export class LangChainClient implements LLMClient {
 	private currentModel: string;
 	private availableModels: string[];
 	private providerConfig: LangChainProviderConfig;
-	private supportsNativeTools: boolean | null = null; // Cache tool support detection
 	private modelInfoCache: Map<string, any> = new Map(); // Cache OpenRouter model info
 
 	constructor(providerConfig: LangChainProviderConfig) {
@@ -154,8 +153,7 @@ export class LangChainClient implements LLMClient {
 
 	setModel(model: string): void {
 		this.currentModel = model;
-		// Recreate the chat model with the new model and reset tool support detection
-		this.supportsNativeTools = null;
+		// Recreate the chat model with the new model
 		this.chatModel = this.createChatModel();
 	}
 
@@ -200,28 +198,13 @@ export class LangChainClient implements LLMClient {
 
 			let result: AIMessage;
 			if (langchainTools.length > 0) {
-				if (this.supportsNativeTools === false) {
-					// We already know this model doesn't support native tools, skip directly to prompt-based
-					result = await this.invokeWithPromptBasedTools(
-						langchainMessages,
-						tools,
-					);
-				} else {
-					try {
-						// Try native tool calling first
-						const modelWithTools = this.chatModel.bindTools!(langchainTools);
-						result = (await modelWithTools.invoke(
-							langchainMessages,
-						)) as AIMessage;
-						this.supportsNativeTools = true; // Cache that it works
-					} catch (error) {
-						// Fallback to prompt-based tool calling for non-tool-calling models
-						this.supportsNativeTools = false; // Cache that it doesn't work
-						result = await this.invokeWithPromptBasedTools(
-							langchainMessages,
-							tools,
-						);
-					}
+				try {
+					// Try native tool calling first
+					const modelWithTools = this.chatModel.bindTools!(langchainTools);
+					result = (await modelWithTools.invoke(langchainMessages)) as AIMessage;
+				} catch (error) {
+					// Fallback to prompt-based tool calling for non-tool-calling models
+					result = await this.invokeWithPromptBasedTools(langchainMessages, tools);
 				}
 			} else {
 				result = (await this.chatModel.invoke(langchainMessages)) as AIMessage;
@@ -302,9 +285,7 @@ export class LangChainClient implements LLMClient {
 		tools: Tool[],
 	): Promise<AIMessage> {
 		const messagesWithTools = this.addToolsToMessages(messages, tools);
-		const result = (await this.chatModel.invoke(
-			messagesWithTools,
-		)) as AIMessage;
+		const result = (await this.chatModel.invoke(messagesWithTools)) as AIMessage;
 
 		// Parse tool calls from the response content
 		const toolCalls = this.parseToolCallsFromContent(result.content as string);
@@ -414,69 +395,10 @@ IMPORTANT: Only use the JSON tool format if you actually need to use a tool. If 
 									arguments: toolCall.function.arguments || {},
 								},
 							});
-						} else if (
-							toolCall.id &&
-							(toolCall.command !== undefined || toolCall.name)
-						) {
-							// Handle simplified format: { "id": "tool_name", "command": "value" }
-							const toolName = toolCall.name || toolCall.id;
-							const args: any = {...toolCall};
-							delete args.id;
-							delete args.name;
-
-							toolCalls.push({
-								id: `call_${Date.now()}_${Math.random()
-									.toString(36)
-									.substr(2, 9)}`,
-								function: {
-									name: toolName,
-									arguments: args,
-								},
-							});
 						}
 					}
 				}
-				// Handle direct tool call format (single tool)
-				else if (
-					parsed.id &&
-					(parsed.command !== undefined || parsed.name || parsed.function)
-				) {
-					if (parsed.function?.name) {
-						// Standard single tool call format
-						toolCalls.push({
-							id:
-								parsed.id ||
-								`call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-							function: {
-								name: parsed.function.name,
-								arguments: parsed.function.arguments || {},
-							},
-						});
-					} else {
-						// Simplified single tool call format
-						const toolName = parsed.name || parsed.id;
-						const args: any = {...parsed};
-						delete args.id;
-						delete args.name;
-
-						toolCalls.push({
-							id: `call_${Date.now()}_${Math.random()
-								.toString(36)
-								.substr(2, 9)}`,
-							function: {
-								name: toolName,
-								arguments: args,
-							},
-						});
-					}
-				}
 			} catch (error) {
-				console.log(
-					'[DEBUG] Failed to parse JSON in tool call block:',
-					match[1],
-					'Error:',
-					error,
-				);
 				// Skip invalid JSON
 				continue;
 			}
@@ -484,6 +406,7 @@ IMPORTANT: Only use the JSON tool format if you actually need to use a tool. If 
 
 		return toolCalls;
 	}
+
 
 	private isOllamaConfig(config: any): boolean {
 		// Check if baseURL indicates Ollama

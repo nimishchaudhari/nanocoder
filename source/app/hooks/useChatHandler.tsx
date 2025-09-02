@@ -233,8 +233,7 @@ export function useChatHandler({
 		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
 
 		// Filter out invalid tool calls
-		// const validToolCalls = filterValidToolCalls(allToolCalls, toolManager?.getAllTools() || []);
-		const validToolCalls = allToolCalls; // Temporarily disabled filtering
+		const validToolCalls = allToolCalls;
 
 		// Add assistant message to conversation history
 		const assistantMsg: Message = {
