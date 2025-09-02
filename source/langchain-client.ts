@@ -94,7 +94,11 @@ export class LangChainClient implements LLMClient {
 	private availableModels: string[];
 	private providerConfig: LangChainProviderConfig;
 	private modelInfoCache: Map<string, any> = new Map(); // Cache OpenRouter model info
-	private toolCallHistory: Array<{toolName: string; args: any; timestamp: number}> = []; // Track recent tool calls to prevent loops
+	private toolCallHistory: Array<{
+		toolName: string;
+		args: any;
+		timestamp: number;
+	}> = []; // Track recent tool calls to prevent loops
 
 	constructor(providerConfig: LangChainProviderConfig) {
 		this.providerConfig = providerConfig;
@@ -202,10 +206,45 @@ export class LangChainClient implements LLMClient {
 				try {
 					// Try native tool calling first
 					const modelWithTools = this.chatModel.bindTools!(langchainTools);
-					result = (await modelWithTools.invoke(langchainMessages)) as AIMessage;
+					result = (await modelWithTools.invoke(
+						langchainMessages,
+					)) as AIMessage;
+
+					// Apply loop detection to native tool calls
+					if (result.tool_calls && result.tool_calls.length > 0) {
+						const filteredToolCalls = result.tool_calls.filter(tc => {
+							const isDuplicate = this.isDuplicateRecentToolCall(
+								tc.name,
+								tc.args,
+							);
+							if (isDuplicate) {
+								return false;
+							}
+							// Add non-duplicate calls to history
+							this.addToToolCallHistory(tc.name, tc.args);
+							return true;
+						});
+
+						// If we have filtered tool calls, update the result
+						if (filteredToolCalls.length > 0) {
+							result = new AIMessage({
+								content: result.content,
+								tool_calls: filteredToolCalls,
+							});
+						} else {
+							// All tool calls were duplicates, return response explaining this
+							result = new AIMessage({
+								content:
+									"I notice I was about to repeat the same tool call(s). The requested action has already been performed recently. Please let me know if you need something different or if you'd like me to check the previous results.",
+							});
+						}
+					}
 				} catch (error) {
 					// Fallback to prompt-based tool calling for non-tool-calling models
-					result = await this.invokeWithPromptBasedTools(langchainMessages, tools);
+					result = await this.invokeWithPromptBasedTools(
+						langchainMessages,
+						tools,
+					);
 				}
 			} else {
 				result = (await this.chatModel.invoke(langchainMessages)) as AIMessage;
@@ -293,12 +332,14 @@ export class LangChainClient implements LLMClient {
 
 		// Clean up old entries
 		this.toolCallHistory = this.toolCallHistory.filter(
-			entry => now - entry.timestamp < recentWindow
+			entry => now - entry.timestamp < recentWindow,
 		);
 
 		// Check for duplicates in recent history
 		const isDuplicate = this.toolCallHistory.some(
-			entry => entry.toolName === toolName && JSON.stringify(entry.args) === argsString
+			entry =>
+				entry.toolName === toolName &&
+				JSON.stringify(entry.args) === argsString,
 		);
 
 		return isDuplicate;
@@ -311,7 +352,7 @@ export class LangChainClient implements LLMClient {
 		this.toolCallHistory.push({
 			toolName,
 			args,
-			timestamp: Date.now()
+			timestamp: Date.now(),
 		});
 
 		// Keep only recent entries to prevent memory bloat
@@ -326,7 +367,9 @@ export class LangChainClient implements LLMClient {
 		tools: Tool[],
 	): Promise<AIMessage> {
 		const messagesWithTools = this.addToolsToMessages(messages, tools);
-		const result = (await this.chatModel.invoke(messagesWithTools)) as AIMessage;
+		const result = (await this.chatModel.invoke(
+			messagesWithTools,
+		)) as AIMessage;
 
 		// Parse tool calls from the response content
 		const toolCalls = this.parseToolCallsFromContent(result.content as string);
@@ -334,9 +377,14 @@ export class LangChainClient implements LLMClient {
 		if (toolCalls.length > 0) {
 			// Filter out duplicate recent tool calls to prevent loops
 			const filteredToolCalls = toolCalls.filter(tc => {
-				const isDuplicate = this.isDuplicateRecentToolCall(tc.function.name, tc.function.arguments);
+				const isDuplicate = this.isDuplicateRecentToolCall(
+					tc.function.name,
+					tc.function.arguments,
+				);
 				if (isDuplicate) {
-					logError(`Prevented duplicate tool call: ${tc.function.name} (loop prevention)`);
+					logError(
+						`Prevented duplicate tool call: ${tc.function.name} (loop prevention)`,
+					);
 					return false;
 				}
 				// Add non-duplicate calls to history
@@ -357,7 +405,8 @@ export class LangChainClient implements LLMClient {
 			} else {
 				// All tool calls were duplicates, return response explaining this
 				return new AIMessage({
-					content: 'I notice I was about to repeat the same tool call(s). The requested action has already been performed recently. Please let me know if you need something different or if you\'d like me to check the previous results.',
+					content:
+						"I notice I was about to repeat the same tool call(s). The requested action has already been performed recently. Please let me know if you need something different or if you'd like me to check the previous results.",
 				});
 			}
 		}
@@ -471,7 +520,6 @@ IMPORTANT RULES:
 
 		return toolCalls;
 	}
-
 
 	private isOllamaConfig(config: any): boolean {
 		// Check if baseURL indicates Ollama
