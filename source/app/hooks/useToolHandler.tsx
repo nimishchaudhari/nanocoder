@@ -114,12 +114,18 @@ export function useToolHandler({
 		const {updatedMessages, assistantMsg, systemMessage} = currentConversationContext;
 
 		// Add tool results to conversation history
-		const toolMessages: Message[] = resultsToUse.map(result => ({
-			role: 'tool' as const,
-			content: result.content,
-			tool_call_id: result.tool_call_id,
-			name: result.name,
-		}));
+		// For non-tool-calling models, enhance the content to be more explicit
+		const toolMessages: Message[] = resultsToUse.map(result => {
+			// Make tool results more explicit for non-tool-calling models
+			const enhancedContent = `Tool "${result.name}" was executed successfully. Result: ${result.content}`;
+			
+			return {
+				role: 'tool' as const,
+				content: enhancedContent,
+				tool_call_id: result.tool_call_id,
+				name: result.name,
+			};
+		});
 
 		// Update conversation history with tool results
 		// Note: assistantMsg is already included in updatedMessages, just add tool results

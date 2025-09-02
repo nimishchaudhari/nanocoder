@@ -26,7 +26,7 @@ function convertToLangChainTool(tool: Tool): StructuredTool {
 		description = tool.function.description;
 		schema = tool.function.parameters;
 
-		async _call(input: any): Promise<string> {
+		async _call(_input: any): Promise<string> {
 			// This won't actually be called since we handle tool execution externally
 			// But LangChain requires it for the tool definition
 			return 'Tool execution handled externally';
@@ -94,6 +94,7 @@ export class LangChainClient implements LLMClient {
 	private availableModels: string[];
 	private providerConfig: LangChainProviderConfig;
 	private modelInfoCache: Map<string, any> = new Map(); // Cache OpenRouter model info
+	private toolCallHistory: Array<{toolName: string; args: any; timestamp: number}> = []; // Track recent tool calls to prevent loops
 
 	constructor(providerConfig: LangChainProviderConfig) {
 		this.providerConfig = providerConfig;
@@ -278,6 +279,46 @@ export class LangChainClient implements LLMClient {
 	async clearContext(): Promise<void> {
 		// LangChain models are typically stateless, no context to clear
 		// If the underlying provider needs context clearing, it would be handled here
+		// Clear tool call history when context is cleared
+		this.toolCallHistory = [];
+	}
+
+	/**
+	 * Check if a tool call is a recent duplicate to prevent looping
+	 */
+	private isDuplicateRecentToolCall(toolName: string, args: any): boolean {
+		const now = Date.now();
+		const recentWindow = 30000; // 30 seconds
+		const argsString = JSON.stringify(args);
+
+		// Clean up old entries
+		this.toolCallHistory = this.toolCallHistory.filter(
+			entry => now - entry.timestamp < recentWindow
+		);
+
+		// Check for duplicates in recent history
+		const isDuplicate = this.toolCallHistory.some(
+			entry => entry.toolName === toolName && JSON.stringify(entry.args) === argsString
+		);
+
+		return isDuplicate;
+	}
+
+	/**
+	 * Add a tool call to history for duplicate detection
+	 */
+	private addToToolCallHistory(toolName: string, args: any): void {
+		this.toolCallHistory.push({
+			toolName,
+			args,
+			timestamp: Date.now()
+		});
+
+		// Keep only recent entries to prevent memory bloat
+		const maxEntries = 20;
+		if (this.toolCallHistory.length > maxEntries) {
+			this.toolCallHistory = this.toolCallHistory.slice(-maxEntries);
+		}
 	}
 
 	private async invokeWithPromptBasedTools(
@@ -291,15 +332,34 @@ export class LangChainClient implements LLMClient {
 		const toolCalls = this.parseToolCallsFromContent(result.content as string);
 
 		if (toolCalls.length > 0) {
-			// Return modified result with tool calls
-			return new AIMessage({
-				content: '', // Clear content since we extracted tool calls
-				tool_calls: toolCalls.map(tc => ({
-					id: tc.id,
-					name: tc.function.name,
-					args: tc.function.arguments,
-				})),
+			// Filter out duplicate recent tool calls to prevent loops
+			const filteredToolCalls = toolCalls.filter(tc => {
+				const isDuplicate = this.isDuplicateRecentToolCall(tc.function.name, tc.function.arguments);
+				if (isDuplicate) {
+					logError(`Prevented duplicate tool call: ${tc.function.name} (loop prevention)`);
+					return false;
+				}
+				// Add non-duplicate calls to history
+				this.addToToolCallHistory(tc.function.name, tc.function.arguments);
+				return true;
 			});
+
+			// If we have filtered tool calls, return them
+			if (filteredToolCalls.length > 0) {
+				return new AIMessage({
+					content: '', // Clear content since we extracted tool calls
+					tool_calls: filteredToolCalls.map(tc => ({
+						id: tc.id,
+						name: tc.function.name,
+						args: tc.function.arguments,
+					})),
+				});
+			} else {
+				// All tool calls were duplicates, return response explaining this
+				return new AIMessage({
+					content: 'I notice I was about to repeat the same tool call(s). The requested action has already been performed recently. Please let me know if you need something different or if you\'d like me to check the previous results.',
+				});
+			}
 		}
 
 		return result;
@@ -347,12 +407,17 @@ export class LangChainClient implements LLMClient {
 Available tools:
 ${toolDefinitions}
 
-IMPORTANT: Only use the JSON tool format if you actually need to use a tool. If you're just responding normally, don't include any JSON.`;
+IMPORTANT RULES:
+1. Only use the JSON tool format if you actually need to use a tool
+2. If you're just responding normally, don't include any JSON
+3. DO NOT repeat tool calls - if you've already used a tool recently, check the previous results instead
+4. If you see tool results in the conversation history, use them rather than calling the same tool again
+5. Each tool should only be called once per task unless the user explicitly asks to repeat it`;
 
 		// Add tool instructions to the system message or create one
 		const modifiedMessages = [...messages];
 		const systemMessageIndex = modifiedMessages.findIndex(
-			msg => msg._getType() === 'system',
+			msg => msg instanceof SystemMessage,
 		);
 
 		if (systemMessageIndex >= 0) {
@@ -389,7 +454,7 @@ IMPORTANT: Only use the JSON tool format if you actually need to use a tool. If 
 									toolCall.id ||
 									`call_${Date.now()}_${Math.random()
 										.toString(36)
-										.substr(2, 9)}`,
+										.substring(2, 11)}`,
 								function: {
 									name: toolCall.function.name,
 									arguments: toolCall.function.arguments || {},
