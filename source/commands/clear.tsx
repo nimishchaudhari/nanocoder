@@ -1,26 +1,13 @@
 import {Command} from '../types/index.js';
 import React from 'react';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {colors} from '../config/index.js';
-import {Text} from 'ink';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
+import SuccessMessage from '../components/success-message.js';
 
 function Clear() {
-	const boxWidth = useTerminalWidth();
 	return (
-		<TitledBox
-			borderStyle="round"
-			titles={['/clear']}
-			titleStyles={titleStyles.pill}
-			width={boxWidth}
-			borderColor={colors.success}
-			paddingX={2}
-			paddingY={1}
-			flexDirection="column"
-			marginBottom={1}
-		>
-			<Text color={colors.success}>Chat Cleared...</Text>
-		</TitledBox>
+		<SuccessMessage
+			hideBox={true}
+			message="✔️ Chat Cleared..."
+		></SuccessMessage>
 	);
 }
 
