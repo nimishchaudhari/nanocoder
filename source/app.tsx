@@ -37,7 +37,8 @@ export default function App() {
 		client: appState.client,
 		toolManager: appState.toolManager,
 		messages: appState.messages,
-		setMessages: appState.setMessages,
+		setMessages: appState.updateMessages,
+		getMessageTokens: appState.getMessageTokens,
 		currentModel: appState.currentModel,
 		setIsThinking: appState.setIsThinking,
 		setIsCancelling: appState.setIsCancelling,
@@ -71,7 +72,7 @@ export default function App() {
 		setCurrentConversationContext: appState.setCurrentConversationContext,
 		setIsToolConfirmationMode: appState.setIsToolConfirmationMode,
 		setIsToolExecuting: appState.setIsToolExecuting,
-		setMessages: appState.setMessages,
+		setMessages: appState.updateMessages,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 		resetToolConfirmationState: appState.resetToolConfirmationState,
@@ -86,7 +87,7 @@ export default function App() {
 		setClient: appState.setClient,
 		setCurrentModel: appState.setCurrentModel,
 		setCurrentProvider: appState.setCurrentProvider,
-		setMessages: appState.setMessages,
+		setMessages: appState.updateMessages,
 		setIsModelSelectionMode: appState.setIsModelSelectionMode,
 		setIsProviderSelectionMode: appState.setIsProviderSelectionMode,
 		addToChatQueue: appState.addToChatQueue,
@@ -111,8 +112,8 @@ export default function App() {
 
 	// Memoize handlers to prevent unnecessary re-renders
 	const clearMessages = React.useMemo(
-		() => createClearMessagesHandler(appState.setMessages, appState.client),
-		[appState.setMessages, appState.client]
+		() => createClearMessagesHandler(appState.updateMessages, appState.client),
+		[appState.updateMessages, appState.client]
 	);
 	
 	const handleCancel = React.useCallback(() => {
@@ -133,7 +134,7 @@ export default function App() {
 			onHandleChatMessage: chatHandler.handleChatMessage,
 			onAddToChatQueue: appState.addToChatQueue,
 			componentKeyCounter: appState.componentKeyCounter,
-			setMessages: appState.setMessages,
+			setMessages: appState.updateMessages,
 			messages: appState.messages,
 			setIsBashExecuting: appState.setIsBashExecuting,
 			setCurrentBashCommand: appState.setCurrentBashCommand,
@@ -148,7 +149,7 @@ export default function App() {
 		chatHandler.handleChatMessage,
 		appState.addToChatQueue,
 		appState.componentKeyCounter,
-		appState.setMessages,
+		appState.updateMessages,
 		appState.messages,
 		appState.setIsBashExecuting,
 		appState.setCurrentBashCommand,

@@ -1,5 +1,5 @@
 import {Box, Text, useInput, useFocus} from 'ink';
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect, useCallback, useRef} from 'react';
 import {colors} from '../config/index.js';
 import {promptHistory} from '../prompt-history.js';
 import {commandRegistry} from '../commands.js';
@@ -22,13 +22,29 @@ function useInputState() {
 	const [hasLargeContent, setHasLargeContent] = useState(false);
 	const [originalInput, setOriginalInput] = useState('');
 	const [historyIndex, setHistoryIndex] = useState(-1);
+	const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
 	const updateInput = useCallback((newInput: string) => {
+		// Clear previous debounce timer
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current);
+		}
+
+		// For immediate UI feedback, always update input immediately
 		setInput(newInput);
-		setHasLargeContent(newInput.length > 150);
+
+		// Debounce the expensive hasLargeContent calculation
+		debounceTimerRef.current = setTimeout(() => {
+			setHasLargeContent(newInput.length > 150);
+		}, 50);
 	}, []);
 
 	const resetInput = useCallback(() => {
+		// Clear any pending debounce timer
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current);
+			debounceTimerRef.current = null;
+		}
 		setInput('');
 		setHasLargeContent(false);
 		setOriginalInput('');

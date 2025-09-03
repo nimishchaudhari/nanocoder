@@ -54,6 +54,7 @@ interface UseChatHandlerProps {
 	toolManager: ToolManager | null;
 	messages: Message[];
 	setMessages: (messages: Message[]) => void;
+	getMessageTokens?: (message: Message) => number;
 	currentModel: string;
 	setIsThinking: (thinking: boolean) => void;
 	setIsCancelling: (cancelling: boolean) => void;
@@ -77,6 +78,7 @@ export function useChatHandler({
 	toolManager,
 	messages,
 	setMessages,
+	getMessageTokens,
 	currentModel,
 	setIsThinking,
 	setIsCancelling,
@@ -193,9 +195,9 @@ export function useChatHandler({
 			// Update thinking stats in real-time
 			if (!chunk.done) {
 				const systemTokens = Math.ceil(300 / 4);
-				const conversationTokens = messages.reduce((total, msg) => {
-					return total + Math.ceil((msg.content?.length || 0) / 4);
-				}, 0);
+				const conversationTokens = getMessageTokens 
+					? messages.reduce((total, msg) => total + getMessageTokens(msg), 0)
+					: messages.reduce((total, msg) => total + Math.ceil((msg.content?.length || 0) / 4), 0);
 				const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
 
 				throttledSetThinkingStats({
@@ -308,9 +310,9 @@ export function useChatHandler({
 				// Update thinking stats in real-time (similar to initial response)
 				if (!chunk.done) {
 					const systemTokens = Math.ceil(300 / 4);
-					const conversationTokens = messages.reduce((total, msg) => {
-						return total + Math.ceil((msg.content?.length || 0) / 4);
-					}, 0);
+					const conversationTokens = getMessageTokens 
+						? messages.reduce((total, msg) => total + getMessageTokens(msg), 0)
+						: messages.reduce((total, msg) => total + Math.ceil((msg.content?.length || 0) / 4), 0);
 					const totalTokensUsed =
 						systemTokens + conversationTokens + tokenCount;
 
