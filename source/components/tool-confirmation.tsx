@@ -28,6 +28,7 @@ export default function ToolConfirmation({
 		React.ReactElement | string | null
 	>(null);
 	const [isLoadingPreview, setIsLoadingPreview] = React.useState(false);
+	const [hasFormatterError, setHasFormatterError] = React.useState(false);
 
 	// Load formatter preview
 	React.useEffect(() => {
@@ -49,9 +50,10 @@ export default function ToolConfirmation({
 					setFormatterPreview(preview);
 				} catch (error) {
 					console.error('Error loading formatter preview:', error);
+					setHasFormatterError(true);
 					setFormatterPreview(
 						<Text color={colors.error}>
-							Error loading preview: {String(error)}
+							Error: {String(error)}
 						</Text>,
 					);
 				} finally {
@@ -69,6 +71,14 @@ export default function ToolConfirmation({
 			onCancel();
 		}
 	});
+
+	// Auto-cancel if there's a formatter error
+	React.useEffect(() => {
+		if (hasFormatterError) {
+			// Automatically cancel the tool execution
+			onConfirm(false);
+		}
+	}, [hasFormatterError, onConfirm]);
 
 	const options: ConfirmationOption[] = [
 		{label: '✓ Yes, execute this tool', value: true},
@@ -101,15 +111,28 @@ export default function ToolConfirmation({
 					</Box>
 				)}
 
-				<Box marginBottom={1}>
-					<Text color={colors.tool}>Do you want to execute this tool?</Text>
-				</Box>
+				{/* Only show approval prompt if there's no formatter error */}
+				{!hasFormatterError && (
+					<>
+						<Box marginBottom={1}>
+							<Text color={colors.tool}>Do you want to execute this tool?</Text>
+						</Box>
 
-				<SelectInput items={options} onSelect={handleSelect} />
+						<SelectInput items={options} onSelect={handleSelect} />
 
-				<Box marginTop={1}>
-					<Text color={colors.secondary}>Press Escape to cancel</Text>
-				</Box>
+						<Box marginTop={1}>
+							<Text color={colors.secondary}>Press Escape to cancel</Text>
+						</Box>
+					</>
+				)}
+
+				{/* Show automatic cancellation message for formatter errors */}
+				{hasFormatterError && (
+					<Box marginTop={1}>
+						<Text color={colors.error}>Tool execution cancelled due to validation error.</Text>
+						<Text color={colors.secondary}>Press Escape to continue</Text>
+					</Box>
+				)}
 			</Box>
 		</Box>
 	);

@@ -14,6 +14,17 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 	const mode = args.mode || 'insert';
 	const lineNumber = Number(args.line_number);
 	const endLine = Number(args.end_line) || lineNumber;
+	
+	// Validate parsed numbers to prevent NaN display
+	const isValidLineNumber = !isNaN(lineNumber) && lineNumber > 0;
+	const isValidEndLine = !isNaN(endLine) && endLine > 0;
+	
+	// For line-based modes, fail early if line numbers are invalid
+	if (mode !== 'find_replace' && (!isValidLineNumber || !isValidEndLine)) {
+		// Throw an error to prevent the approval prompt entirely
+		throw new Error(`Invalid line numbers: line_number=${args.line_number}, end_line=${args.end_line}. Operation cannot proceed.`);
+	}
+	
 	const content = args.content || '';
 	const targetLine = Number(args.target_line);
 	const oldText = args.old_text || '';
@@ -108,7 +119,11 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 						<Box>
 							<Text color={colors.secondary}>Range: </Text>
 							<Text color={colors.white}>
-								{lineNumber === endLine ? `line ${lineNumber}` : `lines ${lineNumber}-${endLine}`}
+								{!isValidLineNumber || !isValidEndLine 
+									? 'invalid line range' 
+									: lineNumber === endLine 
+										? `line ${lineNumber}` 
+										: `lines ${lineNumber}-${endLine}`}
 							</Text>
 						</Box>
 					)}
@@ -157,7 +172,11 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 						<Box>
 							<Text color={colors.secondary}>Range: </Text>
 							<Text color={colors.white}>
-								{lineNumber === endLine ? `line ${lineNumber}` : `lines ${lineNumber}-${endLine}`}
+								{!isValidLineNumber || !isValidEndLine 
+									? 'invalid line range' 
+									: lineNumber === endLine 
+										? `line ${lineNumber}` 
+										: `lines ${lineNumber}-${endLine}`}
 							</Text>
 						</Box>
 					)}
@@ -278,7 +297,11 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 					<Box>
 						<Text color={colors.secondary}>Range: </Text>
 						<Text color={colors.white}>
-							{lineNumber === endLine ? `line ${lineNumber}` : `lines ${lineNumber}-${endLine}`}
+							{!isValidLineNumber || !isValidEndLine 
+								? 'invalid line range' 
+								: lineNumber === endLine 
+									? `line ${lineNumber}` 
+									: `lines ${lineNumber}-${endLine}`}
 						</Text>
 					</Box>
 				)}
