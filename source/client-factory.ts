@@ -61,7 +61,7 @@ async function createLangChainClient(
 			// Test provider connection
 			await testLangChainProviderConnection(providerConfig);
 			
-			const client = new LangChainClient(providerConfig);
+			const client = await LangChainClient.create(providerConfig);
 			
 			return { client, actualProvider: providerType };
 			

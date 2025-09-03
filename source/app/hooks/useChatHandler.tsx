@@ -420,11 +420,16 @@ export function useChatHandler({
 		// Start thinking indicator and streaming
 		setIsThinking(true);
 
-		// Reset per-message stats
+		// Initialize per-message stats with existing conversation context
+		const systemTokens = Math.ceil(300 / 4); // Estimate system prompt tokens
+		const existingConversationTokens = getMessageTokens 
+			? updatedMessages.reduce((total, msg) => total + getMessageTokens(msg), 0)
+			: updatedMessages.reduce((total, msg) => total + Math.ceil((msg.content?.length || 0) / 4), 0);
+		
 		setThinkingStats({
 			tokenCount: 0,
 			contextSize: client.getContextSize(),
-			totalTokensUsed: 0, // Start fresh, will be calculated properly in the interval
+			totalTokensUsed: systemTokens + existingConversationTokens,
 		});
 
 		try {

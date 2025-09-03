@@ -105,11 +105,17 @@ export class LangChainClient implements LLMClient {
 		this.availableModels = providerConfig.models;
 		this.currentModel = providerConfig.models[0] || '';
 		this.chatModel = this.createChatModel();
+	}
 
+	static async create(providerConfig: LangChainProviderConfig): Promise<LangChainClient> {
+		const client = new LangChainClient(providerConfig);
+		
 		// Fetch OpenRouter model info if this is OpenRouter
-		if (this.providerConfig.name === 'openrouter') {
-			this.fetchOpenRouterModelInfo();
+		if (providerConfig.name === 'openrouter') {
+			await client.fetchOpenRouterModelInfo();
 		}
+		
+		return client;
 	}
 
 	private createChatModel(): BaseChatModel {
@@ -173,7 +179,7 @@ export class LangChainClient implements LLMClient {
 			if (modelData && modelData.context_length) {
 				return modelData.context_length;
 			}
-			// Return 0 to hide context display if not available yet
+			// Return 0 if model info not loaded yet (will hide context display)
 			return 0;
 		}
 
