@@ -14,12 +14,9 @@ importers:
       '@langchain/langgraph':
         specifier: ^0.4.8
         version: 0.4.8(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(react@19.1.1)(zod-to-json-schema@3.24.6(zod@3.25.76))
-      '@langchain/ollama':
-        specifier: ^0.2.3
-        version: 0.2.3(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))
       '@langchain/openai':
-        specifier: ^0.6.9
-        version: 0.6.9(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(ws@8.18.3)
+        specifier: ^0.6.10
+        version: 0.6.11(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(ws@8.18.3)
       '@mishieck/ink-titled-box':
         specifier: ^0.3.0
         version: 0.3.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
@@ -212,14 +209,8 @@ packages:
       zod-to-json-schema:
         optional: true
 
-  '@langchain/ollama@0.2.3':
-    resolution: {integrity: sha512-1Obe45jgQspqLMBVlayQbGdywFmri8DgmGRdzNu0li56cG5RReYlRCFVDZBRMMvF9JhsP5eXRyfyivtKfITHWQ==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      '@langchain/core': '>=0.3.58 <0.4.0'
-
-  '@langchain/openai@0.6.9':
-    resolution: {integrity: sha512-Dl+YVBTFia7WE4/jFemQEVchPbsahy/dD97jo6A9gLnYfTkWa/jh8Q78UjHQ3lobif84j2ebjHPcDHG1L0NUWg==}
+  '@langchain/openai@0.6.11':
+    resolution: {integrity: sha512-BkaudQTLsmdt9mF6tn6CrsK2TEFKk4EhAWYkouGTy/ljJIH/p2Nz9awIOGdrQiQt6AJ5mvKGupyVqy3W/jim2Q==}
     engines: {node: '>=18'}
     peerDependencies:
       '@langchain/core': '>=0.3.68 <0.4.0'
@@ -3173,13 +3164,7 @@ snapshots:
       - react
       - react-dom
 
-  '@langchain/ollama@0.2.3(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))':
-    dependencies:
-      '@langchain/core': 0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76))
-      ollama: 0.5.17
-      uuid: 10.0.0
-
-  '@langchain/openai@0.6.9(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(ws@8.18.3)':
+  '@langchain/openai@0.6.11(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(ws@8.18.3)':
     dependencies:
       '@langchain/core': 0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76))
       js-tiktoken: 1.0.21

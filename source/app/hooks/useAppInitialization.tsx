@@ -61,7 +61,6 @@ export function useAppInitialization({
 	componentKeyCounter,
 	customCommandCache,
 }: UseAppInitializationProps) {
-
 	// Initialize LLM client and model
 	const initializeClient = async (preferredProvider?: ProviderType) => {
 		const {client, actualProvider} = await createLLMClient(preferredProvider);
@@ -184,13 +183,13 @@ export function useAppInitialization({
 			addToChatQueue(
 				<ErrorMessage
 					key={`init-error-${componentKeyCounter}`}
-					message={`No providers available: ${error}\n\nThe app will remain running but chat functionality is disabled until you fix the provider configuration.`}
+					message={`No providers available: ${error}`}
 					hideBox={true}
 				/>,
 			);
 			// Leave client as null - the UI will handle this gracefully
 		}
-		
+
 		try {
 			await loadCustomCommands(newCustomCommandLoader);
 		} catch (error) {

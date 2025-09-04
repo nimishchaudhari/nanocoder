@@ -1,6 +1,5 @@
 import {BaseChatModel} from '@langchain/core/language_models/chat_models';
 import {ChatOpenAI} from '@langchain/openai';
-import {ChatOllama} from '@langchain/ollama';
 import {
 	AIMessage,
 	HumanMessage,
@@ -119,47 +118,16 @@ export class LangChainClient implements LLMClient {
 	}
 
 	private createChatModel(): BaseChatModel {
-		const {type, config} = this.providerConfig;
+		const {config} = this.providerConfig;
 
-		switch (type) {
-			case 'openai':
-				return new ChatOpenAI({
-					modelName: this.currentModel,
-					openAIApiKey: config.apiKey,
-					configuration: {
-						baseURL: config.baseURL,
-					},
-					...config,
-				});
-
-			case 'openai-compatible':
-				// Detect if this is Ollama
-				if (this.isOllamaConfig(config)) {
-					return new ChatOllama({
-						model: this.currentModel,
-						baseUrl: config.baseURL,
-						// Add repetition prevention parameters
-						repeatPenalty: 1.2,
-						repeatLastN: 64,
-						// Ensure proper stop conditions
-						stop: ['</tool_call>', '</function_call>'],
-						...config,
-					});
-				}
-
-				// Fallback to ChatOpenAI for other OpenAI-compatible providers
-				return new ChatOpenAI({
-					modelName: this.currentModel,
-					openAIApiKey: config.apiKey,
-					configuration: {
-						baseURL: config.baseURL,
-					},
-					...config,
-				});
-
-			default:
-				throw new Error(`Unsupported LangChain provider type: ${type}`);
-		}
+		return new ChatOpenAI({
+			modelName: this.currentModel,
+			openAIApiKey: config.apiKey || 'dummy-key',
+			configuration: {
+				baseURL: config.baseURL,
+			},
+			...config,
+		});
 	}
 
 	setModel(model: string): void {
@@ -527,19 +495,6 @@ IMPORTANT RULES:
 		return toolCalls;
 	}
 
-	private isOllamaConfig(config: any): boolean {
-		// Check if baseURL indicates Ollama
-		if (config.baseURL) {
-			const url = config.baseURL.toLowerCase();
-			return (
-				url.includes('ollama') ||
-				url.includes(':11434') ||
-				url.includes('localhost:11434') ||
-				url.includes('127.0.0.1:11434')
-			);
-		}
-		return false;
-	}
 
 	private async fetchOpenRouterModelInfo(): Promise<void> {
 		if (

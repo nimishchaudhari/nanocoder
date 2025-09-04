@@ -1,14 +1,24 @@
 {
 	"nanocoder": {
-		"openRouter": {
-			"apiKey": "your-openrouter-api-key-here",
-			"models": ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"]
-		},
-		"openAICompatible": {
-			"baseUrl": "http://localhost:1234",
-			"apiKey": "optional-api-key-if-needed",
-			"models": ["local-model-1", "local-model-2"]
-		},
+		"providers": [
+			{
+				"name": "OpenRouter",
+				"baseUrl": "https://openrouter.ai/api/v1",
+				"apiKey": "your-openrouter-api-key-here",
+				"models": ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"]
+			},
+			{
+				"name": "Local Ollama",
+				"baseUrl": "http://localhost:11434/v1",
+				"models": ["llama3.2", "qwen2.5-coder"]
+			},
+			{
+				"name": "OpenAI Compatible",
+				"baseUrl": "http://localhost:1234/v1",
+				"apiKey": "optional-api-key-if-needed",
+				"models": ["local-model-1", "local-model-2"]
+			}
+		],
 		"mcpServers": [
 			{
 				"name": "filesystem",

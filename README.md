@@ -81,74 +81,55 @@ npm run dev
 
 ### AI Provider Setup
 
-**Option A: Ollama (Local AI)**
-
-```bash
-ollama pull qwen2.5-coder:14b  # or any other model
-```
-
-**Option B: OpenRouter (Cloud AI)**
-
-Create `agents.config.json` in your **working directory** (where you run `nanocoder`):
+Nanocoder supports any OpenAI-compatible API through a unified provider configuration. Create `agents.config.json` in your **working directory** (where you run `nanocoder`):
 
 ```json
 {
 	"nanocoder": {
-		"openRouter": {
-			"apiKey": "your-api-key-here",
-			"models": ["foo-model", "bar-model"]
-		}
+		"providers": [
+			{
+				"name": "Ollama",
+				"baseUrl": "http://localhost:11434/v1",
+				"models": ["qwen2.5-coder:14b", "llama3.2"]
+			},
+			{
+				"name": "OpenRouter",
+				"baseUrl": "https://openrouter.ai/api/v1",
+				"apiKey": "your-openrouter-api-key",
+				"models": ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"]
+			},
+			{
+				"name": "LM Studio",
+				"baseUrl": "http://localhost:1234/v1",
+				"models": ["local-model"]
+			}
+		]
 	}
 }
 ```
 
-**Option C: llama.cpp (Local Inference)**
+**Common Provider Examples:**
 
-Configure llama.cpp server for local model inference:
+- **Ollama (Local)**: 
+  - First run: `ollama pull qwen2.5-coder:14b`
+  - Use: `"baseUrl": "http://localhost:11434/v1"`
 
-```json
-{
-	"nanocoder": {
-		"llamaCpp": {
-			"baseUrl": "http://localhost:8080",
-			"apiKey": "optional-api-key",
-			"models": ["your-model"],
-			"timeout": 30000,
-			"maxRetries": 3
-		}
-	}
-}
-```
+- **OpenRouter (Cloud)**: 
+  - Use: `"baseUrl": "https://openrouter.ai/api/v1"`
+  - Requires: `"apiKey": "your-api-key"`
 
-To set up llama.cpp server:
+- **LM Studio**: `"baseUrl": "http://localhost:1234/v1"`
+- **vLLM**: `"baseUrl": "http://localhost:8000/v1"`
+- **LocalAI**: `"baseUrl": "http://localhost:8080/v1"`
+- **llama.cpp server**: `"baseUrl": "http://localhost:8080/v1"`
+- **OpenAI**: `"baseUrl": "https://api.openai.com/v1"`
 
-1. Install llama.cpp: Follow the [official installation guide](https://github.com/ggerganov/llama.cpp)
-2. Download a GGUF model (e.g., from Hugging Face)
-3. Start the server: `./llama-server -m your-model.gguf -c 4096 --host 0.0.0.0 --port 8080`
+**Provider Configuration:**
 
-**Option D: OpenAI-Compatible APIs (Local or Remote)**
-
-Configure any OpenAI-compatible API endpoint (e.g., LM Studio, Ollama Web API, vLLM, LocalAI, etc.):
-
-```json
-{
-	"nanocoder": {
-		"openAICompatible": {
-			"baseUrl": "http://localhost:1234",
-			"apiKey": "optional-api-key",
-			"models": ["model-1", "model-2"]
-		}
-	}
-}
-```
-
-Common OpenAI-compatible providers:
-
-- **LM Studio**: `"baseUrl": "http://localhost:1234"`
-- **Ollama Web API**: `"baseUrl": "http://localhost:11434"`
-- **vLLM**: `"baseUrl": "http://localhost:8000"`
-- **LocalAI**: `"baseUrl": "http://localhost:8080"`
-- **Any OpenAI-compatible endpoint**: Just provide the base URL
+- `name`: Display name used in `/provider` command
+- `baseUrl`: OpenAI-compatible API endpoint  
+- `apiKey`: API key (optional for local servers)
+- `models`: Available model list for `/model` command
 
 ### MCP (Model Context Protocol) Servers
 
@@ -209,7 +190,7 @@ Nanocoder automatically saves your preferences to remember your choices across s
 
 **What gets saved automatically:**
 
-- **Last provider used**: The AI provider you last selected (Ollama, OpenRouter, or OpenAI-compatible)
+- **Last provider used**: The AI provider you last selected (by name from your configuration)
 - **Last model per provider**: Your preferred model for each provider
 - **Session continuity**: Automatically switches back to your preferred provider/model when restarting
 
@@ -233,7 +214,7 @@ Nanocoder automatically saves your preferences to remember your choices across s
 - `/help` - Show available commands
 - `/clear` - Clear chat history
 - `/model` - Switch between available models
-- `/provider` - Switch between AI providers (ollama/openrouter/openai-compatible)
+- `/provider` - Switch between configured AI providers
 - `/mcp` - Show connected MCP servers and their tools
 - `/debug` - Toggle logging levels (silent/normal/verbose)
 - `/custom-commands` - List all custom commands
@@ -285,12 +266,12 @@ Generate comprehensive unit tests for {{component}}. Include:
 
 ### 🔌 Multi-Provider Support
 
-- **Ollama**: Local inference with privacy and no API costs
-- **OpenRouter**: Access to premium models (Claude, GPT-4, etc.)
-- **llama.cpp**: Direct local inference with GGUF models and optimized performance
-- **OpenAI-Compatible APIs**: Support for LM Studio, vLLM, LocalAI, and any OpenAI-spec API
-- **Smart fallback**: Automatically switches to available providers if one fails
+- **Universal OpenAI compatibility**: Works with any OpenAI-compatible API
+- **Local providers**: Ollama, LM Studio, vLLM, LocalAI, llama.cpp
+- **Cloud providers**: OpenRouter, OpenAI, and other hosted services
+- **Smart fallback**: Automatically switches to available providers if one fails  
 - **Per-provider preferences**: Remembers your preferred model for each provider
+- **Dynamic configuration**: Add any provider with just a name and endpoint
 
 ### 🛠️ Advanced Tool System
 

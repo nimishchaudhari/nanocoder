@@ -9,23 +9,14 @@ export interface LangChainProviderConfig {
 }
 
 export interface AppConfig {
-  // Provider configs - now backed by LangChain
-  openRouter?: {
-    apiKey: string;
-    models: string[];
-  };
-  openAICompatible?: {
-    baseUrl: string;
-    apiKey?: string;
-    models?: string[];
-  };
-  llamaCpp?: {
+  // Providers array structure - all OpenAI compatible
+  providers?: {
+    name: string;
     baseUrl?: string;
     apiKey?: string;
-    models?: string[];
-    timeout?: number;
-    maxRetries?: number;
-  };
+    models: string[];
+    [key: string]: any; // Allow additional provider-specific config
+  }[];
   
   mcpServers?: {
     name: string;

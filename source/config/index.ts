@@ -14,8 +14,7 @@ function loadAppConfig(): AppConfig {
 
 			if (agentsData.nanocoder) {
 				return {
-					openRouter: agentsData.nanocoder.openRouter,
-					openAICompatible: agentsData.nanocoder.openAICompatible,
+					providers: agentsData.nanocoder.providers,
 					mcpServers: agentsData.nanocoder.mcpServers,
 				};
 			}

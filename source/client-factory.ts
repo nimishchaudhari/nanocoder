@@ -21,13 +21,12 @@ async function createLangChainClient(
 	requestedProvider?: ProviderType,
 	hasConfigFile = true,
 ): Promise<{client: LLMClient; actualProvider: ProviderType}> {
-	// Convert legacy config format to LangChain provider configs
-	const providers = convertLegacyConfigToLangChain();
+	// Load provider configs
+	const providers = loadProviderConfigs();
 	
 	if (providers.length === 0) {
 		if (!hasConfigFile) {
-			// No config file - suggest creating one
-			throw new Error('No agents.config.json found. Please create a configuration file with openRouter or openAICompatible provider settings.');
+			throw new Error('No agents.config.json found. Please create a configuration file with provider settings.');
 		} else {
 			throw new Error('No providers configured in agents.config.json');
 		}
@@ -38,28 +37,29 @@ async function createLangChainClient(
 	if (requestedProvider) {
 		targetProvider = requestedProvider;
 	} else {
-		// Use preferences or default to openai-compatible
+		// Use preferences or default to first available provider
 		const preferences = loadPreferences();
-		targetProvider = preferences.lastProvider || 'openai-compatible';
+		targetProvider = preferences.lastProvider || providers[0].name as ProviderType;
 	}
 
-	// Order providers: requested first, then others (only OpenRouter and OpenAI-compatible now)
+	// Order providers: requested first, then others
+	const availableProviders = providers.map(p => p.name as ProviderType);
 	const providerOrder = [
 		targetProvider,
-		...(['openrouter', 'openai-compatible'] as ProviderType[]).filter(p => p !== targetProvider)
+		...availableProviders.filter(p => p !== targetProvider)
 	];
 
 	const errors: string[] = [];
 
 	for (const providerType of providerOrder) {
 		try {
-			const providerConfig = providers.find(p => mapLangChainProviderToType(p) === providerType);
+			const providerConfig = providers.find(p => p.name === providerType);
 			if (!providerConfig) {
 				continue;
 			}
 
 			// Test provider connection
-			await testLangChainProviderConnection(providerConfig);
+			await testProviderConnection(providerConfig);
 			
 			const client = await LangChainClient.create(providerConfig);
 			
@@ -72,7 +72,7 @@ async function createLangChainClient(
 
 	// If we get here, all providers failed
 	if (!hasConfigFile) {
-		const combinedError = `No providers available: ${errors[0]?.split(': ')[1] || 'Unknown error'}\n\nPlease create an agents.config.json file with openRouter or openAICompatible configuration.`;
+		const combinedError = `No providers available: ${errors[0]?.split(': ')[1] || 'Unknown error'}\n\nPlease create an agents.config.json file with provider configuration.`;
 		throw new Error(combinedError);
 	} else {
 		const combinedError = `All configured providers failed:\n${errors.map(e => `• ${e}`).join('\n')}\n\nPlease check your provider configuration in agents.config.json`;
@@ -80,40 +80,29 @@ async function createLangChainClient(
 	}
 }
 
-function convertLegacyConfigToLangChain(): LangChainProviderConfig[] {
+function loadProviderConfigs(): LangChainProviderConfig[] {
 	const providers: LangChainProviderConfig[] = [];
 
-	// Convert OpenAI-compatible config
-	if (appConfig.openAICompatible?.baseUrl) {
-		providers.push({
-			name: 'openai-compatible',
-			type: 'openai',
-			models: appConfig.openAICompatible.models || ['default'],
-			config: {
-				baseURL: appConfig.openAICompatible.baseUrl,
-				apiKey: appConfig.openAICompatible.apiKey || 'dummy-key',
-			}
-		});
-	}
-
-	// Convert OpenRouter config
-	if (appConfig.openRouter?.apiKey) {
-		providers.push({
-			name: 'openrouter',
-			type: 'openai',
-			models: appConfig.openRouter.models || [],
-			config: {
-				baseURL: 'https://openrouter.ai/api/v1',
-				apiKey: appConfig.openRouter.apiKey,
-			}
-		});
+	// Load providers from the new providers array structure
+	if (appConfig.providers) {
+		for (const provider of appConfig.providers) {
+			providers.push({
+				name: provider.name,
+				type: 'openai',
+				models: provider.models || [],
+				config: {
+					baseURL: provider.baseUrl,
+					apiKey: provider.apiKey || 'dummy-key',
+				}
+			});
+		}
 	}
 
 	return providers;
 }
 
-async function testLangChainProviderConnection(providerConfig: LangChainProviderConfig): Promise<void> {
-	// For OpenAI-style providers, validate config and test local servers
+async function testProviderConnection(providerConfig: LangChainProviderConfig): Promise<void> {
+	// Test local servers for connectivity
 	if (providerConfig.config.baseURL && providerConfig.config.baseURL.includes('localhost')) {
 		try {
 			await fetch(providerConfig.config.baseURL, {
@@ -124,18 +113,9 @@ async function testLangChainProviderConnection(providerConfig: LangChainProvider
 			throw new Error(`Server not accessible at ${providerConfig.config.baseURL}`);
 		}
 	}
+	// Require API key for hosted providers
 	if (!providerConfig.config.apiKey && !providerConfig.config.baseURL?.includes('localhost')) {
 		throw new Error('API key required for hosted providers');
 	}
 }
 
-function mapLangChainProviderToType(providerConfig: LangChainProviderConfig): ProviderType {
-	// Map based on provider name
-	if (providerConfig.name === 'openrouter') {
-		return 'openrouter';
-	}
-	if (providerConfig.name === 'openai-compatible') {
-		return 'openai-compatible';
-	}
-	return 'openai-compatible'; // Default fallback
-}
