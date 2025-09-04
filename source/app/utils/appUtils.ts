@@ -7,22 +7,7 @@ import {toolRegistry} from '../../tools/index.js';
 import InfoMessage from '../../components/info-message.js';
 import ToolMessage from '../../components/tool-message.js';
 import ErrorMessage from '../../components/error-message.js';
-
-export interface MessageSubmissionOptions {
-	customCommandCache: Map<string, any>;
-	customCommandLoader: CustomCommandLoader | null;
-	customCommandExecutor: CustomCommandExecutor | null;
-	onClearMessages: () => Promise<void>;
-	onEnterModelSelectionMode: () => void;
-	onEnterProviderSelectionMode: () => void;
-	onHandleChatMessage: (message: string) => Promise<void>;
-	onAddToChatQueue: (component: React.ReactNode) => void;
-	componentKeyCounter: number;
-	setMessages: (messages: any[]) => void;
-	messages: any[];
-	setIsBashExecuting: (executing: boolean) => void;
-	setCurrentBashCommand: (command: string) => void;
-}
+import type {MessageSubmissionOptions} from '../../types/index.js';
 
 export async function handleMessageSubmission(
 	message: string,

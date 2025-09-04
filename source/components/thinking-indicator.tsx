@@ -2,13 +2,7 @@ import {memo, useState, useEffect, useRef} from 'react';
 import {Box, Text} from 'ink';
 import Spinner from 'ink-spinner';
 import {colors} from '../config/index.js';
-
-interface ThinkingIndicatorProps {
-	tokenCount: number;
-	contextSize: number;
-	totalTokensUsed: number;
-	tokensPerSecond?: number;
-}
+import type {ThinkingIndicatorProps} from '../types/index.js';
 
 export default memo(function ThinkingIndicator({
 	tokenCount,

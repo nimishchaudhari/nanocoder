@@ -1,10 +1,7 @@
 import {Box, Text} from 'ink';
 import {memo} from 'react';
 import {colors} from '../config/index.js';
-
-interface UserMessageProps {
-	message: string;
-}
+import type {UserMessageProps} from '../types/index.js';
 
 export default memo(function UserMessage({message}: UserMessageProps) {
 	// Show placeholder for long messages

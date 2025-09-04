@@ -1,4 +1,4 @@
-import type {EditArgs, EditMode, ValidationResult} from './types.js';
+import type {EditArgs, EditMode, ValidationResult} from '../../types/index.js';
 
 export function validateEditArgs(
 	args: EditArgs,

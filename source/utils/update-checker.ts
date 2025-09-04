@@ -4,22 +4,10 @@ import { fileURLToPath } from 'url';
 import { loadPreferences, savePreferences } from '../config/preferences.js';
 import { shouldLog } from '../config/logging.js';
 import { logError } from './message-queue.js';
+import type {NpmRegistryResponse, UpdateInfo} from '../types/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-interface NpmRegistryResponse {
-  version: string;
-  name: string;
-  [key: string]: any;
-}
-
-interface UpdateInfo {
-  hasUpdate: boolean;
-  currentVersion: string;
-  latestVersion?: string;
-  updateCommand?: string;
-}
 
 /**
  * Compare two semver version strings

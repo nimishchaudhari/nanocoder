@@ -1,4 +1,4 @@
-import type {EditMode} from './types.js';
+import type {EditMode} from '../../types/index.js';
 
 export function generatePostEditContext(
 	lines: string[],

@@ -1,11 +1,6 @@
 import {Box} from 'ink';
 import {ReactNode, useMemo, Fragment, memo} from 'react';
-
-interface ChatQueueProps {
-	staticComponents?: ReactNode[];
-	queuedComponents?: ReactNode[];
-	displayCount?: number;
-}
+import type {ChatQueueProps} from '../types/index.js';
 
 const defaultDisplayCount = 20;
 

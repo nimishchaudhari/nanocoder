@@ -2,15 +2,9 @@ import {spawn} from 'node:child_process';
 import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition} from '../types/index.js';
+import type {ToolHandler, ToolDefinition, BashToolResult} from '../types/index.js';
 import {colors} from '../config/index.js';
 import ToolMessage from '../components/tool-message.js';
-
-// Define a specific type for our bash tool result
-interface BashToolResult {
-	fullOutput: string;
-	llmContext: string;
-}
 
 const handler: ToolHandler = async (args: {
 	command: string;

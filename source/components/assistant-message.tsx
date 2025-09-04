@@ -1,11 +1,7 @@
 import {Text, Box} from 'ink';
 import {memo, useMemo} from 'react';
 import {colors} from '../config/index.js';
-
-interface AssistantMessageProps {
-	message: string;
-	model: string;
-}
+import type {AssistantMessageProps} from '../types/index.js';
 
 // Performance optimization: truncate very long messages to prevent input lag
 const MAX_MESSAGE_LENGTH = 6000; // characters - beyond this causes input lag

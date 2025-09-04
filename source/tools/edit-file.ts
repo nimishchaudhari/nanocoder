@@ -1,6 +1,5 @@
 import React from 'react';
-import type {ToolHandler, ToolDefinition} from '../types/index.js';
-import type {EditArgs} from './edit-file/types.js';
+import type {ToolHandler, ToolDefinition, EditArgs} from '../types/index.js';
 import {executeEdit} from './edit-file/handlers.js';
 import {formatEditPreview} from './edit-file/formatter.js';
 
@@ -114,7 +113,7 @@ export type {
 	EditResult,
 	LineChange,
 	ValidationResult,
-} from './edit-file/types.js';
+} from '../types/index.js';
 export {validateEditArgs, validateLineNumbers} from './edit-file/validation.js';
 export {
 	generatePostEditContext,

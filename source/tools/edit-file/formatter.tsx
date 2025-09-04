@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
-import type {EditArgs, LineChange} from './types.js';
+import type {EditArgs, LineChange} from '../../types/index.js';
 import {colors} from '../../config/index.js';
 import {getLanguageFromExtension} from '../../utils/programming-language-helper.js';
 import ToolMessage from '../../components/tool-message.js';

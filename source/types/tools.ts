@@ -33,3 +33,8 @@ export interface ValidationResult {
 	isValid: boolean;
 	error?: string;
 }
+
+export interface BashToolResult {
+	fullOutput: string;
+	llmContext: string;
+}

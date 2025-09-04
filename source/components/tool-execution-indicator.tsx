@@ -2,12 +2,7 @@ import React from 'react';
 import {Box, Text} from 'ink';
 import Spinner from 'ink-spinner';
 import {colors} from '../config/index.js';
-
-interface ToolExecutionIndicatorProps {
-	toolName: string;
-	currentIndex: number;
-	totalTools: number;
-}
+import type {ToolExecutionIndicatorProps} from '../types/index.js';
 
 export default function ToolExecutionIndicator({
 	toolName,

@@ -1,6 +1,6 @@
 import {resolve} from 'node:path';
 import {readFile, writeFile} from 'node:fs/promises';
-import type {EditArgs, EditMode} from './types.js';
+import type {EditArgs, EditMode} from '../../types/index.js';
 import {validateEditArgs} from './validation.js';
 import {generatePostEditContext, calculateActualEditRange} from './context.js';
 

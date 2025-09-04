@@ -1,10 +1,7 @@
 import {memo} from 'react';
 import {Box, Text} from 'ink';
 import {colors} from '../config/index.js';
-
-interface BashExecutionIndicatorProps {
-	command: string;
-}
+import type {BashExecutionIndicatorProps} from '../types/index.js';
 
 export default memo(function BashExecutionIndicator({
 	command,
