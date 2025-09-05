@@ -42,6 +42,7 @@ export interface ToolDefinition {
   handler: ToolHandler;
   config: Tool;
   formatter?: (args: any, result?: string) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>;
+  requiresConfirmation?: boolean;
 }
 
 export interface LLMClient {

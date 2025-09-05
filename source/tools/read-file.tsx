@@ -7,17 +7,35 @@ import {colors} from '../config/index.js';
 import ToolMessage from '../components/tool-message.js';
 
 const handler: ToolHandler = async (args: {path: string}): Promise<string> => {
-	const content = await readFile(resolve(args.path), 'utf-8');
-	const lines = content.split('\n');
+	const absPath = resolve(args.path);
+	
+	try {
+		const content = await readFile(absPath, 'utf-8');
+		
+		// Check if file is empty (0 tokens)
+		if (content.length === 0) {
+			throw new Error(`File "${args.path}" exists but is empty (0 tokens)`);
+		}
+		
+		const lines = content.split('\n');
 
-	// Return content with line numbers for precise editing
-	let result = '';
-	for (let i = 0; i < lines.length; i++) {
-		const lineNum = String(i + 1).padStart(4, ' ');
-		result += `${lineNum}: ${lines[i]}\n`;
+		// Return content with line numbers for precise editing
+		let result = '';
+		for (let i = 0; i < lines.length; i++) {
+			const lineNum = String(i + 1).padStart(4, ' ');
+			result += `${lineNum}: ${lines[i]}\n`;
+		}
+
+		return result.slice(0, -1); // Remove trailing newline
+	} catch (error: any) {
+		// Handle file not found and other filesystem errors
+		if (error.code === 'ENOENT') {
+			throw new Error(`File "${args.path}" does not exist`);
+		}
+		
+		// Re-throw other errors (including our empty file error)
+		throw error;
 	}
-
-	return result.slice(0, -1); // Remove trailing newline
 };
 
 const formatter = async (args: any): Promise<React.ReactElement> => {
@@ -31,7 +49,7 @@ const formatter = async (args: any): Promise<React.ReactElement> => {
 		fileSize = content.length;
 		estimatedTokens = Math.ceil(fileSize / 4); // ~4 characters per token
 	} catch (error) {
-		// If we can't read the file, we'll show 0
+		// If we can't read the file, we'll show 0 (formatter should not throw errors)
 	}
 
 	const messageContent = (
@@ -68,6 +86,7 @@ const formatter = async (args: any): Promise<React.ReactElement> => {
 export const readFileTool: ToolDefinition = {
 	handler,
 	formatter,
+	requiresConfirmation: false,
 	config: {
 		type: 'function',
 		function: {

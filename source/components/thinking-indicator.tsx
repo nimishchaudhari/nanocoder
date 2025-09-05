@@ -1,11 +1,9 @@
 import {memo, useState, useEffect, useRef} from 'react';
 import {Box, Text} from 'ink';
-import Spinner from 'ink-spinner';
 import {colors} from '../config/index.js';
 import type {ThinkingIndicatorProps} from '../types/index.js';
 
 export default memo(function ThinkingIndicator({
-	tokenCount,
 	contextSize,
 	totalTokensUsed,
 	tokensPerSecond,
@@ -48,7 +46,7 @@ export default memo(function ThinkingIndicator({
 				<Text>🔄</Text>
 				<Text color={colors.secondary}> Thinking... </Text>
 				<Text color={colors.white}>
-					{tokenCount} tokens • {elapsedSeconds}s{tokensPerSecondDisplay}
+					{elapsedSeconds}s{tokensPerSecondDisplay}
 					{contextSize > 0 ? ` • ${displayPercentage}% context used` : ''}
 				</Text>
 			</Box>

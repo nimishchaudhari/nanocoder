@@ -181,7 +181,6 @@ export default function App() {
 						<CancellingIndicator />
 					) : appState.isThinking ? (
 						<ThinkingIndicator
-							tokenCount={appState.thinkingStats.tokenCount}
 							contextSize={appState.thinkingStats.contextSize}
 							totalTokensUsed={appState.thinkingStats.totalTokensUsed}
 							tokensPerSecond={appState.thinkingStats.tokensPerSecond}

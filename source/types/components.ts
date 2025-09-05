@@ -65,7 +65,6 @@ export interface StatusProps {
 }
 
 export interface ThinkingIndicatorProps {
-	tokenCount: number;
 	contextSize: number;
 	totalTokensUsed: number;
 	tokensPerSecond?: number;
