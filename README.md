@@ -6,6 +6,7 @@ A local-first CLI coding agent that brings the power of agentic coding tools lik
 
 ## Table of Contents
 
+- [FAQs](#faqs)
 - [Installation](#installation)
   - [For Users (Recommended)](#for-users-recommended)
   - [For Development](#for-development)
@@ -23,6 +24,24 @@ A local-first CLI coding agent that brings the power of agentic coding tools lik
   - [Enhanced User Experience](#-enhanced-user-experience)
   - [Developer Features](#️-developer-features)
 - [Community](#community)
+
+## FAQs
+
+### What is Nanocoder?
+
+Nanocoder is a local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter. Built with privacy and control in mind, Nanocoder supports any AI provider that has an OpenAI compatible end-point, tool and non-tool calling models.
+
+### How is this different to OpenCode?
+
+This comes down to philosophy. OpenCode is a great tool, but it's owned and managed by a venture-backed company that restricts community and open-source involvement to the outskirts. With Nanocoder, the focus is on building a true community-led project where anyone can contribute openly and directly. We believe AI is tool powerful to be in the hands of big corporations and everyone should have access.
+
+We also strongly believe in the "local-first" approach, where your data, models, and processing stay on your machine whenever possible to ensure maximum privacy and user control. Beyond that, we're actively pushing to develop advancements and frameworks for small, local models to be effective at coding locally.
+
+Not everyone will agree with this philosophy, and that's okay. We believe in fostering an inclusive community that's focused on open collaboration and privacy-first AI coding tools.
+
+### I want to be involved, how do I start?
+
+Firstly, we would love for you to be involved. You can get started contributing to Nanocoder in several ways, check out the [Community](#community) section of this README.
 
 ## Installation
 
@@ -110,11 +129,13 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 
 **Common Provider Examples:**
 
-- **Ollama (Local)**: 
+- **Ollama (Local)**:
+
   - First run: `ollama pull qwen2.5-coder:14b`
   - Use: `"baseUrl": "http://localhost:11434/v1"`
 
-- **OpenRouter (Cloud)**: 
+- **OpenRouter (Cloud)**:
+
   - Use: `"baseUrl": "https://openrouter.ai/api/v1"`
   - Requires: `"apiKey": "your-api-key"`
 
@@ -127,7 +148,7 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 **Provider Configuration:**
 
 - `name`: Display name used in `/provider` command
-- `baseUrl`: OpenAI-compatible API endpoint  
+- `baseUrl`: OpenAI-compatible API endpoint
 - `apiKey`: API key (optional for local servers)
 - `models`: Available model list for `/model` command
 
@@ -269,7 +290,7 @@ Generate comprehensive unit tests for {{component}}. Include:
 - **Universal OpenAI compatibility**: Works with any OpenAI-compatible API
 - **Local providers**: Ollama, LM Studio, vLLM, LocalAI, llama.cpp
 - **Cloud providers**: OpenRouter, OpenAI, and other hosted services
-- **Smart fallback**: Automatically switches to available providers if one fails  
+- **Smart fallback**: Automatically switches to available providers if one fails
 - **Per-provider preferences**: Remembers your preferred model for each provider
 - **Dynamic configuration**: Add any provider with just a name and endpoint
 
