@@ -14,3 +14,18 @@ export interface Colors {
 	diffAddedText: string;
 	diffRemovedText: string;
 }
+
+export interface Theme {
+	name: string;
+	displayName: string;
+	colors: Colors;
+}
+
+export type ThemePreset =
+	| 'tokyo-night'
+	| 'synthwave-84'
+	| 'forest-night'
+	| 'material-ocean'
+	| 'catppuccin-mocha'
+	| 'one-dark-pro'
+	| 'rose-pine-dawn';

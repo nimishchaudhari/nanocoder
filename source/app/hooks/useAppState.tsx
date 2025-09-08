@@ -47,6 +47,7 @@ export function useAppState() {
 	// Mode states
 	const [isModelSelectionMode, setIsModelSelectionMode] = useState<boolean>(false);
 	const [isProviderSelectionMode, setIsProviderSelectionMode] = useState<boolean>(false);
+	const [isThemeSelectionMode, setIsThemeSelectionMode] = useState<boolean>(false);
 	const [isToolConfirmationMode, setIsToolConfirmationMode] = useState<boolean>(false);
 	const [isToolExecuting, setIsToolExecuting] = useState<boolean>(false);
 	const [isBashExecuting, setIsBashExecuting] = useState<boolean>(false);
@@ -137,6 +138,7 @@ export function useAppState() {
 		abortController,
 		isModelSelectionMode,
 		isProviderSelectionMode,
+		isThemeSelectionMode,
 		isToolConfirmationMode,
 		isToolExecuting,
 		isBashExecuting,
@@ -167,6 +169,7 @@ export function useAppState() {
 		setAbortController,
 		setIsModelSelectionMode,
 		setIsProviderSelectionMode,
+		setIsThemeSelectionMode,
 		setIsToolConfirmationMode,
 		setIsToolExecuting,
 		setIsBashExecuting,

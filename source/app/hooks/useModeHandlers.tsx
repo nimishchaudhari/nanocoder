@@ -1,9 +1,10 @@
 import {LLMClient, Message, ProviderType} from '../../types/core.js';
 import {createLLMClient} from '../../client-factory.js';
-import {updateLastUsed} from '../../config/preferences.js';
+import {updateLastUsed, savePreferences, loadPreferences} from '../../config/preferences.js';
 import SuccessMessage from '../../components/success-message.js';
 import ErrorMessage from '../../components/error-message.js';
 import React from 'react';
+import type {ThemePreset} from '../../types/ui.js';
 
 interface UseModeHandlersProps {
 	client: LLMClient | null;
@@ -15,6 +16,7 @@ interface UseModeHandlersProps {
 	setMessages: (messages: Message[]) => void;
 	setIsModelSelectionMode: (mode: boolean) => void;
 	setIsProviderSelectionMode: (mode: boolean) => void;
+	setIsThemeSelectionMode: (mode: boolean) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 }
@@ -29,6 +31,7 @@ export function useModeHandlers({
 	setMessages,
 	setIsModelSelectionMode,
 	setIsProviderSelectionMode,
+	setIsThemeSelectionMode,
 	addToChatQueue,
 	componentKeyCounter,
 }: UseModeHandlersProps) {
@@ -132,12 +135,43 @@ export function useModeHandlers({
 		setIsProviderSelectionMode(false);
 	};
 
+	// Helper function to enter theme selection mode
+	const enterThemeSelectionMode = () => {
+		setIsThemeSelectionMode(true);
+	};
+
+	// Handle theme selection
+	const handleThemeSelect = (selectedTheme: ThemePreset) => {
+		const preferences = loadPreferences();
+		preferences.selectedTheme = selectedTheme;
+		savePreferences(preferences);
+
+		// Add success message to chat queue
+		addToChatQueue(
+			<SuccessMessage
+				key={`theme-changed-${componentKeyCounter}`}
+				message={`Theme changed to: ${selectedTheme}. Restart to apply changes.`}
+				hideBox={true}
+			/>,
+		);
+
+		setIsThemeSelectionMode(false);
+	};
+
+	// Handle theme selection cancel
+	const handleThemeSelectionCancel = () => {
+		setIsThemeSelectionMode(false);
+	};
+
 	return {
 		enterModelSelectionMode,
 		enterProviderSelectionMode,
+		enterThemeSelectionMode,
 		handleModelSelect,
 		handleModelSelectionCancel,
 		handleProviderSelect,
 		handleProviderSelectionCancel,
+		handleThemeSelect,
+		handleThemeSelectionCancel,
 	};
 }

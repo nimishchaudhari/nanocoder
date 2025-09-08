@@ -9,6 +9,7 @@ export interface MessageSubmissionOptions {
 	onClearMessages: () => Promise<void>;
 	onEnterModelSelectionMode: () => void;
 	onEnterProviderSelectionMode: () => void;
+	onEnterThemeSelectionMode: () => void;
 	onHandleChatMessage: (message: string) => Promise<void>;
 	onAddToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;

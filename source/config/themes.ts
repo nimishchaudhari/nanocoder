@@ -1,0 +1,147 @@
+import type { Theme, ThemePreset } from '../types/ui.js';
+
+export const themes: Record<ThemePreset, Theme> = {
+	'tokyo-night': {
+		name: 'tokyo-night',
+		displayName: 'Tokyo Night',
+		colors: {
+			white: '#c0caf5',
+			black: '#1a1b26',
+			primary: '#bb9af7',
+			tool: '#7dcfff',
+			success: '#7AF778',
+			error: '#f7768e',
+			secondary: '#565f89',
+			info: '#2ac3de',
+			warning: '#e0af68',
+			diffAdded: '#1e2f1e',
+			diffRemoved: '#2f1e1e',
+			diffAddedText: '#9ece6a',
+			diffRemovedText: '#f7768e',
+		},
+	},
+	'synthwave-84': {
+		name: 'synthwave-84',
+		displayName: 'Synthwave \'84',
+		colors: {
+			white: '#f8f8f2',
+			black: '#2b213a',
+			primary: '#ff006a',
+			tool: '#00d9ff',
+			success: '#a6e22e',
+			error: '#ff3838',
+			secondary: '#8a7ca8',
+			info: '#66d9ef',
+			warning: '#ffb86c',
+			diffAdded: '#2d4a1e',
+			diffRemoved: '#4a1e2d',
+			diffAddedText: '#a6e22e',
+			diffRemovedText: '#ff3838',
+		},
+	},
+	'forest-night': {
+		name: 'forest-night',
+		displayName: 'Forest Night',
+		colors: {
+			white: '#d3c6aa',
+			black: '#2d353b',
+			primary: '#a7c080',
+			tool: '#83c092',
+			success: '#a7c080',
+			error: '#e67e80',
+			secondary: '#859289',
+			info: '#7fbbb3',
+			warning: '#dbbc7f',
+			diffAdded: '#2d3f2d',
+			diffRemoved: '#3f2d2d',
+			diffAddedText: '#a7c080',
+			diffRemovedText: '#e67e80',
+		},
+	},
+	'material-ocean': {
+		name: 'material-ocean',
+		displayName: 'Material Ocean',
+		colors: {
+			white: '#eeffff',
+			black: '#0f111a',
+			primary: '#c792ea',
+			tool: '#89ddff',
+			success: '#c3e88d',
+			error: '#f07178',
+			secondary: '#717cb4',
+			info: '#82aaff',
+			warning: '#ffcb6b',
+			diffAdded: '#1e3a1e',
+			diffRemoved: '#3a1e1e',
+			diffAddedText: '#c3e88d',
+			diffRemovedText: '#f07178',
+		},
+	},
+	'catppuccin-mocha': {
+		name: 'catppuccin-mocha',
+		displayName: 'Catppuccin Mocha',
+		colors: {
+			white: '#cdd6f4',
+			black: '#1e1e2e',
+			primary: '#cba6f7',
+			tool: '#89dceb',
+			success: '#a6e3a1',
+			error: '#f38ba8',
+			secondary: '#6c7086',
+			info: '#74c7ec',
+			warning: '#f9e2af',
+			diffAdded: '#313244',
+			diffRemoved: '#45475a',
+			diffAddedText: '#a6e3a1',
+			diffRemovedText: '#f38ba8',
+		},
+	},
+	'one-dark-pro': {
+		name: 'one-dark-pro',
+		displayName: 'One Dark Pro',
+		colors: {
+			white: '#abb2bf',
+			black: '#282c34',
+			primary: '#c678dd',
+			tool: '#61afef',
+			success: '#98c379',
+			error: '#e06c75',
+			secondary: '#5c6370',
+			info: '#56b6c2',
+			warning: '#e5c07b',
+			diffAdded: '#2c3a2c',
+			diffRemoved: '#3a2c2c',
+			diffAddedText: '#98c379',
+			diffRemovedText: '#e06c75',
+		},
+	},
+	'rose-pine-dawn': {
+		name: 'rose-pine-dawn',
+		displayName: 'Rosé Pine Dawn',
+		colors: {
+			white: '#575279',
+			black: '#faf4ed',
+			primary: '#907aa9',
+			tool: '#56949f',
+			success: '#618a3d',
+			error: '#b4637a',
+			secondary: '#9893a5',
+			info: '#286983',
+			warning: '#ea9d34',
+			diffAdded: '#f0f0e8',
+			diffRemoved: '#f2e9e1',
+			diffAddedText: '#618a3d',
+			diffRemovedText: '#b4637a',
+		},
+	},
+};
+
+export function getTheme(themePreset: ThemePreset): Theme {
+	return themes[themePreset];
+}
+
+export function getThemeColors(themePreset: ThemePreset) {
+	return themes[themePreset].colors;
+}
+
+export const defaultTheme: ThemePreset = 'tokyo-night';

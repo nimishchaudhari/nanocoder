@@ -7,6 +7,7 @@ import Status from './components/status.js';
 import ChatQueue from './components/chat-queue.js';
 import ModelSelector from './components/model-selector.js';
 import ProviderSelector from './components/provider-selector.js';
+import ThemeSelector from './components/theme-selector.js';
 import ThinkingIndicator from './components/thinking-indicator.js';
 import CancellingIndicator from './components/cancelling-indicator.js';
 import ToolConfirmation from './components/tool-confirmation.js';
@@ -90,6 +91,7 @@ export default function App() {
 		setMessages: appState.updateMessages,
 		setIsModelSelectionMode: appState.setIsModelSelectionMode,
 		setIsProviderSelectionMode: appState.setIsProviderSelectionMode,
+		setIsThemeSelectionMode: appState.setIsThemeSelectionMode,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 	});
@@ -131,6 +133,7 @@ export default function App() {
 			onClearMessages: clearMessages,
 			onEnterModelSelectionMode: modeHandlers.enterModelSelectionMode,
 			onEnterProviderSelectionMode: modeHandlers.enterProviderSelectionMode,
+			onEnterThemeSelectionMode: modeHandlers.enterThemeSelectionMode,
 			onHandleChatMessage: chatHandler.handleChatMessage,
 			onAddToChatQueue: appState.addToChatQueue,
 			componentKeyCounter: appState.componentKeyCounter,
@@ -198,6 +201,11 @@ export default function App() {
 							currentProvider={appState.currentProvider}
 							onProviderSelect={modeHandlers.handleProviderSelect}
 							onCancel={modeHandlers.handleProviderSelectionCancel}
+						/>
+					) : appState.isThemeSelectionMode ? (
+						<ThemeSelector
+							onThemeSelect={modeHandlers.handleThemeSelect}
+							onCancel={modeHandlers.handleThemeSelectionCancel}
 						/>
 					) : appState.isToolConfirmationMode &&
 					  appState.pendingToolCalls[appState.currentToolIndex] ? (
