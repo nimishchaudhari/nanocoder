@@ -2,7 +2,7 @@ import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 import {memo} from 'react';
 
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 export default memo(function ErrorMessage({
@@ -15,6 +15,7 @@ export default memo(function ErrorMessage({
 	hideBox?: boolean;
 }) {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 	return (
 		<>
 			{hideBox ? (

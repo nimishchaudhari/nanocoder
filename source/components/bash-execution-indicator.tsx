@@ -1,11 +1,12 @@
 import {memo} from 'react';
 import {Box, Text} from 'ink';
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import type {BashExecutionIndicatorProps} from '../types/index.js';
 
 export default memo(function BashExecutionIndicator({
 	command,
 }: BashExecutionIndicatorProps) {
+	const {colors} = useTheme();
 	return (
 		<Box flexDirection="column" marginBottom={1}>
 			<Box flexDirection="row">

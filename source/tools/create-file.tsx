@@ -4,7 +4,7 @@ import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
 import type {ToolHandler, ToolDefinition} from '../types/index.js';
-import {colors} from '../config/index.js';
+import {getColors} from '../config/index.js';
 import {getLanguageFromExtension} from '../utils/programming-language-helper.js';
 import ToolMessage from '../components/tool-message.js';
 
@@ -18,6 +18,7 @@ const handler: ToolHandler = async (args: {
 };
 
 const formatter = async (args: any): Promise<React.ReactElement> => {
+	const colors = getColors();
 	const path = args.path || args.file_path || 'unknown';
 	const newContent = args.content || '';
 	const lineCount = newContent.split('\n').length;

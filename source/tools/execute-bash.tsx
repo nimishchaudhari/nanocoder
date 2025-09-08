@@ -3,7 +3,7 @@ import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
 import type {ToolHandler, ToolDefinition, BashToolResult} from '../types/index.js';
-import {colors} from '../config/index.js';
+import {getColors} from '../config/index.js';
 import ToolMessage from '../components/tool-message.js';
 
 const handler: ToolHandler = async (args: {
@@ -56,6 +56,7 @@ const formatter = async (
 	args: any,
 	result?: string,
 ): Promise<React.ReactElement> => {
+	const colors = getColors();
 	const command = args.command || 'unknown';
 
 	let highlightedCommand;

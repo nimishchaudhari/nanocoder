@@ -3,7 +3,7 @@ import {CustomCommandLoader} from '../custom-commands/loader.js';
 import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 
 interface CustomCommandsProps {
 	commands: CustomCommand[];
@@ -31,6 +31,7 @@ function formatCommand(cmd: CustomCommand): string {
 }
 
 function CustomCommands({commands}: CustomCommandsProps) {
+	const {colors} = useTheme();
 	// Sort commands alphabetically by full name
 	const sortedCommands = [...commands].sort((a, b) =>
 		a.fullName.localeCompare(b.fullName),

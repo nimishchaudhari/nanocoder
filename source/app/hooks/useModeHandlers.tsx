@@ -13,6 +13,7 @@ interface UseModeHandlersProps {
 	setClient: (client: LLMClient | null) => void;
 	setCurrentModel: (model: string) => void;
 	setCurrentProvider: (provider: ProviderType) => void;
+	setCurrentTheme: (theme: ThemePreset) => void;
 	setMessages: (messages: Message[]) => void;
 	setIsModelSelectionMode: (mode: boolean) => void;
 	setIsProviderSelectionMode: (mode: boolean) => void;
@@ -28,6 +29,7 @@ export function useModeHandlers({
 	setClient,
 	setCurrentModel,
 	setCurrentProvider,
+	setCurrentTheme,
 	setMessages,
 	setIsModelSelectionMode,
 	setIsProviderSelectionMode,
@@ -145,12 +147,15 @@ export function useModeHandlers({
 		const preferences = loadPreferences();
 		preferences.selectedTheme = selectedTheme;
 		savePreferences(preferences);
+		
+		// Update the theme state immediately for real-time switching
+		setCurrentTheme(selectedTheme);
 
 		// Add success message to chat queue
 		addToChatQueue(
 			<SuccessMessage
 				key={`theme-changed-${componentKeyCounter}`}
-				message={`Theme changed to: ${selectedTheme}. Restart to apply changes.`}
+				message={`Theme changed to: ${selectedTheme}.`}
 				hideBox={true}
 			/>,
 		);

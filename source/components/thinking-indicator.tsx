@@ -1,6 +1,6 @@
 import {memo, useState, useEffect, useRef} from 'react';
 import {Box, Text} from 'ink';
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import type {ThinkingIndicatorProps} from '../types/index.js';
 
 export default memo(function ThinkingIndicator({
@@ -8,6 +8,7 @@ export default memo(function ThinkingIndicator({
 	totalTokensUsed,
 	tokensPerSecond,
 }: ThinkingIndicatorProps) {
+	const {colors} = useTheme();
 	const [elapsedSeconds, setElapsedSeconds] = useState(0);
 	const startTimeRef = useRef<number>(Date.now());
 

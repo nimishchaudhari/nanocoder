@@ -2,7 +2,7 @@ import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import type {ToolCall} from '../types/core.js';
 import {toolFormatters} from '../tools/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
@@ -24,6 +24,7 @@ export default function ToolConfirmation({
 	onCancel,
 }: ToolConfirmationProps) {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 	const [formatterPreview, setFormatterPreview] = React.useState<
 		React.ReactElement | string | null
 	>(null);

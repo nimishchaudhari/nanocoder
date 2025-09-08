@@ -1,6 +1,6 @@
 import {Box, Text, useInput, useFocus} from 'ink';
 import {useState, useEffect, useCallback, useRef} from 'react';
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import {promptHistory} from '../prompt-history.js';
 import {commandRegistry} from '../commands.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
@@ -99,6 +99,7 @@ export default function UserInput({
 	onCancel,
 }: ChatProps) {
 	const {isFocused} = useFocus({autoFocus: !disabled});
+	const {colors} = useTheme();
 	const inputState = useInputState();
 	const uiState = useUIState();
 	const boxWidth = useTerminalWidth();

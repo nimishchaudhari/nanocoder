@@ -2,7 +2,8 @@ import {useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {colors, appConfig} from '../config/index.js';
+import {appConfig} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import {ProviderType} from '../types/core.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
@@ -23,6 +24,7 @@ export default function ProviderSelector({
 	onCancel,
 }: ProviderSelectorProps) {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 	
 	const getProviderOptions = (): ProviderOption[] => {
 		const options: ProviderOption[] = [];

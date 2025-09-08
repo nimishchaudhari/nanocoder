@@ -1,11 +1,9 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {Box, Text, useInput} from 'ink';
-import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 import {themes} from '../config/themes.js';
-import {loadPreferences} from '../config/preferences.js';
 import type {ThemePreset} from '../types/ui.js';
 
 interface ThemeSelectorProps {
@@ -23,43 +21,68 @@ export default function ThemeSelector({
 	onCancel,
 }: ThemeSelectorProps) {
 	const boxWidth = useTerminalWidth();
-	const preferences = loadPreferences();
-	const currentTheme = preferences.selectedTheme || 'tokyo-night';
+	const {colors, currentTheme, setCurrentTheme} = useTheme();
+	const [originalTheme] = useState(currentTheme); // Store original theme for restore on cancel
+	const [currentIndex, setCurrentIndex] = useState(0);
 
 	// Handle escape key to cancel
 	useInput((_, key) => {
 		if (key.escape) {
+			// Restore original theme on cancel
+			setCurrentTheme(originalTheme);
 			onCancel();
 		}
 	});
 
 	// Create theme options from available themes
 	const themeOptions: ThemeOption[] = Object.values(themes).map(theme => ({
-		label: theme.displayName + (theme.name === currentTheme ? ' (current)' : ''),
+		label: theme.displayName + (theme.name === originalTheme ? ' (current)' : ''),
 		value: theme.name as ThemePreset,
 	}));
+
+	// Find index of current theme for initial selection
+	useEffect(() => {
+		const index = themeOptions.findIndex(option => option.value === originalTheme);
+		setCurrentIndex(index >= 0 ? index : 0);
+	}, []);
 
 	const handleSelect = (item: ThemeOption) => {
 		onThemeSelect(item.value);
 	};
 
-	// Create preview boxes for each theme
-	const renderPreviewBox = (theme: typeof themes[ThemePreset]) => (
-		<Box key={theme.name} flexDirection="row" marginY={0} gap={1}>
-			<Box width={3} height={1} borderStyle="single" borderColor={theme.colors.primary}>
-				<Text color={theme.colors.primary}>■</Text>
+	// Custom SelectInput with preview on navigation
+	const CustomSelectInput = () => {
+		useInput((_, key) => {
+			if (key.upArrow) {
+				const newIndex = currentIndex > 0 ? currentIndex - 1 : themeOptions.length - 1;
+				setCurrentIndex(newIndex);
+				setCurrentTheme(themeOptions[newIndex].value);
+			} else if (key.downArrow) {
+				const newIndex = currentIndex < themeOptions.length - 1 ? currentIndex + 1 : 0;
+				setCurrentIndex(newIndex);
+				setCurrentTheme(themeOptions[newIndex].value);
+			} else if (key.return) {
+				handleSelect(themeOptions[currentIndex]);
+			}
+		});
+
+		return (
+			<Box flexDirection="column">
+				{themeOptions.map((option, index) => (
+					<Box key={option.value} flexDirection="row" alignItems="center">
+						<Text color={index === currentIndex ? colors.primary : colors.secondary}>
+							{index === currentIndex ? '▶' : ' '}
+						</Text>
+						<Box marginLeft={1}>
+							<Text color={index === currentIndex ? colors.primary : colors.white}>
+								{option.label}
+							</Text>
+						</Box>
+					</Box>
+				))}
 			</Box>
-			<Box width={3} height={1} borderStyle="single" borderColor={theme.colors.tool}>
-				<Text color={theme.colors.tool}>■</Text>
-			</Box>
-			<Box width={3} height={1} borderStyle="single" borderColor={theme.colors.success}>
-				<Text color={theme.colors.success}>■</Text>
-			</Box>
-			<Box width={3} height={1} borderStyle="single" borderColor={theme.colors.error}>
-				<Text color={theme.colors.error}>■</Text>
-			</Box>
-		</Box>
-	);
+		);
+	};
 
 	return (
 		<TitledBox
@@ -86,14 +109,12 @@ export default function ThemeSelector({
 				</Box>
 				
 				<Box marginBottom={1}>
-					<Text color={colors.info}>Preview:</Text>
+					<Text color={colors.info}>
+						The entire CLI will change as you navigate. Try it out!
+					</Text>
 				</Box>
 				
-				<Box flexDirection="column" marginBottom={1}>
-					{Object.values(themes).slice(0, 3).map(renderPreviewBox)}
-				</Box>
-				
-				<SelectInput items={themeOptions} onSelect={handleSelect} />
+				<CustomSelectInput />
 			</Box>
 		</TitledBox>
 	);

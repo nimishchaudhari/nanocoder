@@ -1,7 +1,7 @@
 import React from 'react';
 import {Box, Text} from 'ink';
 import Spinner from 'ink-spinner';
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import type {ToolExecutionIndicatorProps} from '../types/index.js';
 
 export default function ToolExecutionIndicator({
@@ -9,6 +9,7 @@ export default function ToolExecutionIndicator({
 	currentIndex,
 	totalTools,
 }: ToolExecutionIndicatorProps) {
+	const {colors} = useTheme();
 	return (
 		<Box flexDirection="column" marginBottom={1}>
 			<Box>

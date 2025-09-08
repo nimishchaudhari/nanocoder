@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import {LLMClient} from '../types/core.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
@@ -25,6 +25,7 @@ export default function ModelSelector({
 	onCancel,
 }: ModelSelectorProps) {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 	const [models, setModels] = useState<ModelOption[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);

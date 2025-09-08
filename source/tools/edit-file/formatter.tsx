@@ -4,27 +4,32 @@ import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
 import type {EditArgs, LineChange} from '../../types/index.js';
-import {colors} from '../../config/index.js';
+import {getColors} from '../../config/index.js';
 import {getLanguageFromExtension} from '../../utils/programming-language-helper.js';
 import ToolMessage from '../../components/tool-message.js';
 
-
-export async function formatEditPreview(args: any, result?: string): Promise<React.ReactElement> {
+export async function formatEditPreview(
+	args: any,
+	result?: string,
+): Promise<React.ReactElement> {
+	const colors = getColors();
 	const path = args.path || args.file_path || 'unknown';
 	const mode = args.mode || 'insert';
 	const lineNumber = Number(args.line_number);
 	const endLine = Number(args.end_line) || lineNumber;
-	
+
 	// Validate parsed numbers to prevent NaN display
 	const isValidLineNumber = !isNaN(lineNumber) && lineNumber > 0;
 	const isValidEndLine = !isNaN(endLine) && endLine > 0;
-	
+
 	// For line-based modes, fail early if line numbers are invalid
 	if (mode !== 'find_replace' && (!isValidLineNumber || !isValidEndLine)) {
 		// Throw an error to prevent the approval prompt entirely
-		throw new Error(`Invalid line numbers: line_number=${args.line_number}, end_line=${args.end_line}. Operation cannot proceed.`);
+		throw new Error(
+			`Invalid line numbers: line_number=${args.line_number}, end_line=${args.end_line}. Operation cannot proceed.`,
+		);
 	}
-	
+
 	const content = args.content || '';
 	const targetLine = Number(args.target_line);
 	const oldText = args.old_text || '';
@@ -45,33 +50,38 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 			const language = getLanguageFromExtension(ext);
 
 			// Import context calculation functions
-			const { calculateActualEditRange } = await import('./context.js');
+			const {calculateActualEditRange} = await import('./context.js');
 
 			// Calculate the actual edit range in the updated file
-			const { startLine: actualStartLine, endLine: actualEndLine } = calculateActualEditRange(
-				mode,
-				lineNumber,
-				endLine,
-				content,
-				targetLine
-			);
+			const {startLine: actualStartLine, endLine: actualEndLine} =
+				calculateActualEditRange(
+					mode,
+					lineNumber,
+					endLine,
+					content,
+					targetLine,
+				);
 
 			// Show context around the edit (10 lines before and after)
 			const contextLines = 10;
 			const showStart = Math.max(0, actualStartLine - 1 - contextLines);
-			const showEnd = Math.min(lines.length - 1, actualEndLine - 1 + contextLines);
+			const showEnd = Math.min(
+				lines.length - 1,
+				actualEndLine - 1 + contextLines,
+			);
 
 			// Create syntax-highlighted context content
 			const contextElements: React.ReactElement[] = [];
-			
+
 			for (let i = showStart; i <= showEnd; i++) {
 				const lineNumStr = String(i + 1).padStart(4, ' ');
 				const line = lines[i] || '';
-				const isInEditRange = (i + 1) >= actualStartLine && (i + 1) <= actualEndLine;
-				
+				const isInEditRange =
+					i + 1 >= actualStartLine && i + 1 <= actualEndLine;
+
 				let displayLine: string;
 				try {
-					displayLine = highlight(line, { language, theme: 'default' });
+					displayLine = highlight(line, {language, theme: 'default'});
 				} catch {
 					displayLine = line;
 				}
@@ -80,18 +90,22 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 					// Use background highlighting for edited lines
 					contextElements.push(
 						<Box key={`context-${i}`}>
-							<Text backgroundColor={colors.diffAdded} color={colors.diffAddedText} wrap="wrap">
-								{lineNumStr}  + {displayLine}
+							<Text
+								backgroundColor={colors.diffAdded}
+								color={colors.diffAddedText}
+								wrap="wrap"
+							>
+								{lineNumStr} + {displayLine}
 							</Text>
-						</Box>
+						</Box>,
 					);
 				} else {
 					// Normal context lines
 					contextElements.push(
 						<Box key={`context-${i}`}>
-							<Text color={colors.secondary}>{lineNumStr}  </Text>
+							<Text color={colors.secondary}>{lineNumStr} </Text>
 							<Text>{displayLine}</Text>
-						</Box>
+						</Box>,
 					);
 				}
 			}
@@ -99,7 +113,7 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 			const messageContent = (
 				<Box flexDirection="column">
 					<Text color={colors.tool}>{displayTitle} edit_file</Text>
-					
+
 					<Box>
 						<Text color={colors.secondary}>Path: </Text>
 						<Text color={colors.primary}>{path}</Text>
@@ -113,17 +127,19 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 					{mode === 'find_replace' ? (
 						<Box>
 							<Text color={colors.secondary}>Operation: </Text>
-							<Text color={colors.white}>{replaceAll ? 'Replace all' : 'Replace first'}</Text>
+							<Text color={colors.white}>
+								{replaceAll ? 'Replace all' : 'Replace first'}
+							</Text>
 						</Box>
 					) : (
 						<Box>
 							<Text color={colors.secondary}>Range: </Text>
 							<Text color={colors.white}>
-								{!isValidLineNumber || !isValidEndLine 
-									? 'invalid line range' 
-									: lineNumber === endLine 
-										? `line ${lineNumber}` 
-										: `lines ${lineNumber}-${endLine}`}
+								{!isValidLineNumber || !isValidEndLine
+									? 'invalid line range'
+									: lineNumber === endLine
+									? `line ${lineNumber}`
+									: `lines ${lineNumber}-${endLine}`}
 							</Text>
 						</Box>
 					)}
@@ -152,7 +168,7 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 			const messageContent = (
 				<Box flexDirection="column">
 					<Text color={colors.tool}>{displayTitle} edit_file</Text>
-					
+
 					<Box>
 						<Text color={colors.secondary}>Path: </Text>
 						<Text color={colors.primary}>{path}</Text>
@@ -166,17 +182,19 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 					{mode === 'find_replace' ? (
 						<Box>
 							<Text color={colors.secondary}>Operation: </Text>
-							<Text color={colors.white}>{replaceAll ? 'Replace all' : 'Replace first'}</Text>
+							<Text color={colors.white}>
+								{replaceAll ? 'Replace all' : 'Replace first'}
+							</Text>
 						</Box>
 					) : (
 						<Box>
 							<Text color={colors.secondary}>Range: </Text>
 							<Text color={colors.white}>
-								{!isValidLineNumber || !isValidEndLine 
-									? 'invalid line range' 
-									: lineNumber === endLine 
-										? `line ${lineNumber}` 
-										: `lines ${lineNumber}-${endLine}`}
+								{!isValidLineNumber || !isValidEndLine
+									? 'invalid line range'
+									: lineNumber === endLine
+									? `line ${lineNumber}`
+									: `lines ${lineNumber}-${endLine}`}
 							</Text>
 						</Box>
 					)}
@@ -190,7 +208,9 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 
 					<Box flexDirection="column" marginTop={1}>
 						<Text color={colors.success}>✓ Edit completed successfully</Text>
-						<Text color={colors.error}>Note: Could not display file context</Text>
+						<Text color={colors.error}>
+							Note: Could not display file context
+						</Text>
 					</Box>
 				</Box>
 			);
@@ -207,7 +227,7 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 		const ext = path.split('.').pop()?.toLowerCase();
 		const language = getLanguageFromExtension(ext);
 		const contextLines = 3;
-		
+
 		let previewContent: React.ReactElement;
 
 		switch (mode) {
@@ -271,13 +291,15 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 				break;
 
 			default:
-				previewContent = <Text color={colors.error}>Unknown edit mode: {mode}</Text>;
+				previewContent = (
+					<Text color={colors.error}>Unknown edit mode: {mode}</Text>
+				);
 		}
 
 		const messageContent = (
 			<Box flexDirection="column">
 				<Text color={colors.tool}>{displayTitle} edit_file</Text>
-				
+
 				<Box>
 					<Text color={colors.secondary}>Path: </Text>
 					<Text color={colors.primary}>{path}</Text>
@@ -291,17 +313,19 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 				{mode === 'find_replace' ? (
 					<Box>
 						<Text color={colors.secondary}>Operation: </Text>
-						<Text color={colors.white}>{replaceAll ? 'Replace all' : 'Replace first'}</Text>
+						<Text color={colors.white}>
+							{replaceAll ? 'Replace all' : 'Replace first'}
+						</Text>
 					</Box>
 				) : (
 					<Box>
 						<Text color={colors.secondary}>Range: </Text>
 						<Text color={colors.white}>
-							{!isValidLineNumber || !isValidEndLine 
-								? 'invalid line range' 
-								: lineNumber === endLine 
-									? `line ${lineNumber}` 
-									: `lines ${lineNumber}-${endLine}`}
+							{!isValidLineNumber || !isValidEndLine
+								? 'invalid line range'
+								: lineNumber === endLine
+								? `line ${lineNumber}`
+								: `lines ${lineNumber}-${endLine}`}
 						</Text>
 					</Box>
 				)}
@@ -322,7 +346,7 @@ export async function formatEditPreview(args: any, result?: string): Promise<Rea
 		const errorContent = (
 			<Box flexDirection="column">
 				<Text color={colors.tool}>⚒ edit_file</Text>
-				
+
 				<Box>
 					<Text color={colors.secondary}>Path: </Text>
 					<Text color={colors.primary}>{path}</Text>
@@ -360,6 +384,8 @@ async function formatFindReplacePreview({
 	contextLines: number;
 	isResult: boolean;
 }): Promise<React.ReactElement> {
+	const colors = getColors();
+
 	// Use same logic as handler - check if text exists first
 	if (!fileContent.includes(oldText)) {
 		return (
@@ -371,7 +397,9 @@ async function formatFindReplacePreview({
 				</Box>
 				<Box>
 					<Text color={colors.secondary}>Note: </Text>
-					<Text color={colors.secondary}>Operation will fail - text must exist exactly as specified</Text>
+					<Text color={colors.secondary}>
+						Operation will fail - text must exist exactly as specified
+					</Text>
 				</Box>
 			</Box>
 		);
@@ -379,7 +407,7 @@ async function formatFindReplacePreview({
 
 	// Find all occurrences for diff display
 	const occurrences: LineChange[] = [];
-	
+
 	// Handle multiline text by searching in the full file content
 	if (oldText.includes('\n')) {
 		// For multiline text, find all occurrences in the full content
@@ -391,7 +419,7 @@ async function formatFindReplacePreview({
 			// Find which line this occurrence starts on
 			const textBeforeMatch = fileContent.substring(0, pos);
 			const lineNum = textBeforeMatch.split('\n').length;
-			
+
 			occurrences.push({
 				lineNum,
 				lineContent: lines[lineNum - 1] || '',
@@ -432,40 +460,40 @@ async function formatFindReplacePreview({
 
 		for (const occurrence of changesToShow) {
 			const {lineNum, lineContent, startPos} = occurrence;
-			
+
 			// Show context around the change
 			const startLine = Math.max(0, lineNum - 1 - contextLines);
 			const endLine = Math.min(lines.length - 1, lineNum - 1 + contextLines);
-			
+
 			const contextBefore: React.ReactElement[] = [];
 			const contextAfter: React.ReactElement[] = [];
-			
+
 			// Show context before
 			for (let i = startLine; i < lineNum - 1; i++) {
 				const lineNumStr = String(i + 1).padStart(4, ' ');
 				const line = lines[i] || '';
 				let displayLine: string;
 				try {
-					displayLine = highlight(line, { language, theme: 'default' });
+					displayLine = highlight(line, {language, theme: 'default'});
 				} catch {
 					displayLine = line;
 				}
-				
+
 				contextBefore.push(
 					<Box key={`before-${i}`}>
-						<Text color={colors.secondary}>{lineNumStr}  </Text>
+						<Text color={colors.secondary}>{lineNumStr} </Text>
 						<Text wrap="wrap">{displayLine}</Text>
-					</Box>
+					</Box>,
 				);
 			}
-			
+
 			// Show the changed line
 			const lineNumStr = String(lineNum).padStart(4, ' ');
 			const before = lineContent.substring(0, startPos);
 			const after = lineContent.substring(startPos + oldText.length);
 			const oldLine = before + oldText + after;
 			const newLine = before + newText + after;
-			
+
 			// Show limited context after
 			const maxAfterLines = 2;
 			const actualEndLine = Math.min(endLine, lineNum - 1 + maxAfterLines);
@@ -474,43 +502,57 @@ async function formatFindReplacePreview({
 				const line = lines[i] || '';
 				let displayLine: string;
 				try {
-					displayLine = highlight(line, { language, theme: 'default' });
+					displayLine = highlight(line, {language, theme: 'default'});
 				} catch {
 					displayLine = line;
 				}
-				
+
 				contextAfter.push(
 					<Box key={`after-${i}`}>
-						<Text color={colors.secondary}>{lineNumStr}  </Text>
+						<Text color={colors.secondary}>{lineNumStr} </Text>
 						<Text wrap="wrap">{displayLine}</Text>
-					</Box>
+					</Box>,
 				);
 			}
-			
+
 			changeElements.push(
 				<Box key={lineNum} flexDirection="column" marginBottom={1}>
 					<Text color={colors.secondary}>Line {lineNum}:</Text>
 					{contextBefore}
 					<Box>
-						<Text backgroundColor={colors.diffRemoved} color={colors.diffRemovedText} wrap="wrap">{lineNumStr}  - {oldLine}</Text>
+						<Text
+							backgroundColor={colors.diffRemoved}
+							color={colors.diffRemovedText}
+							wrap="wrap"
+						>
+							{lineNumStr} - {oldLine}
+						</Text>
 					</Box>
 					<Box>
-						<Text backgroundColor={colors.diffAdded} color={colors.diffAddedText} wrap="wrap">{lineNumStr}  + {newLine}</Text>
+						<Text
+							backgroundColor={colors.diffAdded}
+							color={colors.diffAddedText}
+							wrap="wrap"
+						>
+							{lineNumStr} + {newLine}
+						</Text>
 					</Box>
 					{contextAfter}
-				</Box>
+				</Box>,
 			);
 		}
 
-		const statusText = isResult 
-			? `${changesToShow.length} change${changesToShow.length > 1 ? 's' : ''} made`
-			: `${changesToShow.length} change${changesToShow.length > 1 ? 's' : ''} found`;
-		
+		const statusText = isResult
+			? `${changesToShow.length} change${
+					changesToShow.length > 1 ? 's' : ''
+			  } made`
+			: `${changesToShow.length} change${
+					changesToShow.length > 1 ? 's' : ''
+			  } found`;
+
 		return (
 			<Box flexDirection="column" marginTop={1}>
-				<Text color={colors.success}>
-					✓ {statusText}
-				</Text>
+				<Text color={colors.success}>✓ {statusText}</Text>
 				{changeElements}
 				{replaceAll && occurrences.length > changesToShow.length && (
 					<Text color={colors.secondary}>
@@ -548,11 +590,14 @@ async function formatInsertPreview({
 	contextLines: number;
 	isResult: boolean;
 }): Promise<React.ReactElement> {
+	const colors = getColors();
+
 	if (!lineNumber || lineNumber < 1 || lineNumber > lines.length + 1) {
 		return (
 			<Box flexDirection="column" marginTop={1}>
 				<Text color={colors.error}>
-					✗ Line number {lineNumber} is out of range (file has {lines.length} lines)
+					✗ Line number {lineNumber} is out of range (file has {lines.length}{' '}
+					lines)
 				</Text>
 			</Box>
 		);
@@ -572,16 +617,16 @@ async function formatInsertPreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 
 		contextBefore.push(
 			<Box key={`before-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr} </Text>
 				<Text>{displayLine}</Text>
-			</Box>
+			</Box>,
 		);
 	}
 
@@ -591,15 +636,21 @@ async function formatInsertPreview({
 		const line = newLines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 
 		insertedLines.push(
 			<Box key={`insert-${i}`}>
-				<Text backgroundColor={colors.diffAdded} color={colors.diffAddedText} wrap="wrap">{lineNumStr}  + {displayLine}</Text>
-			</Box>
+				<Text
+					backgroundColor={colors.diffAdded}
+					color={colors.diffAddedText}
+					wrap="wrap"
+				>
+					{lineNumStr} + {displayLine}
+				</Text>
+			</Box>,
 		);
 	}
 
@@ -609,21 +660,21 @@ async function formatInsertPreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 
 		contextAfter.push(
 			<Box key={`after-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr} </Text>
 				<Text>{displayLine}</Text>
-			</Box>
+			</Box>,
 		);
 	}
 
 	const actionText = isResult ? 'Inserted' : 'Inserting';
-	
+
 	return (
 		<Box flexDirection="column" marginTop={1}>
 			<Text color={colors.success}>
@@ -653,6 +704,8 @@ async function formatReplacePreview({
 	contextLines: number;
 	isResult: boolean;
 }): Promise<React.ReactElement> {
+	const colors = getColors();
+
 	const newLines = content.split('\n');
 	const linesToRemove = endLine - lineNumber + 1;
 	const showStart = Math.max(0, lineNumber - 1 - contextLines);
@@ -669,16 +722,16 @@ async function formatReplacePreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 
 		contextBefore.push(
 			<Box key={`before-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr} </Text>
 				<Text>{displayLine}</Text>
-			</Box>
+			</Box>,
 		);
 	}
 
@@ -688,15 +741,21 @@ async function formatReplacePreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 
 		removedLines.push(
 			<Box key={`remove-${i}`}>
-				<Text backgroundColor={colors.diffRemoved} color={colors.diffRemovedText} wrap="wrap">{lineNumStr}  - {displayLine}</Text>
-			</Box>
+				<Text
+					backgroundColor={colors.diffRemoved}
+					color={colors.diffRemovedText}
+					wrap="wrap"
+				>
+					{lineNumStr} - {displayLine}
+				</Text>
+			</Box>,
 		);
 	}
 
@@ -706,39 +765,48 @@ async function formatReplacePreview({
 		const line = newLines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 
 		addedLines.push(
 			<Box key={`add-${i}`}>
-				<Text backgroundColor={colors.diffAdded} color={colors.diffAddedText} wrap="wrap">{lineNumStr}  + {displayLine}</Text>
-			</Box>
+				<Text
+					backgroundColor={colors.diffAdded}
+					color={colors.diffAddedText}
+					wrap="wrap"
+				>
+					{lineNumStr} + {displayLine}
+				</Text>
+			</Box>,
 		);
 	}
 
 	// Show context after
 	for (let i = endLine; i <= showEnd; i++) {
-		const lineNumStr = String(i + newLines.length - linesToRemove + 1).padStart(4, ' ');
+		const lineNumStr = String(i + newLines.length - linesToRemove + 1).padStart(
+			4,
+			' ',
+		);
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 
 		contextAfter.push(
 			<Box key={`after-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr} </Text>
 				<Text>{displayLine}</Text>
-			</Box>
+			</Box>,
 		);
 	}
 
 	const actionText = isResult ? 'Replaced' : 'Replacing';
-	
+
 	return (
 		<Box flexDirection="column" marginTop={1}>
 			<Text color={colors.success}>
@@ -768,6 +836,8 @@ async function formatDeletePreview({
 	contextLines: number;
 	isResult: boolean;
 }): Promise<React.ReactElement> {
+	const colors = getColors();
+
 	const linesToRemove = endLine - lineNumber + 1;
 	const showStart = Math.max(0, lineNumber - 1 - contextLines);
 	const showEnd = Math.min(lines.length - 1, endLine - 1 + contextLines);
@@ -782,16 +852,16 @@ async function formatDeletePreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 
 		contextBefore.push(
 			<Box key={`before-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr} </Text>
 				<Text>{displayLine}</Text>
-			</Box>
+			</Box>,
 		);
 	}
 
@@ -801,15 +871,21 @@ async function formatDeletePreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 
 		deletedLines.push(
 			<Box key={`delete-${i}`}>
-				<Text backgroundColor={colors.diffRemoved} color={colors.diffRemovedText} wrap="wrap">{lineNumStr}  - {displayLine}</Text>
-			</Box>
+				<Text
+					backgroundColor={colors.diffRemoved}
+					color={colors.diffRemovedText}
+					wrap="wrap"
+				>
+					{lineNumStr} - {displayLine}
+				</Text>
+			</Box>,
 		);
 	}
 
@@ -819,21 +895,21 @@ async function formatDeletePreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 
 		contextAfter.push(
 			<Box key={`after-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr} </Text>
 				<Text>{displayLine}</Text>
-			</Box>
+			</Box>,
 		);
 	}
 
 	const actionText = isResult ? 'Deleted' : 'Deleting';
-	
+
 	return (
 		<Box flexDirection="column" marginTop={1}>
 			<Text color={colors.success}>
@@ -863,6 +939,8 @@ async function formatMovePreview({
 	contextLines: number;
 	isResult: boolean;
 }): Promise<React.ReactElement> {
+	const colors = getColors();
+
 	if (!targetLine || targetLine < 1 || targetLine > lines.length + 1) {
 		return (
 			<Box flexDirection="column" marginTop={1}>
@@ -886,15 +964,15 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 		sourceSection.push(
 			<Box key={`src-before-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr} </Text>
 				<Text wrap="wrap">{displayLine}</Text>
-			</Box>
+			</Box>,
 		);
 	}
 
@@ -903,14 +981,20 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 		sourceSection.push(
 			<Box key={`src-move-${i}`}>
-				<Text backgroundColor={colors.diffRemoved} color={colors.diffRemovedText} wrap="wrap">{lineNumStr}  - {displayLine}</Text>
-			</Box>
+				<Text
+					backgroundColor={colors.diffRemoved}
+					color={colors.diffRemovedText}
+					wrap="wrap"
+				>
+					{lineNumStr} - {displayLine}
+				</Text>
+			</Box>,
 		);
 	}
 
@@ -919,15 +1003,15 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 		sourceSection.push(
 			<Box key={`src-after-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr} </Text>
 				<Text wrap="wrap">{displayLine}</Text>
-			</Box>
+			</Box>,
 		);
 	}
 
@@ -937,31 +1021,40 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 		targetSection.push(
 			<Box key={`tgt-before-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr} </Text>
 				<Text wrap="wrap">{displayLine}</Text>
-			</Box>
+			</Box>,
 		);
 	}
 
 	for (let i = lineNumber - 1; i < endLine; i++) {
-		const lineNumStr = String(targetLine + (i - lineNumber + 1)).padStart(4, ' ');
+		const lineNumStr = String(targetLine + (i - lineNumber + 1)).padStart(
+			4,
+			' ',
+		);
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 		targetSection.push(
 			<Box key={`tgt-move-${i}`}>
-				<Text backgroundColor={colors.diffAdded} color={colors.diffAddedText} wrap="wrap">{lineNumStr}  + {displayLine}</Text>
-			</Box>
+				<Text
+					backgroundColor={colors.diffAdded}
+					color={colors.diffAddedText}
+					wrap="wrap"
+				>
+					{lineNumStr} + {displayLine}
+				</Text>
+			</Box>,
 		);
 	}
 
@@ -970,24 +1063,25 @@ async function formatMovePreview({
 		const line = lines[i] || '';
 		let displayLine: string;
 		try {
-			displayLine = highlight(line, { language, theme: 'default' });
+			displayLine = highlight(line, {language, theme: 'default'});
 		} catch {
 			displayLine = line;
 		}
 		targetSection.push(
 			<Box key={`tgt-after-${i}`}>
-				<Text color={colors.secondary}>{lineNumStr}  </Text>
+				<Text color={colors.secondary}>{lineNumStr} </Text>
 				<Text wrap="wrap">{displayLine}</Text>
-			</Box>
+			</Box>,
 		);
 	}
 
 	const actionText = isResult ? 'Moved' : 'Moving';
-	
+
 	return (
 		<Box flexDirection="column" marginTop={1}>
 			<Text color={colors.success}>
-				✓ {actionText} {linesToMove} line{linesToMove > 1 ? 's' : ''} to line {targetLine}
+				✓ {actionText} {linesToMove} line{linesToMove > 1 ? 's' : ''} to line{' '}
+				{targetLine}
 			</Text>
 			<Box marginTop={1}>
 				<Text color={colors.secondary}>From:</Text>

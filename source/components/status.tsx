@@ -1,10 +1,11 @@
 import {Text} from 'ink';
 import {memo, useState, useEffect} from 'react';
 
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 import {checkForUpdates} from '../utils/update-checker.js';
+import {themes} from '../config/themes.js';
 
 // Get CWD once at module load time
 const cwd = process.cwd();
@@ -24,6 +25,7 @@ export default memo(function Status({
 	model: string;
 }) {
 	const boxWidth = useTerminalWidth();
+	const {colors, currentTheme} = useTheme();
 	const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 
 	useEffect(() => {
@@ -60,6 +62,10 @@ export default memo(function Status({
 				<Text bold={true}>Provider: </Text>
 				{provider}, <Text bold={true}>Model: </Text>
 				{model}
+			</Text>
+			<Text color={colors.primary}>
+				<Text bold={true}>Theme: </Text>
+				{themes[currentTheme].displayName}
 			</Text>
 			{updateInfo?.hasUpdate && (
 				<Text color={colors.warning}>

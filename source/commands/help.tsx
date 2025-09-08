@@ -6,8 +6,8 @@ import {fileURLToPath} from 'url';
 import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
-import {colors} from '../config/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
+import {useTheme} from '../hooks/useTheme.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +23,7 @@ function Help({
 	commands: Array<{name: string; description: string}>;
 }) {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 	return (
 		<TitledBox
 			borderStyle="round"
