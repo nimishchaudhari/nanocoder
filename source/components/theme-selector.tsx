@@ -60,10 +60,8 @@ export default function ThemeSelector({
 	};
 
 	return (
-		<TitledBox
+		<Box
 			borderStyle="round"
-			titles={['Theme Selection']}
-			titleStyles={titleStyles.pill}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -95,6 +93,6 @@ export default function ThemeSelector({
 					onHighlight={handleHighlight}
 				/>
 			</Box>
-		</TitledBox>
+		</Box>
 	);
 }

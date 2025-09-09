@@ -34,6 +34,7 @@ export default function SuccessMessage({
 				</Box>
 			) : (
 				<TitledBox
+					key={colors.primary}
 					borderStyle="round"
 					titles={['Success']}
 					titleStyles={titleStyles.pill}

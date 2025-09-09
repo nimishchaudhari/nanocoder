@@ -58,6 +58,7 @@ function Debug({currentLevel, newLevel, action, invalidArg}: DebugProps) {
 	const {colors} = useTheme();
 	return (
 		<TitledBox
+			key={colors.primary}
 			borderStyle="round"
 			titles={['/debug']}
 			titleStyles={titleStyles.pill}

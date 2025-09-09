@@ -47,7 +47,7 @@ export default function ModelSelector({
 
 			try {
 				const availableModels = await client.getAvailableModels();
-				
+
 				if (availableModels.length === 0) {
 					setError('No models available. Please check your configuration.');
 					setLoading(false);
@@ -77,6 +77,7 @@ export default function ModelSelector({
 	if (loading) {
 		return (
 			<TitledBox
+				key={colors.primary}
 				borderStyle="round"
 				titles={['Model Selection']}
 				titleStyles={titleStyles.pill}
@@ -105,7 +106,9 @@ export default function ModelSelector({
 			>
 				<Box flexDirection="column">
 					<Text color={colors.error}>{error}</Text>
-					<Text color={colors.secondary}>Make sure your provider is properly configured.</Text>
+					<Text color={colors.secondary}>
+						Make sure your provider is properly configured.
+					</Text>
 					<Box marginTop={1}>
 						<Text color={colors.secondary}>Press Escape to cancel</Text>
 					</Box>

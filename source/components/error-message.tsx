@@ -35,6 +35,7 @@ export default memo(function ErrorMessage({
 				</Box>
 			) : (
 				<TitledBox
+					key={colors.primary}
 					borderStyle="round"
 					titles={['Error']}
 					titleStyles={titleStyles.pill}

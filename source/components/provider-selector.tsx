@@ -25,22 +25,24 @@ export default function ProviderSelector({
 }: ProviderSelectorProps) {
 	const boxWidth = useTerminalWidth();
 	const {colors} = useTheme();
-	
+
 	const getProviderOptions = (): ProviderOption[] => {
 		const options: ProviderOption[] = [];
-		
+
 		if (appConfig.providers) {
 			for (const provider of appConfig.providers) {
 				options.push({
-					label: `${provider.name}${currentProvider === provider.name ? ' (current)' : ''}`,
+					label: `${provider.name}${
+						currentProvider === provider.name ? ' (current)' : ''
+					}`,
 					value: provider.name as ProviderType,
 				});
 			}
 		}
-		
+
 		return options;
 	};
-	
+
 	const [providers] = useState<ProviderOption[]>(getProviderOptions());
 
 	// Handle escape key to cancel
@@ -56,6 +58,7 @@ export default function ProviderSelector({
 
 	return (
 		<TitledBox
+			key={colors.primary}
 			borderStyle="round"
 			titles={['Select a Provider']}
 			titleStyles={titleStyles.pill}

@@ -26,6 +26,7 @@ function Help({
 	const {colors} = useTheme();
 	return (
 		<TitledBox
+			key={colors.primary}
 			borderStyle="round"
 			titles={['/help']}
 			titleStyles={titleStyles.pill}

@@ -44,6 +44,7 @@ export default memo(function Status({
 
 	return (
 		<TitledBox
+			key={colors.primary}
 			borderStyle="round"
 			titles={['Status']}
 			titleStyles={titleStyles.pill}

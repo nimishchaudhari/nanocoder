@@ -39,6 +39,7 @@ function CustomCommands({commands}: CustomCommandsProps) {
 
 	return (
 		<TitledBox
+			key={colors.primary}
 			borderStyle="round"
 			titles={['Custom Commands']}
 			titleStyles={titleStyles.pill}
@@ -58,15 +59,17 @@ function CustomCommands({commands}: CustomCommandsProps) {
 					</Box>
 
 					<Text color={colors.white}>To create custom commands:</Text>
-					
+
 					<Text color={colors.secondary}>
-						1. Create a <Text color={colors.primary}>.nanocoder/commands</Text> directory in your project
+						1. Create a <Text color={colors.primary}>.nanocoder/commands</Text>{' '}
+						directory in your project
 					</Text>
-					
+
 					<Text color={colors.secondary}>
-						2. Add <Text color={colors.primary}>.md</Text> files with command prompts
+						2. Add <Text color={colors.primary}>.md</Text> files with command
+						prompts
 					</Text>
-					
+
 					<Text color={colors.secondary}>
 						3. Optionally add frontmatter for metadata:
 					</Text>
@@ -86,7 +89,8 @@ function CustomCommands({commands}: CustomCommandsProps) {
 				<>
 					<Box marginBottom={1}>
 						<Text color={colors.white}>
-							Found {commands.length} custom command{commands.length !== 1 ? 's' : ''}:
+							Found {commands.length} custom command
+							{commands.length !== 1 ? 's' : ''}:
 						</Text>
 					</Box>
 

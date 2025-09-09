@@ -39,6 +39,7 @@ export default function CustomCommands({commands}: CustomCommandsProps) {
 
 	return (
 		<TitledBox
+			key={colors.primary}
 			borderStyle="round"
 			titles={['/custom-commands']}
 			titleStyles={titleStyles.pill}
