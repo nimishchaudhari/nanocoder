@@ -26,6 +26,7 @@ import {
 	commandsCommand,
 	debugCommand,
 	mcpCommand,
+	initCommand,
 } from '../../commands/index.js';
 import SuccessMessage from '../../components/success-message.js';
 import ErrorMessage from '../../components/error-message.js';
@@ -243,6 +244,7 @@ export function useAppInitialization({
 				commandsCommand,
 				debugCommand,
 				mcpCommand,
+				initCommand,
 			]);
 
 			// Now start with the properly initialized objects (excluding MCP)

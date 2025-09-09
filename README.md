@@ -233,6 +233,7 @@ Nanocoder automatically saves your preferences to remember your choices across s
 #### Built-in Commands
 
 - `/help` - Show available commands
+- `/init` - Initialize project with intelligent analysis, create AGENTS.md and configuration files
 - `/clear` - Clear chat history
 - `/model` - Switch between available models
 - `/provider` - Switch between configured AI providers

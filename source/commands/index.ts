@@ -6,3 +6,4 @@ export * from "./provider.js";
 export * from "./mcp.js";
 export * from "./debug.js";
 export * from "./custom-commands.js";
+export * from "./init.js";
