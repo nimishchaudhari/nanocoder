@@ -2,7 +2,7 @@
 
 A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter. Built with privacy and control in mind, Nanocoder supports multiple AI providers with tool support for file operations and command execution.
 
-![Video](./.github/assets/example.mp4)
+![Example](./.github/assets/example.gif)
 
 ## Table of Contents
 
