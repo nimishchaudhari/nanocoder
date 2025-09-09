@@ -26,6 +26,14 @@ export type ThemePreset =
 	| 'synthwave-84'
 	| 'forest-night'
 	| 'material-ocean'
-	| 'catppuccin-mocha'
-	| 'one-dark-pro'
-	| 'rose-pine-dawn';
+	| 'sunset-glow'
+	| 'nord-frost'
+	| 'rose-pine-dawn'
+	| 'neon-jungle'
+	| 'midnight-amethyst'
+	| 'desert-mirage'
+	| 'cherry-blossom'
+	| 'electric-storm'
+	| 'deep-sea'
+	| 'volcanic-ash'
+	| 'cyberpunk-mint';
