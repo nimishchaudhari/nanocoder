@@ -348,3 +348,5 @@ Whether you're interested in:
 - Just learning about local-first AI coding tools
 
 All contributions and community participation are welcome!
+
+This is a test line.

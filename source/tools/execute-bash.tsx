@@ -3,7 +3,7 @@ import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
 import type {ToolHandler, ToolDefinition, BashToolResult} from '../types/index.js';
-import {getColors} from '../config/index.js';
+import {ThemeContext} from '../hooks/useTheme.js';
 import ToolMessage from '../components/tool-message.js';
 
 const handler: ToolHandler = async (args: {
@@ -52,11 +52,9 @@ ${stdout}`;
 	});
 };
 
-const formatter = async (
-	args: any,
-	result?: string,
-): Promise<React.ReactElement> => {
-	const colors = getColors();
+// Create a component that will re-render when theme changes
+const ExecuteBashFormatter = React.memo(({args, result}: {args: any; result?: string}) => {
+	const {colors} = React.useContext(ThemeContext)!;
 	const command = args.command || 'unknown';
 
 	let highlightedCommand;
@@ -114,6 +112,10 @@ const formatter = async (
 	);
 
 	return <ToolMessage message={messageContent} hideBox={true} />;
+});
+
+const formatter = async (args: any, result?: string): Promise<React.ReactElement> => {
+	return <ExecuteBashFormatter args={args} result={result} />;
 };
 
 export const executeBashTool: ToolDefinition = {
