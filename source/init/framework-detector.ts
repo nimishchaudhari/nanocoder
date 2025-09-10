@@ -88,6 +88,20 @@ export class FrameworkDetector {
     this.checkCargoToml(result);
     this.checkGoMod(result);
     
+    // Deduplicate frameworks by name
+    const uniqueFrameworks = new Map<string, FrameworkInfo>();
+    for (const framework of result.frameworks) {
+      const existing = uniqueFrameworks.get(framework.name);
+      if (!existing || framework.confidence === 'high') {
+        uniqueFrameworks.set(framework.name, framework);
+      }
+    }
+    result.frameworks = Array.from(uniqueFrameworks.values());
+    
+    // Deduplicate build tools and testing frameworks
+    result.buildTools = [...new Set(result.buildTools)];
+    result.testingFrameworks = [...new Set(result.testingFrameworks)];
+    
     return result;
   }
 
@@ -254,9 +268,15 @@ export class FrameworkDetector {
       };
     }
 
-    // Check for partial matches
+    // Check for partial matches with more precise logic
     for (const [key, pattern] of Object.entries(FrameworkDetector.FRAMEWORK_PATTERNS)) {
-      if (depName.includes(key) || key.includes(depName)) {
+      // Avoid false positives by checking for word boundaries and common prefixes
+      const isExactWordMatch = depName === key;
+      const hasCommonPrefix = depName.startsWith(key + '/') || depName.startsWith(key + '-');
+      const isPackageVariant = key.startsWith('@') && depName.startsWith(key);
+      
+      // Only match if it's a clear variant of the framework, not just a substring
+      if (isExactWordMatch || hasCommonPrefix || isPackageVariant) {
         return {
           name: pattern.name,
           category: pattern.category,
