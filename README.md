@@ -107,6 +107,11 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 	"nanocoder": {
 		"providers": [
 			{
+				"name": "llama-cpp",
+				"baseUrl": "http://localhost:8080/v1",
+				"models": ["qwen3-coder:a3b", "deepseek-v3.1"]
+			},
+			{
 				"name": "Ollama",
 				"baseUrl": "http://localhost:11434/v1",
 				"models": ["qwen2.5-coder:14b", "llama3.2"]
@@ -129,6 +134,8 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 
 **Common Provider Examples:**
 
+- **llama.cpp server**: `"baseUrl": "http://localhost:8080/v1"`
+- **llama-swap**: `"baseUrl": "http://localhost:9292/v1"`
 - **Ollama (Local)**:
 
   - First run: `ollama pull qwen2.5-coder:14b`
@@ -142,7 +149,6 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 - **LM Studio**: `"baseUrl": "http://localhost:1234/v1"`
 - **vLLM**: `"baseUrl": "http://localhost:8000/v1"`
 - **LocalAI**: `"baseUrl": "http://localhost:8080/v1"`
-- **llama.cpp server**: `"baseUrl": "http://localhost:8080/v1"`
 - **OpenAI**: `"baseUrl": "https://api.openai.com/v1"`
 
 **Provider Configuration:**
