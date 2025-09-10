@@ -49,7 +49,7 @@ export class AgentsTemplateGenerator {
       
       if (analysis.structure.importantDirectories.length > 0) {
         sections.push('**Project Structure:**');
-        for (const dir of analysis.structure.importantDirectories.slice(0, 10)) {
+        for (const dir of analysis.structure.importantDirectories.slice(0, 20)) {
           sections.push(`- \`${dir}/\` - ${this.getDirectoryDescription(dir)}`);
         }
         sections.push('');

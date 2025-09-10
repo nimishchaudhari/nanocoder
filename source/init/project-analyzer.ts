@@ -124,31 +124,80 @@ export class ProjectAnalyzer {
   private getImportantDirectories(directories: string[]): string[] {
     const important = new Set<string>();
     
-    const importantPatterns = [
+    const sourcePatterns = [
       'src', 'source', 'app', 'lib', 'libs',
       'components', 'pages', 'views', 'routes',
       'api', 'server', 'backend', 'frontend',
       'models', 'controllers', 'services', 'utils',
       'config', 'configs', 'settings',
       'assets', 'static', 'public',
-      'docs', 'documentation',
+      'docs', 'documentation'
+    ];
+
+    const testPatterns = [
       'test', 'tests', '__tests__', 'spec'
     ];
 
+    // First pass: Add all source directories
     for (const dir of directories) {
       const dirName = basename(dir).toLowerCase();
+      const dirParts = dir.split('/');
       
-      if (importantPatterns.includes(dirName)) {
-        important.add(dir);
-      }
+      // Check if this is a source directory (not inside test directories)
+      const isInTestDir = dirParts.some(part => testPatterns.includes(part.toLowerCase()));
       
-      // Check for nested important directories
-      if (dir.split('/').some(part => importantPatterns.includes(part.toLowerCase()))) {
-        important.add(dir);
+      if (!isInTestDir) {
+        // Add if directory name matches source patterns
+        if (sourcePatterns.includes(dirName)) {
+          important.add(dir);
+        }
+        
+        // Add if any part of the path matches source patterns (e.g., "src/components")
+        if (dirParts.some(part => sourcePatterns.includes(part.toLowerCase()))) {
+          important.add(dir);
+        }
       }
     }
 
-    return Array.from(important).sort();
+    // Second pass: Add test directories only if we don't have many source directories
+    if (important.size < 5) {
+      for (const dir of directories) {
+        const dirName = basename(dir).toLowerCase();
+        const dirParts = dir.split('/');
+        
+        // Check if this is a test directory
+        const isTestDir = testPatterns.includes(dirName) || 
+                          dirParts.some(part => testPatterns.includes(part.toLowerCase()));
+        
+        if (isTestDir) {
+          // Only add test directories that contain meaningful structure
+          if (dirParts.length > 1 || directories.filter(d => d.startsWith(dir)).length > 1) {
+            important.add(dir);
+          }
+        }
+      }
+    }
+
+    // Sort with source directories first, then by depth (fewer levels first), then alphabetically
+    return Array.from(important).sort((a, b) => {
+      const aIsTest = testPatterns.some(pattern => a.includes(pattern));
+      const bIsTest = testPatterns.some(pattern => b.includes(pattern));
+      
+      // Source directories first
+      if (aIsTest !== bIsTest) {
+        return aIsTest ? 1 : -1;
+      }
+      
+      // Then by depth (fewer levels first for better overview)
+      const aDepth = a.split('/').length;
+      const bDepth = b.split('/').length;
+      if (aDepth !== bDepth) {
+        return aDepth - bDepth;
+      }
+      
+      // Finally alphabetically
+      return a.localeCompare(b);
+    });
   }
 
   /**
