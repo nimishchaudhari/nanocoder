@@ -328,25 +328,28 @@ Generate comprehensive unit tests for {{component}}. Include:
 
 ## Community
 
-We're a small team building Nanocoder and would love your help! Whether you're interested in contributing code, documentation, or just being part of our community, there are several ways to get involved.
+We're a small community-led team building Nanocoder and would love your help! Whether you're interested in contributing code, documentation, or just being part of our community, there are several ways to get involved.
 
-**If you want to contribute:**
+**If you want to contribute to the code:**
 
 - Read our detailed [CONTRIBUTING.md](CONTRIBUTING.md) guide for information on development setup, coding standards, and how to submit your changes.
 
-**If you want to be part of our community:**
+**If you want to be part of our community or help with other aspects like design or marketing:**
 
 - Join our Discord server to connect with other users, ask questions, share ideas, and get help: [Join our Discord server](https://discord.gg/ktPDV6rekE)
 
-Whether you're interested in:
+- Head to our GitHub issues or discussions to open and join current conversations with others in the community.
+
+**What does Nanocoder you need help with?**
+
+Nanocoder could benefit from help all across the board. Such as:
 
 - Adding support for new AI providers
 - Improving tool functionality
 - Enhancing the user experience
 - Writing documentation
 - Reporting bugs or suggesting features
-- Just learning about local-first AI coding tools
+- Marketing and getting the word out
+- Design and building more great software
 
 All contributions and community participation are welcome!
-
-This is a test line.
