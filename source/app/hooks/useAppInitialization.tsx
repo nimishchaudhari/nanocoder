@@ -26,6 +26,7 @@ import {
 	commandsCommand,
 	debugCommand,
 	mcpCommand,
+	initCommand,
 	themeCommand,
 } from '../../commands/index.js';
 import SuccessMessage from '../../components/success-message.js';
@@ -244,6 +245,7 @@ export function useAppInitialization({
 				commandsCommand,
 				debugCommand,
 				mcpCommand,
+				initCommand,
 				themeCommand,
 			]);
 
