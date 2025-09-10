@@ -4,6 +4,7 @@ import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 import {colors} from '../config/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
+import ErrorMessage from '../components/error-message.js';
 import {existsSync, mkdirSync, writeFileSync} from 'fs';
 import {join} from 'path';
 import {ProjectAnalyzer} from '../init/project-analyzer.js';
@@ -89,22 +90,7 @@ function InitSuccess({
 }
 
 function InitError({message}: {message: string}) {
-	const boxWidth = useTerminalWidth();
-	return (
-		<TitledBox
-			borderStyle="round"
-			titles={['Initialization Error']}
-			titleStyles={titleStyles.pill}
-			width={boxWidth}
-			borderColor="#ff6b6b"
-			paddingX={2}
-			paddingY={1}
-			flexDirection="column"
-			marginBottom={1}
-		>
-			<Text color="#ff6b6b">✗ {message}</Text>
-		</TitledBox>
-	);
+	return <ErrorMessage message={`✗ ${message}`} />;
 }
 
 const DEFAULT_CONFIG = {
