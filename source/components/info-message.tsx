@@ -1,7 +1,7 @@
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 export default function InfoMessage({
@@ -14,6 +14,7 @@ export default function InfoMessage({
 	hideBox?: boolean;
 }) {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 	return (
 		<>
 			{hideBox ? (
@@ -33,6 +34,7 @@ export default function InfoMessage({
 				</Box>
 			) : (
 				<TitledBox
+					key={colors.primary}
 					borderStyle="round"
 					titles={['Info']}
 					titleStyles={titleStyles.pill}

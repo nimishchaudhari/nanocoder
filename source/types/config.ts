@@ -1,4 +1,5 @@
 import type { ProviderType } from "./core.js";
+import type { ThemePreset } from "./ui.js";
 
 // LangChain provider configurations
 export interface LangChainProviderConfig {
@@ -33,6 +34,7 @@ export interface UserPreferences {
     [key in ProviderType]?: string;
   };
   lastUpdateCheck?: number;
+  selectedTheme?: ThemePreset;
 }
 
 export type LogLevel = "silent" | "normal" | "verbose";

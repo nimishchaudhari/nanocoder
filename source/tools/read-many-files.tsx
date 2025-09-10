@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import React from 'react';
 import {Text, Box} from 'ink';
 import type {ToolHandler, ToolDefinition} from '../types/index.js';
-import {colors} from '../config/index.js';
+import {ThemeContext} from '../hooks/useTheme.js';
 import ToolMessage from '../components/tool-message.js';
 
 const handler: ToolHandler = async (args: {
@@ -62,7 +62,9 @@ const handler: ToolHandler = async (args: {
 	return JSON.stringify(summary);
 };
 
-const formatter = async (args: any): Promise<React.ReactElement> => {
+// Create a component that will re-render when theme changes
+const ReadManyFilesFormatter = React.memo(({args}: {args: any}) => {
+	const {colors} = React.useContext(ThemeContext)!;
 	const paths = args.paths || [];
 
 	if (!Array.isArray(paths)) {
@@ -76,21 +78,24 @@ const formatter = async (args: any): Promise<React.ReactElement> => {
 	}
 
 	// Calculate total file size and estimated tokens
-	let totalSize = 0;
-	let totalEstimatedTokens = 0;
+	const [fileInfo, setFileInfo] = React.useState({totalFiles: 0, totalSize: 0, totalTokens: 0});
 
-	for (const path of paths) {
-		try {
-			const content = await readFile(resolve(path), 'utf-8');
-			totalSize += content.length;
-			totalEstimatedTokens += Math.ceil(content.length / 4);
-		} catch (error) {
-			// Skip files that can't be read for size calculation
-		}
-	}
-
-	const maxPreview = 5;
-	const previewPaths = paths.slice(0, maxPreview);
+	React.useEffect(() => {
+		const calculateInfo = async () => {
+			let totalSize = 0;
+			for (const path of paths) {
+				try {
+					const content = await readFile(resolve(path), 'utf-8');
+					totalSize += content.length;
+				} catch (error) {
+					// Skip files that can't be read
+				}
+			}
+			const estimatedTokens = Math.ceil(totalSize / 4);
+			setFileInfo({totalFiles: paths.length, totalSize, totalTokens: estimatedTokens});
+		};
+		calculateInfo();
+	}, [paths]);
 
 	const messageContent = (
 		<Box flexDirection="column">
@@ -98,39 +103,35 @@ const formatter = async (args: any): Promise<React.ReactElement> => {
 
 			<Box>
 				<Text color={colors.secondary}>Files: </Text>
-				<Text color={colors.white}>
-					{paths.length} file{paths.length !== 1 ? 's' : ''}
-				</Text>
+				<Text color={colors.white}>{fileInfo.totalFiles}</Text>
 			</Box>
 
 			<Box>
 				<Text color={colors.secondary}>Total size: </Text>
 				<Text color={colors.white}>
-					{totalSize} characters (~{totalEstimatedTokens} tokens)
+					{fileInfo.totalSize} characters (~{fileInfo.totalTokens} tokens)
 				</Text>
 			</Box>
 
-			<Box flexDirection="column" marginTop={1}>
-				{previewPaths.map((path: string, index: number) => (
-					<Box key={index}>
-						<Text color={colors.secondary}> • </Text>
+			<Box marginTop={1} flexDirection="column">
+				<Text color={colors.white}>Paths:</Text>
+				{paths.map((path: string, i: number) => (
+					<Box key={i} marginLeft={2}>
+						<Text color={colors.secondary}>• </Text>
 						<Text color={colors.primary}>{path}</Text>
 					</Box>
 				))}
-
-				{paths.length > maxPreview && (
-					<Box>
-						<Text color={colors.secondary}>
-							... and {paths.length - maxPreview} more files
-						</Text>
-					</Box>
-				)}
 			</Box>
 		</Box>
 	);
 
 	return <ToolMessage message={messageContent} hideBox={true} />;
+});
+
+const formatter = async (args: any): Promise<React.ReactElement> => {
+	return <ReadManyFilesFormatter args={args} />;
 };
+
 
 export const readManyFilesTool: ToolDefinition = {
 	handler,

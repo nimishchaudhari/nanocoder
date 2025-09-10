@@ -2,7 +2,7 @@ import React, {memo} from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 export default memo(function ToolMessage({
@@ -19,6 +19,7 @@ export default memo(function ToolMessage({
 	isBashMode?: boolean;
 }) {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 	// Handle both string and ReactNode messages
 	const messageContent =
 		typeof message === 'string' ? (
@@ -64,6 +65,7 @@ export default memo(function ToolMessage({
 				</Box>
 			) : (
 				<TitledBox
+					key={colors.primary}
 					borderStyle={borderStyle}
 					titles={[title || 'Tool Message']}
 					titleStyles={titleStyles.pill}

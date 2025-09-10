@@ -1,12 +1,14 @@
 import {Box, Text} from 'ink';
 import WelcomeMessage from './components/welcome-message.js';
 import React from 'react';
-import {colors} from './config/index.js';
+import {getThemeColors} from './config/themes.js';
+import {ThemeContext} from './hooks/useTheme.js';
 import UserInput from './components/user-input.js';
 import Status from './components/status.js';
 import ChatQueue from './components/chat-queue.js';
 import ModelSelector from './components/model-selector.js';
 import ProviderSelector from './components/provider-selector.js';
+import ThemeSelector from './components/theme-selector.js';
 import ThinkingIndicator from './components/thinking-indicator.js';
 import CancellingIndicator from './components/cancelling-indicator.js';
 import ToolConfirmation from './components/tool-confirmation.js';
@@ -26,6 +28,13 @@ import {handleMessageSubmission, createClearMessagesHandler} from './app/utils/a
 export default function App() {
 	// Use extracted hooks
 	const appState = useAppState();
+	
+	// Create theme context value
+	const themeContextValue = {
+		currentTheme: appState.currentTheme,
+		colors: getThemeColors(appState.currentTheme),
+		setCurrentTheme: appState.setCurrentTheme,
+	};
 	
 	// Initialize global message queue on component mount
 	React.useEffect(() => {
@@ -87,9 +96,11 @@ export default function App() {
 		setClient: appState.setClient,
 		setCurrentModel: appState.setCurrentModel,
 		setCurrentProvider: appState.setCurrentProvider,
+		setCurrentTheme: appState.setCurrentTheme,
 		setMessages: appState.updateMessages,
 		setIsModelSelectionMode: appState.setIsModelSelectionMode,
 		setIsProviderSelectionMode: appState.setIsProviderSelectionMode,
+		setIsThemeSelectionMode: appState.setIsThemeSelectionMode,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 	});
@@ -131,6 +142,7 @@ export default function App() {
 			onClearMessages: clearMessages,
 			onEnterModelSelectionMode: modeHandlers.enterModelSelectionMode,
 			onEnterProviderSelectionMode: modeHandlers.enterProviderSelectionMode,
+			onEnterThemeSelectionMode: modeHandlers.enterThemeSelectionMode,
 			onHandleChatMessage: chatHandler.handleChatMessage,
 			onAddToChatQueue: appState.addToChatQueue,
 			componentKeyCounter: appState.componentKeyCounter,
@@ -165,7 +177,8 @@ export default function App() {
 	], [appState.currentProvider, appState.currentModel]);
 
 	return (
-		<Box flexDirection="column" padding={1} width="100%">
+		<ThemeContext.Provider value={themeContextValue}>
+			<Box flexDirection="column" padding={1} width="100%">
 			<Box flexGrow={1} flexDirection="column" minHeight={0}>
 				<WelcomeMessage />
 				{appState.startChat && (
@@ -199,6 +212,11 @@ export default function App() {
 							onProviderSelect={modeHandlers.handleProviderSelect}
 							onCancel={modeHandlers.handleProviderSelectionCancel}
 						/>
+					) : appState.isThemeSelectionMode ? (
+						<ThemeSelector
+							onThemeSelect={modeHandlers.handleThemeSelect}
+							onCancel={modeHandlers.handleThemeSelectionCancel}
+						/>
 					) : appState.isToolConfirmationMode &&
 					  appState.pendingToolCalls[appState.currentToolIndex] ? (
 						<ToolConfirmation
@@ -223,17 +241,18 @@ export default function App() {
 							onCancel={handleCancel}
 						/>
 					) : appState.mcpInitialized && !appState.client ? (
-						<Text color={colors.secondary}>
+						<Text color={themeContextValue.colors.secondary}>
 							⚠️ No LLM provider available. Chat is disabled. Please fix your
 							provider configuration and restart.
 						</Text>
 					) : (
-						<Text color={colors.secondary}>
+						<Text color={themeContextValue.colors.secondary}>
 							<Spinner type="dots2" /> Loading...
 						</Text>
 					)}
 				</Box>
 			)}
-		</Box>
+			</Box>
+		</ThemeContext.Provider>
 	);
 }

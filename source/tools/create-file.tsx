@@ -4,7 +4,7 @@ import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
 import type {ToolHandler, ToolDefinition} from '../types/index.js';
-import {colors} from '../config/index.js';
+import {ThemeContext} from '../hooks/useTheme.js';
 import {getLanguageFromExtension} from '../utils/programming-language-helper.js';
 import ToolMessage from '../components/tool-message.js';
 
@@ -17,7 +17,9 @@ const handler: ToolHandler = async (args: {
 	return 'File written successfully';
 };
 
-const formatter = async (args: any): Promise<React.ReactElement> => {
+// Create a component that will re-render when theme changes
+const CreateFileFormatter = React.memo(({args}: {args: any}) => {
+	const {colors} = React.useContext(ThemeContext)!;
 	const path = args.path || args.file_path || 'unknown';
 	const newContent = args.content || '';
 	const lineCount = newContent.split('\n').length;
@@ -76,6 +78,10 @@ const formatter = async (args: any): Promise<React.ReactElement> => {
 	);
 
 	return <ToolMessage message={messageContent} hideBox={true} />;
+});
+
+const formatter = async (args: any): Promise<React.ReactElement> => {
+	return <CreateFileFormatter args={args} />;
 };
 
 export const createFileTool: ToolDefinition = {

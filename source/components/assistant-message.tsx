@@ -1,6 +1,6 @@
 import {Text, Box} from 'ink';
 import {memo, useMemo} from 'react';
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import type {AssistantMessageProps} from '../types/index.js';
 
 // Performance optimization: truncate very long messages to prevent input lag
@@ -11,6 +11,7 @@ export default memo(function AssistantMessage({
 	message,
 	model,
 }: AssistantMessageProps) {
+	const {colors} = useTheme();
 	const {displayMessage, wasTruncated, remainingChars} = useMemo(() => {
 		if (message.length <= MAX_MESSAGE_LENGTH) {
 			return {

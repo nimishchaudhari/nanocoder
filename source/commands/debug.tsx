@@ -3,8 +3,9 @@ import {getLogLevel, setLogLevel} from '../config/logging.js';
 import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
-import {colors} from '../config/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
+import {useTheme} from '../hooks/useTheme.js';
+import {getColors} from '../config/index.js';
 
 interface DebugProps {
 	currentLevel: LogLevel;
@@ -14,6 +15,8 @@ interface DebugProps {
 }
 
 function getLogLevelDescription(level: LogLevel): React.ReactNode {
+	const colors = getColors();
+
 	switch (level) {
 		case 'silent':
 			return (
@@ -52,8 +55,10 @@ function getLogLevelDescription(level: LogLevel): React.ReactNode {
 
 function Debug({currentLevel, newLevel, action, invalidArg}: DebugProps) {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 	return (
 		<TitledBox
+			key={colors.primary}
 			borderStyle="round"
 			titles={['/debug']}
 			titleStyles={titleStyles.pill}

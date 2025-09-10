@@ -4,8 +4,8 @@ import {getToolManager} from '../message-handler.js';
 import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
-import {colors} from '../config/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
+import {useTheme} from '../hooks/useTheme.js';
 
 interface MCPProps {
 	toolManager: ToolManager | null;
@@ -13,10 +13,12 @@ interface MCPProps {
 
 export function MCP({toolManager}: MCPProps) {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 	const connectedServers = toolManager?.getConnectedServers() || [];
 
 	return (
 		<TitledBox
+			key={colors.primary}
 			borderStyle="round"
 			titles={['/mcp']}
 			titleStyles={titleStyles.pill}

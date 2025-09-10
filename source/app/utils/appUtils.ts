@@ -1,7 +1,5 @@
 import React from 'react';
 import {commandRegistry} from '../../commands.js';
-import {CustomCommandLoader} from '../../custom-commands/loader.js';
-import {CustomCommandExecutor} from '../../custom-commands/executor.js';
 import {parseInput} from '../../command-parser.js';
 import {toolRegistry} from '../../tools/index.js';
 import InfoMessage from '../../components/info-message.js';
@@ -20,6 +18,7 @@ export async function handleMessageSubmission(
 		onClearMessages,
 		onEnterModelSelectionMode,
 		onEnterProviderSelectionMode,
+		onEnterThemeSelectionMode,
 		onHandleChatMessage,
 		onAddToChatQueue,
 		componentKeyCounter,
@@ -142,6 +141,9 @@ ${result.fullOutput || '(No output)'}`;
 				return;
 			} else if (commandName === 'provider') {
 				onEnterProviderSelectionMode();
+				return;
+			} else if (commandName === 'theme') {
+				onEnterThemeSelectionMode();
 				return;
 			}
 

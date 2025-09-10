@@ -2,7 +2,7 @@ import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
 import {memo} from 'react';
 
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
 import fs from 'fs';
@@ -21,6 +21,7 @@ const packageJson = JSON.parse(
 
 export default memo(function WelcomeMessage() {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 
 	return (
 		<>
@@ -29,6 +30,7 @@ export default memo(function WelcomeMessage() {
 			</Gradient>
 
 			<TitledBox
+				key={colors.primary}
 				borderStyle="round"
 				titles={[`✻ Welcome to Nanocoder ${packageJson.version}`]}
 				titleStyles={titleStyles.pill}

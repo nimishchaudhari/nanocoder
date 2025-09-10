@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {colors} from '../config/index.js';
+import {useTheme} from '../hooks/useTheme.js';
 import {LLMClient} from '../types/core.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 
@@ -25,6 +25,7 @@ export default function ModelSelector({
 	onCancel,
 }: ModelSelectorProps) {
 	const boxWidth = useTerminalWidth();
+	const {colors} = useTheme();
 	const [models, setModels] = useState<ModelOption[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -46,7 +47,7 @@ export default function ModelSelector({
 
 			try {
 				const availableModels = await client.getAvailableModels();
-				
+
 				if (availableModels.length === 0) {
 					setError('No models available. Please check your configuration.');
 					setLoading(false);
@@ -76,6 +77,7 @@ export default function ModelSelector({
 	if (loading) {
 		return (
 			<TitledBox
+				key={colors.primary}
 				borderStyle="round"
 				titles={['Model Selection']}
 				titleStyles={titleStyles.pill}
@@ -104,7 +106,9 @@ export default function ModelSelector({
 			>
 				<Box flexDirection="column">
 					<Text color={colors.error}>{error}</Text>
-					<Text color={colors.secondary}>Make sure your provider is properly configured.</Text>
+					<Text color={colors.secondary}>
+						Make sure your provider is properly configured.
+					</Text>
 					<Box marginTop={1}>
 						<Text color={colors.secondary}>Press Escape to cancel</Text>
 					</Box>

@@ -3,6 +3,9 @@ import {LLMClient, Message, ProviderType} from '../../types/core.js';
 import {ToolManager} from '../../tools/tool-manager.js';
 import {CustomCommandLoader} from '../../custom-commands/loader.js';
 import {CustomCommandExecutor} from '../../custom-commands/executor.js';
+import {loadPreferences} from '../../config/preferences.js';
+import {defaultTheme} from '../../config/themes.js';
+import type {ThemePreset} from '../../types/ui.js';
 import React from 'react';
 
 export interface ThinkingStats {
@@ -19,12 +22,17 @@ export interface ConversationContext {
 }
 
 export function useAppState() {
+	// Initialize theme from preferences
+	const preferences = loadPreferences();
+	const initialTheme = preferences.selectedTheme || defaultTheme;
+	
 	const [client, setClient] = useState<LLMClient | null>(null);
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [displayMessages, setDisplayMessages] = useState<Message[]>([]);
 	const [messageTokenCache, setMessageTokenCache] = useState<Map<string, number>>(new Map());
 	const [currentModel, setCurrentModel] = useState<string>('');
 	const [currentProvider, setCurrentProvider] = useState<ProviderType>('openai-compatible');
+	const [currentTheme, setCurrentTheme] = useState<ThemePreset>(initialTheme);
 	const [toolManager, setToolManager] = useState<ToolManager | null>(null);
 	const [customCommandLoader, setCustomCommandLoader] = useState<CustomCommandLoader | null>(null);
 	const [customCommandExecutor, setCustomCommandExecutor] = useState<CustomCommandExecutor | null>(null);
@@ -47,6 +55,7 @@ export function useAppState() {
 	// Mode states
 	const [isModelSelectionMode, setIsModelSelectionMode] = useState<boolean>(false);
 	const [isProviderSelectionMode, setIsProviderSelectionMode] = useState<boolean>(false);
+	const [isThemeSelectionMode, setIsThemeSelectionMode] = useState<boolean>(false);
 	const [isToolConfirmationMode, setIsToolConfirmationMode] = useState<boolean>(false);
 	const [isToolExecuting, setIsToolExecuting] = useState<boolean>(false);
 	const [isBashExecuting, setIsBashExecuting] = useState<boolean>(false);
@@ -125,6 +134,7 @@ export function useAppState() {
 		messageTokenCache,
 		currentModel,
 		currentProvider,
+		currentTheme,
 		toolManager,
 		customCommandLoader,
 		customCommandExecutor,
@@ -137,6 +147,7 @@ export function useAppState() {
 		abortController,
 		isModelSelectionMode,
 		isProviderSelectionMode,
+		isThemeSelectionMode,
 		isToolConfirmationMode,
 		isToolExecuting,
 		isBashExecuting,
@@ -155,6 +166,7 @@ export function useAppState() {
 		setMessageTokenCache,
 		setCurrentModel,
 		setCurrentProvider,
+		setCurrentTheme,
 		setToolManager,
 		setCustomCommandLoader,
 		setCustomCommandExecutor,
@@ -167,6 +179,7 @@ export function useAppState() {
 		setAbortController,
 		setIsModelSelectionMode,
 		setIsProviderSelectionMode,
+		setIsThemeSelectionMode,
 		setIsToolConfirmationMode,
 		setIsToolExecuting,
 		setIsBashExecuting,

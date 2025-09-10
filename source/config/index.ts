@@ -3,6 +3,8 @@ import {existsSync, readFileSync} from 'fs';
 import {join, dirname} from 'path';
 import {fileURLToPath} from 'url';
 import {logError} from '../utils/message-queue.js';
+import {loadPreferences} from './preferences.js';
+import {getThemeColors, defaultTheme} from './themes.js';
 
 // Function to load app configuration from agents.config.json if it exists
 function loadAppConfig(): AppConfig {
@@ -34,22 +36,14 @@ export const legacyConfig = {
 	contextSize: 4000,
 };
 
-export const colors: Colors = {
-	white: '#c0caf5',
-	black: '#1a1b26',
-	primary: '#bb9af7',
-	tool: '#7dcfff',
-	success: '#7AF778',
-	error: '#f7768e',
-	secondary: '#565f89',
-	info: '#2ac3de',
-	warning: '#e0af68',
-	// Diff highlight colors (Tokyo Night theme)
-	diffAdded: '#1e2f1e', // Dark green background for added lines
-	diffRemoved: '#2f1e1e', // Dark red background for removed lines
-	diffAddedText: '#9ece6a', // Green text for added content
-	diffRemovedText: '#f7768e', // Red text for removed content
-};
+export function getColors(): Colors {
+	const preferences = loadPreferences();
+	const selectedTheme = preferences.selectedTheme || defaultTheme;
+	return getThemeColors(selectedTheme);
+}
+
+// Legacy export for backwards compatibility
+export const colors: Colors = getColors();
 
 // Get the package root directory (where this module is installed)
 const __filename = fileURLToPath(import.meta.url);
