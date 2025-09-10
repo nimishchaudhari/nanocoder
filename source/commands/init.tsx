@@ -1,18 +1,19 @@
-import { Command } from '../types/index.js';
+import {Command} from '../types/index.js';
 import React from 'react';
-import { TitledBox, titleStyles } from '@mishieck/ink-titled-box';
-import { Text, Box } from 'ink';
-import { colors } from '../config/index.js';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import { ProjectAnalyzer } from '../init/project-analyzer.js';
-import { AgentsTemplateGenerator } from '../init/agents-template-generator.js';
-import { ExistingRulesExtractor } from '../init/existing-rules-extractor.js';
+import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
+import {Text, Box} from 'ink';
+import {colors} from '../config/index.js';
+import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
+import {existsSync, mkdirSync, writeFileSync} from 'fs';
+import {join} from 'path';
+import {ProjectAnalyzer} from '../init/project-analyzer.js';
+import {AgentsTemplateGenerator} from '../init/agents-template-generator.js';
+import {ExistingRulesExtractor} from '../init/existing-rules-extractor.js';
 
-function InitSuccess({ 
-	created, 
-	analysis 
-}: { 
+function InitSuccess({
+	created,
+	analysis,
+}: {
 	created: string[];
 	analysis?: {
 		projectType: string;
@@ -21,12 +22,13 @@ function InitSuccess({
 		totalFiles: number;
 	};
 }) {
+	const boxWidth = useTerminalWidth();
 	return (
 		<TitledBox
 			borderStyle="round"
 			titles={['Project Initialized']}
 			titleStyles={titleStyles.pill}
-			width={75}
+			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
 			paddingY={1}
@@ -42,27 +44,35 @@ function InitSuccess({
 			{analysis && (
 				<>
 					<Box marginBottom={1}>
-						<Text color={colors.white} bold>Project Analysis:</Text>
+						<Text color={colors.white} bold>
+							Project Analysis:
+						</Text>
 					</Box>
 					<Text color={colors.secondary}>• Type: {analysis.projectType}</Text>
-					<Text color={colors.secondary}>• Primary Language: {analysis.primaryLanguage}</Text>
+					<Text color={colors.secondary}>
+						• Primary Language: {analysis.primaryLanguage}
+					</Text>
 					{analysis.frameworks.length > 0 && (
 						<Text color={colors.secondary}>
 							• Frameworks: {analysis.frameworks.slice(0, 3).join(', ')}
 						</Text>
 					)}
-					<Text color={colors.secondary}>• Files Analyzed: {analysis.totalFiles}</Text>
+					<Text color={colors.secondary}>
+						• Files Analyzed: {analysis.totalFiles}
+					</Text>
 					<Box marginBottom={1} />
 				</>
 			)}
 
 			<Box marginBottom={1}>
-				<Text color={colors.white} bold>Files Created:</Text>
+				<Text color={colors.white} bold>
+					Files Created:
+				</Text>
 			</Box>
 
 			{created.map((item, index) => (
 				<Text key={index} color={colors.secondary}>
-					  • {item}
+					• {item}
 				</Text>
 			))}
 
@@ -78,13 +88,14 @@ function InitSuccess({
 	);
 }
 
-function InitError({ message }: { message: string }) {
+function InitError({message}: {message: string}) {
+	const boxWidth = useTerminalWidth();
 	return (
 		<TitledBox
 			borderStyle="round"
 			titles={['Initialization Error']}
 			titleStyles={titleStyles.pill}
-			width={70}
+			width={boxWidth}
 			borderColor="#ff6b6b"
 			paddingX={2}
 			paddingY={1}
@@ -96,42 +107,23 @@ function InitError({ message }: { message: string }) {
 	);
 }
 
-function InitProgress() {
-	return (
-		<TitledBox
-			borderStyle="round"
-			titles={['Analyzing Project']}
-			titleStyles={titleStyles.pill}
-			width={60}
-			borderColor={colors.secondary}
-			paddingX={2}
-			paddingY={1}
-			flexDirection="column"
-			marginBottom={1}
-		>
-			<Text color={colors.white}>🔍 Scanning codebase and analyzing structure...</Text>
-			<Text color={colors.secondary}>This may take a moment for large projects.</Text>
-		</TitledBox>
-	);
-}
-
 const DEFAULT_CONFIG = {
 	nanocoder: {
 		providers: [
 			{
-				name: "OpenRouter",
-				baseUrl: "https://openrouter.ai/api/v1",
-				apiKey: "your-openrouter-api-key-here",
-				models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"]
+				name: 'OpenRouter',
+				baseUrl: 'https://openrouter.ai/api/v1',
+				apiKey: 'your-openrouter-api-key-here',
+				models: ['openai/gpt-4o-mini', 'anthropic/claude-3-haiku'],
 			},
 			{
-				name: "Local Ollama",
-				baseUrl: "http://localhost:11434/v1",
-				models: ["llama3.2", "qwen2.5-coder"]
-			}
+				name: 'Local Ollama',
+				baseUrl: 'http://localhost:11434/v1',
+				models: ['llama3.2', 'qwen2.5-coder'],
+			},
 		],
-		mcpServers: []
-	}
+		mcpServers: [],
+	},
 };
 
 // Enhanced example commands based on detected project type
@@ -168,11 +160,11 @@ Consider:
 4. Follow existing test framework conventions
 5. Ensure good test coverage
 
-If no filename provided, suggest which files need tests.`
+If no filename provided, suggest which files need tests.`,
 	};
 
 	// Add language/framework-specific commands
-	const additionalCommands: { [key: string]: string } = {};
+	const additionalCommands: {[key: string]: string} = {};
 
 	if (primaryLanguage === 'JavaScript' || primaryLanguage === 'TypeScript') {
 		additionalCommands['refactor.md'] = `---
@@ -228,12 +220,13 @@ Create a new {{type}} component named {{name}} that:
 Make it reusable and well-documented.`;
 	}
 
-	return { ...baseCommands, ...additionalCommands };
+	return {...baseCommands, ...additionalCommands};
 };
 
 export const initCommand: Command = {
 	name: 'init',
-	description: 'Initialize nanocoder configuration and analyze project structure',
+	description:
+		'Initialize nanocoder configuration and analyze project structure',
 	handler: async (_args: string[]) => {
 		const cwd = process.cwd();
 		const created: string[] = [];
@@ -252,7 +245,8 @@ export const initCommand: Command = {
 			if (hasConfig && hasAgents && hasNanocoder) {
 				return React.createElement(InitError, {
 					key: `init-error-${Date.now()}`,
-					message: 'Project already fully initialized. Found agents.config.json, AGENTS.md, and .nanocoder/ directory.'
+					message:
+						'Project already fully initialized. Found agents.config.json, AGENTS.md, and .nanocoder/ directory.',
 				});
 			}
 
@@ -276,10 +270,13 @@ export const initCommand: Command = {
 
 			// Create AGENTS.md based on analysis and existing rules
 			if (!hasAgents) {
-				const agentsContent = AgentsTemplateGenerator.generateAgentsMd(analysis, existingRules);
+				const agentsContent = AgentsTemplateGenerator.generateAgentsMd(
+					analysis,
+					existingRules,
+				);
 				writeFileSync(agentsPath, agentsContent);
 				created.push('AGENTS.md');
-				
+
 				// Report found existing rules
 				if (existingRules.length > 0) {
 					const sourceFiles = existingRules.map(r => r.source).join(', ');
@@ -289,20 +286,20 @@ export const initCommand: Command = {
 
 			// Create .nanocoder directory structure
 			if (!hasNanocoder) {
-				mkdirSync(nanocoderDir, { recursive: true });
+				mkdirSync(nanocoderDir, {recursive: true});
 				created.push('.nanocoder/');
 			}
 
 			const commandsDir = join(nanocoderDir, 'commands');
 			if (!existsSync(commandsDir)) {
-				mkdirSync(commandsDir, { recursive: true });
+				mkdirSync(commandsDir, {recursive: true});
 				created.push('.nanocoder/commands/');
 			}
 
 			// Create example custom commands based on project analysis
 			const exampleCommands = getExampleCommands(
 				analysis.projectType,
-				analysis.languages.primary?.name || 'Unknown'
+				analysis.languages.primary?.name || 'Unknown',
 			);
 
 			for (const [filename, content] of Object.entries(exampleCommands)) {
@@ -318,19 +315,18 @@ export const initCommand: Command = {
 				projectType: analysis.projectType,
 				primaryLanguage: analysis.languages.primary?.name || 'Unknown',
 				frameworks: analysis.dependencies.frameworks.map(f => f.name),
-				totalFiles: analysis.structure.scannedFiles
+				totalFiles: analysis.structure.scannedFiles,
 			};
 
 			return React.createElement(InitSuccess, {
 				key: `init-success-${Date.now()}`,
 				created,
-				analysis: analysisSummary
+				analysis: analysisSummary,
 			});
-
 		} catch (error: any) {
 			return React.createElement(InitError, {
 				key: `init-error-${Date.now()}`,
-				message: `Failed to initialize project: ${error.message}`
+				message: `Failed to initialize project: ${error.message}`,
 			});
 		}
 	},
