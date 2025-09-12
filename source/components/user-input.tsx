@@ -24,18 +24,22 @@ function useInputState() {
 	const [historyIndex, setHistoryIndex] = useState(-1);
 	const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+	const [cachedLineCount, setCachedLineCount] = useState(1);
+
+	// Cache the line count
 	const updateInput = useCallback((newInput: string) => {
-		// Clear previous debounce timer
-		if (debounceTimerRef.current) {
-			clearTimeout(debounceTimerRef.current);
-		}
-
-		// For immediate UI feedback, always update input immediately
 		setInput(newInput);
-
-		// Debounce the expensive hasLargeContent calculation
+		
 		debounceTimerRef.current = setTimeout(() => {
 			setHasLargeContent(newInput.length > 150);
+			// Cache line count calculation
+			if (newInput.length > 150) {
+				const lineCount = Math.max(
+					newInput.split('\n').length,
+					newInput.split('\r').length,
+				);
+				setCachedLineCount(lineCount);
+			}
 		}, 50);
 	}, []);
 
