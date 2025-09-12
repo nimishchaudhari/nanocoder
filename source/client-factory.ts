@@ -109,8 +109,17 @@ async function testProviderConnection(providerConfig: LangChainProviderConfig): 
 				signal: AbortSignal.timeout(5000)
 			});
 			// Don't check response.ok as some servers return 404 for root path
+			// We just need to confirm the server responded (not a network error)
 		} catch (error) {
-			throw new Error(`Server not accessible at ${providerConfig.config.baseURL}`);
+			// Only throw if it's a network error, not a 404 or other HTTP response
+			if (error instanceof TypeError) {
+				throw new Error(`Server not accessible at ${providerConfig.config.baseURL}`);
+			}
+			// For AbortError (timeout), also throw
+			if (error instanceof Error && error.name === 'AbortError') {
+				throw new Error(`Server not accessible at ${providerConfig.config.baseURL}`);
+			}
+			// Other errors (like HTTP errors) mean the server is responding, so pass
 		}
 	}
 	// Require API key for hosted providers
