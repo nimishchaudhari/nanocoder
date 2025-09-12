@@ -39,7 +39,7 @@
 	},
 	"files": [
 		"dist",
-		"source/prompt.md"
+		"source/app/prompts/main-prompt.md"
 	],
 	"dependencies": {
 		"@langchain/core": "^0.3.72",
