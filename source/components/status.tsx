@@ -1,5 +1,6 @@
 import {Text} from 'ink';
 import {memo, useState, useEffect} from 'react';
+import {existsSync} from 'fs';
 
 import {useTheme} from '../hooks/useTheme.js';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
@@ -27,6 +28,7 @@ export default memo(function Status({
 	const boxWidth = useTerminalWidth();
 	const {colors, currentTheme} = useTheme();
 	const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+	const [agentsMdLoaded, setAgentsMdLoaded] = useState(false);
 
 	useEffect(() => {
 		const performUpdateCheck = async () => {
@@ -40,6 +42,9 @@ export default memo(function Status({
 		};
 
 		performUpdateCheck();
+	}, []);
+	useEffect(() => {
+		setAgentsMdLoaded(existsSync(`${cwd}/AGENTS.md`));
 	}, []);
 
 	return (
@@ -68,6 +73,15 @@ export default memo(function Status({
 				<Text bold={true}>Theme: </Text>
 				{themes[currentTheme].displayName}
 			</Text>
+			{agentsMdLoaded ? (
+				<Text color={colors.secondary} italic>
+					<Text>↳ Using AGENTS.md. Project initialized</Text>
+				</Text>
+			) : (
+				<Text color={colors.secondary} italic>
+					↳ No AGENTS.md file found, run `/init` to initialize this directory
+				</Text>
+			)}
 			{updateInfo?.hasUpdate && (
 				<Text color={colors.warning}>
 					<Text bold={true}>Update Available: </Text>v

@@ -77,7 +77,7 @@ function InitSuccess({
 				</Text>
 			))}
 
-			<Box marginTop={1}>
+			<Box marginTop={1} flexDirection="column">
 				<Text color={colors.white}>
 					Your project is now ready for AI-assisted development!
 				</Text>
