@@ -136,5 +136,8 @@ agents.config.json
 agents
 CLAUDE.md
 GEMINI.md
+AGENTS.md
+component.md
+refactor.md
 
 .heap-snapshots
