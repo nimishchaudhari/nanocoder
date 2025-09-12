@@ -48,5 +48,5 @@ export const colors: Colors = getColors();
 // Get the package root directory (where this module is installed)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-// Go up from dist/config to package root, then to source/main-prompt.md
-export const promptPath = join(__dirname, '../../source/main-prompt.md');
+// Go up from dist/config to package root, then to source/app/prompts/main-prompt.md
+export const promptPath = join(__dirname, '../../source/app/prompts/main-prompt.md');
