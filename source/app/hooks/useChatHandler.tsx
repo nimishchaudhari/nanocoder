@@ -255,7 +255,7 @@ export function useChatHandler({
 
 			// Update thinking stats in real-time
 			if (!chunk.done) {
-				const systemTokens = Math.ceil(300 / 4);
+				const systemTokens = Math.ceil(systemMessage.content.length / 4); // Use actual system prompt length
 				const conversationTokens = getMessageTokens 
 					? messages.reduce((total, msg) => total + getMessageTokens(msg), 0)
 					: messages.reduce((total, msg) => total + Math.ceil((msg.content?.length || 0) / 4), 0);
@@ -436,7 +436,7 @@ export function useChatHandler({
 
 				// Update thinking stats in real-time (similar to initial response)
 				if (!chunk.done) {
-					const systemTokens = Math.ceil(300 / 4);
+					const systemTokens = Math.ceil(systemMessage.content.length / 4); // Use actual system prompt length
 					const conversationTokens = getMessageTokens 
 						? messages.reduce((total, msg) => total + getMessageTokens(msg), 0)
 						: messages.reduce((total, msg) => total + Math.ceil((msg.content?.length || 0) / 4), 0);
@@ -615,16 +615,11 @@ export function useChatHandler({
 		setIsThinking(true);
 
 		// Initialize per-message stats with existing conversation context
-		const systemTokens = Math.ceil(300 / 4); // Estimate system prompt tokens
+// const systemTokens = Math.ceil(systemPrompt.length / 4); // Comment out, will calculate later
 		const existingConversationTokens = getMessageTokens 
 			? updatedMessages.reduce((total, msg) => total + getMessageTokens(msg), 0)
 			: updatedMessages.reduce((total, msg) => total + Math.ceil((msg.content?.length || 0) / 4), 0);
 		
-		setThinkingStats({
-			tokenCount: 0,
-			contextSize: client.getContextSize(),
-			totalTokensUsed: systemTokens + existingConversationTokens,
-		});
 
 		try {
 			// Load system prompt from prompt.md file
@@ -659,6 +654,15 @@ export function useChatHandler({
 			};
 
 			// Use the new conversation loop
+			// Initialize per-message stats with actual system prompt tokens
+			const systemTokens = Math.ceil(systemMessage.content.length / 4);
+			setThinkingStats({
+				tokenCount: 0,
+				contextSize: client.getContextSize(),
+				totalTokensUsed: systemTokens + existingConversationTokens,
+			});
+
+		// Use the new conversation loop
 			await processAssistantResponseWithTokenTracking(
 				systemMessage,
 				updatedMessages,
