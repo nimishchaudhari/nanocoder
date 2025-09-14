@@ -1,9 +1,7 @@
 import {LLMClient, Message, ToolCall, ToolResult} from '../../types/core.js';
 import {ToolManager} from '../../tools/tool-manager.js';
 import {toolDefinitions} from '../../tools/index.js';
-import {readFileSync, existsSync} from 'fs';
-import {join} from 'path';
-import {promptPath} from '../../config/index.js';
+import {processPromptTemplate} from '../../utils/prompt-processor.js';
 import {
 	parseToolCallsFromContent,
 	cleanContentFromToolCalls,
@@ -649,30 +647,9 @@ export function useChatHandler({
 			  );
 
 		try {
-			// Load system prompt from main-prompt.md file
-			let systemPrompt = 'You are a helpful AI assistant.'; // fallback
-			if (existsSync(promptPath)) {
-				try {
-					systemPrompt = readFileSync(promptPath, 'utf-8');
-				} catch (error) {
-					console.warn(
-						`Failed to load system prompt from ${promptPath}: ${error}`,
-					);
-				}
-			}
-
-			// Check for AGENTS.md in current working directory and append it
-			const agentsPath = join(process.cwd(), 'AGENTS.md');
-			if (existsSync(agentsPath)) {
-				try {
-					const agentsContent = readFileSync(agentsPath, 'utf-8');
-					systemPrompt +=
-						'\n\n## Project Context\n\nThe following information about this project should guide your responses:\n\n' +
-						agentsContent;
-				} catch (error) {
-					console.warn(`Failed to load AGENTS.md from ${agentsPath}: ${error}`);
-				}
-			}
+			// Load and process system prompt with dynamic tool documentation
+			const availableTools = toolManager ? toolManager.getAllTools() : [];
+			const systemPrompt = processPromptTemplate(availableTools);
 
 			// Create stream request
 			const systemMessage: Message = {

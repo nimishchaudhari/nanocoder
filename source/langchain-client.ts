@@ -99,6 +99,8 @@ export class LangChainClient implements LLMClient {
 		timestamp: number;
 	}> = []; // Track recent tool calls to prevent loops
 
+	private currentTaskContext: string | null = null; // Track current user task for continuation
+
 	constructor(providerConfig: LangChainProviderConfig) {
 		this.providerConfig = providerConfig;
 		this.availableModels = providerConfig.models;
@@ -106,14 +108,16 @@ export class LangChainClient implements LLMClient {
 		this.chatModel = this.createChatModel();
 	}
 
-	static async create(providerConfig: LangChainProviderConfig): Promise<LangChainClient> {
+	static async create(
+		providerConfig: LangChainProviderConfig,
+	): Promise<LangChainClient> {
 		const client = new LangChainClient(providerConfig);
-		
+
 		// Fetch OpenRouter model info if this is OpenRouter
 		if (providerConfig.name === 'openrouter') {
 			await client.fetchOpenRouterModelInfo();
 		}
-		
+
 		return client;
 	}
 
@@ -172,6 +176,9 @@ export class LangChainClient implements LLMClient {
 
 	async chat(messages: Message[], tools: Tool[]): Promise<any> {
 		try {
+			// Extract current task from user messages for context preservation
+			this.extractTaskContext(messages);
+
 			const langchainMessages = messages.map(convertToLangChainMessage);
 			const langchainTools = tools.map(convertToLangChainTool);
 
@@ -252,14 +259,14 @@ export class LangChainClient implements LLMClient {
 
 			const message = result.choices[0].message;
 
-			// If there are tool calls, yield them directly
+			// If there are tool calls, yield them with preserved content
 			if (message.tool_calls && message.tool_calls.length > 0) {
 				yield {
 					message: {
-						content: '',
+						content: message.content || '', // Preserve assistant's reasoning
 						tool_calls: message.tool_calls,
 					},
-					done: true,
+					done: false, // Don't mark as done - conversation continues after tool execution
 				};
 			} else if (message.content) {
 				// If there's content, simulate streaming by yielding it in chunks
@@ -366,10 +373,13 @@ export class LangChainClient implements LLMClient {
 				return true;
 			});
 
-			// If we have filtered tool calls, return them
+			// If we have filtered tool calls, return them with preserved reasoning
 			if (filteredToolCalls.length > 0) {
+				// Extract the reasoning part before tool calls for context preservation
+				const reasoningContent = this.extractReasoningFromContent(result.content as string);
+				
 				return new AIMessage({
-					content: '', // Clear content since we extracted tool calls
+					content: reasoningContent, // Preserve model's reasoning for context
 					tool_calls: filteredToolCalls.map(tc => ({
 						id: tc.id,
 						name: tc.function.name,
@@ -435,7 +445,16 @@ IMPORTANT RULES:
 2. If you're just responding normally, don't include any JSON
 3. DO NOT repeat tool calls - if you've already used a tool recently, check the previous results instead
 4. If you see tool results in the conversation history, use them rather than calling the same tool again
-5. Each tool should only be called once per task unless the user explicitly asks to repeat it`;
+5. Each tool should only be called once per task unless the user explicitly asks to repeat it
+6. CRITICAL: After tool execution, continue working toward your original goal - don't stop and wait for user input
+7. Use tool results immediately to take the next logical step in completing the user's request
+
+FOR OLLAMA/LOCAL MODELS:
+- Always explain your reasoning before making tool calls
+- After each tool execution, immediately continue with the next logical step
+- State clearly what you learned from tool results and what you'll do next
+- Keep the original task goal in mind throughout the entire process
+- Don't wait for user confirmation - proceed automatically with your plan`;
 
 		// Add tool instructions to the system message or create one
 		const modifiedMessages = [...messages];
@@ -495,6 +514,44 @@ IMPORTANT RULES:
 		return toolCalls;
 	}
 
+	/**
+	 * Extract current task context from recent user messages
+	 */
+	private extractTaskContext(messages: Message[]): void {
+		// Find the most recent user message that looks like a task request
+		for (let i = messages.length - 1; i >= 0; i--) {
+			const message = messages[i];
+			if (
+				message.role === 'user' &&
+				message.content &&
+				message.content.trim().length > 10
+			) {
+				// Skip very short messages or common responses
+				const content = message.content.toLowerCase();
+				if (
+					!content.includes('ok') &&
+					!content.includes('yes') &&
+					!content.includes('no') &&
+					!content.includes('thanks') &&
+					content.length > 20
+				) {
+					this.currentTaskContext = message.content;
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Extract reasoning content from model response, removing JSON tool calls
+	 */
+	private extractReasoningFromContent(content: string): string {
+		// Remove JSON code blocks containing tool calls
+		const withoutToolCalls = content.replace(/```json\s*\{[\s\S]*?\}\s*```/g, '').trim();
+		
+		// If there's still meaningful content, return it, otherwise return original
+		return withoutToolCalls.length > 20 ? withoutToolCalls : content;
+	}
 
 	private async fetchOpenRouterModelInfo(): Promise<void> {
 		if (

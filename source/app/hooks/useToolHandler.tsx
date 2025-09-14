@@ -1,4 +1,4 @@
-import {Message} from '../../types/core.js';
+import {Message, LLMClient, ProviderType} from '../../types/core.js';
 import {processToolUse, getToolManager} from '../../message-handler.js';
 import {ConversationContext} from './useAppState.js';
 import InfoMessage from '../../components/info-message.js';
@@ -21,7 +21,12 @@ interface UseToolHandlerProps {
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 	resetToolConfirmationState: () => void;
-	onProcessAssistantResponse: (systemMessage: Message, messages: Message[]) => Promise<void>;
+	onProcessAssistantResponse: (
+		systemMessage: Message,
+		messages: Message[],
+	) => Promise<void>;
+	client?: LLMClient | null;
+	currentProvider?: ProviderType;
 }
 
 export function useToolHandler({
@@ -40,7 +45,13 @@ export function useToolHandler({
 	componentKeyCounter,
 	resetToolConfirmationState,
 	onProcessAssistantResponse,
+	client,
+	currentProvider,
 }: UseToolHandlerProps) {
+	// Detect if this is likely a local model for enhanced result formatting
+	const isLocalModel =
+		(client as any)?.providerConfig?.config?.baseURL?.includes('localhost') ||
+		(client as any)?.providerConfig?.config?.baseURL?.includes('11434');
 
 	// Display tool result with proper formatting
 	const displayToolResult = async (toolCall: any, result: any) => {
@@ -63,13 +74,17 @@ export function useToolHandler({
 					if (React.isValidElement(formattedResult)) {
 						addToChatQueue(
 							React.cloneElement(formattedResult, {
-								key: `tool-result-${result.tool_call_id}-${componentKeyCounter}-${Date.now()}`,
+								key: `tool-result-${
+									result.tool_call_id
+								}-${componentKeyCounter}-${Date.now()}`,
 							}),
 						);
 					} else {
 						addToChatQueue(
 							<ToolMessage
-								key={`tool-result-${result.tool_call_id}-${componentKeyCounter}-${Date.now()}`}
+								key={`tool-result-${
+									result.tool_call_id
+								}-${componentKeyCounter}-${Date.now()}`}
 								title={`⚒ ${result.name}`}
 								message={String(formattedResult)}
 								hideBox={true}
@@ -111,17 +126,21 @@ export function useToolHandler({
 		// Use passed results or fallback to state (for backwards compatibility)
 		const resultsToUse = toolResults || completedToolResults;
 
-		const {updatedMessages, assistantMsg, systemMessage} = currentConversationContext;
+		const {updatedMessages, assistantMsg, systemMessage} =
+			currentConversationContext;
 
-		// Add tool results to conversation history
-		// For non-tool-calling models, enhance the content to be more explicit
+		// Add tool results to conversation history with model-appropriate formatting
 		const toolMessages: Message[] = resultsToUse.map(result => {
-			// Make tool results more explicit for non-tool-calling models
-			const enhancedContent = `Tool "${result.name}" was executed successfully. Result: ${result.content}`;
-			
+			let content = result.content || '';
+
+			// For local models, add context to help with continuation
+			if (isLocalModel && content.length > 0) {
+				content = `${result.name}: ${content}`;
+			}
+
 			return {
 				role: 'tool' as const,
-				content: enhancedContent,
+				content: content,
 				tool_call_id: result.tool_call_id,
 				name: result.name,
 			};
@@ -173,7 +192,7 @@ export function useToolHandler({
 		const currentTool = pendingToolCalls[currentToolIndex];
 		try {
 			const result = await processToolUse(currentTool);
-			
+
 			const newResults = [...completedToolResults, result];
 			setCompletedToolResults(newResults);
 
