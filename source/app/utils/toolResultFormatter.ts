@@ -15,23 +15,24 @@ export function formatToolResultsForModel(
 	const isNonToolCallingModel = !assistantMsg.tool_calls;
 
 	return results.map(result => {
-		// For non-tool-calling models, format as assistant message with natural language
+		// For non-tool-calling models, format as user message with tool results
+		// This allows the model to see the tool output as context and continue working
 		if (isNonToolCallingModel && result.content) {
 			// Parse the tool result to extract the actual output
 			let toolOutput = result.content;
 
-			// Format as natural language response
+			// Format as tool result context for the model to process
 			const actionMap: Record<string, string> = {
-				read_file: 'read the file',
-				execute_bash: 'executed the command',
-				create_file: 'created the file',
-				edit_file: 'edited the file',
+				read_file: 'file contents',
+				execute_bash: 'command output',
+				create_file: 'file created',
+				edit_file: 'file edited',
 			};
-			const action = actionMap[result.name] || `used ${result.name}`;
+			const resultType = actionMap[result.name] || `${result.name} result`;
 
 			return {
-				role: 'assistant' as const,
-				content: `I ${action} and here are the results:\n\n${toolOutput}`,
+				role: 'user' as const,
+				content: `[Tool result - ${resultType}]:\n\n${toolOutput}\n\n[Please continue with the original request]`,
 			};
 		}
 
