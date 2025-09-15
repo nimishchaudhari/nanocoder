@@ -6,6 +6,7 @@ import {
 	parseToolCallsFromContent,
 	cleanContentFromToolCalls,
 } from '../../tool-calling/index.js';
+import {formatToolResultsForModel} from '../utils/toolResultFormatter.js';
 import UserMessage from '../../components/user-message.js';
 import AssistantMessage from '../../components/assistant-message.js';
 import ErrorMessage from '../../components/error-message.js';
@@ -303,10 +304,13 @@ export function useChatHandler({
 		const validToolCalls = allToolCalls;
 
 		// Add assistant message to conversation history
+		// Note: We don't include tool_calls in the conversation history for content-parsed tools
+		// to prevent the model from seeing its own tool call attempts and repeating them
 		const assistantMsg: Message = {
 			role: 'assistant',
 			content: cleanedContent,
-			tool_calls: validToolCalls.length > 0 ? validToolCalls : undefined,
+			// Only include tool_calls if they came from native tool calling (toolCalls from LangChain)
+			tool_calls: toolCalls && toolCalls.length > 0 ? toolCalls : undefined,
 		};
 		setMessages([...messages, assistantMsg]);
 
@@ -320,6 +324,7 @@ export function useChatHandler({
 				const toolDef = toolDefinitions.find(
 					def => def.config.function.name === toolCall.function.name,
 				);
+
 				if (toolDef && toolDef.requiresConfirmation === false) {
 					toolsToExecuteDirectly.push(toolCall);
 				} else {
@@ -359,19 +364,15 @@ export function useChatHandler({
 
 				// If we have results, continue the conversation with them
 				if (directResults.length > 0) {
-					// Add tool results to conversation history
-					const toolMessages: Message[] = directResults.map(result => ({
-						role: 'tool' as const,
-						content: `Tool "${result.name}" was executed successfully. Result: ${result.content}`,
-						tool_call_id: result.tool_call_id,
-						name: result.name,
-					}));
+					// Format tool results appropriately for the model type
+					const toolMessages = formatToolResultsForModel(directResults, assistantMsg);
 
 					const updatedMessagesWithTools = [
 						...messages,
 						assistantMsg,
 						...toolMessages,
 					];
+
 					setMessages(updatedMessagesWithTools);
 
 					// Continue the main conversation loop with tool results as context
@@ -391,6 +392,7 @@ export function useChatHandler({
 					assistantMsg,
 					systemMessage,
 				);
+				return; // IMPORTANT: Stop processing here, wait for user confirmation
 			}
 		}
 	};

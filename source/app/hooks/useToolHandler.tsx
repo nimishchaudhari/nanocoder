@@ -1,5 +1,6 @@
 import {Message, LLMClient, ProviderType} from '../../types/core.js';
 import {processToolUse, getToolManager} from '../../message-handler.js';
+import {formatToolResultsForModel} from '../utils/toolResultFormatter.js';
 import {ConversationContext} from './useAppState.js';
 import InfoMessage from '../../components/info-message.js';
 import ErrorMessage from '../../components/error-message.js';
@@ -48,10 +49,6 @@ export function useToolHandler({
 	client,
 	currentProvider,
 }: UseToolHandlerProps) {
-	// Detect if this is likely a local model for enhanced result formatting
-	const isLocalModel =
-		(client as any)?.providerConfig?.config?.baseURL?.includes('localhost') ||
-		(client as any)?.providerConfig?.config?.baseURL?.includes('11434');
 
 	// Display tool result with proper formatting
 	const displayToolResult = async (toolCall: any, result: any) => {
@@ -129,28 +126,20 @@ export function useToolHandler({
 		const {updatedMessages, assistantMsg, systemMessage} =
 			currentConversationContext;
 
-		// Add tool results to conversation history with model-appropriate formatting
-		const toolMessages: Message[] = resultsToUse.map(result => {
-			let content = result.content || '';
-
-			// For local models, add context to help with continuation
-			if (isLocalModel && content.length > 0) {
-				content = `${result.name}: ${content}`;
-			}
-
-			return {
-				role: 'tool' as const,
-				content: content,
-				tool_call_id: result.tool_call_id,
-				name: result.name,
-			};
-		});
+		// Format tool results appropriately for the model type
+		const toolMessages = formatToolResultsForModel(resultsToUse, assistantMsg);
 
 		// Update conversation history with tool results
 		// Note: assistantMsg is already included in updatedMessages, just add tool results
+		// Important: Remove tool_calls from assistantMsg to prevent model from seeing and repeating them
+		const cleanedAssistantMsg: Message = {
+			...assistantMsg,
+			tool_calls: undefined, // Remove tool_calls to prevent repetition
+		};
+		
 		const updatedMessagesWithTools = [
 			...updatedMessages,
-			assistantMsg,
+			cleanedAssistantMsg,
 			...toolMessages,
 		];
 		setMessages(updatedMessagesWithTools);
