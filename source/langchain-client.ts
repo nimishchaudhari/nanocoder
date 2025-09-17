@@ -15,7 +15,6 @@ import type {
 	LangChainProviderConfig,
 } from './types/index.js';
 import {logError} from './utils/message-queue.js';
-import {getOrCreateProxy} from './litellm-proxy.js';
 
 /**
  * Converts our Tool format to LangChain StructuredTool format
@@ -100,11 +99,9 @@ export class LangChainClient implements LLMClient {
 		timestamp: number;
 	}> = []; // Track recent tool calls to prevent loops
 
-	private usingProxy = false; // Track if we're using LiteLLM proxy
-	private originalConfig: LangChainProviderConfig; // Store original config for proxy fallback
+	private currentTaskContext: string | null = null; // Track current user task for continuation
 
 	constructor(providerConfig: LangChainProviderConfig) {
-		this.originalConfig = providerConfig;
 		this.providerConfig = providerConfig;
 		this.availableModels = providerConfig.models;
 		this.currentModel = providerConfig.models[0] || '';
@@ -179,6 +176,9 @@ export class LangChainClient implements LLMClient {
 
 	async chat(messages: Message[], tools: Tool[]): Promise<any> {
 		try {
+			// Extract current task from user messages for context preservation
+			this.extractTaskContext(messages);
+
 			const langchainMessages = messages.map(convertToLangChainMessage);
 			const langchainTools = tools.map(convertToLangChainTool);
 
@@ -221,42 +221,11 @@ export class LangChainClient implements LLMClient {
 						}
 					}
 				} catch (error) {
-					// Native tool calling failed - switch to LiteLLM proxy
-					await this.switchToProxy();
-					const modelWithTools = this.chatModel.bindTools!(langchainTools);
-					result = (await modelWithTools.invoke(
+					// Fallback to prompt-based tool calling for non-tool-calling models
+					result = await this.invokeWithPromptBasedTools(
 						langchainMessages,
-					)) as AIMessage;
-
-					// Apply loop detection to proxy tool calls
-					if (result.tool_calls && result.tool_calls.length > 0) {
-						const filteredToolCalls = result.tool_calls.filter(tc => {
-							const isDuplicate = this.isDuplicateRecentToolCall(
-								tc.name,
-								tc.args,
-							);
-							if (isDuplicate) {
-								return false;
-							}
-							// Add non-duplicate calls to history
-							this.addToToolCallHistory(tc.name, tc.args);
-							return true;
-						});
-
-						// If we have filtered tool calls, update the result
-						if (filteredToolCalls.length > 0) {
-							result = new AIMessage({
-								content: result.content,
-								tool_calls: filteredToolCalls,
-							});
-						} else {
-							// All tool calls were duplicates, return response explaining this
-							result = new AIMessage({
-								content:
-									"I notice I was about to repeat the same tool call(s). The requested action has already been performed recently. Please let me know if you need something different or if you'd like me to check the previous results.",
-							});
-						}
-					}
+						tools,
+					);
 				}
 			} else {
 				result = (await this.chatModel.invoke(langchainMessages)) as AIMessage;
@@ -374,31 +343,232 @@ export class LangChainClient implements LLMClient {
 		}
 	}
 
-	private async switchToProxy(): Promise<void> {
-		if (this.usingProxy) {
-			return; // Already using proxy
+	private async invokeWithPromptBasedTools(
+		messages: BaseMessage[],
+		tools: Tool[],
+	): Promise<AIMessage> {
+		const messagesWithTools = this.addToolsToMessages(messages, tools);
+		const result = (await this.chatModel.invoke(
+			messagesWithTools,
+		)) as AIMessage;
+
+		// Parse tool calls from the response content
+		const toolCalls = this.parseToolCallsFromContent(result.content as string);
+
+		if (toolCalls.length > 0) {
+			// Filter out duplicate recent tool calls to prevent loops
+			const filteredToolCalls = toolCalls.filter(tc => {
+				const isDuplicate = this.isDuplicateRecentToolCall(
+					tc.function.name,
+					tc.function.arguments,
+				);
+				if (isDuplicate) {
+					logError(
+						`Prevented duplicate tool call: ${tc.function.name} (loop prevention)`,
+					);
+					return false;
+				}
+				// Add non-duplicate calls to history
+				this.addToToolCallHistory(tc.function.name, tc.function.arguments);
+				return true;
+			});
+
+			// If we have filtered tool calls, return them with preserved reasoning
+			if (filteredToolCalls.length > 0) {
+				// Extract the reasoning part before tool calls for context preservation
+				const reasoningContent = this.extractReasoningFromContent(
+					result.content as string,
+				);
+
+				return new AIMessage({
+					content: reasoningContent, // Preserve model's reasoning for context
+					tool_calls: filteredToolCalls.map(tc => ({
+						id: tc.id,
+						name: tc.function.name,
+						args: tc.function.arguments,
+					})),
+				});
+			} else {
+				// All tool calls were duplicates, return response explaining this
+				return new AIMessage({
+					content:
+						"I notice I was about to repeat the same tool call(s). The requested action has already been performed recently. Please let me know if you need something different or if you'd like me to check the previous results.",
+				});
+			}
 		}
 
-		// Start the LiteLLM proxy with the original provider config and current model
-		const proxy = await getOrCreateProxy(this.originalConfig, this.getCurrentModel());
-		
-		// Switch to using the proxy
-		this.usingProxy = true;
-		const proxyConfig: LangChainProviderConfig = {
-			...this.originalConfig,
-			models: ['proxy-model'], // Use the proxy model name
-			config: {
-				...this.originalConfig.config,
-				baseURL: `${proxy.getProxyUrl()}/v1`,
-			},
-		};
-		this.providerConfig = proxyConfig;
-		// Update current model to proxy model name
-		this.currentModel = 'proxy-model';
-		this.chatModel = this.createChatModel();
+		return result;
 	}
 
+	private addToolsToMessages(
+		messages: BaseMessage[],
+		tools: Tool[],
+	): BaseMessage[] {
+		if (tools.length === 0) return messages;
 
+		// Create tool definitions prompt
+		const toolDefinitions = tools
+			.map(tool => {
+				const params = Object.entries(tool.function.parameters.properties)
+					.map(
+						([name, schema]: [string, any]) =>
+							`${name}: ${schema.description || schema.type}`,
+					)
+					.join(', ');
+
+				return `${tool.function.name}(${params}) - ${tool.function.description}`;
+			})
+			.join('\n');
+
+		// Include current task context if available
+		const taskContext = this.currentTaskContext 
+			? `\n\nCURRENT TASK REMINDER: "${this.currentTaskContext}"\nYour job is to complete this specific task. After each tool execution, continue working toward this goal.`
+			: '';
+
+		const toolInstructions = `You have access to the following tools. To use a tool, respond with JSON in this exact format:
+
+\`\`\`json
+{
+  "tool_calls": [
+    {
+      "id": "call_123",
+      "function": {
+        "name": "tool_name",
+        "arguments": {
+          "param1": "value1",
+          "param2": "value2"
+        }
+      }
+    }
+  ]
+}
+\`\`\`
+
+Available tools:
+${toolDefinitions}${taskContext}
+
+CRITICAL CONTINUATION RULES FOR NON-TOOL-CALLING MODELS:
+1. NEVER stop after using a tool - immediately continue toward completing the original user request
+2. After each tool execution, ask yourself: "Does this tool result help me complete the user's original request?"
+3. If YES: Use the tool result to provide the final answer or take the next step
+4. If NO: Explain what you learned and continue with the appropriate next step
+5. ALWAYS reference the original user request when deciding what to do next
+6. Tool execution is NOT the end goal - completing the user's task is the end goal
+
+IMPORTANT RULES:
+1. Only use the JSON tool format if you actually need to use a tool
+2. If you're just responding normally, don't include any JSON
+3. DO NOT repeat tool calls - if you've already used a tool recently, check the previous results instead
+4. If you see tool results in the conversation history, use them rather than calling the same tool again
+5. Each tool should only be called once per task unless the user explicitly asks to repeat it
+6. CRITICAL: After tool execution, continue working toward your original goal - don't stop and wait for user input
+7. Use tool results immediately to take the next logical step in completing the user's request
+
+FOR NON-TOOL-CALLING MODELS:
+- State the original user request before each response
+- After each tool execution, immediately explain what you learned and what you'll do next
+- Never end your response with just tool execution - always continue the conversation
+- Keep the original task goal in mind throughout the entire process
+- Don't wait for user confirmation - proceed automatically with your plan to complete the task`;
+
+		// Add tool instructions to the system message or create one
+		const modifiedMessages = [...messages];
+		const systemMessageIndex = modifiedMessages.findIndex(
+			msg => msg instanceof SystemMessage,
+		);
+
+		if (systemMessageIndex >= 0) {
+			// Append to existing system message
+			const existingSystemMsg = modifiedMessages[systemMessageIndex];
+			modifiedMessages[systemMessageIndex] = new SystemMessage(
+				existingSystemMsg.content + '\n\n' + toolInstructions,
+			);
+		} else {
+			// Add new system message at the beginning
+			modifiedMessages.unshift(new SystemMessage(toolInstructions));
+		}
+
+		return modifiedMessages;
+	}
+
+	private parseToolCallsFromContent(content: string): any[] {
+		const toolCalls: any[] = [];
+
+		// Look for JSON code blocks containing tool calls
+		const jsonBlockRegex = /```json\s*(\{[\s\S]*?\})\s*```/g;
+		let match;
+
+		while ((match = jsonBlockRegex.exec(content)) !== null) {
+			try {
+				const parsed = JSON.parse(match[1]);
+
+				// Handle standard format: { "tool_calls": [...] }
+				if (parsed.tool_calls && Array.isArray(parsed.tool_calls)) {
+					for (const toolCall of parsed.tool_calls) {
+						if (toolCall.function?.name) {
+							toolCalls.push({
+								id:
+									toolCall.id ||
+									`call_${Date.now()}_${Math.random()
+										.toString(36)
+										.substring(2, 11)}`,
+								function: {
+									name: toolCall.function.name,
+									arguments: toolCall.function.arguments || {},
+								},
+							});
+						}
+					}
+				}
+			} catch (error) {
+				// Skip invalid JSON
+				continue;
+			}
+		}
+
+		return toolCalls;
+	}
+
+	/**
+	 * Extract current task context from recent user messages
+	 */
+	private extractTaskContext(messages: Message[]): void {
+		// Find the most recent user message that looks like a task request
+		for (let i = messages.length - 1; i >= 0; i--) {
+			const message = messages[i];
+			if (
+				message.role === 'user' &&
+				message.content &&
+				message.content.trim().length > 10
+			) {
+				// Skip very short messages or common responses
+				const content = message.content.toLowerCase();
+				if (
+					!content.includes('ok') &&
+					!content.includes('yes') &&
+					!content.includes('no') &&
+					!content.includes('thanks') &&
+					content.length > 20
+				) {
+					this.currentTaskContext = message.content;
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Extract reasoning content from model response, removing JSON tool calls
+	 */
+	private extractReasoningFromContent(content: string): string {
+		// Remove JSON code blocks containing tool calls
+		const withoutToolCalls = content
+			.replace(/```json\s*\{[\s\S]*?\}\s*```/g, '')
+			.trim();
+
+		// If there's still meaningful content, return it, otherwise return original
+		return withoutToolCalls.length > 20 ? withoutToolCalls : content;
+	}
 
 	private async fetchOpenRouterModelInfo(): Promise<void> {
 		if (
