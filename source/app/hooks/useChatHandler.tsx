@@ -305,7 +305,7 @@ export function useChatHandler({
 			throw new Error('No response received from model');
 		}
 
-		// Parse any tool calls from the content itself
+		// Parse any tool calls from content for non-tool-calling models
 		const parsedToolCalls = parseToolCallsFromContent(fullContent);
 		const cleanedContent = cleanContentFromToolCalls(
 			fullContent,
@@ -323,11 +323,9 @@ export function useChatHandler({
 			);
 		}
 
-		// Merge structured tool calls with content-parsed tool calls
+		// Merge structured tool calls from LangGraph with content-parsed tool calls
 		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-
-		// Filter out invalid tool calls
-		const validToolCalls = allToolCalls;
+		const validToolCalls = filterValidToolCalls(allToolCalls);
 
 		// Add assistant message to conversation history
 		// Note: We don't include tool_calls in the conversation history for content-parsed tools
@@ -335,7 +333,7 @@ export function useChatHandler({
 		const assistantMsg: Message = {
 			role: 'assistant',
 			content: cleanedContent,
-			// Only include tool_calls if they came from native tool calling (toolCalls from LangChain)
+			// Only include tool_calls if they came from native tool calling (toolCalls from LangGraph)
 			tool_calls: toolCalls && toolCalls.length > 0 ? toolCalls : undefined,
 		};
 		setMessages([...messages, assistantMsg]);
@@ -502,7 +500,7 @@ export function useChatHandler({
 				throw new Error('No response received from model');
 			}
 
-			// Parse any tool calls from the content itself
+			// Parse any tool calls from content for non-tool-calling models
 			const parsedToolCalls = parseToolCallsFromContent(fullContent);
 			const cleanedContent = cleanContentFromToolCalls(
 				fullContent,
@@ -520,10 +518,8 @@ export function useChatHandler({
 				);
 			}
 
-			// Merge structured tool calls with content-parsed tool calls
+			// Merge structured tool calls from LangGraph with content-parsed tool calls
 			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-
-			// Filter out invalid tool calls
 			const validToolCalls = filterValidToolCalls(allToolCalls);
 
 			// Add assistant message to conversation history
