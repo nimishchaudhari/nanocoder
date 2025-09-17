@@ -155,7 +155,7 @@ export function useToolHandler({
 		// Get task context for better continuation
 		const taskContext = getTaskContext(updatedMessages);
 
-		// Format tool results appropriately for the model type
+		// Format tool results appropriately for the model type (no conversation state available here)
 		const toolMessages = formatToolResultsForModel(resultsToUse, assistantMsg, taskContext);
 
 		// Update conversation history with tool results

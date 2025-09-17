@@ -1,12 +1,12 @@
 import {readFileSync, existsSync} from 'fs';
-import {join} from 'path';
+import {join, dirname} from 'path';
 import {promptPath} from '../config/index.js';
 import type {Tool} from '../types/index.js';
 
 /**
  * Process the main prompt template by injecting dynamic tool documentation
  */
-export function processPromptTemplate(tools: Tool[]): string {
+export function processPromptTemplate(tools: Tool[], isNonToolCallingModel = false): string {
 	let systemPrompt = 'You are a helpful AI assistant.'; // fallback
 
 	// Load base prompt
@@ -20,6 +20,11 @@ export function processPromptTemplate(tools: Tool[]): string {
 
 	// Inject dynamic tool documentation
 	systemPrompt = injectToolDocumentation(systemPrompt, tools);
+
+	// Add model-specific enhancements for non-tool-calling models
+	if (isNonToolCallingModel) {
+		systemPrompt = addNonToolCallingModelEnhancements(systemPrompt);
+	}
 
 	// Check for AGENTS.md in current working directory and append it
 	const agentsPath = join(process.cwd(), 'AGENTS.md');
@@ -114,4 +119,48 @@ function formatToolDocumentation(tool: Tool): string {
 	}
 
 	return doc;
+}
+
+/**
+ * Add specialized instructions for non-tool-calling models
+ */
+function addNonToolCallingModelEnhancements(systemPrompt: string): string {
+	const enhancementsPath = join(dirname(promptPath), 'app', 'prompts', 'non-tool-calling-enhancement.md');
+	
+	if (existsSync(enhancementsPath)) {
+		try {
+			const enhancements = readFileSync(enhancementsPath, 'utf-8');
+			return systemPrompt + '\n\n' + enhancements;
+		} catch (error) {
+			console.warn(`Failed to load non-tool-calling enhancements: ${error}`);
+		}
+	}
+	
+	// Fallback inline enhancements if file doesn't exist
+	return systemPrompt + `
+
+## Enhanced Tool Usage Instructions
+
+**CRITICAL**: After using any tool, you MUST continue working toward the original task. Tool execution is not a stopping point.
+
+### Tool Call Format
+Use exactly this JSON format:
+\`\`\`json
+{
+  "name": "tool_name",
+  "arguments": {
+    "parameter": "value"
+  }
+}
+\`\`\`
+
+### Continuation Rules
+- **Always explain** what you plan to do before using a tool
+- **Use tool results** to inform your next action
+- **Keep working** until the original task is complete
+- **Try different approaches** if something isn't working
+- **Don't repeat** the same tool call with identical parameters
+
+### Progress Mindset
+Remember the user's original request and work systematically toward completing it. Each tool execution should move you closer to the goal.`;
 }
