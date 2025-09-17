@@ -376,8 +376,10 @@ export class LangChainClient implements LLMClient {
 			// If we have filtered tool calls, return them with preserved reasoning
 			if (filteredToolCalls.length > 0) {
 				// Extract the reasoning part before tool calls for context preservation
-				const reasoningContent = this.extractReasoningFromContent(result.content as string);
-				
+				const reasoningContent = this.extractReasoningFromContent(
+					result.content as string,
+				);
+
 				return new AIMessage({
 					content: reasoningContent, // Preserve model's reasoning for context
 					tool_calls: filteredToolCalls.map(tc => ({
@@ -418,6 +420,11 @@ export class LangChainClient implements LLMClient {
 			})
 			.join('\n');
 
+		// Include current task context if available
+		const taskContext = this.currentTaskContext 
+			? `\n\nCURRENT TASK REMINDER: "${this.currentTaskContext}"\nYour job is to complete this specific task. After each tool execution, continue working toward this goal.`
+			: '';
+
 		const toolInstructions = `You have access to the following tools. To use a tool, respond with JSON in this exact format:
 
 \`\`\`json
@@ -438,7 +445,15 @@ export class LangChainClient implements LLMClient {
 \`\`\`
 
 Available tools:
-${toolDefinitions}
+${toolDefinitions}${taskContext}
+
+CRITICAL CONTINUATION RULES FOR NON-TOOL-CALLING MODELS:
+1. NEVER stop after using a tool - immediately continue toward completing the original user request
+2. After each tool execution, ask yourself: "Does this tool result help me complete the user's original request?"
+3. If YES: Use the tool result to provide the final answer or take the next step
+4. If NO: Explain what you learned and continue with the appropriate next step
+5. ALWAYS reference the original user request when deciding what to do next
+6. Tool execution is NOT the end goal - completing the user's task is the end goal
 
 IMPORTANT RULES:
 1. Only use the JSON tool format if you actually need to use a tool
@@ -449,12 +464,12 @@ IMPORTANT RULES:
 6. CRITICAL: After tool execution, continue working toward your original goal - don't stop and wait for user input
 7. Use tool results immediately to take the next logical step in completing the user's request
 
-FOR OLLAMA/LOCAL MODELS:
-- Always explain your reasoning before making tool calls
-- After each tool execution, immediately continue with the next logical step
-- State clearly what you learned from tool results and what you'll do next
+FOR NON-TOOL-CALLING MODELS:
+- State the original user request before each response
+- After each tool execution, immediately explain what you learned and what you'll do next
+- Never end your response with just tool execution - always continue the conversation
 - Keep the original task goal in mind throughout the entire process
-- Don't wait for user confirmation - proceed automatically with your plan`;
+- Don't wait for user confirmation - proceed automatically with your plan to complete the task`;
 
 		// Add tool instructions to the system message or create one
 		const modifiedMessages = [...messages];
@@ -547,8 +562,10 @@ FOR OLLAMA/LOCAL MODELS:
 	 */
 	private extractReasoningFromContent(content: string): string {
 		// Remove JSON code blocks containing tool calls
-		const withoutToolCalls = content.replace(/```json\s*\{[\s\S]*?\}\s*```/g, '').trim();
-		
+		const withoutToolCalls = content
+			.replace(/```json\s*\{[\s\S]*?\}\s*```/g, '')
+			.trim();
+
 		// If there's still meaningful content, return it, otherwise return original
 		return withoutToolCalls.length > 20 ? withoutToolCalls : content;
 	}

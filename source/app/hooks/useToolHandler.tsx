@@ -113,6 +113,32 @@ export function useToolHandler({
 		}
 	};
 
+	// Extract task context from user messages for continuation prompts
+	const getTaskContext = (messages: Message[]): string | undefined => {
+		// Find the most recent user message that looks like a task request
+		for (let i = messages.length - 1; i >= 0; i--) {
+			const message = messages[i];
+			if (
+				message.role === 'user' &&
+				message.content &&
+				message.content.trim().length > 10
+			) {
+				// Skip very short messages or common responses
+				const content = message.content.toLowerCase();
+				if (
+					!content.includes('ok') &&
+					!content.includes('yes') &&
+					!content.includes('no') &&
+					!content.includes('thanks') &&
+					content.length > 20
+				) {
+					return message.content;
+				}
+			}
+		}
+		return undefined;
+	};
+
 	// Continue conversation with tool results - maintains the proper loop
 	const continueConversationWithToolResults = async (toolResults?: any[]) => {
 		if (!currentConversationContext) {
@@ -126,8 +152,11 @@ export function useToolHandler({
 		const {updatedMessages, assistantMsg, systemMessage} =
 			currentConversationContext;
 
+		// Get task context for better continuation
+		const taskContext = getTaskContext(updatedMessages);
+
 		// Format tool results appropriately for the model type
-		const toolMessages = formatToolResultsForModel(resultsToUse, assistantMsg);
+		const toolMessages = formatToolResultsForModel(resultsToUse, assistantMsg, taskContext);
 
 		// Update conversation history with tool results
 		// Note: assistantMsg is already included in updatedMessages, just add tool results

@@ -8,6 +8,7 @@ import type {Message, ToolResult} from '../../types/index.js';
 export function formatToolResultsForModel(
 	results: ToolResult[],
 	assistantMsg: Message,
+	taskContext?: string,
 ): Message[] {
 	// Detect if this is a non-tool-calling model that needs special formatting
 	// We can detect this by checking if the assistant message has no tool_calls
@@ -30,9 +31,14 @@ export function formatToolResultsForModel(
 			};
 			const resultType = actionMap[result.name] || `${result.name} result`;
 
+			// Include task context reminder if available
+			const taskReminder = taskContext
+				? `\n\n[Reminder: Your original task was "${taskContext}"]`
+				: '\n\n[Please continue with the original request]';
+
 			return {
 				role: 'user' as const,
-				content: `[Tool result - ${resultType}]:\n\n${toolOutput}\n\n[Please continue with the original request]`,
+				content: `[Tool result - ${resultType}]:\n\n${toolOutput}${taskReminder}`,
 			};
 		}
 

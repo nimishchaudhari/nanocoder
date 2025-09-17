@@ -217,6 +217,32 @@ export function useChatHandler({
 		}
 	};
 
+	// Extract task context from user messages for continuation prompts
+	const getTaskContext = (messages: Message[]): string | undefined => {
+		// Find the most recent user message that looks like a task request
+		for (let i = messages.length - 1; i >= 0; i--) {
+			const message = messages[i];
+			if (
+				message.role === 'user' &&
+				message.content &&
+				message.content.trim().length > 10
+			) {
+				// Skip very short messages or common responses
+				const content = message.content.toLowerCase();
+				if (
+					!content.includes('ok') &&
+					!content.includes('yes') &&
+					!content.includes('no') &&
+					!content.includes('thanks') &&
+					content.length > 20
+				) {
+					return message.content;
+				}
+			}
+		}
+		return undefined;
+	};
+
 	// Process assistant response with token tracking (for initial user messages)
 	const processAssistantResponseWithTokenTracking = async (
 		systemMessage: Message,
@@ -364,8 +390,11 @@ export function useChatHandler({
 
 				// If we have results, continue the conversation with them
 				if (directResults.length > 0) {
+					// Get task context for better continuation
+					const taskContext = getTaskContext(messages);
+					
 					// Format tool results appropriately for the model type
-					const toolMessages = formatToolResultsForModel(directResults, assistantMsg);
+					const toolMessages = formatToolResultsForModel(directResults, assistantMsg, taskContext);
 
 					const updatedMessagesWithTools = [
 						...messages,
@@ -554,13 +583,11 @@ export function useChatHandler({
 
 					// If we have results, continue the conversation with them
 					if (directResults.length > 0) {
-						// Add tool results to conversation history
-						const toolMessages: Message[] = directResults.map(result => ({
-							role: 'tool' as const,
-							content: `Tool "${result.name}" was executed successfully. Result: ${result.content}`,
-							tool_call_id: result.tool_call_id,
-							name: result.name,
-						}));
+						// Get task context for better continuation
+						const taskContext = getTaskContext(messages);
+						
+						// Format tool results appropriately for the model type
+						const toolMessages = formatToolResultsForModel(directResults, assistantMsg, taskContext);
 
 						const updatedMessagesWithTools = [
 							...messages,
