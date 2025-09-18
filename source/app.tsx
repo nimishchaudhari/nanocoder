@@ -25,13 +25,17 @@ import {useToolHandler} from './app/hooks/useToolHandler.js';
 import {useModeHandlers} from './app/hooks/useModeHandlers.js';
 import {useAppInitialization} from './app/hooks/useAppInitialization.js';
 import {useDirectoryTrust} from './app/hooks/useDirectoryTrust.js';
-import {handleMessageSubmission, createClearMessagesHandler} from './app/utils/appUtils.js';
+import {
+	handleMessageSubmission,
+	createClearMessagesHandler,
+} from './app/utils/appUtils.js';
 
 export default function App() {
 	// Use extracted hooks
 	const appState = useAppState();
 	const {exit} = useApp();
-	const {isTrusted, handleConfirmTrust, isTrustLoading, isTrustedError} = useDirectoryTrust();
+	const {isTrusted, handleConfirmTrust, isTrustLoading, isTrustedError} =
+		useDirectoryTrust();
 
 	const handleExit = () => {
 		exit();
@@ -64,7 +68,12 @@ export default function App() {
 		componentKeyCounter: appState.componentKeyCounter,
 		abortController: appState.abortController,
 		setAbortController: appState.setAbortController,
-		onStartToolConfirmationFlow: (toolCalls, updatedMessages, assistantMsg, systemMessage) => {
+		onStartToolConfirmationFlow: (
+			toolCalls,
+			updatedMessages,
+			assistantMsg,
+			systemMessage,
+		) => {
 			appState.setPendingToolCalls(toolCalls);
 			appState.setCurrentToolIndex(0);
 			appState.setCompletedToolResults([]);
@@ -142,7 +151,8 @@ export default function App() {
 		}
 	}, [appState.abortController, appState.setIsCancelling]);
 
-	const handleMessageSubmit = React.useCallback(async (message: string) => {
+	const handleMessageSubmit = React.useCallback(
+		async (message: string) => {
 			await handleMessageSubmission(message, {
 				customCommandCache: appState.customCommandCache,
 				customCommandLoader: appState.customCommandLoader,
@@ -159,7 +169,8 @@ export default function App() {
 				setIsBashExecuting: appState.setIsBashExecuting,
 				setCurrentBashCommand: appState.setCurrentBashCommand,
 			});
-		}, [
+		},
+		[
 			appState.customCommandCache,
 			appState.customCommandLoader,
 			appState.customCommandExecutor,
@@ -173,17 +184,20 @@ export default function App() {
 			appState.messages,
 			appState.setIsBashExecuting,
 			appState.setCurrentBashCommand,
-		]);
+		],
+	);
 
 	// Memoize static components to prevent unnecessary re-renders
-	const staticComponents = React.useMemo(() => [
+	const staticComponents = React.useMemo(
+		() => [
 			<Status
 				key="status"
 				provider={appState.currentProvider}
 				model={appState.currentModel}
 			/>,
-		], [appState.currentProvider, appState.currentModel]);
-
+		],
+		[appState.currentProvider, appState.currentModel],
+	);
 
 	// Handle loading state for directory trust check
 	if (isTrustLoading) {
@@ -268,7 +282,10 @@ export default function App() {
 						) : appState.isToolExecuting &&
 						  appState.pendingToolCalls[appState.currentToolIndex] ? (
 							<ToolExecutionIndicator
-								toolName={appState.pendingToolCalls[appState.currentToolIndex].function.name}
+								toolName={
+									appState.pendingToolCalls[appState.currentToolIndex].function
+										.name
+								}
 								currentIndex={appState.currentToolIndex}
 								totalTools={appState.pendingToolCalls.length}
 							/>
@@ -278,7 +295,11 @@ export default function App() {
 							<UserInput
 								customCommands={Array.from(appState.customCommandCache.keys())}
 								onSubmit={handleMessageSubmit}
-								disabled={appState.isThinking || appState.isToolExecuting || appState.isBashExecuting}
+								disabled={
+									appState.isThinking ||
+									appState.isToolExecuting ||
+									appState.isBashExecuting
+								}
 								onCancel={handleCancel}
 							/>
 						) : appState.mcpInitialized && !appState.client ? (
