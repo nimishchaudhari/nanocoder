@@ -324,6 +324,7 @@ Generate comprehensive unit tests for {{component}}. Include:
 - **Colorized output**: Syntax highlighting and structured display
 - **Session persistence**: Maintains context and preferences across sessions
 - **Real-time indicators**: Shows token usage, timing, and processing status
+- **First-time directory security disclaimer**: Prompts on first run and stores a per-project trust decision to prevent accidental exposure of local code or secrets.
 
 ### ⚙️ Developer Features
 
