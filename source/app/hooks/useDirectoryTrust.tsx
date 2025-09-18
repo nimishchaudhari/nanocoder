@@ -73,7 +73,7 @@ export function useDirectoryTrust(directory: string = process.cwd()): UseDirecto
                 savePreferences(preferences);
                 
                 if (shouldLog('info')) {
-                    console.log(`Directory added to trusted list: ${normalizedDirectory}`);
+                    logError(`useDirectoryTrust (info): Directory added to trusted list: ${normalizedDirectory}`);
                 }
             }
             
