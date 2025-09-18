@@ -1,5 +1,6 @@
 import type {ToolCall} from '../types/index.js';
 import {logError} from '../utils/message-queue.js';
+import {XMLToolCallParser} from '../tools/xml-parser.js';
 
 /**
  * Validates if a tool name and inner content are valid for tool call processing
@@ -18,6 +19,13 @@ function isValidParameter(paramName?: string, paramValue?: string): boolean {
 export function parseToolCallsFromContent(content: string): ToolCall[] {
 	const extractedCalls: ToolCall[] = [];
 	let trimmedContent = content.trim();
+
+	// First, try the new XML parser for cleaner XML tool call parsing
+	if (XMLToolCallParser.hasToolCalls(content)) {
+		const parsedCalls = XMLToolCallParser.parseToolCalls(content);
+		const convertedCalls = XMLToolCallParser.convertToToolCalls(parsedCalls);
+		extractedCalls.push(...convertedCalls);
+	}
 
 	// Handle markdown code blocks
 	const codeBlockMatch = trimmedContent.match(
@@ -317,6 +325,11 @@ export function cleanContentFromToolCalls(
 	if (toolCalls.length === 0) return content;
 
 	let cleanedContent = content;
+
+	// Use the new XML parser to clean XML tool calls
+	if (XMLToolCallParser.hasToolCalls(cleanedContent)) {
+		cleanedContent = XMLToolCallParser.removeToolCallsFromContent(cleanedContent);
+	}
 
 	// Remove direct MCP tool calls that were successfully parsed
 	// We need to be careful to only remove the ones that were actually parsed as tool calls

@@ -1,19 +1,52 @@
 # Enhanced Instructions for Non-Tool-Calling Models
 
+## Structured Problem-Solving Methodology
+
+For complex tasks, follow this methodical approach based on proven agent architectures:
+
+### 1. 🔍 EXPLORATION Phase
+- **Understand** the context thoroughly before proposing solutions
+- **Read** relevant files to understand the current state  
+- **Analyze** existing patterns and conventions in the codebase
+- **Identify** all components that might be affected
+
+### 2. 🧠 ANALYSIS Phase
+- **Consider** multiple approaches to the problem
+- **Evaluate** the pros and cons of each approach
+- **Select** the most appropriate solution based on existing patterns
+- **Plan** the implementation steps methodically
+
+### 3. 🧪 TESTING Phase  
+- **Verify** the current issue or requirement exists
+- **Test** your understanding with targeted exploration
+- **Validate** assumptions before implementing changes
+
+### 4. ⚡ IMPLEMENTATION Phase
+- **Make focused, minimal changes** to address the problem
+- **Follow existing code patterns** and conventions
+- **Implement one logical step at a time**
+- **Preserve existing functionality** while making changes
+
+### 5. ✅ VERIFICATION Phase
+- **Test** the implementation thoroughly
+- **Check** for edge cases and error conditions  
+- **Verify** all affected components still work correctly
+- **Run** any available tests or build processes
+
 ## Tool Usage Pattern
 
-When you need to use tools, follow this specific pattern:
+Since your model doesn't support native function calling, use this XML format for tool calls:
 
-1. **Always explain what you plan to do** before using a tool
-2. **Use exactly this JSON format** for tool calls:
-```json
-{
-  "name": "tool_name",
-  "arguments": {
-    "parameter": "value"
-  }
-}
+```xml
+<tool_name>
+<parameter_name>parameter_value</parameter_name>
+<parameter_name2>parameter_value2</parameter_name2>
+</tool_name>
 ```
+
+### Critical Tool Usage Rules
+1. **Always explain what you plan to do** before using a tool
+2. **Use ONE TOOL PER MESSAGE** - never combine multiple tool calls
 3. **Wait for the tool result** before proceeding
 4. **Act on the tool result** to continue your task
 

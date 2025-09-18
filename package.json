@@ -39,7 +39,8 @@
 	},
 	"files": [
 		"dist",
-		"source/app/prompts/main-prompt.md"
+		"source/app/prompts/main-prompt.md",
+		"source/app/prompts/non-tool-calling-enhancement.md"
 	],
 	"dependencies": {
 		"@langchain/core": "^0.3.72",
