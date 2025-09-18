@@ -6,6 +6,11 @@ interface SecurityDisclaimerProps {
 	onExit: () => void;
 }
 
+interface SecurityDisclaimerItem {
+    label: string;
+    value: SecurityDisclaimerOption;
+}
+
 enum SecurityDisclaimerOption {
 	Yes = 'yes',
 	No = 'no',
@@ -23,7 +28,7 @@ export default function SecurityDisclaimer({ onConfirm, onExit }: SecurityDiscla
 		},
 	];
 
-	const handleSelect = (item: any) => {
+	const handleSelect = (item: SecurityDisclaimerItem) => {
 		if (item.value === SecurityDisclaimerOption.Yes) {
 			onConfirm();
 		} else {
