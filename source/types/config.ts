@@ -35,6 +35,7 @@ export interface UserPreferences {
   };
   lastUpdateCheck?: number;
   selectedTheme?: ThemePreset;
+  trustedDirectories?: string[];
 }
 
 export type LogLevel = "silent" | "normal" | "verbose";
