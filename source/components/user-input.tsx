@@ -197,6 +197,7 @@ export default function UserInput({
 		}
 		if (showClearMessage) {
 			setShowClearMessage(false);
+			focus('user-input');
 		}
 
 		// Handle return keys
