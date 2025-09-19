@@ -24,7 +24,7 @@ export default function UserInput({
 	disabled = false,
 	onCancel,
 }: ChatProps) {
-	const {isFocused} = useFocus({autoFocus: !disabled});
+	const {isFocused, focus} = useFocus({autoFocus: !disabled, id: 'user-input'});
 	const {colors} = useTheme();
 	const inputState = useInputState();
 	const uiState = useUIStateContext();
@@ -109,10 +109,11 @@ export default function UserInput({
 		if (showClearMessage) {
 			resetInput();
 			resetUIState();
+			focus('user-input');
 		} else {
 			setShowClearMessage(true);
 		}
-	}, [showClearMessage, resetInput, resetUIState, setShowClearMessage]);
+	}, [showClearMessage, resetInput, resetUIState, setShowClearMessage, focus]);
 
 	// History navigation
 	const handleHistoryNavigation = useCallback(
