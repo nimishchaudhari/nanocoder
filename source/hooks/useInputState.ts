@@ -5,7 +5,7 @@ export function useInputState() {
 	const [hasLargeContent, setHasLargeContent] = useState(false);
 	const [originalInput, setOriginalInput] = useState('');
 	const [historyIndex, setHistoryIndex] = useState(-1);
-	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
 	const [cachedLineCount, setCachedLineCount] = useState(1);
 
@@ -24,9 +24,6 @@ export function useInputState() {
 
 		debounceTimerRef.current = setTimeout(() => {
 			setHasLargeContent(newInput.length > 150);
-			// Also refresh cached line count in case something changed quickly
-			const lineCount = Math.max(1, newInput.split(/\r\n|\r|\n/).length);
-			setCachedLineCount(lineCount);
 		}, 50);
 	}, []);
 
