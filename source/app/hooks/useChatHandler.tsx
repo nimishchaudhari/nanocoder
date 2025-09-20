@@ -334,12 +334,8 @@ export function useChatHandler({
 		}
 
 		// Merge structured tool calls from LangGraph with content-parsed tool calls
-		console.log('Chat handler - toolCalls from LangGraph:', toolCalls);
-		console.log('Chat handler - parsedToolCalls from content:', parsedToolCalls);
 		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-		console.log('Chat handler - allToolCalls merged:', allToolCalls);
 		const validToolCalls = filterValidToolCalls(allToolCalls);
-		console.log('Chat handler - validToolCalls after filtering:', validToolCalls);
 
 		// Add assistant message to conversation history
 		// Note: We don't include tool_calls in the conversation history for content-parsed tools
@@ -354,7 +350,7 @@ export function useChatHandler({
 
 		// Update conversation state with assistant message and detect model type
 		conversationStateManager.current.updateAssistantMessage(assistantMsg);
-		
+
 		// Update model type detection based on response
 		const state = conversationStateManager.current.getState();
 		if (state && state.isNonToolCallingModel !== !assistantMsg.tool_calls) {
@@ -392,7 +388,10 @@ export function useChatHandler({
 						directResults.push(result);
 
 						// Update conversation state with tool execution
-						conversationStateManager.current.updateAfterToolExecution(toolCall, result.content);
+						conversationStateManager.current.updateAfterToolExecution(
+							toolCall,
+							result.content,
+						);
 
 						// Display the tool result immediately
 						await displayToolResult(toolCall, result);
@@ -409,7 +408,10 @@ export function useChatHandler({
 						directResults.push(errorResult);
 
 						// Update conversation state with error
-						conversationStateManager.current.updateAfterToolExecution(toolCall, errorResult.content);
+						conversationStateManager.current.updateAfterToolExecution(
+							toolCall,
+							errorResult.content,
+						);
 
 						// Display the error result
 						await displayToolResult(toolCall, errorResult);
@@ -421,9 +423,14 @@ export function useChatHandler({
 					// Get task context for better continuation
 					const taskContext = getTaskContext(messages);
 					const conversationState = conversationStateManager.current.getState();
-					
+
 					// Format tool results appropriately for the model type
-					const toolMessages = formatToolResultsForModel(directResults, assistantMsg, taskContext, conversationState);
+					const toolMessages = formatToolResultsForModel(
+						directResults,
+						assistantMsg,
+						taskContext,
+						conversationState,
+					);
 
 					const updatedMessagesWithTools = [
 						...messages,
@@ -563,7 +570,7 @@ export function useChatHandler({
 
 			// Update conversation state with assistant message and detect model type
 			conversationStateManager.current.updateAssistantMessage(assistantMsg);
-			
+
 			// Update model type detection based on response
 			const state = conversationStateManager.current.getState();
 			if (state && state.isNonToolCallingModel !== !assistantMsg.tool_calls) {
@@ -600,7 +607,10 @@ export function useChatHandler({
 							directResults.push(result);
 
 							// Update conversation state with tool execution
-							conversationStateManager.current.updateAfterToolExecution(toolCall, result.content);
+							conversationStateManager.current.updateAfterToolExecution(
+								toolCall,
+								result.content,
+							);
 
 							// Display the tool result immediately
 							await displayToolResult(toolCall, result);
@@ -617,7 +627,10 @@ export function useChatHandler({
 							directResults.push(errorResult);
 
 							// Update conversation state with error
-							conversationStateManager.current.updateAfterToolExecution(toolCall, errorResult.content);
+							conversationStateManager.current.updateAfterToolExecution(
+								toolCall,
+								errorResult.content,
+							);
 
 							// Display the error result
 							await displayToolResult(toolCall, errorResult);
@@ -628,10 +641,16 @@ export function useChatHandler({
 					if (directResults.length > 0) {
 						// Get task context for better continuation
 						const taskContext = getTaskContext(messages);
-						const conversationState = conversationStateManager.current.getState();
-						
+						const conversationState =
+							conversationStateManager.current.getState();
+
 						// Format tool results appropriately for the model type
-						const toolMessages = formatToolResultsForModel(directResults, assistantMsg, taskContext, conversationState);
+						const toolMessages = formatToolResultsForModel(
+							directResults,
+							assistantMsg,
+							taskContext,
+							conversationState,
+						);
 
 						const updatedMessagesWithTools = [
 							...messages,
@@ -730,8 +749,12 @@ export function useChatHandler({
 			// Load and process system prompt with dynamic tool documentation
 			const availableTools = toolManager ? toolManager.getAllTools() : [];
 			const conversationState = conversationStateManager.current.getState();
-			const isNonToolCallingModel = conversationState?.isNonToolCallingModel ?? true; // Default to enhanced prompts
-			const systemPrompt = processPromptTemplate(availableTools, isNonToolCallingModel);
+			const isNonToolCallingModel =
+				conversationState?.isNonToolCallingModel ?? true; // Default to enhanced prompts
+			const systemPrompt = processPromptTemplate(
+				availableTools,
+				isNonToolCallingModel,
+			);
 
 			// Create stream request
 			const systemMessage: Message = {

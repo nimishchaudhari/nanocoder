@@ -153,14 +153,11 @@ export class LangGraphClient implements LLMClient {
 
 			// If we get here without error, the model likely supports function calling
 			this.supportsNativeFunctionCalling = true;
-			console.log(`Function calling enabled for model ${this.currentModel}`);
 			return true;
 		} catch (error) {
 			// Model doesn't support native tool calling
 			this.supportsNativeFunctionCalling = false;
-			console.log(
-				`Function calling not enabled for model ${this.currentModel}. Mocking function calling via prompting.`,
-			);
+
 			return false;
 		}
 	}
@@ -367,8 +364,7 @@ export class LangGraphClient implements LLMClient {
 
 			return {
 				...info,
-				xmlInstructions:
-					generateToolCallInstructions(toolSpecs),
+				xmlInstructions: generateToolCallInstructions(toolSpecs),
 			};
 		}
 

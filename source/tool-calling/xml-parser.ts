@@ -1,4 +1,4 @@
-import type { ToolCall } from '../types/index.js';
+import type {ToolCall} from '../types/index.js';
 
 export interface ParsedToolCall {
 	toolName: string;
@@ -27,23 +27,18 @@ export class XMLToolCallParser {
 			processedContent = codeBlockMatch[1].trim();
 		}
 
-		console.log('XMLToolCallParser.parseToolCalls - processedContent:', processedContent);
-
 		// Find all tool call blocks
 		this.TOOL_CALL_REGEX.lastIndex = 0; // Reset regex state
 		while ((match = this.TOOL_CALL_REGEX.exec(processedContent)) !== null) {
 			const [, toolName, innerXml] = match;
-			console.log('XMLToolCallParser.parseToolCalls - found match:', { toolName, innerXml });
 			const parameters = this.parseParameters(innerXml);
-			console.log('XMLToolCallParser.parseToolCalls - parsed parameters:', parameters);
 
 			toolCalls.push({
 				toolName,
-				parameters
+				parameters,
 			});
 		}
 
-		console.log('XMLToolCallParser.parseToolCalls - final toolCalls:', toolCalls);
 		return toolCalls;
 	}
 
@@ -59,7 +54,7 @@ export class XMLToolCallParser {
 
 		while ((match = this.PARAMETER_REGEX.exec(innerXml)) !== null) {
 			const [, paramName, paramValue] = match;
-			
+
 			// Try to parse as JSON for complex objects/arrays
 			try {
 				parameters[paramName] = JSON.parse(paramValue);
@@ -80,8 +75,8 @@ export class XMLToolCallParser {
 			id: `xml_call_${index}`,
 			function: {
 				name: call.toolName,
-				arguments: call.parameters
-			}
+				arguments: call.parameters,
+			},
 		}));
 	}
 
@@ -92,18 +87,21 @@ export class XMLToolCallParser {
 		let cleanedContent = content;
 
 		// Remove all markdown code blocks that contain XML tool calls (using global flag)
-		cleanedContent = cleanedContent.replace(/```(?:\w+)?\s*\n?([\s\S]*?)\n?```/g, (match, blockContent) => {
-			if (blockContent) {
-				// Reset regex and check if this block contains XML tool calls
-				this.TOOL_CALL_REGEX.lastIndex = 0;
-				if (this.TOOL_CALL_REGEX.test(blockContent)) {
-					// This code block contains XML tool calls, remove it entirely
-					return '';
+		cleanedContent = cleanedContent.replace(
+			/```(?:\w+)?\s*\n?([\s\S]*?)\n?```/g,
+			(match, blockContent) => {
+				if (blockContent) {
+					// Reset regex and check if this block contains XML tool calls
+					this.TOOL_CALL_REGEX.lastIndex = 0;
+					if (this.TOOL_CALL_REGEX.test(blockContent)) {
+						// This code block contains XML tool calls, remove it entirely
+						return '';
+					}
 				}
-			}
-			// Keep blocks that don't contain XML tool calls
-			return match;
-		});
+				// Keep blocks that don't contain XML tool calls
+				return match;
+			},
+		);
 
 		// Remove XML tool calls that aren't in code blocks
 		this.TOOL_CALL_REGEX.lastIndex = 0;
@@ -132,11 +130,6 @@ export class XMLToolCallParser {
 		this.TOOL_CALL_REGEX.lastIndex = 0;
 		const result = this.TOOL_CALL_REGEX.test(processedContent);
 
-		if (result) {
-			console.log('XMLToolCallParser found tool calls in:', processedContent);
-		}
-
 		return result;
 	}
-
 }
