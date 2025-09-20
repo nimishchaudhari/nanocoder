@@ -22,6 +22,26 @@ You may use tools to help provide a response. You must only use the provided too
 
 ### Tool Call Format
 
+{{#if isNonToolCallingModel}}
+For all tools, use this XML format:
+
+```xml
+<tool_name>
+<param1>value1</param1>
+<param2>value2</param2>
+</tool_name>
+```
+
+Example with MCP tools:
+```xml
+<mcp_tool_name>
+<param1>value1</param1>
+<param2>value2</param2>
+</mcp_tool_name>
+```
+
+IMPORTANT: Always use the exact tool names as provided. Use XML tags with parameter names as shown above.
+{{else}}
 For standard tools like `execute_bash`, `read_file`, `read_many_files` and `edit_file`, use this format:
 
 ```
@@ -47,6 +67,7 @@ For MCP tools (tools from MCP servers), you can use the same JSON format:
 ```
 
 IMPORTANT: Always use the exact tool names as provided. Do not wrap MCP tools in special tags - just call them directly by name using the standard JSON format.
+{{/if}}
 
 ### Running terminal commands
 

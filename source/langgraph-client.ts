@@ -14,7 +14,8 @@ import type {
 	LangChainProviderConfig,
 } from './types/index.js';
 import {logError} from './utils/message-queue.js';
-import {XMLToolCallParser} from './tools/xml-parser.js';
+import {XMLToolCallParser} from './tool-calling/xml-parser.js';
+import {generateToolCallInstructions} from './utils/prompt-processor.js';
 
 /**
  * Converts our Tool format to LangChain StructuredTool format
@@ -367,7 +368,7 @@ export class LangGraphClient implements LLMClient {
 			return {
 				...info,
 				xmlInstructions:
-					XMLToolCallParser.generateToolCallInstructions(toolSpecs),
+					generateToolCallInstructions(toolSpecs),
 			};
 		}
 

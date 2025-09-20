@@ -334,8 +334,12 @@ export function useChatHandler({
 		}
 
 		// Merge structured tool calls from LangGraph with content-parsed tool calls
+		console.log('Chat handler - toolCalls from LangGraph:', toolCalls);
+		console.log('Chat handler - parsedToolCalls from content:', parsedToolCalls);
 		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
+		console.log('Chat handler - allToolCalls merged:', allToolCalls);
 		const validToolCalls = filterValidToolCalls(allToolCalls);
+		console.log('Chat handler - validToolCalls after filtering:', validToolCalls);
 
 		// Add assistant message to conversation history
 		// Note: We don't include tool_calls in the conversation history for content-parsed tools

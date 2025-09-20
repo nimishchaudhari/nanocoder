@@ -2,7 +2,7 @@ import {readFileSync, existsSync} from 'fs';
 import {join, dirname} from 'path';
 import {promptPath} from '../config/index.js';
 import type {Tool} from '../types/index.js';
-import {XMLToolCallParser} from '../tools/xml-parser.js';
+import {XMLToolCallParser} from '../tool-calling/xml-parser.js';
 
 /**
  * Process the main prompt template by injecting dynamic tool documentation
@@ -21,6 +21,9 @@ export function processPromptTemplate(
 			console.warn(`Failed to load system prompt from ${promptPath}: ${error}`);
 		}
 	}
+
+	// Replace conditional sections based on model type
+	systemPrompt = replaceConditionalSections(systemPrompt, isNonToolCallingModel);
 
 	// Inject dynamic tool documentation
 	systemPrompt = injectToolDocumentation(
@@ -46,6 +49,18 @@ export function processPromptTemplate(
 	}
 
 	return systemPrompt;
+}
+
+/**
+ * Replace conditional sections based on model type
+ */
+function replaceConditionalSections(prompt: string, isNonToolCallingModel: boolean): string {
+	// Replace {{#if isNonToolCallingModel}} ... {{else}} ... {{/if}} blocks
+	const conditionalRegex = /\{\{#if isNonToolCallingModel\}\}([\s\S]*?)\{\{else\}\}([\s\S]*?)\{\{\/if\}\}/g;
+
+	return prompt.replace(conditionalRegex, (_match, nonToolCallingContent, toolCallingContent) => {
+		return isNonToolCallingModel ? nonToolCallingContent : toolCallingContent;
+	});
 }
 
 /**
@@ -151,6 +166,46 @@ function formatToolDocumentation(tool: Tool): string {
 	}
 
 	return doc;
+}
+
+/**
+ * Generate XML format instructions for tool calls for non-tool-calling models
+ */
+export function generateToolCallInstructions(availableTools: Array<{name: string; description: string; parameters: any}>): string {
+	const toolDescriptions = availableTools.map(tool => {
+		const params = tool.parameters?.properties || {};
+		const required = tool.parameters?.required || [];
+
+		const paramDescriptions = Object.entries(params).map(([name, schema]: [string, any]) => {
+			const isRequired = required.includes(name);
+			const type = schema.type || 'string';
+			const description = schema.description || '';
+			return `  <${name}>${isRequired ? '[REQUIRED]' : '[OPTIONAL]'} ${type} - ${description}</${name}>`;
+		}).join('\n');
+
+		return `<${tool.name}>\n${paramDescriptions}\n</${tool.name}>`;
+	}).join('\n\n');
+
+	return `When you need to use tools, format your tool calls using XML tags like this:
+
+Available tools:
+${toolDescriptions}
+
+Example usage:
+<read_file>
+<file_path>/path/to/file.txt</file_path>
+</read_file>
+
+<bash_execute>
+<command>ls -la</command>
+</bash_execute>
+
+Important:
+- Use only one tool at a time per message
+- Wait for the tool result before proceeding
+- Parameter values should be plain text (not JSON unless specifically required)
+- Close all XML tags properly
+- Tool names and parameter names are case-sensitive`;
 }
 
 /**
