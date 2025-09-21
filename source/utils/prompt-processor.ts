@@ -84,9 +84,8 @@ function generateToolDocumentation(tools: Tool[]): string {
 	if (tools.length > 0) {
 		sections.push('\nXML Format Examples:\n');
 
-		// Show a few key tool examples in XML format
-		const exampleTools = tools.slice(0, 5); // Just show first 3 tools as examples
-		exampleTools.forEach(tool => {
+		// Show tool examples in XML format
+		tools.forEach(tool => {
 			const params = tool.function.parameters?.properties || {};
 			const paramNames = Object.keys(params).slice(0, 2); // Show max 2 params per example
 

@@ -6,7 +6,6 @@ import {
 	parseToolCallsFromContent,
 	cleanContentFromToolCalls,
 } from '../../tool-calling/index.js';
-import {formatToolResultsForModel} from '../utils/toolResultFormatter.js';
 import {ConversationStateManager} from '../utils/conversationState.js';
 import UserMessage from '../../components/user-message.js';
 import AssistantMessage from '../../components/assistant-message.js';
@@ -227,32 +226,6 @@ export function useChatHandler({
 		}
 	};
 
-	// Extract task context from user messages for continuation prompts
-	const getTaskContext = (messages: Message[]): string | undefined => {
-		// Find the most recent user message that looks like a task request
-		for (let i = messages.length - 1; i >= 0; i--) {
-			const message = messages[i];
-			if (
-				message.role === 'user' &&
-				message.content &&
-				message.content.trim().length > 10
-			) {
-				// Skip very short messages or common responses
-				const content = message.content.toLowerCase();
-				if (
-					!content.includes('ok') &&
-					!content.includes('yes') &&
-					!content.includes('no') &&
-					!content.includes('thanks') &&
-					content.length > 20
-				) {
-					return message.content;
-				}
-			}
-		}
-		return undefined;
-	};
-
 	// Process assistant response with token tracking (for initial user messages)
 	const processAssistantResponseWithTokenTracking = async (
 		systemMessage: Message,
@@ -378,13 +351,12 @@ export function useChatHandler({
 
 			// If there were unknown tools, continue conversation with all errors
 			if (unknownToolErrors.length > 0) {
-				const taskContext = getTaskContext(messages);
-				const conversationState = conversationStateManager.current.getState();
-				const toolMessages = formatToolResultsForModel(
-					unknownToolErrors,
-					taskContext,
-					conversationState,
-				);
+				const toolMessages = unknownToolErrors.map(result => ({
+					role: 'tool' as const,
+					content: result.content || '',
+					tool_call_id: result.tool_call_id,
+					name: result.name,
+				}));
 
 				const updatedMessagesWithError = [
 					...messages,
@@ -395,10 +367,7 @@ export function useChatHandler({
 				setMessages(updatedMessagesWithError);
 
 				// Continue the main conversation loop with error messages as context
-				await processAssistantResponse(
-					systemMessage,
-					updatedMessagesWithError,
-				);
+				await processAssistantResponse(systemMessage, updatedMessagesWithError);
 				return;
 			}
 
@@ -470,16 +439,13 @@ export function useChatHandler({
 
 				// If we have results, continue the conversation with them
 				if (directResults.length > 0) {
-					// Get task context for better continuation
-					const taskContext = getTaskContext(messages);
-					const conversationState = conversationStateManager.current.getState();
-
-					// Format tool results appropriately for the model type
-					const toolMessages = formatToolResultsForModel(
-						directResults,
-						taskContext,
-						conversationState,
-					);
+					// Format tool results as standard tool messages
+					const toolMessages = directResults.map(result => ({
+						role: 'tool' as const,
+						content: result.content || '',
+						tool_call_id: result.tool_call_id,
+						name: result.name,
+					}));
 
 					const updatedMessagesWithTools = [
 						...messages,
@@ -681,17 +647,13 @@ export function useChatHandler({
 
 					// If we have results, continue the conversation with them
 					if (directResults.length > 0) {
-						// Get task context for better continuation
-						const taskContext = getTaskContext(messages);
-						const conversationState =
-							conversationStateManager.current.getState();
-
-						// Format tool results appropriately for the model type
-						const toolMessages = formatToolResultsForModel(
-							directResults,
-							taskContext,
-							conversationState,
-						);
+						// Format tool results as standard tool messages
+						const toolMessages = directResults.map(result => ({
+							role: 'tool' as const,
+							content: result.content || '',
+							tool_call_id: result.tool_call_id,
+							name: result.name,
+						}));
 
 						const updatedMessagesWithTools = [
 							...messages,
@@ -788,11 +750,6 @@ export function useChatHandler({
 			// Load and process system prompt with dynamic tool documentation
 			const availableTools = toolManager ? toolManager.getAllTools() : [];
 			const systemPrompt = processPromptTemplate(availableTools);
-
-			// Debug: Log the full system prompt being sent
-			console.log('=== SYSTEM PROMPT ===');
-			console.log(systemPrompt);
-			console.log('=== END SYSTEM PROMPT ===');
 
 			// Create stream request
 			const systemMessage: Message = {

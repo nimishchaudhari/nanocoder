@@ -1,6 +1,5 @@
 import {Message, LLMClient, ProviderType} from '../../types/core.js';
 import {processToolUse, getToolManager} from '../../message-handler.js';
-import {formatToolResultsForModel} from '../utils/toolResultFormatter.js';
 import {ConversationContext} from './useAppState.js';
 import InfoMessage from '../../components/info-message.js';
 import ErrorMessage from '../../components/error-message.js';
@@ -113,31 +112,6 @@ export function useToolHandler({
 		}
 	};
 
-	// Extract task context from user messages for continuation prompts
-	const getTaskContext = (messages: Message[]): string | undefined => {
-		// Find the most recent user message that looks like a task request
-		for (let i = messages.length - 1; i >= 0; i--) {
-			const message = messages[i];
-			if (
-				message.role === 'user' &&
-				message.content &&
-				message.content.trim().length > 10
-			) {
-				// Skip very short messages or common responses
-				const content = message.content.toLowerCase();
-				if (
-					!content.includes('ok') &&
-					!content.includes('yes') &&
-					!content.includes('no') &&
-					!content.includes('thanks') &&
-					content.length > 20
-				) {
-					return message.content;
-				}
-			}
-		}
-		return undefined;
-	};
 
 	// Continue conversation with tool results - maintains the proper loop
 	const continueConversationWithToolResults = async (toolResults?: any[]) => {
@@ -152,11 +126,13 @@ export function useToolHandler({
 		const {updatedMessages, assistantMsg, systemMessage} =
 			currentConversationContext;
 
-		// Get task context for better continuation
-		const taskContext = getTaskContext(updatedMessages);
-
-		// Format tool results appropriately for the model type (no conversation state available here)
-		const toolMessages = formatToolResultsForModel(resultsToUse, taskContext);
+		// Format tool results as standard tool messages
+		const toolMessages = resultsToUse.map(result => ({
+			role: 'tool' as const,
+			content: result.content || '',
+			tool_call_id: result.tool_call_id,
+			name: result.name,
+		}));
 
 		// Update conversation history with tool results
 		// Note: assistantMsg is already included in updatedMessages, just add tool results

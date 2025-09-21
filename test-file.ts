@@ -68,6 +68,11 @@ export function floor(n: number): number {
   return Math.floor(n);
 }
 
+/**
+ * Rounds a number up to the nearest integer
+ * @param n - The number to round up
+ * @returns The smallest integer greater than or equal to n
+ */
 export function ceil(n: number): number {
   return Math.ceil(n);
 }
