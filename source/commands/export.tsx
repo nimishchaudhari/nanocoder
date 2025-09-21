@@ -37,6 +37,7 @@ const formatMessageContent = (message: Message) => {
 function Export({filename}: {filename: string}) {
 	return (
 		<SuccessMessage
+			hideBox={true}
 			message={`✔️ Chat exported to ${filename}`}
 		></SuccessMessage>
 	);
