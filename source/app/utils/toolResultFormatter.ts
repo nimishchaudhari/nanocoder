@@ -2,24 +2,17 @@ import type {Message, ToolResult} from '../../types/index.js';
 import type {ConversationState} from './conversationState.js';
 
 /**
- * Formats tool results appropriately for different model types
- * - Non-tool-calling models: Enhanced context with progress tracking
- * - Tool-calling models: standard tool messages
+ * Formats tool results with enhanced context and progress tracking
+ * for better guidance on long horizon tasks
  */
 export function formatToolResultsForModel(
 	results: ToolResult[],
-	assistantMsg: Message,
 	taskContext?: string,
 	conversationState?: ConversationState | null,
 ): Message[] {
-	// Detect if this is a non-tool-calling model that needs special formatting
-	// We can detect this by checking if the assistant message has no tool_calls
-	// (meaning the tools were parsed from content rather than native tool calling)
-	const isNonToolCallingModel = !assistantMsg.tool_calls;
-
 	return results.map(result => {
-		// For non-tool-calling models, format as user message with enhanced context
-		if (isNonToolCallingModel && result.content) {
+		// Always use enhanced formatting with context for better guidance
+		if (result.content) {
 			let toolOutput = result.content;
 
 			// Enhanced formatting with conversation state
@@ -87,7 +80,7 @@ export function formatToolResultsForModel(
 			};
 		}
 
-		// For tool-calling models, use standard tool message format
+		// Fallback to standard tool message format if no content
 		return {
 			role: 'tool' as const,
 			content: result.content || '',

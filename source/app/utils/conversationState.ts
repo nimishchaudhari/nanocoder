@@ -14,7 +14,6 @@ export interface ConversationProgress {
 
 export interface ConversationState {
 	progress: ConversationProgress;
-	isNonToolCallingModel: boolean;
 	lastAssistantMessage?: Message;
 	conversationStartTime: number;
 	toolExecutionCount: number;
@@ -28,7 +27,7 @@ export class ConversationStateManager {
 	/**
 	 * Initialize conversation state from the first user message
 	 */
-	initializeState(userMessage: string, isNonToolCallingModel: boolean): ConversationState {
+	initializeState(userMessage: string): ConversationState {
 		// Detect if this is a simple greeting to avoid over-interpreting
 		const isSimpleGreeting = this.isSimpleGreeting(userMessage);
 		this.state = {
@@ -40,7 +39,6 @@ export class ConversationStateManager {
 				toolCallsExecuted: 0,
 				isRepeatingAction: false,
 			},
-			isNonToolCallingModel,
 			conversationStartTime: Date.now(),
 			toolExecutionCount: 0,
 			recentToolCalls: [],
@@ -112,9 +110,7 @@ export class ConversationStateManager {
 		}
 
 		// Suggest next logical step
-		if (this.state.isNonToolCallingModel) {
-			context += this.generateNextStepSuggestion();
-		}
+		context += this.generateNextStepSuggestion();
 
 		context += `Continue working toward completing: "${progress.originalTask}"`;
 		
