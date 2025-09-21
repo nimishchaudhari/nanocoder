@@ -6,6 +6,7 @@ import {useTheme} from '../hooks/useTheme.js';
 import type {ToolCall} from '../types/core.js';
 import {toolFormatters} from '../tools/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
+import {getToolManager} from '../message-handler.js';
 
 interface ToolConfirmationProps {
 	toolCall: ToolCall;
@@ -30,6 +31,10 @@ export default function ToolConfirmation({
 	>(null);
 	const [isLoadingPreview, setIsLoadingPreview] = React.useState(false);
 	const [hasFormatterError, setHasFormatterError] = React.useState(false);
+
+	// Get MCP tool info for display
+	const toolManager = getToolManager();
+	const mcpInfo = toolManager?.getMCPToolInfo(toolCall.function.name) || {isMCPTool: false};
 
 	// Load formatter preview
 	React.useEffect(() => {
@@ -116,7 +121,9 @@ export default function ToolConfirmation({
 				{!hasFormatterError && (
 					<>
 						<Box marginBottom={1}>
-							<Text color={colors.tool}>Do you want to execute this tool?</Text>
+							<Text color={colors.tool}>
+								Do you want to execute {mcpInfo.isMCPTool ? `MCP tool "${toolCall.function.name}" from server "${mcpInfo.serverName}"` : `tool "${toolCall.function.name}"`}?
+							</Text>
 						</Box>
 
 						<SelectInput items={options} onSelect={handleSelect} />

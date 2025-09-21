@@ -12,14 +12,14 @@ importers:
         specifier: ^0.3.72
         version: 0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76))
       '@langchain/langgraph':
-        specifier: ^0.4.8
-        version: 0.4.8(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(react@19.1.1)(zod-to-json-schema@3.24.6(zod@3.25.76))
+        specifier: ^0.4.9
+        version: 0.4.9(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(react@19.1.1)(zod-to-json-schema@3.24.6(zod@3.25.76))
       '@langchain/openai':
         specifier: ^0.6.10
         version: 0.6.11(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(ws@8.18.3)
       '@mishieck/ink-titled-box':
         specifier: ^0.3.0
-        version: 0.3.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
+        version: 0.3.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
       '@modelcontextprotocol/sdk':
         specifier: ^1.17.3
         version: 1.17.3
@@ -30,20 +30,23 @@ importers:
         specifier: ^2.1.11
         version: 2.1.11
       ink:
-        specifier: ^6.0.0
-        version: 6.2.3(@types/react@19.1.12)(react@19.1.1)
+        specifier: ^6.3.1
+        version: 6.3.1(@types/react@19.1.12)(react@19.1.1)
       ink-big-text:
         specifier: ^2.0.0
-        version: 2.0.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)
+        version: 2.0.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)
       ink-gradient:
         specifier: ^3.0.0
-        version: 3.0.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1))
+        version: 3.0.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))
       ink-select-input:
         specifier: ^6.2.0
-        version: 6.2.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)
+        version: 6.2.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)
       ink-spinner:
         specifier: ^5.0.0
-        version: 5.0.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)
+        version: 5.0.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)
+      ink-text-input:
+        specifier: ^6.0.0
+        version: 6.0.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)
       meow:
         specifier: ^11.0.0
         version: 11.0.0
@@ -60,6 +63,9 @@ importers:
       '@sindresorhus/tsconfig':
         specifier: ^3.0.1
         version: 3.0.1
+      '@types/ink-text-input':
+        specifier: ^2.0.5
+        version: 2.0.5
       '@types/node':
         specifier: ^24.3.0
         version: 24.3.0
@@ -185,10 +191,10 @@ packages:
     peerDependencies:
       '@langchain/core': '>=0.2.31 <0.4.0 || ^1.0.0-alpha'
 
-  '@langchain/langgraph-sdk@0.0.112':
-    resolution: {integrity: sha512-/9W5HSWCqYgwma6EoOspL4BGYxGxeJP6lIquPSF4FA0JlKopaUv58ucZC3vAgdJyCgg6sorCIV/qg7SGpEcCLw==}
+  '@langchain/langgraph-sdk@0.1.6':
+    resolution: {integrity: sha512-PeXxfo4ls8yql6YdW8qjnZgp1giy7oqJiGjy4j2OSJ7lpkir8n62YpvADDByEh9sPzGLJYh92ZUAh0GNfQ18vA==}
     peerDependencies:
-      '@langchain/core': '>=0.2.31 <0.4.0'
+      '@langchain/core': '>=0.2.31 <0.4.0 || ^1.0.0-alpha'
       react: ^18 || ^19
       react-dom: ^18 || ^19
     peerDependenciesMeta:
@@ -199,8 +205,8 @@ packages:
       react-dom:
         optional: true
 
-  '@langchain/langgraph@0.4.8':
-    resolution: {integrity: sha512-UJDmi+Yn4OfmNmpAIT3vEb0exoSW0gqSVnqY6NoFbWu1+dEkgPWdgpV15cP9ep2nK0utfPKT5SWrZwyChSmzPQ==}
+  '@langchain/langgraph@0.4.9':
+    resolution: {integrity: sha512-+rcdTGi4Ium4X/VtIX3Zw4RhxEkYWpwUyz806V6rffjHOAMamg6/WZDxpJbrP33RV/wJG1GH12Z29oX3Pqq3Aw==}
     engines: {node: '>=18'}
     peerDependencies:
       '@langchain/core': '>=0.3.58 < 0.4.0'
@@ -279,6 +285,12 @@ packages:
   '@types/gradient-string@1.1.6':
     resolution: {integrity: sha512-LkaYxluY4G5wR1M4AKQUal2q61Di1yVVCw42ImFTuaIoQVgmV0WP1xUaLB8zwb47mp82vWTpePI9JmrjEnJ7nQ==}
 
+  '@types/ink-text-input@2.0.5':
+    resolution: {integrity: sha512-dp6qIrf/VKQyiJfLSOTk7XhbAG3SkGLMrL/5QwaOpYae20+/+VFLuEgpfjpAWOITVL7uyiE9nKdQ4pk03T2F+Q==}
+
+  '@types/ink@0.5.2':
+    resolution: {integrity: sha512-yEuhWTRMXJkIWiaM58c5kuRot5HFccv9kjjgy0fBZG0+tYb+sMBaxHNPVqyZXspGGlmwDOQ1d3BsygWpWlW17w==}
+
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
@@ -296,6 +308,9 @@ packages:
 
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
+
+  '@types/prop-types@15.7.15':
+    resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
   '@types/react@19.1.12':
     resolution: {integrity: sha512-cMoR+FoAf/Jyq6+Df2/Z41jISvGZZ2eTlnsaJRptmZ76Caldwy1odD4xTr/gNV9VLj0AWgg/nmkevIyUfIIq5w==}
@@ -1489,13 +1504,20 @@ packages:
       '@types/react':
         optional: true
 
-  ink@6.2.3:
-    resolution: {integrity: sha512-fQkfEJjKbLXIcVWEE3MvpYSnwtbbmRsmeNDNz1pIuOFlwE+UF2gsy228J36OXKZGWJWZJKUigphBSqCNMcARtg==}
+  ink-text-input@6.0.0:
+    resolution: {integrity: sha512-Fw64n7Yha5deb1rHY137zHTAbSTNelUKuB5Kkk2HACXEtwIHBCf9OH2tP/LQ9fRYTl1F0dZgbW0zPnZk6FA9Lw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      ink: '>=5'
+      react: '>=18'
+
+  ink@6.3.1:
+    resolution: {integrity: sha512-3wGwITGrzL6rkWsi2gEKzgwdafGn4ZYd3u4oRp+sOPvfoxEHlnoB5Vnk9Uy5dMRUhDOqF3hqr4rLQ4lEzBc2sQ==}
     engines: {node: '>=20'}
     peerDependencies:
       '@types/react': '>=19.0.0'
       react: '>=19.0.0'
-      react-devtools-core: ^4.19.1
+      react-devtools-core: ^6.1.2
     peerDependenciesMeta:
       '@types/react':
         optional: true
@@ -3141,7 +3163,7 @@ snapshots:
       '@langchain/core': 0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76))
       uuid: 10.0.0
 
-  '@langchain/langgraph-sdk@0.0.112(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(react@19.1.1)':
+  '@langchain/langgraph-sdk@0.1.6(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(react@19.1.1)':
     dependencies:
       '@types/json-schema': 7.0.15
       p-queue: 6.6.2
@@ -3151,11 +3173,11 @@ snapshots:
       '@langchain/core': 0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76))
       react: 19.1.1
 
-  '@langchain/langgraph@0.4.8(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(react@19.1.1)(zod-to-json-schema@3.24.6(zod@3.25.76))':
+  '@langchain/langgraph@0.4.9(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(react@19.1.1)(zod-to-json-schema@3.24.6(zod@3.25.76))':
     dependencies:
       '@langchain/core': 0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76))
       '@langchain/langgraph-checkpoint': 0.1.1(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))
-      '@langchain/langgraph-sdk': 0.0.112(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(react@19.1.1)
+      '@langchain/langgraph-sdk': 0.1.6(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(react@19.1.1)
       uuid: 10.0.0
       zod: 3.25.76
     optionalDependencies:
@@ -3173,9 +3195,9 @@ snapshots:
     transitivePeerDependencies:
       - ws
 
-  '@mishieck/ink-titled-box@0.3.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
+  '@mishieck/ink-titled-box@0.3.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)(typescript@5.9.2)':
     dependencies:
-      ink: 6.2.3(@types/react@19.1.12)(react@19.1.1)
+      ink: 6.3.1(@types/react@19.1.12)(react@19.1.1)
       react: 19.1.1
       typescript: 5.9.2
 
@@ -3246,6 +3268,15 @@ snapshots:
     dependencies:
       '@types/tinycolor2': 1.4.6
 
+  '@types/ink-text-input@2.0.5':
+    dependencies:
+      '@types/ink': 0.5.2
+
+  '@types/ink@0.5.2':
+    dependencies:
+      '@types/node': 24.3.0
+      '@types/prop-types': 15.7.15
+
   '@types/json-schema@7.0.15': {}
 
   '@types/json5@0.0.29': {}
@@ -3259,6 +3290,8 @@ snapshots:
   '@types/normalize-package-data@2.4.4': {}
 
   '@types/parse-json@4.0.2': {}
+
+  '@types/prop-types@15.7.15': {}
 
   '@types/react@19.1.12':
     dependencies:
@@ -4650,39 +4683,46 @@ snapshots:
 
   inherits@2.0.4: {}
 
-  ink-big-text@2.0.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1))(react@19.1.1):
+  ink-big-text@2.0.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1):
     dependencies:
       cfonts: 3.3.0
-      ink: 6.2.3(@types/react@19.1.12)(react@19.1.1)
+      ink: 6.3.1(@types/react@19.1.12)(react@19.1.1)
       prop-types: 15.8.1
       react: 19.1.1
 
-  ink-gradient@3.0.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1)):
+  ink-gradient@3.0.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1)):
     dependencies:
       '@types/gradient-string': 1.1.6
       gradient-string: 2.0.2
-      ink: 6.2.3(@types/react@19.1.12)(react@19.1.1)
+      ink: 6.3.1(@types/react@19.1.12)(react@19.1.1)
       prop-types: 15.8.1
       strip-ansi: 7.1.0
 
-  ink-select-input@6.2.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1))(react@19.1.1):
+  ink-select-input@6.2.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1):
     dependencies:
       figures: 6.1.0
-      ink: 6.2.3(@types/react@19.1.12)(react@19.1.1)
+      ink: 6.3.1(@types/react@19.1.12)(react@19.1.1)
       react: 19.1.1
       to-rotated: 1.0.0
 
-  ink-spinner@5.0.0(ink@6.2.3(@types/react@19.1.12)(react@19.1.1))(react@19.1.1):
+  ink-spinner@5.0.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1):
     dependencies:
       cli-spinners: 2.9.2
-      ink: 6.2.3(@types/react@19.1.12)(react@19.1.1)
+      ink: 6.3.1(@types/react@19.1.12)(react@19.1.1)
       react: 19.1.1
 
   ink-testing-library@3.0.0(@types/react@19.1.12):
     optionalDependencies:
       '@types/react': 19.1.12
 
-  ink@6.2.3(@types/react@19.1.12)(react@19.1.1):
+  ink-text-input@6.0.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1):
+    dependencies:
+      chalk: 5.6.0
+      ink: 6.3.1(@types/react@19.1.12)(react@19.1.1)
+      react: 19.1.1
+      type-fest: 4.41.0
+
+  ink@6.3.1(@types/react@19.1.12)(react@19.1.1):
     dependencies:
       '@alcalzone/ansi-tokenize': 0.2.0
       ansi-escapes: 7.0.0

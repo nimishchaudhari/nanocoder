@@ -84,6 +84,27 @@ export class ToolManager {
 	}
 
 	/**
+	 * Check if a tool is an MCP tool and get server info
+	 */
+	getMCPToolInfo(toolName: string): {isMCPTool: boolean; serverName?: string} {
+		if (!this.mcpClient) {
+			return {isMCPTool: false};
+		}
+
+		const toolMapping = this.mcpClient.getToolMapping();
+		const mapping = toolMapping.get(toolName);
+
+		if (mapping) {
+			return {
+				isMCPTool: true,
+				serverName: mapping.serverName
+			};
+		}
+
+		return {isMCPTool: false};
+	}
+
+	/**
 	 * Disconnect MCP servers
 	 */
 	async disconnectMCP(): Promise<void> {
