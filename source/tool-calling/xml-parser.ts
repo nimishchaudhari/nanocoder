@@ -27,10 +27,19 @@ export class XMLToolCallParser {
 			processedContent = codeBlockMatch[1].trim();
 		}
 
+		// Remove <tool_call> wrapper tags if present
+		processedContent = processedContent.replace(/<\/?tool_call>/g, '').trim();
+
 		// Find all tool call blocks
 		this.TOOL_CALL_REGEX.lastIndex = 0; // Reset regex state
 		while ((match = this.TOOL_CALL_REGEX.exec(processedContent)) !== null) {
 			const [, toolName, innerXml] = match;
+
+			// Skip if this is a generic "tool_call" tag that slipped through
+			if (toolName === 'tool_call') {
+				continue;
+			}
+
 			const parameters = this.parseParameters(innerXml);
 
 			toolCalls.push({

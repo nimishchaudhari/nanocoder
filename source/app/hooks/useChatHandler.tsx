@@ -353,11 +353,63 @@ export function useChatHandler({
 
 		// Handle tool calls if present - this continues the loop
 		if (validToolCalls && validToolCalls.length > 0) {
+			// First, validate tools and separate valid from unknown
+			const knownToolCalls: ToolCall[] = [];
+			const unknownToolErrors: ToolResult[] = [];
+
+			for (const toolCall of validToolCalls) {
+				if (!toolManager?.hasTool(toolCall.function.name)) {
+					// Create error result for unknown tool
+					const errorResult: ToolResult = {
+						tool_call_id: toolCall.id,
+						role: 'tool' as const,
+						name: toolCall.function.name,
+						content: `Error: Unknown tool: ${toolCall.function.name}`,
+					};
+					unknownToolErrors.push(errorResult);
+
+					// Display the error result
+					await displayToolResult(toolCall, errorResult);
+				} else {
+					// Tool exists, add to valid list
+					knownToolCalls.push(toolCall);
+				}
+			}
+
+			// If there were unknown tools, continue conversation with all errors
+			if (unknownToolErrors.length > 0) {
+				const taskContext = getTaskContext(messages);
+				const conversationState = conversationStateManager.current.getState();
+				const toolMessages = formatToolResultsForModel(
+					unknownToolErrors,
+					taskContext,
+					conversationState,
+				);
+
+				const updatedMessagesWithError = [
+					...messages,
+					assistantMsg,
+					...toolMessages,
+				];
+
+				setMessages(updatedMessagesWithError);
+
+				// Continue the main conversation loop with error messages as context
+				await processAssistantResponse(
+					systemMessage,
+					updatedMessagesWithError,
+				);
+				return;
+			}
+
+			// If we get here, all tools are valid - proceed with normal flow
+			// Use knownToolCalls for the rest of the processing
+
 			// Separate tools that need confirmation vs those that don't
 			const toolsNeedingConfirmation: ToolCall[] = [];
 			const toolsToExecuteDirectly: ToolCall[] = [];
 
-			for (const toolCall of validToolCalls) {
+			for (const toolCall of knownToolCalls) {
 				const toolDef = toolDefinitions.find(
 					def => def.config.function.name === toolCall.function.name,
 				);
@@ -377,6 +429,11 @@ export function useChatHandler({
 
 				for (const toolCall of toolsToExecuteDirectly) {
 					try {
+						// Double-check tool exists before execution (safety net)
+						if (!toolManager?.hasTool(toolCall.function.name)) {
+							throw new Error(`Unknown tool: ${toolCall.function.name}`);
+						}
+
 						const result = await processToolUse(toolCall);
 						directResults.push(result);
 

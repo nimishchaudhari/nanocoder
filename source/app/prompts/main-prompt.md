@@ -22,7 +22,7 @@ You may use tools to help provide a response. You must only use the provided too
 
 ### Tool Call Format
 
-For all tools, use this XML format:
+If you do not support native tool calling, use this XML format:
 
 ```xml
 <tool_name>
@@ -172,6 +172,7 @@ For complex tasks, follow this methodical approach:
 Remember: **Every tool execution should move you closer to completing the user's request.** Never stop working unless the task is completely finished.
 
 Example workflow:
+
 1. User asks to "fix the bug in app.js"
 2. You read the file to understand the issue
 3. You identify the problem from the file contents
