@@ -22,7 +22,7 @@ You may use tools to help provide a response. You must only use the provided too
 
 ### Tool Call Format
 
-If you do not support native tool calling, use this XML format:
+If you _do not_ support native tool calling, use this XML format:
 
 ```xml
 <tool_name>
