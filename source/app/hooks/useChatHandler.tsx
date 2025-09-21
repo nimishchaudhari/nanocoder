@@ -789,6 +789,11 @@ export function useChatHandler({
 			const availableTools = toolManager ? toolManager.getAllTools() : [];
 			const systemPrompt = processPromptTemplate(availableTools);
 
+			// Debug: Log the full system prompt being sent
+			console.log('=== SYSTEM PROMPT ===');
+			console.log(systemPrompt);
+			console.log('=== END SYSTEM PROMPT ===');
+
 			// Create stream request
 			const systemMessage: Message = {
 				role: 'system',
