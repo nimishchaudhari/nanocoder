@@ -135,16 +135,11 @@ export function useToolHandler({
 		}));
 
 		// Update conversation history with tool results
-		// Note: assistantMsg is already included in updatedMessages, just add tool results
-		// Important: Remove tool_calls from assistantMsg to prevent model from seeing and repeating them
-		const cleanedAssistantMsg: Message = {
-			...assistantMsg,
-			tool_calls: undefined, // Remove tool_calls to prevent repetition
-		};
-		
+		// The assistantMsg is NOT included in updatedMessages (updatedMessages is the state before adding assistantMsg)
+		// We need to add both the assistant message and the tool results
 		const updatedMessagesWithTools = [
 			...updatedMessages,
-			cleanedAssistantMsg,
+			assistantMsg, // Add the assistant message with tool_calls intact for proper tool_call_id matching
 			...toolMessages,
 		];
 		setMessages(updatedMessagesWithTools);

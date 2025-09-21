@@ -97,14 +97,16 @@ export class LangGraphClient implements LLMClient {
 	private createChatModel(): ChatOpenAI {
 		const {config} = this.providerConfig;
 
-		return new ChatOpenAI({
+		const chatConfig = {
 			modelName: this.currentModel,
 			openAIApiKey: config.apiKey || 'dummy-key',
 			configuration: {
 				baseURL: config.baseURL,
 			},
 			...config,
-		});
+		};
+
+		return new ChatOpenAI(chatConfig);
 	}
 
 	setModel(model: string): void {

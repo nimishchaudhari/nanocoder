@@ -311,13 +311,10 @@ export function useChatHandler({
 		const validToolCalls = filterValidToolCalls(allToolCalls);
 
 		// Add assistant message to conversation history
-		// Note: We don't include tool_calls in the conversation history for content-parsed tools
-		// to prevent the model from seeing its own tool call attempts and repeating them
 		const assistantMsg: Message = {
 			role: 'assistant',
 			content: cleanedContent,
-			// Only include tool_calls if they came from native tool calling (toolCalls from LangGraph)
-			tool_calls: toolCalls && toolCalls.length > 0 ? toolCalls : undefined,
+			tool_calls: validToolCalls.length > 0 ? validToolCalls : undefined,
 		};
 		setMessages([...messages, assistantMsg]);
 
