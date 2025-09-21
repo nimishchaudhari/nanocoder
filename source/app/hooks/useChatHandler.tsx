@@ -1,13 +1,12 @@
 import {LLMClient, Message, ToolCall, ToolResult} from '../../types/core.js';
 import {ToolManager} from '../../tools/tool-manager.js';
 import {toolDefinitions} from '../../tools/index.js';
-import {readFileSync, existsSync} from 'fs';
-import {join} from 'path';
-import {promptPath} from '../../config/index.js';
+import {processPromptTemplate} from '../../utils/prompt-processor.js';
 import {
 	parseToolCallsFromContent,
 	cleanContentFromToolCalls,
 } from '../../tool-calling/index.js';
+import {ConversationStateManager} from '../utils/conversationState.js';
 import UserMessage from '../../components/user-message.js';
 import AssistantMessage from '../../components/assistant-message.js';
 import ErrorMessage from '../../components/error-message.js';
@@ -92,6 +91,15 @@ export function useChatHandler({
 	setAbortController,
 	onStartToolConfirmationFlow,
 }: UseChatHandlerProps) {
+	// Conversation state manager for enhanced context
+	const conversationStateManager = React.useRef(new ConversationStateManager());
+
+	// Reset conversation state when messages are cleared
+	React.useEffect(() => {
+		if (messages.length === 0) {
+			conversationStateManager.current.reset();
+		}
+	}, [messages.length]);
 	// Display tool result with proper formatting (similar to useToolHandler)
 	const displayToolResult = async (toolCall: any, result: any) => {
 		if (toolManager) {
@@ -280,7 +288,7 @@ export function useChatHandler({
 			throw new Error('No response received from model');
 		}
 
-		// Parse any tool calls from the content itself
+		// Parse any tool calls from content for non-tool-calling models
 		const parsedToolCalls = parseToolCallsFromContent(fullContent);
 		const cleanedContent = cleanContentFromToolCalls(
 			fullContent,
@@ -298,11 +306,9 @@ export function useChatHandler({
 			);
 		}
 
-		// Merge structured tool calls with content-parsed tool calls
+		// Merge structured tool calls from LangGraph with content-parsed tool calls
 		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-
-		// Filter out invalid tool calls
-		const validToolCalls = allToolCalls;
+		const validToolCalls = filterValidToolCalls(allToolCalls);
 
 		// Add assistant message to conversation history
 		const assistantMsg: Message = {
@@ -312,16 +318,68 @@ export function useChatHandler({
 		};
 		setMessages([...messages, assistantMsg]);
 
+		// Update conversation state with assistant message
+		conversationStateManager.current.updateAssistantMessage(assistantMsg);
+
 		// Handle tool calls if present - this continues the loop
 		if (validToolCalls && validToolCalls.length > 0) {
+			// First, validate tools and separate valid from unknown
+			const knownToolCalls: ToolCall[] = [];
+			const unknownToolErrors: ToolResult[] = [];
+
+			for (const toolCall of validToolCalls) {
+				if (!toolManager?.hasTool(toolCall.function.name)) {
+					// Create error result for unknown tool
+					const errorResult: ToolResult = {
+						tool_call_id: toolCall.id,
+						role: 'tool' as const,
+						name: toolCall.function.name,
+						content: `Error: Unknown tool: ${toolCall.function.name}`,
+					};
+					unknownToolErrors.push(errorResult);
+
+					// Display the error result
+					await displayToolResult(toolCall, errorResult);
+				} else {
+					// Tool exists, add to valid list
+					knownToolCalls.push(toolCall);
+				}
+			}
+
+			// If there were unknown tools, continue conversation with all errors
+			if (unknownToolErrors.length > 0) {
+				const toolMessages = unknownToolErrors.map(result => ({
+					role: 'tool' as const,
+					content: result.content || '',
+					tool_call_id: result.tool_call_id,
+					name: result.name,
+				}));
+
+				const updatedMessagesWithError = [
+					...messages,
+					assistantMsg,
+					...toolMessages,
+				];
+
+				setMessages(updatedMessagesWithError);
+
+				// Continue the main conversation loop with error messages as context
+				await processAssistantResponse(systemMessage, updatedMessagesWithError);
+				return;
+			}
+
+			// If we get here, all tools are valid - proceed with normal flow
+			// Use knownToolCalls for the rest of the processing
+
 			// Separate tools that need confirmation vs those that don't
 			const toolsNeedingConfirmation: ToolCall[] = [];
 			const toolsToExecuteDirectly: ToolCall[] = [];
 
-			for (const toolCall of validToolCalls) {
+			for (const toolCall of knownToolCalls) {
 				const toolDef = toolDefinitions.find(
 					def => def.config.function.name === toolCall.function.name,
 				);
+
 				if (toolDef && toolDef.requiresConfirmation === false) {
 					toolsToExecuteDirectly.push(toolCall);
 				} else {
@@ -337,8 +395,19 @@ export function useChatHandler({
 
 				for (const toolCall of toolsToExecuteDirectly) {
 					try {
+						// Double-check tool exists before execution (safety net)
+						if (!toolManager?.hasTool(toolCall.function.name)) {
+							throw new Error(`Unknown tool: ${toolCall.function.name}`);
+						}
+
 						const result = await processToolUse(toolCall);
 						directResults.push(result);
+
+						// Update conversation state with tool execution
+						conversationStateManager.current.updateAfterToolExecution(
+							toolCall,
+							result.content,
+						);
 
 						// Display the tool result immediately
 						await displayToolResult(toolCall, result);
@@ -354,6 +423,12 @@ export function useChatHandler({
 						};
 						directResults.push(errorResult);
 
+						// Update conversation state with error
+						conversationStateManager.current.updateAfterToolExecution(
+							toolCall,
+							errorResult.content,
+						);
+
 						// Display the error result
 						await displayToolResult(toolCall, errorResult);
 					}
@@ -361,10 +436,10 @@ export function useChatHandler({
 
 				// If we have results, continue the conversation with them
 				if (directResults.length > 0) {
-					// Add tool results to conversation history
-					const toolMessages: Message[] = directResults.map(result => ({
+					// Format tool results as standard tool messages
+					const toolMessages = directResults.map(result => ({
 						role: 'tool' as const,
-						content: `Tool "${result.name}" was executed successfully. Result: ${result.content}`,
+						content: result.content || '',
 						tool_call_id: result.tool_call_id,
 						name: result.name,
 					}));
@@ -374,6 +449,7 @@ export function useChatHandler({
 						assistantMsg,
 						...toolMessages,
 					];
+
 					setMessages(updatedMessagesWithTools);
 
 					// Continue the main conversation loop with tool results as context
@@ -393,6 +469,7 @@ export function useChatHandler({
 					assistantMsg,
 					systemMessage,
 				);
+				return; // IMPORTANT: Stop processing here, wait for user confirmation
 			}
 		}
 	};
@@ -473,7 +550,7 @@ export function useChatHandler({
 				throw new Error('No response received from model');
 			}
 
-			// Parse any tool calls from the content itself
+			// Parse any tool calls from content for non-tool-calling models
 			const parsedToolCalls = parseToolCallsFromContent(fullContent);
 			const cleanedContent = cleanContentFromToolCalls(
 				fullContent,
@@ -491,10 +568,8 @@ export function useChatHandler({
 				);
 			}
 
-			// Merge structured tool calls with content-parsed tool calls
+			// Merge structured tool calls from LangGraph with content-parsed tool calls
 			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-
-			// Filter out invalid tool calls
 			const validToolCalls = filterValidToolCalls(allToolCalls);
 
 			// Add assistant message to conversation history
@@ -504,6 +579,9 @@ export function useChatHandler({
 				tool_calls: validToolCalls.length > 0 ? validToolCalls : undefined,
 			};
 			setMessages([...messages, assistantMsg]);
+
+			// Update conversation state with assistant message
+			conversationStateManager.current.updateAssistantMessage(assistantMsg);
 
 			// Handle tool calls if present - this continues the loop
 			if (validToolCalls && validToolCalls.length > 0) {
@@ -533,6 +611,12 @@ export function useChatHandler({
 							const result = await processToolUse(toolCall);
 							directResults.push(result);
 
+							// Update conversation state with tool execution
+							conversationStateManager.current.updateAfterToolExecution(
+								toolCall,
+								result.content,
+							);
+
 							// Display the tool result immediately
 							await displayToolResult(toolCall, result);
 						} catch (error) {
@@ -547,6 +631,12 @@ export function useChatHandler({
 							};
 							directResults.push(errorResult);
 
+							// Update conversation state with error
+							conversationStateManager.current.updateAfterToolExecution(
+								toolCall,
+								errorResult.content,
+							);
+
 							// Display the error result
 							await displayToolResult(toolCall, errorResult);
 						}
@@ -554,10 +644,10 @@ export function useChatHandler({
 
 					// If we have results, continue the conversation with them
 					if (directResults.length > 0) {
-						// Add tool results to conversation history
-						const toolMessages: Message[] = directResults.map(result => ({
+						// Format tool results as standard tool messages
+						const toolMessages = directResults.map(result => ({
 							role: 'tool' as const,
-							content: `Tool "${result.name}" was executed successfully. Result: ${result.content}`,
+							content: result.content || '',
 							tool_call_id: result.tool_call_id,
 							name: result.name,
 						}));
@@ -632,6 +722,11 @@ export function useChatHandler({
 		const updatedMessages = [...messages, userMessage];
 		setMessages(updatedMessages);
 
+		// Initialize conversation state if this is a new conversation
+		if (messages.length === 0) {
+			conversationStateManager.current.initializeState(message);
+		}
+
 		// Create abort controller for cancellation
 		const controller = new AbortController();
 		setAbortController(controller);
@@ -649,30 +744,9 @@ export function useChatHandler({
 			  );
 
 		try {
-			// Load system prompt from main-prompt.md file
-			let systemPrompt = 'You are a helpful AI assistant.'; // fallback
-			if (existsSync(promptPath)) {
-				try {
-					systemPrompt = readFileSync(promptPath, 'utf-8');
-				} catch (error) {
-					console.warn(
-						`Failed to load system prompt from ${promptPath}: ${error}`,
-					);
-				}
-			}
-
-			// Check for AGENTS.md in current working directory and append it
-			const agentsPath = join(process.cwd(), 'AGENTS.md');
-			if (existsSync(agentsPath)) {
-				try {
-					const agentsContent = readFileSync(agentsPath, 'utf-8');
-					systemPrompt +=
-						'\n\n## Project Context\n\nThe following information about this project should guide your responses:\n\n' +
-						agentsContent;
-				} catch (error) {
-					console.warn(`Failed to load AGENTS.md from ${agentsPath}: ${error}`);
-				}
-			}
+			// Load and process system prompt with dynamic tool documentation
+			const availableTools = toolManager ? toolManager.getAllTools() : [];
+			const systemPrompt = processPromptTemplate(availableTools);
 
 			// Create stream request
 			const systemMessage: Message = {

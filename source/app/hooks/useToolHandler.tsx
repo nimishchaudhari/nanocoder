@@ -1,4 +1,4 @@
-import {Message} from '../../types/core.js';
+import {Message, LLMClient, ProviderType} from '../../types/core.js';
 import {processToolUse, getToolManager} from '../../message-handler.js';
 import {ConversationContext} from './useAppState.js';
 import InfoMessage from '../../components/info-message.js';
@@ -21,7 +21,12 @@ interface UseToolHandlerProps {
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 	resetToolConfirmationState: () => void;
-	onProcessAssistantResponse: (systemMessage: Message, messages: Message[]) => Promise<void>;
+	onProcessAssistantResponse: (
+		systemMessage: Message,
+		messages: Message[],
+	) => Promise<void>;
+	client?: LLMClient | null;
+	currentProvider?: ProviderType;
 }
 
 export function useToolHandler({
@@ -40,6 +45,8 @@ export function useToolHandler({
 	componentKeyCounter,
 	resetToolConfirmationState,
 	onProcessAssistantResponse,
+	client,
+	currentProvider,
 }: UseToolHandlerProps) {
 
 	// Display tool result with proper formatting
@@ -63,13 +70,17 @@ export function useToolHandler({
 					if (React.isValidElement(formattedResult)) {
 						addToChatQueue(
 							React.cloneElement(formattedResult, {
-								key: `tool-result-${result.tool_call_id}-${componentKeyCounter}-${Date.now()}`,
+								key: `tool-result-${
+									result.tool_call_id
+								}-${componentKeyCounter}-${Date.now()}`,
 							}),
 						);
 					} else {
 						addToChatQueue(
 							<ToolMessage
-								key={`tool-result-${result.tool_call_id}-${componentKeyCounter}-${Date.now()}`}
+								key={`tool-result-${
+									result.tool_call_id
+								}-${componentKeyCounter}-${Date.now()}`}
 								title={`⚒ ${result.name}`}
 								message={String(formattedResult)}
 								hideBox={true}
@@ -101,6 +112,7 @@ export function useToolHandler({
 		}
 	};
 
+
 	// Continue conversation with tool results - maintains the proper loop
 	const continueConversationWithToolResults = async (toolResults?: any[]) => {
 		if (!currentConversationContext) {
@@ -111,27 +123,23 @@ export function useToolHandler({
 		// Use passed results or fallback to state (for backwards compatibility)
 		const resultsToUse = toolResults || completedToolResults;
 
-		const {updatedMessages, assistantMsg, systemMessage} = currentConversationContext;
+		const {updatedMessages, assistantMsg, systemMessage} =
+			currentConversationContext;
 
-		// Add tool results to conversation history
-		// For non-tool-calling models, enhance the content to be more explicit
-		const toolMessages: Message[] = resultsToUse.map(result => {
-			// Make tool results more explicit for non-tool-calling models
-			const enhancedContent = `Tool "${result.name}" was executed successfully. Result: ${result.content}`;
-			
-			return {
-				role: 'tool' as const,
-				content: enhancedContent,
-				tool_call_id: result.tool_call_id,
-				name: result.name,
-			};
-		});
+		// Format tool results as standard tool messages
+		const toolMessages = resultsToUse.map(result => ({
+			role: 'tool' as const,
+			content: result.content || '',
+			tool_call_id: result.tool_call_id,
+			name: result.name,
+		}));
 
 		// Update conversation history with tool results
-		// Note: assistantMsg is already included in updatedMessages, just add tool results
+		// The assistantMsg is NOT included in updatedMessages (updatedMessages is the state before adding assistantMsg)
+		// We need to add both the assistant message and the tool results
 		const updatedMessagesWithTools = [
 			...updatedMessages,
-			assistantMsg,
+			assistantMsg, // Add the assistant message with tool_calls intact for proper tool_call_id matching
 			...toolMessages,
 		];
 		setMessages(updatedMessagesWithTools);
@@ -173,7 +181,7 @@ export function useToolHandler({
 		const currentTool = pendingToolCalls[currentToolIndex];
 		try {
 			const result = await processToolUse(currentTool);
-			
+
 			const newResults = [...completedToolResults, result];
 			setCompletedToolResults(newResults);
 

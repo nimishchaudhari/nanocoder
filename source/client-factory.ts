@@ -1,4 +1,4 @@
-import {LangChainClient} from './langchain-client.js';
+import {LangGraphClient} from './langgraph-client.js';
 import {appConfig} from './config/index.js';
 import {loadPreferences} from './config/preferences.js';
 import type {LLMClient, ProviderType, LangChainProviderConfig} from './types/index.js';
@@ -12,12 +12,11 @@ export async function createLLMClient(
 	const agentsJsonPath = join(process.cwd(), 'agents.config.json');
 	const hasConfigFile = existsSync(agentsJsonPath);
 	
-	// Always use LangChain now - convert legacy config format to LangChain providers
-	return createLangChainClient(provider, hasConfigFile);
+	// Always use LangGraph - it handles both tool-calling and non-tool-calling models
+	return createLangGraphClient(provider, hasConfigFile);
 }
 
-
-async function createLangChainClient(
+async function createLangGraphClient(
 	requestedProvider?: ProviderType,
 	hasConfigFile = true,
 ): Promise<{client: LLMClient; actualProvider: ProviderType}> {
@@ -61,7 +60,7 @@ async function createLangChainClient(
 			// Test provider connection
 			await testProviderConnection(providerConfig);
 			
-			const client = await LangChainClient.create(providerConfig);
+			const client = await LangGraphClient.create(providerConfig);
 			
 			return { client, actualProvider: providerType };
 			
@@ -127,4 +126,3 @@ async function testProviderConnection(providerConfig: LangChainProviderConfig): 
 		throw new Error('API key required for hosted providers');
 	}
 }
-

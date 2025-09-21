@@ -1,6 +1,8 @@
 import {readFileTool} from './read-file.js';
 import {createFileTool} from './create-file.js';
-import {editFileTool} from './edit-file.js';
+import {insertLinesTool} from './insert-lines.js';
+import {replaceLinesTool} from './replace-lines.js';
+import {deleteLinesTool} from './delete-lines.js';
 import {readManyFilesTool} from './read-many-files.js';
 import {executeBashTool} from './execute-bash.js';
 import React from 'react';
@@ -9,7 +11,9 @@ import type {ToolHandler, Tool, ToolDefinition} from '../types/index.js';
 export const toolDefinitions: ToolDefinition[] = [
 	readFileTool,
 	createFileTool,
-	editFileTool,
+	insertLinesTool,
+	replaceLinesTool,
+	deleteLinesTool,
 	readManyFilesTool,
 	executeBashTool,
 ];

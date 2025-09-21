@@ -1,7 +1,7 @@
 {
 	"name": "@motesoftware/nanocoder",
 	"main": "dist/cli.js",
-	"version": "1.10.4",
+	"version": "1.11.0",
 	"description": "A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter",
 	"keywords": [
 		"cli",
@@ -39,11 +39,12 @@
 	},
 	"files": [
 		"dist",
-		"source/app/prompts/main-prompt.md"
+		"source/app/prompts/main-prompt.md",
+		"source/app/prompts/non-tool-calling-enhancement.md"
 	],
 	"dependencies": {
 		"@langchain/core": "^0.3.72",
-		"@langchain/langgraph": "^0.4.8",
+		"@langchain/langgraph": "^0.4.9",
 		"@langchain/openai": "^0.6.10",
 		"@mishieck/ink-titled-box": "^0.3.0",
 		"@modelcontextprotocol/sdk": "^1.17.3",

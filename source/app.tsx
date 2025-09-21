@@ -103,6 +103,8 @@ export default function App() {
 		componentKeyCounter: appState.componentKeyCounter,
 		resetToolConfirmationState: appState.resetToolConfirmationState,
 		onProcessAssistantResponse: chatHandler.processAssistantResponse,
+		client: appState.client,
+		currentProvider: appState.currentProvider,
 	});
 
 	// Setup mode handlers
