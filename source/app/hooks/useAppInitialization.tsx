@@ -29,6 +29,7 @@ import {
 	modelCommand,
 	providerCommand,
 	themeCommand,
+	updateCommand,
 } from '../../commands/index.js';
 import SuccessMessage from '../../components/success-message.js';
 import ErrorMessage from '../../components/error-message.js';
@@ -248,6 +249,7 @@ export function useAppInitialization({
 				initCommand,
 				themeCommand,
 				exportCommand,
+				updateCommand,
 			]);
 
 			// Now start with the properly initialized objects (excluding MCP)
