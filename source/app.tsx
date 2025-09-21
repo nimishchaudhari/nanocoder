@@ -171,6 +171,9 @@ export default function App() {
 				messages: appState.messages,
 				setIsBashExecuting: appState.setIsBashExecuting,
 				setCurrentBashCommand: appState.setCurrentBashCommand,
+				provider: appState.currentProvider,
+				model: appState.currentModel,
+				getMessageTokens: appState.getMessageTokens,
 			});
 		},
 		[

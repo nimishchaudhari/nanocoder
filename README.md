@@ -247,6 +247,7 @@ Nanocoder automatically saves your preferences to remember your choices across s
 - `/debug` - Toggle logging levels (silent/normal/verbose)
 - `/custom-commands` - List all custom commands
 - `/exit` - Exit the application
+- `/export` - Export current session to markdown file
 - `/theme` - Select a theme for the Nanocoder CLI
 - `/update` - Update Nanocoder to the latest version
 - `!command` - Execute bash commands directly without leaving Nanocoder (output becomes context for the LLM)
