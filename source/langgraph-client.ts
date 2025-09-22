@@ -272,7 +272,6 @@ export class LangGraphClient implements LLMClient {
 	}
 
 	private async fetchModelInfo(): Promise<void> {
-		console.log(this.providerConfig.name);
 		if (this.providerConfig.name.toLowerCase() !== 'openrouter') {
 			return;
 		}

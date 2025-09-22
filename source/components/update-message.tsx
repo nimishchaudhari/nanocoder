@@ -65,18 +65,21 @@ export default function UpdateMessage() {
 	if (status === Status.Checking) {
 		return React.createElement(InfoMessage, {
 			message: 'Checking for available updates...',
+			hideBox: true,
 		});
 	}
 
 	if (status === Status.Updating) {
 		return React.createElement(InfoMessage, {
 			message: 'Downloading and installing the latest Nanocoder update...',
+			hideBox: true,
 		});
 	}
 
 	if (status === Status.NoUpdate) {
 		return React.createElement(SuccessMessage, {
 			message: 'Nanocoder is already up to date.',
+			hideBox: true,
 		});
 	}
 
@@ -84,12 +87,14 @@ export default function UpdateMessage() {
 		return React.createElement(SuccessMessage, {
 			message:
 				'Nanocoder has been updated to the latest version. Please restart your session to apply the update.',
+			hideBox: true,
 		});
 	}
 
 	if (status === Status.Error) {
 		return React.createElement(ErrorMessage, {
 			message: `Failed to update Nanocoder: ${error?.message}`,
+			hideBox: true,
 		});
 	}
 
