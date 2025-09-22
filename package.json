@@ -1,7 +1,7 @@
 {
 	"name": "@motesoftware/nanocoder",
 	"main": "dist/cli.js",
-	"version": "1.11.0",
+	"version": "1.11.1",
 	"description": "A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter",
 	"keywords": [
 		"cli",
@@ -13,15 +13,15 @@
 		"local",
 		"typescript"
 	],
-	"author": "Mote Software Ltd",
+	"author": "Nano Collective",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Mote-Software/nanocoder.git"
+		"url": "https://github.com/Nano-Collective/nanocoder.git"
 	},
-	"homepage": "https://github.com/Mote-Software/nanocoder#readme",
+	"homepage": "https://github.com/Nano-Collective/nanocoder#readme",
 	"bugs": {
-		"url": "https://github.com/Mote-Software/nanocoder/issues"
+		"url": "https://github.com/Nano-Collective/nanocoder/issues"
 	},
 	"bin": {
 		"nanocoder": "dist/cli.js"
@@ -39,8 +39,7 @@
 	},
 	"files": [
 		"dist",
-		"source/app/prompts/main-prompt.md",
-		"source/app/prompts/non-tool-calling-enhancement.md"
+		"source/app/prompts/main-prompt.md"
 	],
 	"dependencies": {
 		"@langchain/core": "^0.3.72",
