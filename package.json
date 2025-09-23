@@ -1,7 +1,7 @@
 {
-	"name": "@motesoftware/nanocoder",
+	"name": "@nanocollective/nanocoder",
 	"main": "dist/cli.js",
-	"version": "1.11.2",
+	"version": "1.11.3",
 	"description": "A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter",
 	"keywords": [
 		"cli",

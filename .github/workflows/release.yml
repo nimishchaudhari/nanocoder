@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: '18'
 
       - name: Check version difference
         id: version-check
@@ -32,7 +32,7 @@ jobs:
           echo "package-version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
 
           # Get latest NPM version (handle case where package doesn't exist yet)
-          NPM_VERSION=$(npm view @motesoftware/nanocoder version 2>/dev/null || echo "0.0.0")
+          NPM_VERSION=$(npm view @nanocollective/nanocoder version 2>/dev/null || echo "0.0.0")
           echo "npm-version=$NPM_VERSION" >> $GITHUB_OUTPUT
 
           # Compare versions
@@ -55,8 +55,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
-          registry-url: "https://registry.npmjs.org"
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -96,7 +96,7 @@ jobs:
 
             ### Installation
             ```bash
-            npm install -g @motesoftware/nanocoder
+            npm install -g @nanocollective/nanocoder
             ```
 
             ### Usage
@@ -104,7 +104,7 @@ jobs:
             nanocoder
             ```
 
-            **Full Changelog**: https://github.com/Mote-Software/nanocoder/compare/v${{ needs.check-version.outputs.npm-version }}...v${{ needs.check-version.outputs.package-version }}
+            **Full Changelog**: https://github.com/Nano-Collective/nanocoder/compare/v${{ needs.check-version.outputs.npm-version }}...v${{ needs.check-version.outputs.package-version }}
           draft: false
           prerelease: false
 
@@ -125,7 +125,7 @@ jobs:
                   },
                   {
                     "name": "Installation",
-                    "value": "`npm install -g @motesoftware/nanocoder`",
+                    "value": "`npm install -g @nanocollective/nanocoder`",
                     "inline": false
                   }
                 ],
@@ -147,9 +147,9 @@ jobs:
         run: |
           if [ "${{ needs.check-version.outputs.should-publish }}" == "true" ]; then
             if [ "${{ needs.publish.result }}" == "success" ]; then
-              echo "🎉 Successfully published @motesoftware/nanocoder v${{ needs.check-version.outputs.package-version }} to NPM and created GitHub release!"
+              echo "🎉 Successfully published @nanocollective/nanocoder v${{ needs.check-version.outputs.package-version }} to NPM and created GitHub release!"
             else
-              echo "❌ Failed to publish @motesoftware/nanocoder v${{ needs.check-version.outputs.package-version }}"
+              echo "❌ Failed to publish @nanocollective/nanocoder v${{ needs.check-version.outputs.package-version }}"
               exit 1
             fi
           else

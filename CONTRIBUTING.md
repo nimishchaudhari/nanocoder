@@ -18,7 +18,7 @@ Thank you for your interest in contributing to Nanocoder! We welcome contributio
 Before contributing, please:
 
 1. Read our [README](README.md) to understand what Nanocoder does
-2. Check our [issue tracker](https://github.com/Mote-Software/nanocoder/issues) for existing issues
+2. Check our [issue tracker](https://github.com/Nano-Collective/nanocoder/issues) for existing issues
 3. Look for issues labeled `good first issue` or `help wanted` if you're new to the project
 
 ## Development Setup
