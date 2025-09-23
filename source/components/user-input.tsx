@@ -1,6 +1,6 @@
 import {Box, Text, useFocus, useInput} from 'ink';
 import TextInput from 'ink-text-input';
-import {useCallback, useEffect} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useTheme} from '../hooks/useTheme.js';
 import {promptHistory} from '../prompt-history.js';
 import {commandRegistry} from '../commands.js';
@@ -29,6 +29,7 @@ export default function UserInput({
 	const inputState = useInputState();
 	const uiState = useUIStateContext();
 	const boxWidth = useTerminalWidth();
+	const [textInputKey, setTextInputKey] = useState(0);
 
 	const {
 		input,
@@ -82,7 +83,11 @@ export default function UserInput({
 			if (allCompletions.length === 1) {
 				// Auto-complete when there's exactly one match
 				const completion = allCompletions[0];
-				updateInput(`/${completion.name}`);
+				const completedText = `/${completion.name}`;
+
+				// Force TextInput to remount by changing its key, which resets cursor position
+				updateInput(completedText);
+				setTextInputKey(prev => prev + 1);
 			} else if (allCompletions.length > 1) {
 				// Show completions when there are multiple matches
 				setCompletions(allCompletions);
@@ -126,26 +131,32 @@ export default function UserInput({
 					setOriginalInput(input);
 					setHistoryIndex(history.length - 1);
 					updateInput(history[history.length - 1]);
+					setTextInputKey(prev => prev + 1);
 				} else if (historyIndex > 0) {
 					const newIndex = historyIndex - 1;
 					setHistoryIndex(newIndex);
 					updateInput(history[newIndex]);
+					setTextInputKey(prev => prev + 1);
 				} else {
 					setHistoryIndex(-2);
 					updateInput('');
+					setTextInputKey(prev => prev + 1);
 				}
 			} else {
 				if (historyIndex >= 0 && historyIndex < history.length - 1) {
 					const newIndex = historyIndex + 1;
 					setHistoryIndex(newIndex);
 					updateInput(history[newIndex]);
+					setTextInputKey(prev => prev + 1);
 				} else if (historyIndex === history.length - 1) {
 					setHistoryIndex(-1);
 					updateInput(originalInput);
 					setOriginalInput('');
+					setTextInputKey(prev => prev + 1);
 				} else if (historyIndex === -2) {
 					setHistoryIndex(0);
 					updateInput(history[0]);
+					setTextInputKey(prev => prev + 1);
 				}
 			}
 		},
@@ -268,6 +279,7 @@ export default function UserInput({
 							<Text color={colors.secondary}>...</Text>
 						) : (
 							<TextInput
+								key={textInputKey}
 								value={input}
 								onChange={updateInput}
 								onSubmit={handleSubmit}
