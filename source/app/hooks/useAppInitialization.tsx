@@ -28,6 +28,7 @@ import {
 	mcpCommand,
 	modelCommand,
 	providerCommand,
+	recommendationsCommand,
 	themeCommand,
 	updateCommand,
 } from '../../commands/index.js';
@@ -250,6 +251,7 @@ export function useAppInitialization({
 				themeCommand,
 				exportCommand,
 				updateCommand,
+				recommendationsCommand,
 			]);
 
 			// Now start with the properly initialized objects (excluding MCP)

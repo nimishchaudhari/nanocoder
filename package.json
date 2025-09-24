@@ -58,7 +58,8 @@
 		"meow": "^11.0.0",
 		"nanostores": "^1.0.1",
 		"ollama": "^0.5.17",
-		"react": "^19.0.0"
+		"react": "^19.0.0",
+		"systeminformation": "^5.27.10"
 	},
 	"devDependencies": {
 		"@sindresorhus/tsconfig": "^3.0.1",
