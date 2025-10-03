@@ -121,7 +121,7 @@ function RecommendationsDisplay() {
 
 			<Box marginTop={1}>
 				<Text color={colors.secondary}>
-					💡 Use /provider and /model commands to switch between recommendations
+					💡 Configure these recommendations in `agents.config.json`.
 				</Text>
 			</Box>
 		</TitledBox>
