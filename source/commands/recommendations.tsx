@@ -140,19 +140,13 @@ function SystemSummary({
 		  }`
 		: 'Offline';
 
-	const ollamaText = systemCaps.ollama.installed
-		? `Installed${systemCaps.ollama.running ? ' & Running' : ' (not running)'}`
-		: 'Not installed';
-
 	return (
 		<Box flexDirection="column" marginBottom={1}>
 			<Text color={colors.primary} bold>
 				System: {systemCaps.memory.total}GB RAM, {systemCaps.cpu.cores} cores,{' '}
 				{gpuText}
 			</Text>
-			<Text color={colors.white}>
-				Network: {networkText} • Ollama: {ollamaText}
-			</Text>
+			<Text color={colors.white}>Network: {networkText}</Text>
 		</Box>
 	);
 }
