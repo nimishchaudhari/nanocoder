@@ -1,6 +1,10 @@
 import {LLMClient, Message, ProviderType} from '../../types/core.js';
 import {createLLMClient} from '../../client-factory.js';
-import {updateLastUsed, savePreferences, loadPreferences} from '../../config/preferences.js';
+import {
+	updateLastUsed,
+	savePreferences,
+	loadPreferences,
+} from '../../config/preferences.js';
 import SuccessMessage from '../../components/success-message.js';
 import ErrorMessage from '../../components/error-message.js';
 import React from 'react';
@@ -37,7 +41,6 @@ export function useModeHandlers({
 	addToChatQueue,
 	componentKeyCounter,
 }: UseModeHandlersProps) {
-
 	// Helper function to enter model selection mode
 	const enterModelSelectionMode = () => {
 		setIsModelSelectionMode(true);
@@ -82,7 +85,7 @@ export function useModeHandlers({
 				const {client: newClient, actualProvider} = await createLLMClient(
 					selectedProvider,
 				);
-				
+
 				// Check if we got the provider we requested
 				if (actualProvider !== selectedProvider) {
 					// Provider was forced to a different one (likely due to missing config)
@@ -95,7 +98,7 @@ export function useModeHandlers({
 					);
 					return; // Don't change anything
 				}
-				
+
 				setClient(newClient);
 				setCurrentProvider(actualProvider);
 
@@ -147,7 +150,7 @@ export function useModeHandlers({
 		const preferences = loadPreferences();
 		preferences.selectedTheme = selectedTheme;
 		savePreferences(preferences);
-		
+
 		// Update the theme state immediately for real-time switching
 		setCurrentTheme(selectedTheme);
 

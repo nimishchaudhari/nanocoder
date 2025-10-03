@@ -48,7 +48,6 @@ export function useToolHandler({
 	client,
 	currentProvider,
 }: UseToolHandlerProps) {
-
 	// Display tool result with proper formatting
 	const displayToolResult = async (toolCall: any, result: any) => {
 		const toolManager = getToolManager();
@@ -111,7 +110,6 @@ export function useToolHandler({
 			}
 		}
 	};
-
 
 	// Continue conversation with tool results - maintains the proper loop
 	const continueConversationWithToolResults = async (toolResults?: any[]) => {

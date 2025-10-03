@@ -15,7 +15,16 @@ export class ToolManager {
 	private mcpClient: MCPClient | null = null;
 	private mcpAdapter: MCPToolAdapter | null = null;
 	private toolRegistry: Record<string, ToolHandler> = {};
-	private toolFormatters: Record<string, (args: any) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>> = {};
+	private toolFormatters: Record<
+		string,
+		(
+			args: any,
+		) =>
+			| string
+			| Promise<string>
+			| React.ReactElement
+			| Promise<React.ReactElement>
+	> = {};
 	private allTools: Tool[] = [];
 
 	constructor() {
@@ -23,18 +32,20 @@ export class ToolManager {
 		this.toolRegistry = {...staticToolRegistry};
 		this.toolFormatters = {...staticToolFormatters};
 		this.allTools = [...staticTools];
-		
 	}
 
 	async initializeMCP(
-		servers: any[], 
-		onProgress?: (result: MCPInitResult) => void
+		servers: any[],
+		onProgress?: (result: MCPInitResult) => void,
 	): Promise<MCPInitResult[]> {
 		if (servers && servers.length > 0) {
 			this.mcpClient = new MCPClient();
 			this.mcpAdapter = new MCPToolAdapter(this.mcpClient);
 
-			const results = await this.mcpClient.connectToServers(servers, onProgress);
+			const results = await this.mcpClient.connectToServers(
+				servers,
+				onProgress,
+			);
 
 			// Register MCP tools
 			this.mcpAdapter.registerMCPTools(this.toolRegistry);
@@ -72,7 +83,18 @@ export class ToolManager {
 	/**
 	 * Get a specific tool formatter
 	 */
-	getToolFormatter(toolName: string): ((args: any, result?: string) => string | Promise<string> | React.ReactElement | Promise<React.ReactElement>) | undefined {
+	getToolFormatter(
+		toolName: string,
+	):
+		| ((
+				args: any,
+				result?: string,
+		  ) =>
+				| string
+				| Promise<string>
+				| React.ReactElement
+				| Promise<React.ReactElement>)
+		| undefined {
 		return this.toolFormatters[toolName];
 	}
 
@@ -97,7 +119,7 @@ export class ToolManager {
 		if (mapping) {
 			return {
 				isMCPTool: true,
-				serverName: mapping.serverName
+				serverName: mapping.serverName,
 			};
 		}
 
@@ -135,5 +157,4 @@ export class ToolManager {
 	getServerTools(serverName: string): any[] {
 		return this.mcpClient?.getServerTools(serverName) || [];
 	}
-
 }

@@ -7,6 +7,7 @@ parameters: [filename]
 Generate comprehensive unit tests for the file {{filename}}.
 
 Consider the following:
+
 1. Test all public functions and methods
 2. Include edge cases and error scenarios
 3. Use appropriate mocking where needed
