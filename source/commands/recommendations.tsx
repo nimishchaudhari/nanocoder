@@ -1,24 +1,20 @@
 import React, {useState, useEffect} from 'react';
 import {Box, Text} from 'ink';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {Command} from '../types/index.js';
+import {Command, SystemCapabilities} from '../types/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 import {useTheme} from '../hooks/useTheme.js';
 import {systemDetector} from '../system/detector.js';
-import {providerRecommendationEngine} from '../recommendations/provider-engine.js';
 import {
-	SystemCapabilities,
-	ModelRecommendation,
-	ProviderRecommendation,
-} from '../types/index.js';
+	recommendationEngine,
+	ModelRecommendationEnhanced,
+} from '../recommendations/recommendation-engine.js';
 
 function RecommendationsDisplay() {
 	const boxWidth = useTerminalWidth();
 	const {colors} = useTheme();
 	const [systemCaps, setSystemCaps] = useState<SystemCapabilities | null>(null);
-	const [recommendations, setRecommendations] = useState<
-		ProviderRecommendation[]
-	>([]);
+	const [models, setModels] = useState<ModelRecommendationEnhanced[]>([]);
 	const [quickStart, setQuickStart] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -29,14 +25,11 @@ function RecommendationsDisplay() {
 				const capabilities = await systemDetector.getSystemCapabilities();
 				setSystemCaps(capabilities);
 
-				const providerRecs =
-					providerRecommendationEngine.getProviderRecommendations(capabilities);
-				setRecommendations(providerRecs);
+				const result = recommendationEngine.getRecommendations(capabilities);
+				setModels(result.allModels);
 
 				const quickStartRec =
-					providerRecommendationEngine.getQuickStartRecommendation(
-						capabilities,
-					);
+					recommendationEngine.getQuickStartRecommendation(capabilities);
 				setQuickStart(quickStartRec);
 
 				setLoading(false);
@@ -117,11 +110,11 @@ function RecommendationsDisplay() {
 				<QuickStartSection quickStart={quickStart} colors={colors} />
 			)}
 
-			<RecommendationsList recommendations={recommendations} colors={colors} />
+			<ModelsList models={models} colors={colors} />
 
 			<Box marginTop={1}>
-				<Text color={colors.secondary}>
-					💡 Configure these recommendations in `agents.config.json`.
+				<Text color={colors.secondary} dimColor>
+					💡 Add providers to agents.config.json to use these models.
 				</Text>
 			</Box>
 		</TitledBox>
@@ -175,28 +168,27 @@ function QuickStartSection({
 		<Box flexDirection="column" marginBottom={2}>
 			<Box marginBottom={1}>
 				<Text color={colors.success} bold>
-					🚀 QUICK START RECOMMENDATION:
+					🚀 QUICK START:
 				</Text>
 			</Box>
 
 			<Text color={colors.white}>
-				✅ {quickStart.model} ({quickStart.provider}) - {quickStart.reasoning}
+				✅ <Text bold>{quickStart.model}</Text> via {quickStart.provider}
 			</Text>
-			{quickStart.setupCommand && (
-				<Text color={colors.secondary}>Setup: {quickStart.setupCommand}</Text>
-			)}
+			<Text color={colors.secondary}>{quickStart.reasoning}</Text>
+			<Text color={colors.warning}>Setup: {quickStart.setupInstructions}</Text>
 		</Box>
 	);
 }
 
-function RecommendationsList({
-	recommendations,
+function ModelsList({
+	models,
 	colors,
 }: {
-	recommendations: ProviderRecommendation[];
+	models: ModelRecommendationEnhanced[];
 	colors: any;
 }) {
-	if (recommendations.length === 0) {
+	if (models.length === 0) {
 		return (
 			<Text color={colors.warning}>
 				No compatible models found for your system.
@@ -208,109 +200,81 @@ function RecommendationsList({
 		<Box flexDirection="column">
 			<Box marginBottom={1}>
 				<Text color={colors.primary} bold>
-					📋 ALL OPTIONS:
-				</Text>
-			</Box>
-			{recommendations.map((provider, index) => (
-				<ProviderSection
-					key={provider.provider}
-					provider={provider}
-					colors={colors}
-					isLast={index === recommendations.length - 1}
-				/>
-			))}
-		</Box>
-	);
-}
-
-function ProviderSection({
-	provider,
-	colors,
-	isLast,
-}: {
-	provider: ProviderRecommendation;
-	colors: any;
-	isLast: boolean;
-}) {
-	const priorityEmoji = {
-		high: '🟢',
-		medium: '🟡',
-		low: '🔴',
-	}[provider.priority];
-
-	const compatibleModels = provider.models.filter(
-		m => m.compatibility !== 'incompatible',
-	);
-
-	return (
-		<Box
-			flexDirection="column"
-			marginBottom={isLast ? 0 : 2}
-			borderColor={colors.primary}
-			borderStyle={'round'}
-			padding={1}
-		>
-			<Text color={colors.white} bold>
-				{priorityEmoji} {provider.provider.toUpperCase()}:
-			</Text>
-			<Box marginBottom={1}>
-				<Text color={colors.secondary}>{provider.reasoning.join(' • ')}</Text>
-			</Box>
-			<Box marginBottom={1}>
-				<Text color={colors.secondary}>
-					Setup: {provider.setupInstructions}
+					MODEL CARDS:
 				</Text>
 			</Box>
 
-			{compatibleModels.slice(0, 3).map((modelRec, index) => (
-				<ModelItem
-					key={modelRec.model.name}
-					modelRec={modelRec}
-					colors={colors}
-					isFirst={index === 0}
-				/>
+			{models.slice(0, 10).map(model => (
+				<ModelItem key={model.model.name} model={model} colors={colors} />
 			))}
 		</Box>
 	);
 }
 
 function ModelItem({
-	modelRec,
+	model,
 	colors,
-	isFirst,
 }: {
-	modelRec: ModelRecommendation;
+	model: ModelRecommendationEnhanced;
 	colors: any;
-	isFirst: boolean;
 }) {
-	const costText = modelRec.model.cost.estimatedDaily
-		? `${modelRec.model.cost.estimatedDaily}`
-		: modelRec.model.cost.type === 'free'
-		? 'Free'
-		: '';
+	const costText =
+		model.model.cost.type === 'free'
+			? 'Free'
+			: model.model.cost.estimatedDaily || model.model.cost.details;
+
+	// Determine access types
+	const accessTypes: string[] = [];
+	if (model.model.providerCategory === 'local-server') {
+		accessTypes.push('Local');
+	}
+	if (
+		model.model.providerCategory === 'hosted-api' ||
+		model.model.providers.length > 1
+	) {
+		accessTypes.push('API');
+	}
+
+	// Format providers list
+	const providersList = model.model.providers
+		.map(p => p.charAt(0).toUpperCase() + p.slice(1))
+		.join(', ');
 
 	return (
 		<Box flexDirection="column" marginBottom={1}>
-			<Text color={colors.primary}>{modelRec.model.name}</Text>
-			<Text>
-				• <Text bold>Cost:</Text> {costText}
+			<Text color={colors.primary} bold>
+				• {model.model.name}
 			</Text>
-			<Text bold color={colors.success}>
-				• <Text bold>Recommendations:</Text>
-			</Text>
-			<Text color={colors.success}>
-				{'  '}
-				{modelRec.recommendation}
-			</Text>
-			<Text bold color={colors.warning}>
-				• Limitations:
-			</Text>
-			{modelRec.warnings.length > 0 && (
-				<Text color={colors.warning}>
-					{'  '}
-					{modelRec.warnings.join(', ')}
-				</Text>
-			)}
+			<Box marginLeft={2} flexDirection="column">
+				<Box flexDirection="column" marginBottom={1}>
+					<Text color={colors.white}>
+						<Text bold>Available via: </Text>
+						{providersList}
+					</Text>
+					<Text color={colors.white}>
+						<Text bold>Cost: </Text>
+						{costText}
+					</Text>
+					<Text color={colors.white}>
+						<Text bold>Access: </Text>
+						{accessTypes.join(', ')}
+					</Text>
+				</Box>
+				<Box flexDirection="column" marginBottom={1}>
+					<Text color={colors.success}>
+						<Text bold>Recommendations:</Text>
+					</Text>
+					<Text color={colors.success}>{model.recommendation}</Text>
+				</Box>
+				<Box flexDirection="column">
+					<Text color={colors.warning}>
+						<Text bold>Warnings:</Text>
+					</Text>
+					{model.warnings.length > 0 && (
+						<Text color={colors.warning}>{model.warnings.join(', ')}</Text>
+					)}
+				</Box>
+			</Box>
 		</Box>
 	);
 }

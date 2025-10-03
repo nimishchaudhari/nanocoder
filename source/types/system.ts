@@ -24,9 +24,14 @@ export interface SystemCapabilities {
 	};
 }
 
+export type ProviderCategory = 'local-server' | 'hosted-api';
+
 export interface ModelEntry {
 	name: string;
-	provider: string;
+	// Providers that can serve this model
+	providers: string[]; // e.g., ['ollama', 'lmstudio', 'llamacpp'] for local models
+	primaryProvider: string; // The main/recommended provider
+	providerCategory: ProviderCategory;
 	size: string; // "7B", "13B", "70B", "Unknown" for API models
 	type: 'local' | 'api';
 	requirements: {
@@ -61,10 +66,13 @@ export interface ModelEntry {
 
 export interface ProviderRecommendation {
 	provider: string;
+	providerCategory: ProviderCategory;
 	priority: 'high' | 'medium' | 'low';
 	reasoning: string[];
 	setupInstructions: string;
 	models: ModelRecommendation[];
+	isConfigured?: boolean; // Whether this provider is in agents.config.json
+	isRunning?: boolean; // For local servers
 }
 
 export interface ModelRecommendation {

@@ -1,10 +1,12 @@
 import {ModelEntry} from '../types/index.js';
 
 export const MODEL_DATABASE: ModelEntry[] = [
-	// Local Models (Ollama)
+	// Local Models (OpenAI-compatible local servers)
 	{
 		name: 'llama3.1:8b',
-		provider: 'ollama',
+		providers: ['ollama', 'lmstudio', 'llamacpp'],
+		primaryProvider: 'ollama',
+		providerCategory: 'local-server',
 		size: '8B',
 		type: 'local',
 		requirements: {
@@ -37,7 +39,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 	},
 	{
 		name: 'qwen2.5-coder:7b',
-		provider: 'ollama',
+		providers: ['ollama', 'lmstudio', 'llamacpp'],
+		primaryProvider: 'ollama',
+		providerCategory: 'local-server',
 		size: '7B',
 		type: 'local',
 		requirements: {
@@ -69,7 +73,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 	},
 	{
 		name: 'qwen2.5-coder:32b',
-		provider: 'ollama',
+		providers: ['ollama', 'lmstudio', 'llamacpp'],
+		primaryProvider: 'ollama',
+		providerCategory: 'local-server',
 		size: '32B',
 		type: 'local',
 		requirements: {
@@ -102,7 +108,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 	},
 	{
 		name: 'deepseek-coder-v2:16b',
-		provider: 'ollama',
+		providers: ['ollama', 'lmstudio', 'llamacpp'],
+		primaryProvider: 'ollama',
+		providerCategory: 'local-server',
 		size: '16B',
 		type: 'local',
 		requirements: {
@@ -134,7 +142,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 	},
 	{
 		name: 'llama3.2:3b',
-		provider: 'ollama',
+		providers: ['ollama', 'lmstudio', 'llamacpp'],
+		primaryProvider: 'ollama',
+		providerCategory: 'local-server',
 		size: '3B',
 		type: 'local',
 		requirements: {
@@ -166,10 +176,12 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		cost: {type: 'free', details: 'Local inference only'},
 	},
 
-	// API Models (OpenRouter/OpenAI)
+	// API Models (Hosted providers)
 	{
 		name: 'claude-3.5-sonnet',
-		provider: 'openrouter',
+		providers: ['openrouter', 'anthropic'],
+		primaryProvider: 'openrouter',
+		providerCategory: 'hosted-api',
 		size: 'Unknown',
 		type: 'api',
 		requirements: {
@@ -202,7 +214,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 	},
 	{
 		name: 'gpt-4o',
-		provider: 'openai',
+		providers: ['openai', 'openrouter'],
+		primaryProvider: 'openai',
+		providerCategory: 'hosted-api',
 		size: 'Unknown',
 		type: 'api',
 		requirements: {
@@ -238,7 +252,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 	},
 	{
 		name: 'deepseek-coder-v2.5',
-		provider: 'openrouter',
+		providers: ['openrouter', 'deepseek'],
+		primaryProvider: 'openrouter',
+		providerCategory: 'hosted-api',
 		size: '236B',
 		type: 'api',
 		requirements: {
@@ -271,7 +287,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 	},
 	{
 		name: 'qwen2.5-coder-32b-instruct',
-		provider: 'openrouter',
+		providers: ['openrouter'],
+		primaryProvider: 'openrouter',
+		providerCategory: 'hosted-api',
 		size: '32B',
 		type: 'api',
 		requirements: {
@@ -307,7 +325,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 	},
 	{
 		name: 'gpt-4o-mini',
-		provider: 'openai',
+		providers: ['openai', 'openrouter'],
+		primaryProvider: 'openai',
+		providerCategory: 'hosted-api',
 		size: 'Unknown',
 		type: 'api',
 		requirements: {
@@ -343,7 +363,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 	},
 	{
 		name: 'gemini-2.0-flash-exp',
-		provider: 'openrouter',
+		providers: ['openrouter', 'google'],
+		primaryProvider: 'openrouter',
+		providerCategory: 'hosted-api',
 		size: 'Unknown',
 		type: 'api',
 		requirements: {
@@ -394,7 +416,13 @@ export class ModelDatabase {
 	}
 
 	getModelsByProvider(provider: string): ModelEntry[] {
-		return MODEL_DATABASE.filter(model => model.provider === provider);
+		return MODEL_DATABASE.filter(model =>
+			model.providers.includes(provider) || model.primaryProvider === provider
+		);
+	}
+
+	getModelsByProviderCategory(category: 'local-server' | 'hosted-api'): ModelEntry[] {
+		return MODEL_DATABASE.filter(model => model.providerCategory === category);
 	}
 
 	getModelsByType(type: 'local' | 'api'): ModelEntry[] {
@@ -403,7 +431,7 @@ export class ModelDatabase {
 
 	getModelByName(name: string, provider?: string): ModelEntry | undefined {
 		return MODEL_DATABASE.find(model =>
-			model.name === name && (provider ? model.provider === provider : true)
+			model.name === name && (provider ? model.providers.includes(provider) || model.primaryProvider === provider : true)
 		);
 	}
 
