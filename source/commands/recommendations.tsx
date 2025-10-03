@@ -141,10 +141,18 @@ function SystemSummary({
 		: 'Offline';
 
 	return (
-		<Box flexDirection="column" marginBottom={1}>
+		<Box
+			flexDirection="column"
+			marginBottom={1}
+			borderStyle={'round'}
+			borderColor={colors.secondary}
+			padding={1}
+		>
 			<Text color={colors.primary} bold>
-				System: {systemCaps.memory.total}GB RAM, {systemCaps.cpu.cores} cores,{' '}
-				{gpuText}
+				Your System:
+			</Text>
+			<Text>
+				{systemCaps.memory.total}GB RAM, {systemCaps.cpu.cores} cores, {gpuText}
 			</Text>
 			<Text color={colors.white}>Network: {networkText}</Text>
 		</Box>
@@ -159,18 +167,25 @@ function QuickStartSection({
 	colors: any;
 }) {
 	return (
-		<Box flexDirection="column" marginBottom={2}>
+		<Box
+			flexDirection="column"
+			marginBottom={2}
+			borderStyle={'round'}
+			borderColor={colors.secondary}
+			padding={1}
+		>
 			<Box marginBottom={1}>
 				<Text color={colors.success} bold>
-					🚀 QUICK START:
+					Quick Start:
 				</Text>
 			</Box>
 
-			<Text color={colors.white}>
-				✅ <Text bold>{quickStart.model}</Text> via {quickStart.provider}
-			</Text>
+			<Box marginBottom={1}>
+				<Text color={colors.success}>
+					<Text bold>👉 {quickStart.model}</Text> via {quickStart.provider}
+				</Text>
+			</Box>
 			<Text color={colors.secondary}>{quickStart.reasoning}</Text>
-			<Text color={colors.warning}>Setup: {quickStart.setupInstructions}</Text>
 		</Box>
 	);
 }
@@ -191,10 +206,15 @@ function ModelsList({
 	}
 
 	return (
-		<Box flexDirection="column">
+		<Box
+			flexDirection="column"
+			borderStyle={'round'}
+			borderColor={colors.secondary}
+			padding={1}
+		>
 			<Box marginBottom={1}>
-				<Text color={colors.primary} bold>
-					MODEL CARDS:
+				<Text color={colors.success} bold>
+					Other Models:
 				</Text>
 			</Box>
 
@@ -217,22 +237,19 @@ function ModelItem({
 			? 'Free'
 			: model.model.cost.estimatedDaily || model.model.cost.details;
 
-	// Determine access types
-	const accessTypes: string[] = [];
-	if (model.model.providerCategory === 'local-server') {
-		accessTypes.push('Local');
-	}
-	if (
-		model.model.providerCategory === 'hosted-api' ||
-		model.model.providers.length > 1
-	) {
-		accessTypes.push('API');
-	}
+	// Determine access types from accessMethods
+	const accessTypes = model.model.accessMethods.map(method =>
+		method === 'local-server' ? 'Local' : 'API',
+	);
 
-	// Format providers list
-	const providersList = model.model.providers
-		.map(p => p.charAt(0).toUpperCase() + p.slice(1))
-		.join(', ');
+	// Group providers by category
+	const localProviders = model.model.providers
+		.filter(p => p.category === 'local-server')
+		.map(p => p.name.charAt(0).toUpperCase() + p.name.slice(1));
+
+	const apiProviders = model.model.providers
+		.filter(p => p.category === 'hosted-api')
+		.map(p => p.name.charAt(0).toUpperCase() + p.name.slice(1));
 
 	return (
 		<Box flexDirection="column" marginBottom={1}>
@@ -241,17 +258,25 @@ function ModelItem({
 			</Text>
 			<Box marginLeft={2} flexDirection="column">
 				<Box flexDirection="column" marginBottom={1}>
-					<Text color={colors.white}>
-						<Text bold>Available via: </Text>
-						{providersList}
-					</Text>
+					{localProviders.length > 0 && (
+						<Text color={colors.white}>
+							<Text bold>Local: </Text>
+							{localProviders.join(', ')}
+						</Text>
+					)}
+					{apiProviders.length > 0 && (
+						<Text color={colors.white}>
+							<Text bold>API: </Text>
+							{apiProviders.join(', ')}
+						</Text>
+					)}
 					<Text color={colors.white}>
 						<Text bold>Cost: </Text>
 						{costText}
 					</Text>
 					<Text color={colors.white}>
 						<Text bold>Access: </Text>
-						{accessTypes.join(', ')}
+						{accessTypes.join(' + ')}
 					</Text>
 				</Box>
 				<Box flexDirection="column" marginBottom={1}>

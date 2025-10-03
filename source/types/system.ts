@@ -26,14 +26,18 @@ export interface SystemCapabilities {
 
 export type ProviderCategory = 'local-server' | 'hosted-api';
 
+export interface ProviderInfo {
+	name: string;
+	category: ProviderCategory;
+}
+
 export interface ModelEntry {
 	name: string;
-	// Providers that can serve this model
-	providers: string[]; // e.g., ['ollama', 'lmstudio', 'llamacpp'] for local models
+	// Providers that can serve this model, with their categories
+	providers: ProviderInfo[]; // e.g., [{name: 'ollama', category: 'local-server'}, {name: 'openrouter', category: 'hosted-api'}]
 	primaryProvider: string; // The main/recommended provider
-	providerCategory: ProviderCategory;
 	size: string; // "7B", "13B", "70B", "Unknown" for API models
-	type: 'local' | 'api';
+	accessMethods: ProviderCategory[]; // ['local-server'] or ['hosted-api'] or both
 	requirements: {
 		minMemory: number; // GB (minimal for API models)
 		recommendedMemory: number; // GB

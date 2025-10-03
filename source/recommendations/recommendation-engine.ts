@@ -68,7 +68,7 @@ export class RecommendationEngine {
 		// Generate setup instructions based on model type and provider
 		let setupInstructions = '';
 
-		if (model.providerCategory === 'local-server') {
+		if (model.accessMethods.includes('local-server')) {
 			// Local model setup
 			if (recommendedProvider === 'ollama') {
 				if (systemCapabilities.ollama.installed) {
@@ -110,8 +110,8 @@ export class RecommendationEngine {
 							 b.model.capabilities.codingQuality +
 							 b.model.capabilities.toolUsage;
 
-			const aLocal = a.model.providerCategory === 'local-server';
-			const bLocal = b.model.providerCategory === 'local-server';
+			const aLocal = a.model.accessMethods.includes('local-server');
+			const bLocal = b.model.accessMethods.includes('local-server');
 
 			// Define "high quality" threshold (10+ out of 15 possible)
 			const highQuality = 10;

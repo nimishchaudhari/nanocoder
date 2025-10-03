@@ -72,7 +72,7 @@ export class ModelMatchingEngine {
 		systemCapabilities: SystemCapabilities,
 	): ModelRecommendation | null {
 		const localModels = this.getCompatibleModels(systemCapabilities).filter(
-			rec => rec.model.type === 'local' && rec.compatibility !== 'incompatible',
+			rec => rec.model.accessMethods.includes('local-server') && rec.compatibility !== 'incompatible',
 		);
 
 		return localModels.length > 0 ? localModels[0] : null;
@@ -82,7 +82,7 @@ export class ModelMatchingEngine {
 		systemCapabilities: SystemCapabilities,
 	): ModelRecommendation | null {
 		const apiModels = this.getCompatibleModels(systemCapabilities).filter(
-			rec => rec.model.type === 'api' && rec.compatibility !== 'incompatible',
+			rec => rec.model.accessMethods.includes('hosted-api') && rec.compatibility !== 'incompatible',
 		);
 
 		return apiModels.length > 0 ? apiModels[0] : null;
@@ -103,7 +103,7 @@ export class ModelMatchingEngine {
 		system: SystemCapabilities,
 	): ModelRecommendation['compatibility'] {
 		// API models are always compatible if we have internet
-		if (model.type === 'api') {
+		if (model.accessMethods.includes('hosted-api')) {
 			return system.network.connected ? 'perfect' : 'incompatible';
 		}
 
@@ -140,7 +140,7 @@ export class ModelMatchingEngine {
 	): string[] {
 		const warnings: string[] = [];
 
-		if (model.type === 'local') {
+		if (model.accessMethods.includes('local-server')) {
 			// Memory warnings
 			if (system.memory.total < model.requirements.recommendedMemory) {
 				warnings.push(
@@ -161,7 +161,7 @@ export class ModelMatchingEngine {
 			}
 		}
 
-		if (model.type === 'api') {
+		if (model.accessMethods.includes('hosted-api')) {
 			// Network warnings
 			if (!system.network.connected) {
 				warnings.push('Requires internet connection');
@@ -222,7 +222,7 @@ export class ModelMatchingEngine {
 			strengths.push('completely free');
 		}
 
-		if (model.type === 'local') {
+		if (model.accessMethods.includes('local-server')) {
 			strengths.push('private/local');
 		}
 
@@ -235,7 +235,7 @@ export class ModelMatchingEngine {
 			weaknesses.push('struggles with long coding');
 		}
 
-		if (model.type === 'api' && model.cost.type !== 'free') {
+		if (model.accessMethods.includes('hosted-api') && model.cost.type !== 'free') {
 			weaknesses.push('usage costs');
 		}
 
