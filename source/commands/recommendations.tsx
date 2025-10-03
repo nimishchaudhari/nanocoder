@@ -6,13 +6,19 @@ import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 import {useTheme} from '../hooks/useTheme.js';
 import {systemDetector} from '../system/detector.js';
 import {providerRecommendationEngine} from '../recommendations/provider-engine.js';
-import {SystemCapabilities, ModelRecommendation, ProviderRecommendation} from '../types/index.js';
+import {
+	SystemCapabilities,
+	ModelRecommendation,
+	ProviderRecommendation,
+} from '../types/index.js';
 
 function RecommendationsDisplay() {
 	const boxWidth = useTerminalWidth();
 	const {colors} = useTheme();
 	const [systemCaps, setSystemCaps] = useState<SystemCapabilities | null>(null);
-	const [recommendations, setRecommendations] = useState<ProviderRecommendation[]>([]);
+	const [recommendations, setRecommendations] = useState<
+		ProviderRecommendation[]
+	>([]);
 	const [quickStart, setQuickStart] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -23,15 +29,21 @@ function RecommendationsDisplay() {
 				const capabilities = await systemDetector.getSystemCapabilities();
 				setSystemCaps(capabilities);
 
-				const providerRecs = providerRecommendationEngine.getProviderRecommendations(capabilities);
+				const providerRecs =
+					providerRecommendationEngine.getProviderRecommendations(capabilities);
 				setRecommendations(providerRecs);
 
-				const quickStartRec = providerRecommendationEngine.getQuickStartRecommendation(capabilities);
+				const quickStartRec =
+					providerRecommendationEngine.getQuickStartRecommendation(
+						capabilities,
+					);
 				setQuickStart(quickStartRec);
 
 				setLoading(false);
 			} catch (error_) {
-				setError(error_ instanceof Error ? error_.message : 'Failed to analyze system');
+				setError(
+					error_ instanceof Error ? error_.message : 'Failed to analyze system',
+				);
 				setLoading(false);
 			}
 		}
@@ -97,6 +109,7 @@ function RecommendationsDisplay() {
 			paddingX={2}
 			paddingY={1}
 			marginBottom={1}
+			flexDirection="column"
 		>
 			<SystemSummary systemCaps={systemCaps} colors={colors} />
 
@@ -123,11 +136,15 @@ function SystemSummary({
 	colors: any;
 }) {
 	const gpuText = systemCaps.gpu.available
-		? `${systemCaps.gpu.type} GPU${systemCaps.gpu.memory ? ` (${systemCaps.gpu.memory}GB)` : ''}`
+		? `${systemCaps.gpu.type} GPU${
+				systemCaps.gpu.memory ? ` (${systemCaps.gpu.memory}GB)` : ''
+		  }`
 		: 'No GPU';
 
 	const networkText = systemCaps.network.connected
-		? `Connected${systemCaps.network.speed ? ` (${systemCaps.network.speed})` : ''}`
+		? `Connected${
+				systemCaps.network.speed ? ` (${systemCaps.network.speed})` : ''
+		  }`
 		: 'Offline';
 
 	const ollamaText = systemCaps.ollama.installed
@@ -137,7 +154,8 @@ function SystemSummary({
 	return (
 		<Box flexDirection="column" marginBottom={1}>
 			<Text color={colors.primary} bold>
-				System: {systemCaps.memory.total}GB RAM, {systemCaps.cpu.cores} cores, {gpuText}
+				System: {systemCaps.memory.total}GB RAM, {systemCaps.cpu.cores} cores,{' '}
+				{gpuText}
 			</Text>
 			<Text color={colors.white}>
 				Network: {networkText} • Ollama: {ollamaText}
@@ -154,17 +172,18 @@ function QuickStartSection({
 	colors: any;
 }) {
 	return (
-		<Box flexDirection="column" marginBottom={1}>
-			<Text color={colors.success} bold>
-				🚀 QUICK START RECOMMENDATION:
-			</Text>
+		<Box flexDirection="column" marginBottom={2}>
+			<Box marginBottom={1}>
+				<Text color={colors.success} bold>
+					🚀 QUICK START RECOMMENDATION:
+				</Text>
+			</Box>
+
 			<Text color={colors.white}>
 				✅ {quickStart.model} ({quickStart.provider}) - {quickStart.reasoning}
 			</Text>
 			{quickStart.setupCommand && (
-				<Text color={colors.secondary}>
-					Setup: {quickStart.setupCommand}
-				</Text>
+				<Text color={colors.secondary}>Setup: {quickStart.setupCommand}</Text>
 			)}
 		</Box>
 	);
@@ -220,20 +239,28 @@ function ProviderSection({
 	}[provider.priority];
 
 	const compatibleModels = provider.models.filter(
-		m => m.compatibility !== 'incompatible'
+		m => m.compatibility !== 'incompatible',
 	);
 
 	return (
-		<Box flexDirection="column" marginBottom={isLast ? 0 : 1}>
+		<Box
+			flexDirection="column"
+			marginBottom={isLast ? 0 : 2}
+			borderColor={colors.primary}
+			borderStyle={'round'}
+			padding={1}
+		>
 			<Text color={colors.white} bold>
 				{priorityEmoji} {provider.provider.toUpperCase()}:
 			</Text>
-			<Text color={colors.secondary}>
-				  {provider.reasoning.join(' • ')}
-			</Text>
-			<Text color={colors.secondary}>
-				  Setup: {provider.setupInstructions}
-			</Text>
+			<Box marginBottom={1}>
+				<Text color={colors.secondary}>{provider.reasoning.join(' • ')}</Text>
+			</Box>
+			<Box marginBottom={1}>
+				<Text color={colors.secondary}>
+					Setup: {provider.setupInstructions}
+				</Text>
+			</Box>
 
 			{compatibleModels.slice(0, 3).map((modelRec, index) => (
 				<ModelItem
@@ -256,29 +283,32 @@ function ModelItem({
 	colors: any;
 	isFirst: boolean;
 }) {
-	const compatibilityEmoji = {
-		perfect: '✅',
-		good: '👍',
-		marginal: '⚠️',
-		incompatible: '❌',
-	}[modelRec.compatibility];
-
 	const costText = modelRec.model.cost.estimatedDaily
-		? ` (${modelRec.model.cost.estimatedDaily})`
+		? `${modelRec.model.cost.estimatedDaily}`
 		: modelRec.model.cost.type === 'free'
-		? ' (Free)'
+		? 'Free'
 		: '';
 
-	const textColor = isFirst ? colors.success : colors.white;
-
 	return (
-		<Box flexDirection="column" marginLeft={4} marginTop={0}>
-			<Text color={textColor}>
-				{compatibilityEmoji} {modelRec.model.name}{costText} - {modelRec.recommendation}
+		<Box flexDirection="column" marginBottom={1}>
+			<Text color={colors.primary}>{modelRec.model.name}</Text>
+			<Text>
+				• <Text bold>Cost:</Text> {costText}
+			</Text>
+			<Text bold color={colors.success}>
+				• <Text bold>Recommendations:</Text>
+			</Text>
+			<Text color={colors.success}>
+				{'  '}
+				{modelRec.recommendation}
+			</Text>
+			<Text bold color={colors.warning}>
+				• Limitations:
 			</Text>
 			{modelRec.warnings.length > 0 && (
 				<Text color={colors.warning}>
-					    ⚠️  {modelRec.warnings.join(', ')}
+					{'  '}
+					{modelRec.warnings.join(', ')}
 				</Text>
 			)}
 		</Box>

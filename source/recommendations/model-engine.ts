@@ -1,4 +1,8 @@
-import {SystemCapabilities, ModelEntry, ModelRecommendation} from '../types/index.js';
+import {
+	SystemCapabilities,
+	ModelEntry,
+	ModelRecommendation,
+} from '../types/index.js';
 import {modelDatabase} from './model-database.js';
 
 export class ModelMatchingEngine {
@@ -11,14 +15,26 @@ export class ModelMatchingEngine {
 		return ModelMatchingEngine.instance;
 	}
 
-	getCompatibleModels(systemCapabilities: SystemCapabilities): ModelRecommendation[] {
+	getCompatibleModels(
+		systemCapabilities: SystemCapabilities,
+	): ModelRecommendation[] {
 		const allModels = modelDatabase.getAllModels();
 		const recommendations: ModelRecommendation[] = [];
 
 		for (const model of allModels) {
-			const compatibility = this.assessModelCompatibility(model, systemCapabilities);
-			const warnings = this.generateWarnings(model, systemCapabilities, compatibility);
-			const recommendation = this.generateRecommendationText(model, compatibility);
+			const compatibility = this.assessModelCompatibility(
+				model,
+				systemCapabilities,
+			);
+			const warnings = this.generateWarnings(
+				model,
+				systemCapabilities,
+				compatibility,
+			);
+			const recommendation = this.generateRecommendationText(
+				model,
+				compatibility,
+			);
 
 			recommendations.push({
 				model,
@@ -30,7 +46,9 @@ export class ModelMatchingEngine {
 
 		// Sort by compatibility and capability score
 		return recommendations.sort((a, b) => {
-			const compatibilityScore = this.getCompatibilityScore(a.compatibility) - this.getCompatibilityScore(b.compatibility);
+			const compatibilityScore =
+				this.getCompatibilityScore(a.compatibility) -
+				this.getCompatibilityScore(b.compatibility);
 			if (compatibilityScore !== 0) return compatibilityScore;
 
 			// If compatibility is the same, sort by overall capability
@@ -40,43 +58,58 @@ export class ModelMatchingEngine {
 		});
 	}
 
-	getTopRecommendations(systemCapabilities: SystemCapabilities, count: number = 5): ModelRecommendation[] {
+	getTopRecommendations(
+		systemCapabilities: SystemCapabilities,
+		count: number = 5,
+	): ModelRecommendation[] {
 		const compatible = this.getCompatibleModels(systemCapabilities);
 		return compatible
 			.filter(rec => rec.compatibility !== 'incompatible')
 			.slice(0, count);
 	}
 
-	getBestLocalModel(systemCapabilities: SystemCapabilities): ModelRecommendation | null {
-		const localModels = this.getCompatibleModels(systemCapabilities)
-			.filter(rec => rec.model.type === 'local' && rec.compatibility !== 'incompatible');
+	getBestLocalModel(
+		systemCapabilities: SystemCapabilities,
+	): ModelRecommendation | null {
+		const localModels = this.getCompatibleModels(systemCapabilities).filter(
+			rec => rec.model.type === 'local' && rec.compatibility !== 'incompatible',
+		);
 
 		return localModels.length > 0 ? localModels[0] : null;
 	}
 
-	getBestApiModel(systemCapabilities: SystemCapabilities): ModelRecommendation | null {
-		const apiModels = this.getCompatibleModels(systemCapabilities)
-			.filter(rec => rec.model.type === 'api' && rec.compatibility !== 'incompatible');
+	getBestApiModel(
+		systemCapabilities: SystemCapabilities,
+	): ModelRecommendation | null {
+		const apiModels = this.getCompatibleModels(systemCapabilities).filter(
+			rec => rec.model.type === 'api' && rec.compatibility !== 'incompatible',
+		);
 
 		return apiModels.length > 0 ? apiModels[0] : null;
 	}
 
 	getModelsByUseCase(
 		systemCapabilities: SystemCapabilities,
-		useCase: keyof ModelEntry['useCases']
+		useCase: keyof ModelEntry['useCases'],
 	): ModelRecommendation[] {
-		return this.getCompatibleModels(systemCapabilities)
-			.filter(rec => rec.model.useCases[useCase] && rec.compatibility !== 'incompatible');
+		return this.getCompatibleModels(systemCapabilities).filter(
+			rec =>
+				rec.model.useCases[useCase] && rec.compatibility !== 'incompatible',
+		);
 	}
 
-	private assessModelCompatibility(model: ModelEntry, system: SystemCapabilities): ModelRecommendation['compatibility'] {
+	private assessModelCompatibility(
+		model: ModelEntry,
+		system: SystemCapabilities,
+	): ModelRecommendation['compatibility'] {
 		// API models are always compatible if we have internet
 		if (model.type === 'api') {
 			return system.network.connected ? 'perfect' : 'incompatible';
 		}
 
 		// Local models need system resources
-		const memoryCompatible = system.memory.total >= model.requirements.minMemory;
+		const memoryCompatible =
+			system.memory.total >= model.requirements.minMemory;
 		const cpuCompatible = system.cpu.cores >= model.requirements.minCpuCores;
 
 		if (!memoryCompatible || !cpuCompatible) {
@@ -84,7 +117,8 @@ export class ModelMatchingEngine {
 		}
 
 		// Check if system meets recommended requirements
-		const memoryRecommended = system.memory.total >= model.requirements.recommendedMemory;
+		const memoryRecommended =
+			system.memory.total >= model.requirements.recommendedMemory;
 		const gpuAvailable = system.gpu.available && system.gpu.type !== 'none';
 		const gpuCompatible = !model.requirements.gpuRequired || gpuAvailable;
 
@@ -102,14 +136,16 @@ export class ModelMatchingEngine {
 	private generateWarnings(
 		model: ModelEntry,
 		system: SystemCapabilities,
-		compatibility: ModelRecommendation['compatibility']
+		compatibility: ModelRecommendation['compatibility'],
 	): string[] {
 		const warnings: string[] = [];
 
 		if (model.type === 'local') {
 			// Memory warnings
 			if (system.memory.total < model.requirements.recommendedMemory) {
-				warnings.push(`May run slowly with ${system.memory.total}GB RAM (${model.requirements.recommendedMemory}GB recommended)`);
+				warnings.push(
+					`May run slowly with ${system.memory.total}GB RAM (${model.requirements.recommendedMemory}GB recommended)`,
+				);
 			}
 
 			// GPU warnings
@@ -145,7 +181,9 @@ export class ModelMatchingEngine {
 		}
 
 		if (model.capabilities.toolUsage <= 2) {
-			warnings.push('Basic tool usage - may struggle with complex integrations');
+			warnings.push(
+				'Basic tool usage - may struggle with complex integrations',
+			);
 		}
 
 		// Use case warnings
@@ -158,7 +196,7 @@ export class ModelMatchingEngine {
 
 	private generateRecommendationText(
 		model: ModelEntry,
-		compatibility: ModelRecommendation['compatibility']
+		compatibility: ModelRecommendation['compatibility'],
 	): string {
 		if (compatibility === 'incompatible') {
 			return `Cannot run on your system - needs ${model.requirements.minMemory}GB RAM and ${model.requirements.minCpuCores} CPU cores`;
@@ -208,36 +246,21 @@ export class ModelMatchingEngine {
 			text += `Good for ${strengths.join(', ')}`;
 		}
 
-		if (weaknesses.length > 0) {
-			if (text) text += '. ';
-			text += `Limited: ${weaknesses.join(', ')}`;
-		}
-
-		// Add compatibility note
-		switch (compatibility) {
-			case 'perfect': {
-				text += '. Runs optimally on your system';
-				break;
-			}
-			case 'good': {
-				text += '. Runs well on your system';
-				break;
-			}
-			case 'marginal': {
-				text += '. May run slowly on your system';
-				break;
-			}
-		}
-
 		return text || 'Standard model for general use';
 	}
 
-	private getCompatibilityScore(compatibility: ModelRecommendation['compatibility']): number {
+	private getCompatibilityScore(
+		compatibility: ModelRecommendation['compatibility'],
+	): number {
 		switch (compatibility) {
-			case 'perfect': return 4;
-			case 'good': return 3;
-			case 'marginal': return 2;
-			case 'incompatible': return 1;
+			case 'perfect':
+				return 4;
+			case 'good':
+				return 3;
+			case 'marginal':
+				return 2;
+			case 'incompatible':
+				return 1;
 		}
 	}
 
