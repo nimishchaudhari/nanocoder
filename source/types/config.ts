@@ -6,6 +6,12 @@ export interface LangChainProviderConfig {
   name: string;
   type: "openai" | "anthropic" | "openai-compatible" | string;
   models: string[];
+  requestTimeout?: number;
+  socketTimeout?: number;
+  connectionPool?: {
+		idleTimeout?: number;
+		cumulativeMaxIdleTimeout?: number;
+	};
   config: Record<string, any>;
 }
 
@@ -16,6 +22,12 @@ export interface AppConfig {
     baseUrl?: string;
     apiKey?: string;
     models: string[];
+    requestTimeout?: number;
+    socketTimeout?: number;
+    connectionPool?: {
+		idleTimeout?: number;
+		cumulativeMaxIdleTimeout?: number;
+	};
     [key: string]: any; // Allow additional provider-specific config
   }[];
   

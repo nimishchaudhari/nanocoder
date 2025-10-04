@@ -89,6 +89,9 @@ function loadProviderConfigs(): LangChainProviderConfig[] {
 				name: provider.name,
 				type: 'openai',
 				models: provider.models || [],
+				requestTimeout: provider.requestTimeout,
+				socketTimeout: provider.socketTimeout,
+				connectionPool: provider.connectionPool,
 				config: {
 					baseURL: provider.baseUrl,
 					apiKey: provider.apiKey || 'dummy-key',
