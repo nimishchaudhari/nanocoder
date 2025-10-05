@@ -77,9 +77,7 @@ export const MODEL_DATABASE: ModelEntry[] = [
 			multiFileProjects: true,
 			longWorkflows: false,
 		},
-		limitations: [
-			'Limited agentic capabilities compared to API models',
-		],
+		limitations: ['Limited agentic capabilities compared to API models'],
 		downloadSize: 9.1,
 		cost: {
 			type: 'free',
@@ -118,9 +116,7 @@ export const MODEL_DATABASE: ModelEntry[] = [
 			multiFileProjects: true,
 			longWorkflows: false,
 		},
-		limitations: [
-			'Limited agentic reasoning for complex multi-step tasks',
-		],
+		limitations: ['Limited agentic reasoning for complex multi-step tasks'],
 		downloadSize: 4.2,
 		cost: {type: 'free', details: 'Local inference only'},
 	},
@@ -410,38 +406,6 @@ export class ModelDatabase {
 
 	getAllModels(): ModelEntry[] {
 		return MODEL_DATABASE;
-	}
-
-	getModelsByProvider(provider: string): ModelEntry[] {
-		return MODEL_DATABASE.filter(model =>
-			model.providers.some(p => p.name === provider)
-		);
-	}
-
-	getModelsByAccessMethod(method: 'local-server' | 'hosted-api'): ModelEntry[] {
-		return MODEL_DATABASE.filter(model =>
-			model.accessMethods.includes(method)
-		);
-	}
-
-	getModelByName(name: string, provider?: string): ModelEntry | undefined {
-		return MODEL_DATABASE.find(model =>
-			model.name === name && (provider ? model.providers.some(p => p.name === provider) : true)
-		);
-	}
-
-	getLocalModels(): ModelEntry[] {
-		return this.getModelsByAccessMethod('local-server');
-	}
-
-	getApiModels(): ModelEntry[] {
-		return this.getModelsByAccessMethod('hosted-api');
-	}
-
-	getDualAccessModels(): ModelEntry[] {
-		return MODEL_DATABASE.filter(model =>
-			model.accessMethods.includes('local-server') && model.accessMethods.includes('hosted-api')
-		);
 	}
 }
 
