@@ -62,12 +62,6 @@ export interface LLMClient {
 	clearContext(): Promise<void>;
 }
 
-export type ProviderType =
-	| 'openrouter'
-	| 'openai-compatible'
-	| 'z.ai'
-	| 'z.ai-coding';
-
 export interface ToolExecutionResult {
 	executed: boolean;
 	results: ToolResult[];

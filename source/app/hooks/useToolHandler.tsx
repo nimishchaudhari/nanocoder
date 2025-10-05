@@ -1,4 +1,4 @@
-import {Message, LLMClient, ProviderType} from '../../types/core.js';
+import {Message, LLMClient} from '../../types/core.js';
 import {processToolUse, getToolManager} from '../../message-handler.js';
 import {ConversationContext} from './useAppState.js';
 import InfoMessage from '../../components/info-message.js';
@@ -26,7 +26,7 @@ interface UseToolHandlerProps {
 		messages: Message[],
 	) => Promise<void>;
 	client?: LLMClient | null;
-	currentProvider?: ProviderType;
+	currentProvider?: string;
 }
 
 export function useToolHandler({

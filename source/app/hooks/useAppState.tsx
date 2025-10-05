@@ -1,5 +1,5 @@
 import {useState, useCallback} from 'react';
-import {LLMClient, Message, ProviderType} from '../../types/core.js';
+import {LLMClient, Message} from '../../types/core.js';
 import {ToolManager} from '../../tools/tool-manager.js';
 import {CustomCommandLoader} from '../../custom-commands/loader.js';
 import {CustomCommandExecutor} from '../../custom-commands/executor.js';
@@ -34,7 +34,7 @@ export function useAppState() {
 	>(new Map());
 	const [currentModel, setCurrentModel] = useState<string>('');
 	const [currentProvider, setCurrentProvider] =
-		useState<ProviderType>('openai-compatible');
+		useState<string>('openai-compatible');
 	const [currentTheme, setCurrentTheme] = useState<ThemePreset>(initialTheme);
 	const [toolManager, setToolManager] = useState<ToolManager | null>(null);
 	const [customCommandLoader, setCustomCommandLoader] =

@@ -1,4 +1,3 @@
-import type {ProviderType} from './core.js';
 import type {ThemePreset} from './ui.js';
 
 // LangChain provider configurations
@@ -28,10 +27,10 @@ export interface AppConfig {
 }
 
 export interface UserPreferences {
-	lastProvider?: ProviderType;
+	lastProvider?: string;
 	lastModel?: string;
 	providerModels?: {
-		[key in ProviderType]?: string;
+		[key in string]?: string;
 	};
 	lastUpdateCheck?: number;
 	selectedTheme?: ThemePreset;

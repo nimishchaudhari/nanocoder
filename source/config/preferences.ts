@@ -1,7 +1,6 @@
 import {existsSync, readFileSync, writeFileSync} from 'fs';
 import {join} from 'path';
 import {homedir} from 'os';
-import type {ProviderType} from '../types/index.js';
 import {shouldLog} from './logging.js';
 import {logError} from '../utils/message-queue.js';
 
@@ -33,7 +32,7 @@ export function savePreferences(preferences: UserPreferences): void {
 	}
 }
 
-export function updateLastUsed(provider: ProviderType, model: string): void {
+export function updateLastUsed(provider: string, model: string): void {
 	const preferences = loadPreferences();
 	preferences.lastProvider = provider;
 	preferences.lastModel = model;
@@ -47,7 +46,7 @@ export function updateLastUsed(provider: ProviderType, model: string): void {
 	savePreferences(preferences);
 }
 
-export function getLastUsedModel(provider: ProviderType): string | undefined {
+export function getLastUsedModel(provider: string): string | undefined {
 	const preferences = loadPreferences();
 	return preferences.providerModels?.[provider];
 }

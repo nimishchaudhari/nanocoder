@@ -1,4 +1,4 @@
-import {LLMClient, Message, ProviderType} from '../../types/core.js';
+import {LLMClient, Message} from '../../types/core.js';
 import {createLLMClient} from '../../client-factory.js';
 import {
 	updateLastUsed,
@@ -13,10 +13,10 @@ import type {ThemePreset} from '../../types/ui.js';
 interface UseModeHandlersProps {
 	client: LLMClient | null;
 	currentModel: string;
-	currentProvider: ProviderType;
+	currentProvider: string;
 	setClient: (client: LLMClient | null) => void;
 	setCurrentModel: (model: string) => void;
-	setCurrentProvider: (provider: ProviderType) => void;
+	setCurrentProvider: (provider: string) => void;
 	setCurrentTheme: (theme: ThemePreset) => void;
 	setMessages: (messages: Message[]) => void;
 	setIsModelSelectionMode: (mode: boolean) => void;
@@ -78,7 +78,7 @@ export function useModeHandlers({
 	};
 
 	// Handle provider selection
-	const handleProviderSelect = async (selectedProvider: ProviderType) => {
+	const handleProviderSelect = async (selectedProvider: string) => {
 		if (selectedProvider !== currentProvider) {
 			try {
 				// Create new client for the selected provider

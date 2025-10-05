@@ -1,17 +1,13 @@
 import {LangGraphClient} from './langgraph-client.js';
 import {appConfig} from './config/index.js';
 import {loadPreferences} from './config/preferences.js';
-import type {
-	LLMClient,
-	ProviderType,
-	LangChainProviderConfig,
-} from './types/index.js';
+import type {LLMClient, LangChainProviderConfig} from './types/index.js';
 import {existsSync} from 'fs';
 import {join} from 'path';
 
 export async function createLLMClient(
-	provider?: ProviderType,
-): Promise<{client: LLMClient; actualProvider: ProviderType}> {
+	provider?: string,
+): Promise<{client: LLMClient; actualProvider: string}> {
 	// Check if agents.config.json exists
 	const agentsJsonPath = join(process.cwd(), 'agents.config.json');
 	const hasConfigFile = existsSync(agentsJsonPath);
@@ -21,9 +17,9 @@ export async function createLLMClient(
 }
 
 async function createLangGraphClient(
-	requestedProvider?: ProviderType,
+	requestedProvider?: string,
 	hasConfigFile = true,
-): Promise<{client: LLMClient; actualProvider: ProviderType}> {
+): Promise<{client: LLMClient; actualProvider: string}> {
 	// Load provider configs
 	const providers = loadProviderConfigs();
 
@@ -38,18 +34,17 @@ async function createLangGraphClient(
 	}
 
 	// Determine which provider to try first
-	let targetProvider: ProviderType;
+	let targetProvider: string;
 	if (requestedProvider) {
 		targetProvider = requestedProvider;
 	} else {
 		// Use preferences or default to first available provider
 		const preferences = loadPreferences();
-		targetProvider =
-			preferences.lastProvider || (providers[0].name as ProviderType);
+		targetProvider = preferences.lastProvider || providers[0].name;
 	}
 
 	// Order providers: requested first, then others
-	const availableProviders = providers.map(p => p.name as ProviderType);
+	const availableProviders = providers.map(p => p.name);
 	const providerOrder = [
 		targetProvider,
 		...availableProviders.filter(p => p !== targetProvider),
