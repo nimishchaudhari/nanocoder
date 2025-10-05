@@ -110,6 +110,20 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		costType: 'free',
 		costDetails: 'Free to run locally. API costs vary.',
 	},
+	{
+		name: 'grok-code-fast-1',
+		author: 'xAI',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			coding: 8,
+			agentic: 8,
+			tools: 8,
+		},
+		costType: 'paid',
+		costDetails: '$0.20/input, $1.50/output',
+	},
 ];
 
 export class ModelDatabase {
