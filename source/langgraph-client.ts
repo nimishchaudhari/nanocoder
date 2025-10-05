@@ -1,4 +1,5 @@
 import {ChatOpenAI} from '@langchain/openai';
+import { Agent, fetch, RequestInfo, RequestInit } from 'undici';
 import {
 	AIMessage,
 	HumanMessage,
@@ -75,11 +76,26 @@ export class LangGraphClient implements LLMClient {
 	private availableModels: string[];
 	private providerConfig: LangChainProviderConfig;
 	private modelInfoCache: Map<string, any> = new Map();
+	private undiciAgent: Agent;
 
 	constructor(providerConfig: LangChainProviderConfig) {
 		this.providerConfig = providerConfig;
 		this.availableModels = providerConfig.models;
 		this.currentModel = providerConfig.models[0] || '';
+
+		const { requestTimeout, socketTimeout, connectionPool } = this.providerConfig;
+		const resolvedSocketTimeout = socketTimeout === -1 ? 0 : socketTimeout || requestTimeout === -1 ? 0 : requestTimeout || 120000;
+
+		this.undiciAgent = new Agent({
+			connect: {
+				timeout: resolvedSocketTimeout
+			},
+			bodyTimeout: resolvedSocketTimeout,
+			headersTimeout: resolvedSocketTimeout,
+			keepAliveTimeout: connectionPool?.idleTimeout,
+			keepAliveMaxTimeout: connectionPool?.cumulativeMaxIdleTimeout
+		});
+
 		this.chatModel = this.createChatModel();
 	}
 
@@ -95,16 +111,33 @@ export class LangGraphClient implements LLMClient {
 	}
 
 	private createChatModel(): ChatOpenAI {
-		const {config} = this.providerConfig;
+		const {config, requestTimeout} = this.providerConfig;
 
-		const chatConfig = {
+		const customFetch = (url: RequestInfo, options: RequestInit) => {
+			return fetch(url, {
+				...options,
+				dispatcher: this.undiciAgent
+			});
+		};
+
+		const chatConfig: any = {
 			modelName: this.currentModel,
 			openAIApiKey: config.apiKey || 'dummy-key',
 			configuration: {
 				baseURL: config.baseURL,
+				fetch: customFetch,
 			},
 			...config,
 		};
+
+		if (requestTimeout === -1) {
+			chatConfig.timeout = undefined;
+		} else if (requestTimeout) {
+			chatConfig.timeout = requestTimeout;
+		} else {
+			// default
+			chatConfig.timeout = 120000; // 2 minutes
+		}
 
 		return new ChatOpenAI(chatConfig);
 	}

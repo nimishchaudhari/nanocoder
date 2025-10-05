@@ -2,28 +2,40 @@ import type {ThemePreset} from './ui.js';
 
 // LangChain provider configurations
 export interface LangChainProviderConfig {
-	name: string;
-	type: 'openai' | 'anthropic' | 'openai-compatible' | string;
-	models: string[];
-	config: Record<string, any>;
+  name: string;
+  type: string;
+  models: string[];
+  requestTimeout?: number;
+  socketTimeout?: number;
+  connectionPool?: {
+		idleTimeout?: number;
+		cumulativeMaxIdleTimeout?: number;
+	};
+  config: Record<string, any>;
 }
 
 export interface AppConfig {
-	// Providers array structure - all OpenAI compatible
-	providers?: {
-		name: string;
-		baseUrl?: string;
-		apiKey?: string;
-		models: string[];
-		[key: string]: any; // Allow additional provider-specific config
-	}[];
-
-	mcpServers?: {
-		name: string;
-		command: string;
-		args?: string[];
-		env?: Record<string, string>;
-	}[];
+  // Providers array structure - all OpenAI compatible
+  providers?: {
+    name: string;
+    baseUrl?: string;
+    apiKey?: string;
+    models: string[];
+    requestTimeout?: number;
+    socketTimeout?: number;
+    connectionPool?: {
+		idleTimeout?: number;
+		cumulativeMaxIdleTimeout?: number;
+	};
+    [key: string]: any; // Allow additional provider-specific config
+  }[];
+  
+  mcpServers?: {
+    name: string;
+    command: string;
+    args?: string[];
+    env?: Record<string, string>;
+  }[];
 }
 
 export interface UserPreferences {
