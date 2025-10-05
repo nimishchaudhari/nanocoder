@@ -9,9 +9,9 @@ export interface ModelEntry {
 	minMemoryGB?: number; // Minimum RAM needed (only for local models, GPU always recommended)
 	// Quality ratings (1-5 scale)
 	quality: {
-		coding: 1 | 2 | 3 | 4 | 5; // Overall coding ability
-		agentic: 1 | 2 | 3 | 4 | 5; // Multi-step task planning and execution
-		tools: 1 | 2 | 3 | 4 | 5; // Function calling and tool usage
+		coding: number // Overall coding ability
+		agentic: number // Multi-step task planning and execution
+		tools: number // Function calling and tool usage
 	};
 	// Cost info
 	costType: 'free' | 'paid';
@@ -28,9 +28,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		api: true,
 		minMemoryGB: 16,
 		quality: {
-			coding: 5,
-			agentic: 5,
-			tools: 5,
+			coding: 4,
+			agentic: 4,
+			tools: 4,
 		},
 		costType: 'free',
 		costDetails: 'Free to run locally. API costs vary.',
@@ -43,9 +43,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		api: true,
 		minMemoryGB: 80,
 		quality: {
-			coding: 6,
-			agentic: 6,
-			tools: 6,
+			coding: 5,
+			agentic: 5,
+			tools: 5,
 		},
 		costType: 'free',
 		costDetails: 'Free to run locally. API costs vary.',
@@ -58,9 +58,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		api: true,
 		minMemoryGB: 24,
 		quality: {
-			coding: 5,
-			agentic: 5,
-			tools: 5,
+			coding: 4,
+			agentic: 4,
+			tools: 4,
 		},
 		costType: 'free',
 		costDetails: 'Free to run locally. API costs vary.',
@@ -88,9 +88,9 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		api: true,
 		minMemoryGB: 256,
 		quality: {
-			coding: 8,
-			agentic: 8,
-			tools: 8,
+			coding: 8.5,
+			agentic: 8.5,
+			tools: 8.5,
 		},
 		costType: 'free',
 		costDetails: 'Free to run locally. API costs vary.',

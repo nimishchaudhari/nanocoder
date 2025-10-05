@@ -40,9 +40,9 @@ export interface ModelEntry {
 	minMemoryGB?: number; // Minimum RAM needed (only for local models, GPU always recommended)
 	// Quality ratings (0-10 scale, 0 = not supported)
 	quality: {
-		coding: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; // Overall coding ability
-		agentic: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; // Multi-step task planning and execution
-		tools: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; // Function calling and tool usage
+		coding: number; // Overall coding ability
+		agentic: number; // Multi-step task planning and execution
+		tools: number; // Function calling and tool usage
 	};
 	// Cost info
 	costType: 'free' | 'paid';
