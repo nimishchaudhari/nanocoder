@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {Box, Text} from 'ink';
+import {Box, Text, useInput} from 'ink';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Command, SystemCapabilities} from '../types/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
@@ -18,6 +18,14 @@ function RecommendationsDisplay() {
 	const [quickStart, setQuickStart] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [showAllModels, setShowAllModels] = useState(false);
+
+	// Keyboard handler to toggle showing all models
+	useInput(input => {
+		if (input === 'm' || input === 'M') {
+			setShowAllModels(prev => !prev);
+		}
+	});
 
 	useEffect(() => {
 		async function loadRecommendations() {
@@ -110,7 +118,7 @@ function RecommendationsDisplay() {
 				<QuickStartSection quickStart={quickStart} colors={colors} />
 			)}
 
-			<ModelsList models={models} colors={colors} />
+			<ModelsList models={models} colors={colors} showAll={showAllModels} />
 
 			<Box marginTop={1}>
 				<Text color={colors.secondary} dimColor>
@@ -148,7 +156,7 @@ function SystemSummary({
 			borderColor={colors.secondary}
 			padding={1}
 		>
-			<Text color={colors.primary} bold>
+			<Text color={colors.primary} bold underline>
 				Your System:
 			</Text>
 			<Text>
@@ -175,7 +183,7 @@ function QuickStartSection({
 			padding={1}
 		>
 			<Box marginBottom={1}>
-				<Text color={colors.success} bold>
+				<Text color={colors.success} bold underline>
 					Quick Start:
 				</Text>
 			</Box>
@@ -193,9 +201,11 @@ function QuickStartSection({
 function ModelsList({
 	models,
 	colors,
+	showAll,
 }: {
 	models: ModelRecommendationEnhanced[];
 	colors: any;
+	showAll: boolean;
 }) {
 	if (models.length === 0) {
 		return (
@@ -205,6 +215,9 @@ function ModelsList({
 		);
 	}
 
+	const displayModels = showAll ? models : models.slice(0, 2);
+	const hasMore = models.length > 2;
+
 	return (
 		<Box
 			flexDirection="column"
@@ -212,13 +225,18 @@ function ModelsList({
 			borderColor={colors.secondary}
 			padding={1}
 		>
-			<Box marginBottom={1}>
+			<Box marginBottom={1} flexDirection="column">
 				<Text color={colors.success} bold>
 					Other Models:
 				</Text>
+				{hasMore && (
+					<Text color={colors.secondary} dimColor>
+						Press 'm' to {showAll ? 'hide' : 'show all'} ({models.length} total)
+					</Text>
+				)}
 			</Box>
 
-			{models.slice(0, 10).map(model => (
+			{displayModels.map(model => (
 				<ModelItem key={model.model.name} model={model} colors={colors} />
 			))}
 		</Box>
@@ -232,67 +250,54 @@ function ModelItem({
 	model: ModelRecommendationEnhanced;
 	colors: any;
 }) {
-	const costText =
-		model.model.cost.type === 'free'
-			? 'Free'
-			: model.model.cost.estimatedDaily || model.model.cost.details;
-
-	// Determine access types from accessMethods
-	const accessTypes = model.model.accessMethods.map(method =>
-		method === 'local-server' ? 'Local' : 'API',
-	);
-
-	// Group providers by category
-	const localProviders = model.model.providers
-		.filter(p => p.category === 'local-server')
-		.map(p => p.name.charAt(0).toUpperCase() + p.name.slice(1));
-
-	const apiProviders = model.model.providers
-		.filter(p => p.category === 'hosted-api')
-		.map(p => p.name.charAt(0).toUpperCase() + p.name.slice(1));
+	// Access type from local/api flags
+	const accessTypes = [];
+	if (model.model.local) accessTypes.push('Local');
+	if (model.model.api) accessTypes.push('API');
+	const accessType = accessTypes.join(' + ') || 'Unknown';
 
 	return (
 		<Box flexDirection="column" marginBottom={1}>
-			<Text color={colors.primary} bold>
-				• {model.model.name}
+			<Text color={colors.primary} bold underline>
+				{model.model.name}
 			</Text>
 			<Box marginLeft={2} flexDirection="column">
 				<Box flexDirection="column" marginBottom={1}>
-					{localProviders.length > 0 && (
-						<Text color={colors.white}>
-							<Text bold>Local: </Text>
-							{localProviders.join(', ')}
-						</Text>
-					)}
-					{apiProviders.length > 0 && (
-						<Text color={colors.white}>
-							<Text bold>API: </Text>
-							{apiProviders.join(', ')}
-						</Text>
-					)}
 					<Text color={colors.white}>
-						<Text bold>Cost: </Text>
-						{costText}
+						<Text bold>Author: </Text>
+						{model.model.author}
+					</Text>
+					<Text color={colors.white}>
+						<Text bold>Size: </Text>
+						{model.model.size}
 					</Text>
 					<Text color={colors.white}>
 						<Text bold>Access: </Text>
-						{accessTypes.join(' + ')}
+						{accessType}
+					</Text>
+					<Text color={colors.white}>
+						<Text bold>Cost: </Text>
+						{model.model.costDetails}
 					</Text>
 				</Box>
 				<Box flexDirection="column" marginBottom={1}>
 					<Text color={colors.success}>
-						<Text bold>Recommendations:</Text>
+						<Text bold>Strengths:</Text>
 					</Text>
 					<Text color={colors.success}>{model.recommendation}</Text>
 				</Box>
-				<Box flexDirection="column">
-					<Text color={colors.warning}>
-						<Text bold>Warnings:</Text>
-					</Text>
-					{model.warnings.length > 0 && (
-						<Text color={colors.warning}>{model.warnings.join(', ')}</Text>
-					)}
-				</Box>
+				{model.warnings.length > 0 && (
+					<Box flexDirection="column">
+						<Text color={colors.warning}>
+							<Text bold>Limitations:</Text>
+						</Text>
+						{model.warnings.map((warning, i) => (
+							<Text key={i} color={colors.warning}>
+								• {warning}
+							</Text>
+						))}
+					</Box>
+				)}
 			</Box>
 		</Box>
 	);

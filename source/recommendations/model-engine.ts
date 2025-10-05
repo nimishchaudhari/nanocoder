@@ -26,11 +26,7 @@ export class ModelMatchingEngine {
 				model,
 				systemCapabilities,
 			);
-			const warnings = this.generateWarnings(
-				model,
-				systemCapabilities,
-				compatibility,
-			);
+			const warnings = this.generateWarnings(model, systemCapabilities);
 			const recommendation = this.generateRecommendationText(
 				model,
 				compatibility,
@@ -72,7 +68,7 @@ export class ModelMatchingEngine {
 		systemCapabilities: SystemCapabilities,
 	): ModelRecommendation | null {
 		const localModels = this.getCompatibleModels(systemCapabilities).filter(
-			rec => rec.model.accessMethods.includes('local-server') && rec.compatibility !== 'incompatible',
+			rec => rec.model.local && rec.compatibility !== 'incompatible',
 		);
 
 		return localModels.length > 0 ? localModels[0] : null;
@@ -82,113 +78,112 @@ export class ModelMatchingEngine {
 		systemCapabilities: SystemCapabilities,
 	): ModelRecommendation | null {
 		const apiModels = this.getCompatibleModels(systemCapabilities).filter(
-			rec => rec.model.accessMethods.includes('hosted-api') && rec.compatibility !== 'incompatible',
+			rec => rec.model.api && rec.compatibility !== 'incompatible',
 		);
 
 		return apiModels.length > 0 ? apiModels[0] : null;
-	}
-
-	getModelsByUseCase(
-		systemCapabilities: SystemCapabilities,
-		useCase: keyof ModelEntry['useCases'],
-	): ModelRecommendation[] {
-		return this.getCompatibleModels(systemCapabilities).filter(
-			rec =>
-				rec.model.useCases[useCase] && rec.compatibility !== 'incompatible',
-		);
 	}
 
 	private assessModelCompatibility(
 		model: ModelEntry,
 		system: SystemCapabilities,
 	): ModelRecommendation['compatibility'] {
-		// API models are always compatible if we have internet
-		if (model.accessMethods.includes('hosted-api')) {
-			return system.network.connected ? 'perfect' : 'incompatible';
+		// Check if model can be accessed via API
+		const canUseApi = model.api && system.network.connected;
+
+		// Check if model can be run locally
+		let canUseLocal = false;
+		if (model.local) {
+			const requiredMemory = model.minMemoryGB || 8; // Default 8GB if not specified
+			canUseLocal = system.memory.total >= requiredMemory;
 		}
 
-		// Local models need system resources
-		const memoryCompatible =
-			system.memory.total >= model.requirements.minMemory;
-		const cpuCompatible = system.cpu.cores >= model.requirements.minCpuCores;
-
-		if (!memoryCompatible || !cpuCompatible) {
+		// Model is incompatible if neither method works
+		if (!canUseApi && !canUseLocal) {
 			return 'incompatible';
 		}
 
-		// Check if system meets recommended requirements
-		const memoryRecommended =
-			system.memory.total >= model.requirements.recommendedMemory;
-		const gpuAvailable = system.gpu.available && system.gpu.type !== 'none';
-		const gpuCompatible = !model.requirements.gpuRequired || gpuAvailable;
-
-		if (!gpuCompatible) {
-			return 'marginal';
-		}
-
-		if (memoryRecommended && gpuAvailable) {
+		// Perfect if we can use API (no resource constraints)
+		if (canUseApi) {
 			return 'perfect';
 		}
 
-		return 'good';
+		// For local-only models, check GPU availability
+		const gpuAvailable = system.gpu.available && system.gpu.type !== 'none';
+		return gpuAvailable ? 'perfect' : 'good';
 	}
 
 	private generateWarnings(
 		model: ModelEntry,
 		system: SystemCapabilities,
-		compatibility: ModelRecommendation['compatibility'],
 	): string[] {
 		const warnings: string[] = [];
 
-		if (model.accessMethods.includes('local-server')) {
-			// Memory warnings
-			if (system.memory.total < model.requirements.recommendedMemory) {
-				warnings.push(
-					`May run slowly with ${system.memory.total}GB RAM (${model.requirements.recommendedMemory}GB recommended)`,
-				);
-			}
+		if (model.local) {
+			const requiredMemory = model.minMemoryGB || 8;
 
-			// GPU warnings
-			if (model.requirements.gpuRequired && !system.gpu.available) {
-				warnings.push('Requires GPU acceleration but none detected');
-			} else if (system.gpu.available && system.gpu.type === 'none') {
-				warnings.push('Will use CPU-only inference (slower)');
-			}
+			// Check if user can't run locally
+			if (system.memory.total < requiredMemory) {
+				if (model.api) {
+					warnings.push(
+						`Cannot run locally - requires ${requiredMemory}GB RAM (you have ${system.memory.total}GB). Run only via API.`,
+					);
+				} else {
+					warnings.push(
+						`Cannot run locally - requires ${requiredMemory}GB RAM (you have ${system.memory.total}GB)`,
+					);
+				}
+			} else {
+				// GPU warnings (only if they CAN run it locally)
+				const gpuAvailable = system.gpu.available && system.gpu.type !== 'none';
+				if (!gpuAvailable) {
+					warnings.push(
+						'GPU recommended for better performance - will be slow on CPU',
+					);
+				}
 
-			// Platform-specific warnings
-			if (system.platform === 'win32' && model.downloadSize > 10) {
-				warnings.push('Large model may have slower startup on Windows');
+				// Memory warnings
+				if (system.memory.total === requiredMemory) {
+					warnings.push(
+						`Running at minimum RAM (${requiredMemory}GB) - may be slow`,
+					);
+				}
 			}
 		}
 
-		if (model.accessMethods.includes('hosted-api')) {
+		if (model.api) {
 			// Network warnings
 			if (!system.network.connected) {
-				warnings.push('Requires internet connection');
+				warnings.push('API access requires internet connection');
 			} else if (system.network.speed === 'slow') {
 				warnings.push('May have delays due to slow internet connection');
 			}
 
 			// Cost warnings
-			if (model.cost.type === 'pay-per-use') {
+			if (model.costType === 'paid') {
 				warnings.push('Usage costs apply - monitor your spending');
 			}
 		}
 
-		// Capability warnings based on ratings
-		if (model.capabilities.agenticTasks <= 2) {
+		// Capability warnings based on ratings (0-10 scale, 0 = not supported)
+		if (model.quality.agentic === 0) {
+			warnings.push('Does not support agentic/multi-step workflows well');
+		} else if (model.quality.agentic <= 4) {
 			warnings.push('Limited capabilities for complex multi-step workflows');
 		}
 
-		if (model.capabilities.toolUsage <= 2) {
+		if (model.quality.tools === 0) {
+			warnings.push(
+				'Does not support tool/function calling. Nanocoder has support for non-tool calling models but performance may be limited.',
+			);
+		} else if (model.quality.tools <= 4) {
 			warnings.push(
 				'Basic tool usage - may struggle with complex integrations',
 			);
 		}
 
-		// Use case warnings
-		if (!model.useCases.longWorkflows) {
-			warnings.push('Not ideal for extended coding sessions');
+		if (model.quality.coding === 0) {
+			warnings.push('Not suitable for coding tasks');
 		}
 
 		return warnings;
@@ -199,54 +194,52 @@ export class ModelMatchingEngine {
 		compatibility: ModelRecommendation['compatibility'],
 	): string {
 		if (compatibility === 'incompatible') {
-			return `Cannot run on your system - needs ${model.requirements.minMemory}GB RAM and ${model.requirements.minCpuCores} CPU cores`;
+			if (model.local) {
+				const requiredMemory = model.minMemoryGB || 8;
+				return `Cannot run locally - needs ${requiredMemory}GB RAM. ${
+					model.api ? 'Try API access instead.' : ''
+				}`;
+			}
+			return 'Requires internet connection for API access';
 		}
 
 		const strengths: string[] = [];
-		const weaknesses: string[] = [];
 
-		// Analyze capabilities
-		if (model.capabilities.codingQuality >= 4) {
-			strengths.push('excellent code quality');
+		// Analyze capabilities (0-10 scale)
+		if (model.quality.coding >= 8) {
+			strengths.push('Excellent code quality');
+		} else if (model.quality.coding >= 6) {
+			strengths.push('Good code quality');
 		}
 
-		if (model.capabilities.agenticTasks >= 4) {
-			strengths.push('strong agentic workflows');
+		if (model.quality.agentic >= 8) {
+			strengths.push('Strong agentic workflows');
+		} else if (model.quality.agentic >= 6) {
+			strengths.push('Decent agentic capabilities');
 		}
 
-		if (model.capabilities.toolUsage >= 4) {
-			strengths.push('advanced tool usage');
+		if (model.quality.tools >= 8) {
+			strengths.push('Advanced tool usage');
+		} else if (model.quality.tools >= 6) {
+			strengths.push('Good tool support');
 		}
 
-		if (model.cost.type === 'free') {
-			strengths.push('completely free');
+		if (model.costType === 'free') {
+			strengths.push('Completely free');
 		}
 
-		if (model.accessMethods.includes('local-server')) {
-			strengths.push('private/local');
+		if (model.local && model.api) {
+			strengths.push('Available locally and via API');
+		} else if (model.local) {
+			strengths.push('Private/local only');
 		}
 
-		// Identify weaknesses
-		if (model.capabilities.agenticTasks <= 2) {
-			weaknesses.push('limited agentic tasks');
-		}
-
-		if (model.capabilities.longFormCoding <= 2) {
-			weaknesses.push('struggles with long coding');
-		}
-
-		if (model.accessMethods.includes('hosted-api') && model.cost.type !== 'free') {
-			weaknesses.push('usage costs');
-		}
-
-		// Build recommendation text
-		let text = '';
-
+		// Build recommendation text as bullet points
 		if (strengths.length > 0) {
-			text += `Good for ${strengths.join(', ')}`;
+			return strengths.map(s => `• ${s}`).join('\n');
 		}
 
-		return text || 'Standard model for general use';
+		return '• Standard model for general use';
 	}
 
 	private getCompatibilityScore(
@@ -265,14 +258,11 @@ export class ModelMatchingEngine {
 	}
 
 	private calculateOverallCapabilityScore(model: ModelEntry): number {
-		const capabilities = model.capabilities;
 		// Weight agentic tasks and tool usage higher for this use case
 		return (
-			capabilities.codingQuality * 1.2 +
-			capabilities.agenticTasks * 1.5 +
-			capabilities.contextHandling * 1.0 +
-			capabilities.longFormCoding * 1.1 +
-			capabilities.toolUsage * 1.3
+			model.quality.coding * 1.2 +
+			model.quality.agentic * 1.5 +
+			model.quality.tools * 1.3
 		);
 	}
 }

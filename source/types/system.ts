@@ -33,39 +33,20 @@ export interface ProviderInfo {
 
 export interface ModelEntry {
 	name: string;
-	// Providers that can serve this model, with their categories
-	providers: ProviderInfo[]; // e.g., [{name: 'ollama', category: 'local-server'}, {name: 'openrouter', category: 'hosted-api'}]
-	primaryProvider: string; // The main/recommended provider
+	author: string; // Model creator/organization (e.g., "Meta", "Anthropic", "Qwen")
 	size: string; // "7B", "13B", "70B", "Unknown" for API models
-	accessMethods: ProviderCategory[]; // ['local-server'] or ['hosted-api'] or both
-	requirements: {
-		minMemory: number; // GB (minimal for API models)
-		recommendedMemory: number; // GB
-		minCpuCores: number;
-		gpuRequired: boolean;
-		gpuMemory?: number; // GB
+	local: boolean; // Can be run locally (Ollama, etc.)
+	api: boolean; // Available via hosted API (OpenRouter, etc.)
+	minMemoryGB?: number; // Minimum RAM needed (only for local models, GPU always recommended)
+	// Quality ratings (0-10 scale, 0 = not supported)
+	quality: {
+		coding: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; // Overall coding ability
+		agentic: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; // Multi-step task planning and execution
+		tools: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10; // Function calling and tool usage
 	};
-	capabilities: {
-		codingQuality: 1 | 2 | 3 | 4 | 5; // 1=basic, 5=excellent
-		agenticTasks: 1 | 2 | 3 | 4 | 5; // 1=poor, 5=excellent
-		contextHandling: 1 | 2 | 3 | 4 | 5; // 1=limited, 5=excellent
-		longFormCoding: 1 | 2 | 3 | 4 | 5; // 1=struggles, 5=excellent
-		toolUsage: 1 | 2 | 3 | 4 | 5; // 1=basic, 5=advanced
-	};
-	useCases: {
-		quickQuestions: boolean;
-		simpleEdits: boolean;
-		complexRefactoring: boolean;
-		multiFileProjects: boolean;
-		longWorkflows: boolean;
-	};
-	limitations: string[]; // ["Requires internet", "Usage costs apply"]
-	downloadSize: number; // GB (0 for API models)
-	cost: {
-		type: 'free' | 'pay-per-use' | 'subscription';
-		details: string; // Pricing details
-		estimatedDaily?: string; // Estimated daily cost for typical usage
-	};
+	// Cost info
+	costType: 'free' | 'paid';
+	costDetails?: string; // e.g., "$0.15/1M tokens" or "Free via Ollama"
 }
 
 export interface ProviderRecommendation {

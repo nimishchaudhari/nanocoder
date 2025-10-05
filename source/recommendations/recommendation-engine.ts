@@ -4,7 +4,6 @@ import {modelMatchingEngine} from './model-engine.js';
 
 export interface ModelRecommendationEnhanced extends ModelRecommendation {
 	recommendedProvider: string; // Best provider to use for this model
-	setupInstructions: string; // How to set up this model
 }
 
 export interface RecommendationResult {
@@ -63,31 +62,27 @@ export class RecommendationEngine {
 		systemCapabilities: SystemCapabilities
 	): ModelRecommendationEnhanced {
 		const model = modelRec.model;
-		const recommendedProvider = model.primaryProvider;
 
-		// Generate setup instructions based on model type and provider
-		let setupInstructions = '';
+		// Determine best access method based on system capabilities
+		const canUseLocal = model.local &&
+			systemCapabilities.memory.total >= (model.minMemoryGB || 8);
+		const canUseApi = model.api && systemCapabilities.network.connected;
 
-		if (model.accessMethods.includes('local-server')) {
-			// Local model setup
-			if (recommendedProvider === 'ollama') {
-				if (systemCapabilities.ollama.installed) {
-					setupInstructions = `ollama pull ${model.name}`;
-				} else {
-					setupInstructions = 'Install Ollama, then: ollama pull ' + model.name;
-				}
-			} else {
-				setupInstructions = `Install ${recommendedProvider} and pull ${model.name}`;
-			}
+		let recommendedProvider = '';
+
+		if (canUseLocal && !canUseApi) {
+			recommendedProvider = 'local';
+		} else if (!canUseLocal && canUseApi) {
+			recommendedProvider = 'api';
+		} else if (canUseLocal && canUseApi) {
+			recommendedProvider = 'local (API also available)';
 		} else {
-			// Hosted API setup
-			setupInstructions = `Get API key from ${recommendedProvider} and add to agents.config.json`;
+			recommendedProvider = 'unavailable';
 		}
 
 		return {
 			...modelRec,
 			recommendedProvider,
-			setupInstructions,
 		};
 	}
 
@@ -102,46 +97,52 @@ export class RecommendationEngine {
 		models: ModelRecommendationEnhanced[]
 	): ModelRecommendationEnhanced[] {
 		return models.sort((a, b) => {
-			// Calculate quality scores (agentic capabilities + coding quality + tool usage)
-			const aQuality = a.model.capabilities.agenticTasks +
-							 a.model.capabilities.codingQuality +
-							 a.model.capabilities.toolUsage;
-			const bQuality = b.model.capabilities.agenticTasks +
-							 b.model.capabilities.codingQuality +
-							 b.model.capabilities.toolUsage;
+			// Calculate quality scores (agentic + coding + tool usage)
+			const aQuality = a.model.quality.agentic +
+							 a.model.quality.coding +
+							 a.model.quality.tools;
+			const bQuality = b.model.quality.agentic +
+							 b.model.quality.coding +
+							 b.model.quality.tools;
 
-			const aLocal = a.model.accessMethods.includes('local-server');
-			const bLocal = b.model.accessMethods.includes('local-server');
+			// Determine what the user can ACTUALLY use based on recommendedProvider
+			const aCanUseLocal = a.recommendedProvider.includes('local');
+			const bCanUseLocal = b.recommendedProvider.includes('local');
+			const aApiOnly = a.recommendedProvider === 'api';
+			const bApiOnly = b.recommendedProvider === 'api';
 
-			// Define "high quality" threshold (10+ out of 15 possible)
-			const highQuality = 10;
+			// Define quality thresholds (out of 30 possible on 0-10 scale)
+			const highQuality = 20;  // 20+ = high quality
+			const decentQuality = 12; // 12+ = decent, below = poor
 			const aHighQuality = aQuality >= highQuality;
 			const bHighQuality = bQuality >= highQuality;
+			const aDecentQuality = aQuality >= decentQuality;
+			const bDecentQuality = bQuality >= decentQuality;
 
-			// 1. High-quality local models first
-			if (aLocal && aHighQuality && !(bLocal && bHighQuality)) return -1;
-			if (bLocal && bHighQuality && !(aLocal && aHighQuality)) return 1;
+			// 1. High-quality API beats poor-quality local (don't recommend trash just because it's free)
+			if (aApiOnly && bCanUseLocal && aHighQuality && !bDecentQuality) return -1;
+			if (bApiOnly && aCanUseLocal && bHighQuality && !aDecentQuality) return 1;
 
-			// 2. High-quality API models second
-			if (!aLocal && aHighQuality && !((!bLocal) && bHighQuality)) return -1;
-			if (!bLocal && bHighQuality && !((!aLocal) && aHighQuality)) return 1;
+			// 2. Decent+ local models beat API-only (free is better if quality is acceptable)
+			if (aCanUseLocal && bApiOnly && aDecentQuality) return -1;
+			if (bCanUseLocal && aApiOnly && bDecentQuality) return 1;
 
-			// 3. Within same category (local vs API), sort by quality
-			if (aLocal === bLocal) {
-				const qualityDiff = bQuality - aQuality;
-				if (qualityDiff !== 0) return qualityDiff;
-
-				// For API models with same quality, prefer cheaper
-				if (!aLocal) {
-					const aCost = this.estimateCost(a.model.cost.estimatedDaily);
-					const bCost = this.estimateCost(b.model.cost.estimatedDaily);
-					return aCost - bCost;
-				}
+			// 3. Among models user can run locally, prefer high quality
+			if (aCanUseLocal && bCanUseLocal) {
+				if (aHighQuality && !bHighQuality) return -1;
+				if (bHighQuality && !aHighQuality) return 1;
+				// Same quality tier - prefer higher score
+				return bQuality - aQuality;
 			}
 
-			// 4. Local before API (if both are low quality)
-			if (aLocal && !bLocal) return -1;
-			if (!aLocal && bLocal) return 1;
+			// 4. Among API-only models, prefer free over paid
+			if (aApiOnly && bApiOnly) {
+				const aCost = a.model.costType === 'free' ? 0 : 1;
+				const bCost = b.model.costType === 'free' ? 0 : 1;
+				if (aCost !== bCost) return aCost - bCost;
+				// Same cost - prefer higher quality
+				return bQuality - aQuality;
+			}
 
 			// 5. Compare by compatibility as final tiebreaker
 			const compatibilityOrder = {perfect: 4, good: 3, marginal: 2, incompatible: 1};
@@ -149,14 +150,6 @@ export class RecommendationEngine {
 		});
 	}
 
-	/**
-	 * Extract numeric cost estimate from cost string
-	 */
-	private estimateCost(costString?: string): number {
-		if (!costString) return Infinity;
-		const match = costString.match(/\$([0-9.]+)/);
-		return match ? parseFloat(match[1]) : Infinity;
-	}
 
 	/**
 	 * Get a simple quick start recommendation
@@ -167,7 +160,6 @@ export class RecommendationEngine {
 		model: string;
 		provider: string;
 		reasoning: string;
-		setupInstructions: string;
 	} | null {
 		const result = this.getRecommendations(systemCapabilities);
 
@@ -181,7 +173,6 @@ export class RecommendationEngine {
 			model: model.model.name,
 			provider: model.recommendedProvider,
 			reasoning: model.recommendation,
-			setupInstructions: model.setupInstructions,
 		};
 	}
 }
