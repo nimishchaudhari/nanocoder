@@ -28,19 +28,48 @@ function RecommendationsDisplay({onCancel}: RecommendationsDisplayProps) {
 	const [error, setError] = useState<string | null>(null);
 	const [currentModelIndex, setCurrentModelIndex] = useState(0);
 	const [activeTab, setActiveTab] = useState<'local' | 'api'>('local');
+	const [searchQuery, setSearchQuery] = useState('');
+	const [searchMode, setSearchMode] = useState(false);
 	const [closed, setClosed] = useState(false);
 
 	// Capture focus to prevent user input from being active
 	useFocus({autoFocus: true, id: 'recommendations-display'});
 
-	// Get current tab's models
-	const localModels = models.filter(m => m.model.local);
-	const apiModels = models.filter(m => m.model.api);
-	const currentTabModels = activeTab === 'local' ? localModels : apiModels;
+	// Get current tab's models with search filtering
+	const filterBySearch = (modelList: ModelRecommendationEnhanced[]) => {
+		if (!searchMode || !searchQuery) return modelList;
+		return modelList.filter(m =>
+			m.model.name.toLowerCase().includes(searchQuery.toLowerCase()),
+		);
+	};
+
+	// In search mode, combine all models
+	const allModelsForSearch = searchMode ? models : [];
+	const localModels = searchMode ? [] : models.filter(m => m.model.local);
+	const apiModels = searchMode ? [] : models.filter(m => m.model.api);
+
+	const currentTabModels = searchMode
+		? filterBySearch(allModelsForSearch)
+		: activeTab === 'local'
+		? localModels
+		: apiModels;
 
 	// Keyboard handler for navigation
-	useInput((_input, key) => {
-		if (key.escape || key.return) {
+	useInput((input, key) => {
+		if (key.escape) {
+			if (searchMode) {
+				// Exit search mode and clear search
+				setSearchMode(false);
+				setSearchQuery('');
+				setCurrentModelIndex(0);
+			} else {
+				// Close the recommendations view
+				setClosed(true);
+				if (onCancel) {
+					onCancel();
+				}
+			}
+		} else if (key.return) {
 			setClosed(true);
 			if (onCancel) {
 				onCancel();
@@ -51,10 +80,29 @@ function RecommendationsDisplay({onCancel}: RecommendationsDisplayProps) {
 			setCurrentModelIndex(prev =>
 				Math.min(currentTabModels.length - 1, prev + 1),
 			);
-		} else if (key.leftArrow) {
+		} else if (key.leftArrow && !searchMode) {
 			setActiveTab('local');
-		} else if (key.rightArrow) {
+		} else if (key.rightArrow && !searchMode) {
 			setActiveTab('api');
+		} else if (key.backspace || key.delete) {
+			if (searchMode) {
+				setSearchQuery(prev => {
+					const newQuery = prev.slice(0, -1);
+					// Exit search mode if query becomes empty
+					if (newQuery === '') {
+						setSearchMode(false);
+					}
+					return newQuery;
+				});
+				setCurrentModelIndex(0);
+			}
+		} else if (input && input.length === 1 && !key.ctrl && !key.meta) {
+			// Add printable characters to search
+			if (!searchMode) {
+				setSearchMode(true);
+			}
+			setSearchQuery(prev => prev + input);
+			setCurrentModelIndex(0);
 		}
 		// Consume all other input by doing nothing
 	});
@@ -196,9 +244,20 @@ function RecommendationsDisplay({onCancel}: RecommendationsDisplayProps) {
 				activeTab={activeTab}
 				onTabChange={setActiveTab}
 				systemCaps={systemCaps}
+				searchMode={searchMode}
+				searchQuery={searchQuery}
+				currentTabModels={currentTabModels}
 			/>
 
 			<Box marginTop={1} flexDirection="column">
+				{searchMode && searchQuery && (
+					<Box marginBottom={1}>
+						<Text color={colors.primary}>
+							🔍 Search: <Text bold>{searchQuery}</Text>
+						</Text>
+					</Box>
+				)}
+
 				<Box marginBottom={1}>
 					<Text color={colors.secondary} dimColor>
 						💡 Add providers to agents.config.json to use these models.
@@ -206,7 +265,9 @@ function RecommendationsDisplay({onCancel}: RecommendationsDisplayProps) {
 				</Box>
 
 				<Text color={colors.secondary} dimColor>
-					↑/↓: Navigate models | ←/→: Switch tabs | Press Escape to Close
+					{searchMode
+						? 'Type to search | Backspace to delete | ↑/↓: Navigate | Esc: Exit search'
+						: 'Type to search | ↑/↓: Navigate | ←/→: Switch tabs | Esc: Close'}
 				</Text>
 			</Box>
 		</TitledBox>
@@ -309,6 +370,9 @@ function ModelsTabView({
 	activeTab,
 	onTabChange,
 	systemCaps,
+	searchMode,
+	searchQuery,
+	currentTabModels,
 }: {
 	models: ModelRecommendationEnhanced[];
 	colors: any;
@@ -316,6 +380,9 @@ function ModelsTabView({
 	activeTab: 'local' | 'api';
 	onTabChange: (tab: 'local' | 'api') => void;
 	systemCaps: SystemCapabilities;
+	searchMode: boolean;
+	searchQuery: string;
+	currentTabModels: ModelRecommendationEnhanced[];
 }) {
 	// Calculate quality scores for sorting
 	const getQualityScore = (model: ModelRecommendationEnhanced) => {
@@ -354,8 +421,12 @@ function ModelsTabView({
 		.filter(m => m.model.api)
 		.sort((a, b) => getQualityScore(b) - getQualityScore(a));
 
-	// Get current models based on active tab
-	const currentModels = activeTab === 'local' ? localModels : apiModels;
+	// Use passed in currentTabModels if in search mode, otherwise calculate
+	const currentModels = searchMode
+		? currentTabModels
+		: activeTab === 'local'
+		? localModels
+		: apiModels;
 	const currentModel = currentModels[currentModelIndex];
 
 	if (!currentModel) {
@@ -368,24 +439,28 @@ function ModelsTabView({
 			>
 				<Box marginBottom={1}>
 					<Text color={colors.primary} bold underline>
-						Model Database:
+						{searchMode ? 'Search Mode' : 'Model Database'}
 					</Text>
 				</Box>
-				<Tabs
-					onChange={name => onTabChange(name as 'local' | 'api')}
-					defaultValue={activeTab}
-					colors={{
-						activeTab: {
-							color: colors.success,
-						},
-					}}
-				>
-					<Tab name="local">Local Models</Tab>
-					<Tab name="api">API Models</Tab>
-				</Tabs>
+				{!searchMode && (
+					<Tabs
+						onChange={name => onTabChange(name as 'local' | 'api')}
+						defaultValue={activeTab}
+						colors={{
+							activeTab: {
+								color: colors.success,
+							},
+						}}
+					>
+						<Tab name="local">Local Models</Tab>
+						<Tab name="api">API Models</Tab>
+					</Tabs>
+				)}
 				<Box marginTop={1}>
 					<Text color={colors.warning}>
-						No models available in this category
+						{searchMode && searchQuery
+							? `No models found matching "${searchQuery}"`
+							: 'No models available in this category'}
 					</Text>
 				</Box>
 			</Box>
@@ -401,21 +476,23 @@ function ModelsTabView({
 		>
 			<Box marginBottom={1}>
 				<Text color={colors.primary} bold underline>
-					Model Database:
+					{searchMode ? 'Search Mode' : 'Model Database'}
 				</Text>
 			</Box>
-			<Tabs
-				onChange={name => onTabChange(name as 'local' | 'api')}
-				defaultValue={activeTab}
-				colors={{
-					activeTab: {
-						color: colors.success,
-					},
-				}}
-			>
-				<Tab name="local">Local Models</Tab>
-				<Tab name="api">API Models</Tab>
-			</Tabs>
+			{!searchMode && (
+				<Tabs
+					onChange={name => onTabChange(name as 'local' | 'api')}
+					defaultValue={activeTab}
+					colors={{
+						activeTab: {
+							color: colors.success,
+						},
+					}}
+				>
+					<Tab name="local">Local Models</Tab>
+					<Tab name="api">API Models</Tab>
+				</Tabs>
+			)}
 
 			<Box flexDirection="column" marginTop={1}>
 				<Box marginBottom={1}>
@@ -430,6 +507,7 @@ function ModelsTabView({
 					qualityScore={getQualityScore(currentModel)}
 					isLocalTab={activeTab === 'local'}
 					systemCaps={systemCaps}
+					searchMode={searchMode}
 				/>
 			</Box>
 		</Box>
@@ -443,6 +521,7 @@ function ModelItem({
 	qualityScore,
 	isLocalTab,
 	systemCaps,
+	searchMode,
 }: {
 	model: ModelRecommendationEnhanced;
 	colors: any;
@@ -450,6 +529,7 @@ function ModelItem({
 	qualityScore?: number;
 	isLocalTab?: boolean;
 	systemCaps?: SystemCapabilities;
+	searchMode?: boolean;
 }) {
 	// Access type from local/api flags
 	const accessTypes = [];
@@ -463,12 +543,11 @@ function ModelItem({
 		(systemCaps && systemCaps.memory.total >= model.model.minMemoryGB);
 
 	// Get score color and label based on quality
-	// For local tab, penalize if user can't actually run it
-	const getScoreInfo = (score: number) => {
+	const getScoreInfo = (score: number, forLocal: boolean) => {
 		let adjustedScore = score;
 
-		// If viewing in local tab but can't run locally, severely penalize
-		if (isLocalTab && !canRunLocally) {
+		// If scoring for local but can't run locally, severely penalize
+		if (forLocal && !canRunLocally) {
 			adjustedScore = Math.floor(score * 0.3); // Reduce to 30% of original score
 		}
 
@@ -478,8 +557,16 @@ function ModelItem({
 		return {color: colors.error, label: 'Poor'};
 	};
 
-	const scoreInfo =
-		qualityScore !== undefined ? getScoreInfo(qualityScore) : null;
+	// In search mode with both local and API, show both scores
+	const showBothScores = searchMode && model.model.local && model.model.api;
+	const localScoreInfo =
+		qualityScore !== undefined && (showBothScores || isLocalTab)
+			? getScoreInfo(qualityScore, true)
+			: null;
+	const apiScoreInfo =
+		qualityScore !== undefined && (showBothScores || !isLocalTab)
+			? getScoreInfo(qualityScore, false)
+			: null;
 
 	return (
 		<Box flexDirection="column" marginBottom={1}>
@@ -506,15 +593,38 @@ function ModelItem({
 						<Text bold>Cost: </Text>
 						{model.model.costDetails}
 					</Text>
-					{showScore && scoreInfo && (
+					{showScore && showBothScores ? (
+						<>
+							{localScoreInfo && (
+								<Text color={colors.white}>
+									<Text bold>Local Quality: </Text>
+									<Text color={localScoreInfo.color} bold>
+										{localScoreInfo.label}
+									</Text>
+									<Text dimColor> ({qualityScore}/30)</Text>
+								</Text>
+							)}
+							{apiScoreInfo && (
+								<Text color={colors.white}>
+									<Text bold>API Quality: </Text>
+									<Text color={apiScoreInfo.color} bold>
+										{apiScoreInfo.label}
+									</Text>
+									<Text dimColor> ({qualityScore}/30)</Text>
+								</Text>
+							)}
+						</>
+					) : showScore && (localScoreInfo || apiScoreInfo) ? (
 						<Text color={colors.white}>
-							<Text bold>Quality For You: </Text>
-							<Text color={scoreInfo.color} bold>
-								{scoreInfo.label}
+							<Text bold>
+								Quality For You {localScoreInfo ? 'Locally' : 'via API'}:{' '}
+							</Text>
+							<Text color={(localScoreInfo || apiScoreInfo)!.color} bold>
+								{(localScoreInfo || apiScoreInfo)!.label}
 							</Text>
 							<Text dimColor> ({qualityScore}/30)</Text>
 						</Text>
-					)}
+					) : null}
 				</Box>
 				<Box flexDirection="column">
 					<Text color={colors.success} bold>
