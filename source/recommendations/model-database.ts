@@ -81,21 +81,6 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		costDetails: 'Free to run locally. API costs vary.',
 	},
 	{
-		name: 'qwen3-coder:480b',
-		author: 'Alibaba',
-		size: '480B',
-		local: true,
-		api: true,
-		minMemoryGB: 256,
-		quality: {
-			coding: 8,
-			agentic: 8,
-			tools: 8,
-		},
-		costType: 'free',
-		costDetails: 'Free to run locally. API costs vary.',
-	},
-	{
 		name: 'glm-4.6',
 		author: 'Z.ai',
 		size: '357B',
