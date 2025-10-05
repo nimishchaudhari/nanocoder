@@ -1,5 +1,5 @@
 import React, {ReactNode} from 'react';
-import {ToolCall, LLMClient, ProviderType} from './core.js';
+import {ToolCall, LLMClient} from './core.js';
 import {CustomCommand} from './commands.js';
 
 export interface AssistantMessageProps {
@@ -45,8 +45,8 @@ export interface ModelOption {
 }
 
 export interface ProviderSelectorProps {
-	currentProvider: ProviderType;
-	onProviderSelect: (provider: ProviderType) => void;
+	currentProvider: string;
+	onProviderSelect: (provider: string) => void;
 	onCancel: () => void;
 }
 

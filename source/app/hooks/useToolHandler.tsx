@@ -1,4 +1,4 @@
-import {Message, LLMClient, ProviderType} from '../../types/core.js';
+import {Message, LLMClient} from '../../types/core.js';
 import {processToolUse, getToolManager} from '../../message-handler.js';
 import {ConversationContext} from './useAppState.js';
 import InfoMessage from '../../components/info-message.js';
@@ -26,7 +26,7 @@ interface UseToolHandlerProps {
 		messages: Message[],
 	) => Promise<void>;
 	client?: LLMClient | null;
-	currentProvider?: ProviderType;
+	currentProvider?: string;
 }
 
 export function useToolHandler({
@@ -48,7 +48,6 @@ export function useToolHandler({
 	client,
 	currentProvider,
 }: UseToolHandlerProps) {
-
 	// Display tool result with proper formatting
 	const displayToolResult = async (toolCall: any, result: any) => {
 		const toolManager = getToolManager();
@@ -111,7 +110,6 @@ export function useToolHandler({
 			}
 		}
 	};
-
 
 	// Continue conversation with tool results - maintains the proper loop
 	const continueConversationWithToolResults = async (toolResults?: any[]) => {

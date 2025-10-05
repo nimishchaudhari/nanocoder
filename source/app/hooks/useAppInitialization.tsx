@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {LLMClient, ProviderType} from '../../types/core.js';
+import {LLMClient} from '../../types/core.js';
 import {ToolManager} from '../../tools/tool-manager.js';
 import {CustomCommandLoader} from '../../custom-commands/loader.js';
 import {CustomCommandExecutor} from '../../custom-commands/executor.js';
@@ -38,7 +38,7 @@ import InfoMessage from '../../components/info-message.js';
 interface UseAppInitializationProps {
 	setClient: (client: LLMClient | null) => void;
 	setCurrentModel: (model: string) => void;
-	setCurrentProvider: (provider: ProviderType) => void;
+	setCurrentProvider: (provider: string) => void;
 	setToolManager: (manager: ToolManager | null) => void;
 	setCustomCommandLoader: (loader: CustomCommandLoader | null) => void;
 	setCustomCommandExecutor: (executor: CustomCommandExecutor | null) => void;
@@ -65,7 +65,7 @@ export function useAppInitialization({
 	customCommandCache,
 }: UseAppInitializationProps) {
 	// Initialize LLM client and model
-	const initializeClient = async (preferredProvider?: ProviderType) => {
+	const initializeClient = async (preferredProvider?: string) => {
 		const {client, actualProvider} = await createLLMClient(preferredProvider);
 		setClient(client);
 		setCurrentProvider(actualProvider);

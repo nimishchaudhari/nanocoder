@@ -34,7 +34,9 @@ export default function ToolConfirmation({
 
 	// Get MCP tool info for display
 	const toolManager = getToolManager();
-	const mcpInfo = toolManager?.getMCPToolInfo(toolCall.function.name) || {isMCPTool: false};
+	const mcpInfo = toolManager?.getMCPToolInfo(toolCall.function.name) || {
+		isMCPTool: false,
+	};
 
 	// Load formatter preview
 	React.useEffect(() => {
@@ -58,9 +60,7 @@ export default function ToolConfirmation({
 					console.error('Error loading formatter preview:', error);
 					setHasFormatterError(true);
 					setFormatterPreview(
-						<Text color={colors.error}>
-							Error: {String(error)}
-						</Text>,
+						<Text color={colors.error}>Error: {String(error)}</Text>,
 					);
 				} finally {
 					setIsLoadingPreview(false);
@@ -122,7 +122,11 @@ export default function ToolConfirmation({
 					<>
 						<Box marginBottom={1}>
 							<Text color={colors.tool}>
-								Do you want to execute {mcpInfo.isMCPTool ? `MCP tool "${toolCall.function.name}" from server "${mcpInfo.serverName}"` : `tool "${toolCall.function.name}"`}?
+								Do you want to execute{' '}
+								{mcpInfo.isMCPTool
+									? `MCP tool "${toolCall.function.name}" from server "${mcpInfo.serverName}"`
+									: `tool "${toolCall.function.name}"`}
+								?
 							</Text>
 						</Box>
 
@@ -137,7 +141,9 @@ export default function ToolConfirmation({
 				{/* Show automatic cancellation message for formatter errors */}
 				{hasFormatterError && (
 					<Box marginTop={1}>
-						<Text color={colors.error}>Tool execution cancelled due to validation error.</Text>
+						<Text color={colors.error}>
+							Tool execution cancelled due to validation error.
+						</Text>
 						<Text color={colors.secondary}>Press Escape to continue</Text>
 					</Box>
 				)}

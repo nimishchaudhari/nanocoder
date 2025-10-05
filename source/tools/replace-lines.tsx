@@ -16,17 +16,23 @@ interface ReplaceLinesArgs {
 	content: string;
 }
 
-const handler: ToolHandler = async (args: ReplaceLinesArgs): Promise<string> => {
+const handler: ToolHandler = async (
+	args: ReplaceLinesArgs,
+): Promise<string> => {
 	const {path, line_number, end_line, content} = args;
 
 	// Validate line numbers
 	if (!line_number || line_number < 1) {
-		throw new Error(`Invalid line_number: ${line_number}. Must be a positive integer.`);
+		throw new Error(
+			`Invalid line_number: ${line_number}. Must be a positive integer.`,
+		);
 	}
 
 	const endLine = end_line ?? line_number;
 	if (endLine < line_number) {
-		throw new Error(`end_line (${endLine}) cannot be less than line_number (${line_number}).`);
+		throw new Error(
+			`end_line (${endLine}) cannot be less than line_number (${line_number}).`,
+		);
 	}
 
 	const absPath = resolve(path);
@@ -36,12 +42,12 @@ const handler: ToolHandler = async (args: ReplaceLinesArgs): Promise<string> => 
 	// Validate line range is within file bounds
 	if (line_number > lines.length) {
 		throw new Error(
-			`Line number ${line_number} is out of range (file has ${lines.length} lines)`
+			`Line number ${line_number} is out of range (file has ${lines.length} lines)`,
 		);
 	}
 	if (endLine > lines.length) {
 		throw new Error(
-			`End line ${endLine} is out of range (file has ${lines.length} lines)`
+			`End line ${endLine} is out of range (file has ${lines.length} lines)`,
 		);
 	}
 
@@ -63,24 +69,37 @@ const handler: ToolHandler = async (args: ReplaceLinesArgs): Promise<string> => 
 		fileContext += `${lineNumStr}: ${line}\n`;
 	}
 
-	const rangeDesc = line_number === endLine ? `line ${line_number}` : `lines ${line_number}-${endLine}`;
-	return `Successfully replaced ${rangeDesc} with ${replaceLines.length} line${replaceLines.length > 1 ? 's' : ''}.${fileContext}`;
+	const rangeDesc =
+		line_number === endLine
+			? `line ${line_number}`
+			: `lines ${line_number}-${endLine}`;
+	return `Successfully replaced ${rangeDesc} with ${replaceLines.length} line${
+		replaceLines.length > 1 ? 's' : ''
+	}.${fileContext}`;
 };
 
-const ReplaceLinesFormatter = React.memo(({args, result}: {args: any; result?: string}) => {
-	const {colors} = React.useContext(ThemeContext)!;
-	const [preview, setPreview] = React.useState<React.ReactElement | null>(null);
+const ReplaceLinesFormatter = React.memo(
+	({args, result}: {args: any; result?: string}) => {
+		const {colors} = React.useContext(ThemeContext)!;
+		const [preview, setPreview] = React.useState<React.ReactElement | null>(
+			null,
+		);
 
-	React.useEffect(() => {
-		const generatePreview = async () => {
-			const formattedPreview = await formatReplaceLinesPreview(args, result, colors);
-			setPreview(formattedPreview);
-		};
-		generatePreview();
-	}, [args, result, colors]);
+		React.useEffect(() => {
+			const generatePreview = async () => {
+				const formattedPreview = await formatReplaceLinesPreview(
+					args,
+					result,
+					colors,
+				);
+				setPreview(formattedPreview);
+			};
+			generatePreview();
+		}, [args, result, colors]);
 
-	return preview;
-});
+		return preview;
+	},
+);
 
 async function formatReplaceLinesPreview(
 	args: any,
@@ -94,10 +113,14 @@ async function formatReplaceLinesPreview(
 
 	// Validate line numbers
 	if (!lineNumber || lineNumber < 1) {
-		throw new Error(`Invalid line_number: ${line_number}. Must be a positive integer.`);
+		throw new Error(
+			`Invalid line_number: ${line_number}. Must be a positive integer.`,
+		);
 	}
 	if (endLine < lineNumber) {
-		throw new Error(`end_line (${endLine}) cannot be less than line_number (${lineNumber}).`);
+		throw new Error(
+			`end_line (${endLine}) cannot be less than line_number (${lineNumber}).`,
+		);
 	}
 
 	const isResult = result !== undefined;
@@ -114,14 +137,18 @@ async function formatReplaceLinesPreview(
 			const replaceLines = content.split('\n');
 			const contextLines = 5;
 			const showStart = Math.max(0, lineNumber - 1 - contextLines);
-			const showEnd = Math.min(lines.length - 1, lineNumber - 1 + replaceLines.length + contextLines);
+			const showEnd = Math.min(
+				lines.length - 1,
+				lineNumber - 1 + replaceLines.length + contextLines,
+			);
 
 			const contextElements: React.ReactElement[] = [];
 
 			for (let i = showStart; i <= showEnd; i++) {
 				const lineNumStr = String(i + 1).padStart(4, ' ');
 				const line = lines[i] || '';
-				const isReplacedLine = i + 1 >= lineNumber && i + 1 < lineNumber + replaceLines.length;
+				const isReplacedLine =
+					i + 1 >= lineNumber && i + 1 < lineNumber + replaceLines.length;
 
 				let displayLine: string;
 				try {
@@ -150,7 +177,10 @@ async function formatReplaceLinesPreview(
 				}
 			}
 
-			const rangeDesc = lineNumber === endLine ? `line ${lineNumber}` : `lines ${lineNumber}-${endLine}`;
+			const rangeDesc =
+				lineNumber === endLine
+					? `line ${lineNumber}`
+					: `lines ${lineNumber}-${endLine}`;
 			const messageContent = (
 				<Box flexDirection="column">
 					<Text color={themeColors.tool}>{displayTitle} replace_lines</Text>
@@ -166,11 +196,15 @@ async function formatReplaceLinesPreview(
 					</Box>
 
 					<Box flexDirection="column" marginTop={1}>
-						<Text color={themeColors.success}>✓ Replace completed successfully</Text>
+						<Text color={themeColors.success}>
+							✓ Replace completed successfully
+						</Text>
 					</Box>
 
 					<Box flexDirection="column" marginTop={1}>
-						<Text color={themeColors.secondary}>Context around replacement:</Text>
+						<Text color={themeColors.secondary}>
+							Context around replacement:
+						</Text>
 						{contextElements}
 					</Box>
 				</Box>
@@ -183,7 +217,7 @@ async function formatReplaceLinesPreview(
 		if (lineNumber > lines.length || endLine > lines.length) {
 			const maxLine = Math.max(lineNumber, endLine);
 			throw new Error(
-				`Line ${maxLine} is out of range (file has ${lines.length} lines)`
+				`Line ${maxLine} is out of range (file has ${lines.length} lines)`,
 			);
 		}
 
@@ -264,7 +298,9 @@ async function formatReplaceLinesPreview(
 
 		// Show context after
 		for (let i = endLine; i <= showEnd; i++) {
-			const lineNumStr = String(i + replaceLines.length - linesToRemove + 1).padStart(4, ' ');
+			const lineNumStr = String(
+				i + replaceLines.length - linesToRemove + 1,
+			).padStart(4, ' ');
 			const line = lines[i] || '';
 			let displayLine: string;
 			try {
@@ -280,7 +316,10 @@ async function formatReplaceLinesPreview(
 			);
 		}
 
-		const rangeDesc = lineNumber === endLine ? `line ${lineNumber}` : `lines ${lineNumber}-${endLine}`;
+		const rangeDesc =
+			lineNumber === endLine
+				? `line ${lineNumber}`
+				: `lines ${lineNumber}-${endLine}`;
 		const messageContent = (
 			<Box flexDirection="column">
 				<Text color={themeColors.tool}>{displayTitle} replace_lines</Text>
@@ -334,7 +373,10 @@ async function formatReplaceLinesPreview(
 	}
 }
 
-const formatter = async (args: any, result?: string): Promise<React.ReactElement> => {
+const formatter = async (
+	args: any,
+	result?: string,
+): Promise<React.ReactElement> => {
 	return <ReplaceLinesFormatter args={args} result={result} />;
 };
 
@@ -359,11 +401,13 @@ export const replaceLinesTool: ToolDefinition = {
 					},
 					end_line: {
 						type: 'number',
-						description: 'The ending line number for range replacement. If not specified, only replaces line_number.',
+						description:
+							'The ending line number for range replacement. If not specified, only replaces line_number.',
 					},
 					content: {
 						type: 'string',
-						description: 'The replacement content. Can contain multiple lines separated by \\n.',
+						description:
+							'The replacement content. Can contain multiple lines separated by \\n.',
 					},
 				},
 				required: ['path', 'line_number', 'content'],

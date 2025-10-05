@@ -10,6 +10,7 @@ If {{target}} is provided, focus on that specific file or directory.
 Otherwise, scan the entire project for duplication.
 
 Steps:
+
 1. Identify repeated code patterns
 2. Extract common functionality into reusable functions/components
 3. Update all instances to use the new abstraction

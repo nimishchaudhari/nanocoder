@@ -6,6 +6,7 @@ aliases: [cr, check]
 Please perform a thorough code review of the recent changes in this project.
 
 Focus on:
+
 1. Code quality and best practices
 2. Potential bugs or edge cases
 3. Performance implications

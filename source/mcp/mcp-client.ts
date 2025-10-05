@@ -63,13 +63,13 @@ export class MCPClient {
 	}
 
 	async connectToServers(
-		servers: MCPServer[], 
-		onProgress?: (result: MCPInitResult) => void
+		servers: MCPServer[],
+		onProgress?: (result: MCPInitResult) => void,
 	): Promise<MCPInitResult[]> {
 		const results: MCPInitResult[] = [];
-		
+
 		// Connect to servers in parallel for better performance
-		const connectionPromises = servers.map(async (server) => {
+		const connectionPromises = servers.map(async server => {
 			try {
 				await this.connectToServer(server);
 				const tools = this.serverTools.get(server.name) || [];
@@ -95,7 +95,7 @@ export class MCPClient {
 
 		// Wait for all connections to complete
 		await Promise.all(connectionPromises);
-		
+
 		this.isConnected = true;
 		return results;
 	}
