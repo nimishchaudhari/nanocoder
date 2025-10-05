@@ -17,11 +17,6 @@ export interface SystemCapabilities {
 		connected: boolean;
 		speed?: 'slow' | 'medium' | 'fast';
 	};
-	ollama: {
-		installed: boolean;
-		running: boolean;
-		models: string[];
-	};
 }
 
 export type ProviderCategory = 'local-server' | 'hosted-api';

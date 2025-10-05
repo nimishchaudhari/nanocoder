@@ -20,7 +20,10 @@ export class SystemDetector {
 
 	async getSystemCapabilities(): Promise<SystemCapabilities> {
 		const now = Date.now();
-		if (this.cachedCapabilities && (now - this.lastDetection) < this.CACHE_DURATION) {
+		if (
+			this.cachedCapabilities &&
+			now - this.lastDetection < this.CACHE_DURATION
+		) {
 			return this.cachedCapabilities;
 		}
 
@@ -31,13 +34,12 @@ export class SystemDetector {
 	}
 
 	private async detectSystemCapabilities(): Promise<SystemCapabilities> {
-		const [cpu, memory, gpu, platform, network, ollama] = await Promise.all([
+		const [cpu, memory, gpu, platform, network] = await Promise.all([
 			this.detectCpu(),
 			this.detectMemory(),
 			this.detectGpu(),
 			this.detectPlatform(),
 			this.detectNetwork(),
-			this.detectOllama(),
 		]);
 
 		return {
@@ -46,7 +48,6 @@ export class SystemDetector {
 			gpu,
 			platform,
 			network,
-			ollama,
 		};
 	}
 
@@ -61,8 +62,8 @@ export class SystemDetector {
 	private async detectMemory() {
 		const memInfo = await si.mem();
 		return {
-			total: Math.round(memInfo.total / (1024 ** 3)), // Convert to GB
-			available: Math.round(memInfo.available / (1024 ** 3)), // Convert to GB
+			total: Math.round(memInfo.total / 1024 ** 3), // Convert to GB
+			available: Math.round(memInfo.available / 1024 ** 3), // Convert to GB
 		};
 	}
 
@@ -83,7 +84,11 @@ export class SystemDetector {
 				let type: SystemCapabilities['gpu']['type'] = 'none';
 				if (vendor.includes('nvidia') || model.includes('nvidia')) {
 					type = 'nvidia';
-				} else if (vendor.includes('amd') || model.includes('amd') || model.includes('radeon')) {
+				} else if (
+					vendor.includes('amd') ||
+					model.includes('amd') ||
+					model.includes('radeon')
+				) {
 					type = 'amd';
 				} else if (vendor.includes('apple') || model.includes('apple')) {
 					type = 'apple';
@@ -91,8 +96,12 @@ export class SystemDetector {
 					type = 'intel';
 				}
 
-				const memoryMB = typeof controller.vram === 'number' ? controller.vram :
-								 typeof controller.vramDynamic === 'number' ? controller.vramDynamic : 0;
+				const memoryMB =
+					typeof controller.vram === 'number'
+						? controller.vram
+						: typeof controller.vramDynamic === 'number'
+						? controller.vramDynamic
+						: 0;
 				const memoryGB = memoryMB > 0 ? Math.round(memoryMB / 1024) : undefined;
 
 				return {
@@ -111,7 +120,6 @@ export class SystemDetector {
 		};
 	}
 
-
 	private async detectNetwork(): Promise<SystemCapabilities['network']> {
 		try {
 			// Simple connectivity test
@@ -121,16 +129,19 @@ export class SystemDetector {
 					const start = Date.now();
 					await execAsync(`ping -c 1 -W 2000 ${url}`, {timeout: 3000});
 					return Date.now() - start;
-				})
+				}),
 			);
 
-			const successful = results.filter(r => r.status === 'fulfilled') as PromiseFulfilledResult<number>[];
+			const successful = results.filter(
+				r => r.status === 'fulfilled',
+			) as PromiseFulfilledResult<number>[];
 
 			if (successful.length === 0) {
 				return {connected: false};
 			}
 
-			const avgLatency = successful.reduce((sum, r) => sum + r.value, 0) / successful.length;
+			const avgLatency =
+				successful.reduce((sum, r) => sum + r.value, 0) / successful.length;
 
 			let speed: 'slow' | 'medium' | 'fast';
 			if (avgLatency < 50) speed = 'fast';
@@ -143,44 +154,6 @@ export class SystemDetector {
 			};
 		} catch {
 			return {connected: false};
-		}
-	}
-
-	private async detectOllama(): Promise<SystemCapabilities['ollama']> {
-		try {
-			// Check if ollama is installed
-			await execAsync('which ollama').catch(() => {
-				throw new Error('Ollama not found');
-			});
-
-			// Check if ollama is running
-			let running = false;
-			let models: string[] = [];
-
-			try {
-				const listResult = await execAsync('ollama list', {timeout: 5000});
-				running = true;
-
-				// Parse model list
-				const lines = listResult.stdout.trim().split('\n').slice(1); // Skip header
-				models = lines
-					.map(line => line.split(/\s+/)[0]) // Get first column (model name)
-					.filter(name => name && name !== '');
-			} catch {
-				// Ollama installed but not running or no models
-			}
-
-			return {
-				installed: true,
-				running,
-				models,
-			};
-		} catch {
-			return {
-				installed: false,
-				running: false,
-				models: [],
-			};
 		}
 	}
 
