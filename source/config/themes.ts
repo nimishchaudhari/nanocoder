@@ -1,4 +1,4 @@
-import type { Theme, ThemePreset } from '../types/ui.js';
+import type {Theme, ThemePreset} from '../types/ui.js';
 
 export const themes: Record<ThemePreset, Theme> = {
 	'tokyo-night': {
@@ -22,7 +22,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	},
 	'synthwave-84': {
 		name: 'synthwave-84',
-		displayName: 'Synthwave \'84',
+		displayName: "Synthwave '84",
 		colors: {
 			white: '#f8f8f2',
 			black: '#2b213a',

@@ -20,12 +20,16 @@ const handler: ToolHandler = async (args: DeleteLinesArgs): Promise<string> => {
 
 	// Validate line numbers
 	if (!line_number || line_number < 1) {
-		throw new Error(`Invalid line_number: ${line_number}. Must be a positive integer.`);
+		throw new Error(
+			`Invalid line_number: ${line_number}. Must be a positive integer.`,
+		);
 	}
 
 	const endLine = end_line ?? line_number;
 	if (endLine < line_number) {
-		throw new Error(`end_line (${endLine}) cannot be less than line_number (${line_number}).`);
+		throw new Error(
+			`end_line (${endLine}) cannot be less than line_number (${line_number}).`,
+		);
 	}
 
 	const absPath = resolve(path);
@@ -35,12 +39,12 @@ const handler: ToolHandler = async (args: DeleteLinesArgs): Promise<string> => {
 	// Validate line range is within file bounds
 	if (line_number > lines.length) {
 		throw new Error(
-			`Line number ${line_number} is out of range (file has ${lines.length} lines)`
+			`Line number ${line_number} is out of range (file has ${lines.length} lines)`,
 		);
 	}
 	if (endLine > lines.length) {
 		throw new Error(
-			`End line ${endLine} is out of range (file has ${lines.length} lines)`
+			`End line ${endLine} is out of range (file has ${lines.length} lines)`,
 		);
 	}
 
@@ -62,26 +66,41 @@ const handler: ToolHandler = async (args: DeleteLinesArgs): Promise<string> => {
 	}
 
 	// Add a note about the deletion
-	fileContext += `\n(Deleted ${linesToRemove} line${linesToRemove > 1 ? 's' : ''} that were previously at line${linesToRemove > 1 ? 's' : ''} ${line_number}${endLine !== line_number ? `-${endLine}` : ''})\n`;
+	fileContext += `\n(Deleted ${linesToRemove} line${
+		linesToRemove > 1 ? 's' : ''
+	} that were previously at line${linesToRemove > 1 ? 's' : ''} ${line_number}${
+		endLine !== line_number ? `-${endLine}` : ''
+	})\n`;
 
-	const rangeDesc = line_number === endLine ? `line ${line_number}` : `lines ${line_number}-${endLine}`;
+	const rangeDesc =
+		line_number === endLine
+			? `line ${line_number}`
+			: `lines ${line_number}-${endLine}`;
 	return `Successfully deleted ${rangeDesc}.${fileContext}`;
 };
 
-const DeleteLinesFormatter = React.memo(({args, result}: {args: any; result?: string}) => {
-	const {colors} = React.useContext(ThemeContext)!;
-	const [preview, setPreview] = React.useState<React.ReactElement | null>(null);
+const DeleteLinesFormatter = React.memo(
+	({args, result}: {args: any; result?: string}) => {
+		const {colors} = React.useContext(ThemeContext)!;
+		const [preview, setPreview] = React.useState<React.ReactElement | null>(
+			null,
+		);
 
-	React.useEffect(() => {
-		const generatePreview = async () => {
-			const formattedPreview = await formatDeleteLinesPreview(args, result, colors);
-			setPreview(formattedPreview);
-		};
-		generatePreview();
-	}, [args, result, colors]);
+		React.useEffect(() => {
+			const generatePreview = async () => {
+				const formattedPreview = await formatDeleteLinesPreview(
+					args,
+					result,
+					colors,
+				);
+				setPreview(formattedPreview);
+			};
+			generatePreview();
+		}, [args, result, colors]);
 
-	return preview;
-});
+		return preview;
+	},
+);
 
 async function formatDeleteLinesPreview(
 	args: any,
@@ -95,10 +114,14 @@ async function formatDeleteLinesPreview(
 
 	// Validate line numbers
 	if (!lineNumber || lineNumber < 1) {
-		throw new Error(`Invalid line_number: ${line_number}. Must be a positive integer.`);
+		throw new Error(
+			`Invalid line_number: ${line_number}. Must be a positive integer.`,
+		);
 	}
 	if (endLine < lineNumber) {
-		throw new Error(`end_line (${endLine}) cannot be less than line_number (${lineNumber}).`);
+		throw new Error(
+			`end_line (${endLine}) cannot be less than line_number (${lineNumber}).`,
+		);
 	}
 
 	const isResult = result !== undefined;
@@ -151,12 +174,17 @@ async function formatDeleteLinesPreview(
 					color={themeColors.diffRemovedText}
 					wrap="wrap"
 				>
-					{String(deletionLineNum).padStart(4, ' ')} - [Deleted {linesToRemove} line{linesToRemove > 1 ? 's' : ''}]
+					{String(deletionLineNum).padStart(4, ' ')} - [Deleted {linesToRemove}{' '}
+					line{linesToRemove > 1 ? 's' : ''}]
 				</Text>,
 			);
 
 			// Show context after the deletion point (adjust line numbers)
-			for (let i = lineNumber - 1; i <= Math.min(showEnd, lines.length - 1); i++) {
+			for (
+				let i = lineNumber - 1;
+				i <= Math.min(showEnd, lines.length - 1);
+				i++
+			) {
 				const displayLineNum = i + linesToRemove + 1;
 				const lineNumStr = String(displayLineNum).padStart(4, ' ');
 				const line = lines[i] || '';
@@ -174,7 +202,10 @@ async function formatDeleteLinesPreview(
 				);
 			}
 
-			const rangeDesc = lineNumber === endLine ? `line ${lineNumber}` : `lines ${lineNumber}-${endLine}`;
+			const rangeDesc =
+				lineNumber === endLine
+					? `line ${lineNumber}`
+					: `lines ${lineNumber}-${endLine}`;
 			const messageContent = (
 				<Box flexDirection="column">
 					<Text color={themeColors.tool}>{displayTitle} delete_lines</Text>
@@ -190,7 +221,9 @@ async function formatDeleteLinesPreview(
 					</Box>
 
 					<Box flexDirection="column" marginTop={1}>
-						<Text color={themeColors.success}>✓ Delete completed successfully</Text>
+						<Text color={themeColors.success}>
+							✓ Delete completed successfully
+						</Text>
 					</Box>
 
 					<Box flexDirection="column" marginTop={1}>
@@ -207,7 +240,7 @@ async function formatDeleteLinesPreview(
 		if (lineNumber > lines.length || endLine > lines.length) {
 			const maxLine = Math.max(lineNumber, endLine);
 			throw new Error(
-				`Line ${maxLine} is out of range (file has ${lines.length} lines)`
+				`Line ${maxLine} is out of range (file has ${lines.length} lines)`,
 			);
 		}
 
@@ -279,7 +312,10 @@ async function formatDeleteLinesPreview(
 			);
 		}
 
-		const rangeDesc = lineNumber === endLine ? `line ${lineNumber}` : `lines ${lineNumber}-${endLine}`;
+		const rangeDesc =
+			lineNumber === endLine
+				? `line ${lineNumber}`
+				: `lines ${lineNumber}-${endLine}`;
 		const messageContent = (
 			<Box flexDirection="column">
 				<Text color={themeColors.tool}>{displayTitle} delete_lines</Text>
@@ -331,7 +367,10 @@ async function formatDeleteLinesPreview(
 	}
 }
 
-const formatter = async (args: any, result?: string): Promise<React.ReactElement> => {
+const formatter = async (
+	args: any,
+	result?: string,
+): Promise<React.ReactElement> => {
 	return <DeleteLinesFormatter args={args} result={result} />;
 };
 
@@ -356,7 +395,8 @@ export const deleteLinesTool: ToolDefinition = {
 					},
 					end_line: {
 						type: 'number',
-						description: 'The ending line number for range deletion. If not specified, only deletes line_number.',
+						description:
+							'The ending line number for range deletion. If not specified, only deletes line_number.',
 					},
 				},
 				required: ['path', 'line_number'],

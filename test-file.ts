@@ -6,7 +6,7 @@
  * @returns A greeting string
  */
 export function greet(name: string): string {
-  return `Hello ${name}!`;
+	return `Hello ${name}!`;
 }
 
 /**
@@ -16,7 +16,7 @@ export function greet(name: string): string {
  * @returns The sum of a and b
  */
 export function add(a: number, b: number): number {
-  return a + b;
+	return a + b;
 }
 /**
  * Multiplies two numbers together
@@ -26,7 +26,7 @@ export function add(a: number, b: number): number {
  */
 
 export function multiply(x: number, y: number): number {
-  return x * y;
+	return x * y;
 }
 
 // More functions to make a medium-sized file
@@ -38,34 +38,34 @@ export function multiply(x: number, y: number): number {
  * @returns The difference of a and b
  */
 export function subtract(a: number, b: number): number {
-  return a - b;
+	return a - b;
 }
 
 export function divide(a: number, b: number): number {
-  if (b === 0) {
-    throw new Error("Division by zero");
-  }
-  return a / b;
+	if (b === 0) {
+		throw new Error('Division by zero');
+	}
+	return a / b;
 }
 
 export function power(base: number, exponent: number): number {
-  return Math.pow(base, exponent);
+	return Math.pow(base, exponent);
 }
 
 export function sqrt(n: number): number {
-  return Math.sqrt(n);
+	return Math.sqrt(n);
 }
 
 export function abs(n: number): number {
-  return Math.abs(n);
+	return Math.abs(n);
 }
 
 export function round(n: number): number {
-  return Math.round(n);
+	return Math.round(n);
 }
 
 export function floor(n: number): number {
-  return Math.floor(n);
+	return Math.floor(n);
 }
 
 /**
@@ -74,7 +74,7 @@ export function floor(n: number): number {
  * @returns The smallest integer greater than or equal to n
  */
 export function ceil(n: number): number {
-  return Math.ceil(n);
+	return Math.ceil(n);
 }
 
 // End of test file

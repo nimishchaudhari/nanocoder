@@ -31,7 +31,7 @@ export default memo(function ChatQueue({
 						? component.key
 						: `component-${index}`;
 
-						return <Fragment key={key}>{component}</Fragment>;
+				return <Fragment key={key}>{component}</Fragment>;
 			})}
 		</Box>
 	);
