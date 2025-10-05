@@ -22,6 +22,7 @@ interface UseModeHandlersProps {
 	setIsModelSelectionMode: (mode: boolean) => void;
 	setIsProviderSelectionMode: (mode: boolean) => void;
 	setIsThemeSelectionMode: (mode: boolean) => void;
+	setIsRecommendationsMode: (mode: boolean) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 }
@@ -38,6 +39,7 @@ export function useModeHandlers({
 	setIsModelSelectionMode,
 	setIsProviderSelectionMode,
 	setIsThemeSelectionMode,
+	setIsRecommendationsMode,
 	addToChatQueue,
 	componentKeyCounter,
 }: UseModeHandlersProps) {
@@ -171,15 +173,27 @@ export function useModeHandlers({
 		setIsThemeSelectionMode(false);
 	};
 
+	// Helper function to enter recommendations mode
+	const enterRecommendationsMode = () => {
+		setIsRecommendationsMode(true);
+	};
+
+	// Handle recommendations cancel
+	const handleRecommendationsCancel = () => {
+		setIsRecommendationsMode(false);
+	};
+
 	return {
 		enterModelSelectionMode,
 		enterProviderSelectionMode,
 		enterThemeSelectionMode,
+		enterRecommendationsMode,
 		handleModelSelect,
 		handleModelSelectionCancel,
 		handleProviderSelect,
 		handleProviderSelectionCancel,
 		handleThemeSelect,
 		handleThemeSelectionCancel,
+		handleRecommendationsCancel,
 	};
 }

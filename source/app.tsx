@@ -17,6 +17,7 @@ import BashExecutionIndicator from './components/bash-execution-indicator.js';
 import {setGlobalMessageQueue} from './utils/message-queue.js';
 import Spinner from 'ink-spinner';
 import SecurityDisclaimer from './components/security-disclaimer.js';
+import {RecommendationsDisplay} from './commands/recommendations.js';
 
 // Import extracted hooks and utilities
 import {useAppState} from './app/hooks/useAppState.js';
@@ -123,6 +124,7 @@ export default function App() {
 		setIsModelSelectionMode: appState.setIsModelSelectionMode,
 		setIsProviderSelectionMode: appState.setIsProviderSelectionMode,
 		setIsThemeSelectionMode: appState.setIsThemeSelectionMode,
+		setIsRecommendationsMode: appState.setIsRecommendationsMode,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 	});
@@ -166,6 +168,7 @@ export default function App() {
 				onEnterModelSelectionMode: modeHandlers.enterModelSelectionMode,
 				onEnterProviderSelectionMode: modeHandlers.enterProviderSelectionMode,
 				onEnterThemeSelectionMode: modeHandlers.enterThemeSelectionMode,
+				onEnterRecommendationsMode: modeHandlers.enterRecommendationsMode,
 				onHandleChatMessage: chatHandler.handleChatMessage,
 				onAddToChatQueue: appState.addToChatQueue,
 				componentKeyCounter: appState.componentKeyCounter,
@@ -280,6 +283,10 @@ export default function App() {
 								<ThemeSelector
 									onThemeSelect={modeHandlers.handleThemeSelect}
 									onCancel={modeHandlers.handleThemeSelectionCancel}
+								/>
+							) : appState.isRecommendationsMode ? (
+								<RecommendationsDisplay
+									onCancel={modeHandlers.handleRecommendationsCancel}
 								/>
 							) : appState.isToolConfirmationMode &&
 							  appState.pendingToolCalls[appState.currentToolIndex] ? (

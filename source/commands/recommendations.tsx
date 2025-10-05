@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {Box, Text, useInput} from 'ink';
+import {Box, Text, useInput, useFocus} from 'ink';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Command, SystemCapabilities} from '../types/index.js';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
@@ -10,7 +10,11 @@ import {
 	ModelRecommendationEnhanced,
 } from '../recommendations/recommendation-engine.js';
 
-function RecommendationsDisplay() {
+interface RecommendationsDisplayProps {
+	onCancel?: () => void;
+}
+
+function RecommendationsDisplay({onCancel}: RecommendationsDisplayProps) {
 	const boxWidth = useTerminalWidth();
 	const {colors} = useTheme();
 	const [systemCaps, setSystemCaps] = useState<SystemCapabilities | null>(null);
@@ -19,12 +23,23 @@ function RecommendationsDisplay() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [showAllModels, setShowAllModels] = useState(false);
+	const [closed, setClosed] = useState(false);
 
-	// Keyboard handler to toggle showing all models
-	useInput(input => {
-		if (input === 'm' || input === 'M') {
+	// Capture focus to prevent user input from being active
+	useFocus({autoFocus: true, id: 'recommendations-display'});
+
+	// Keyboard handler to toggle showing all models and close
+	// Consume all input to prevent it from appearing in the chat
+	useInput((input, key) => {
+		if (key.escape || key.return) {
+			setClosed(true);
+			if (onCancel) {
+				onCancel();
+			}
+		} else if (input === 'm' || input === 'M') {
 			setShowAllModels(prev => !prev);
 		}
+		// Consume all other input by doing nothing
 	});
 
 	useEffect(() => {
@@ -51,6 +66,11 @@ function RecommendationsDisplay() {
 
 		void loadRecommendations();
 	}, []);
+
+	// Return null when closed to hide the component
+	if (closed) {
+		return null;
+	}
 
 	if (loading) {
 		return (
@@ -120,9 +140,15 @@ function RecommendationsDisplay() {
 
 			<ModelsList models={models} colors={colors} showAll={showAllModels} />
 
-			<Box marginTop={1}>
+			<Box marginTop={1} flexDirection="column">
+				<Box marginBottom={1}>
+					<Text color={colors.secondary} dimColor>
+						💡 Add providers to agents.config.json to use these models.
+					</Text>
+				</Box>
+
 				<Text color={colors.secondary} dimColor>
-					💡 Add providers to agents.config.json to use these models.
+					Press Escape or Enter to close
 				</Text>
 			</Box>
 		</TitledBox>
@@ -303,12 +329,15 @@ function ModelItem({
 	);
 }
 
+// Export the display component for use in app.tsx
+export {RecommendationsDisplay};
+
 export const recommendationsCommand: Command = {
 	name: 'recommendations',
 	description: 'Get AI model recommendations based on your system',
 	handler: async (_args: string[], _messages, _metadata) => {
-		return React.createElement(RecommendationsDisplay, {
-			key: `recommendations-${Date.now()}`,
-		});
+		// This command is handled specially in app.tsx
+		// This handler exists only for registration purposes
+		return React.createElement(React.Fragment);
 	},
 };
