@@ -55,14 +55,14 @@ const CreateFileFormatter = React.memo(({args}: {args: any}) => {
 							const highlighted = highlight(line, {language, theme: 'default'});
 							return (
 								<Box key={i}>
-									<Text color={colors.secondary}>{lineNumStr}  </Text>
+									<Text color={colors.secondary}>{lineNumStr} </Text>
 									<Text wrap="wrap">{highlighted}</Text>
 								</Box>
 							);
 						} catch {
 							return (
 								<Box key={i}>
-									<Text color={colors.secondary}>{lineNumStr}  </Text>
+									<Text color={colors.secondary}>{lineNumStr} </Text>
 									<Text wrap="wrap">{line}</Text>
 								</Box>
 							);

@@ -2,7 +2,11 @@ import {spawn} from 'node:child_process';
 import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition, BashToolResult} from '../types/index.js';
+import type {
+	ToolHandler,
+	ToolDefinition,
+	BashToolResult,
+} from '../types/index.js';
 import {ThemeContext} from '../hooks/useTheme.js';
 import ToolMessage from '../components/tool-message.js';
 
@@ -53,68 +57,74 @@ ${stdout}`;
 };
 
 // Create a component that will re-render when theme changes
-const ExecuteBashFormatter = React.memo(({args, result}: {args: any; result?: string}) => {
-	const {colors} = React.useContext(ThemeContext)!;
-	const command = args.command || 'unknown';
+const ExecuteBashFormatter = React.memo(
+	({args, result}: {args: any; result?: string}) => {
+		const {colors} = React.useContext(ThemeContext)!;
+		const command = args.command || 'unknown';
 
-	let highlightedCommand;
-	try {
-		highlightedCommand = highlight(command, {
-			language: 'bash',
-			theme: 'default',
-		});
-	} catch {
-		highlightedCommand = command;
-	}
-
-	// Parse the result if it's a JSON string
-	let parsedResult: {fullOutput: string; llmContext: string} | null = null;
-	if (result) {
+		let highlightedCommand;
 		try {
-			parsedResult = JSON.parse(result);
-		} catch (e) {
-			// If parsing fails, treat as plain string
-			parsedResult = {
-				fullOutput: result,
-				llmContext: result.length > 4000 ? result.substring(0, 4000) : result,
-			};
+			highlightedCommand = highlight(command, {
+				language: 'bash',
+				theme: 'default',
+			});
+		} catch {
+			highlightedCommand = command;
 		}
-	}
 
-	// Calculate token estimation for the output if result is provided
-	let outputSize = 0;
-	let estimatedTokens = 0;
-	let fullOutputSize = 0;
-	if (parsedResult) {
-		outputSize = parsedResult.llmContext.length;
-		fullOutputSize = parsedResult.fullOutput.length;
-		estimatedTokens = Math.ceil(outputSize / 4); // ~4 characters per token
-	}
+		// Parse the result if it's a JSON string
+		let parsedResult: {fullOutput: string; llmContext: string} | null = null;
+		if (result) {
+			try {
+				parsedResult = JSON.parse(result);
+			} catch (e) {
+				// If parsing fails, treat as plain string
+				parsedResult = {
+					fullOutput: result,
+					llmContext: result.length > 4000 ? result.substring(0, 4000) : result,
+				};
+			}
+		}
 
-	const messageContent = (
-		<Box flexDirection="column">
-			<Text color={colors.tool}>⚒ execute_bash</Text>
+		// Calculate token estimation for the output if result is provided
+		let outputSize = 0;
+		let estimatedTokens = 0;
+		let fullOutputSize = 0;
+		if (parsedResult) {
+			outputSize = parsedResult.llmContext.length;
+			fullOutputSize = parsedResult.fullOutput.length;
+			estimatedTokens = Math.ceil(outputSize / 4); // ~4 characters per token
+		}
 
-			<Box>
-				<Text color={colors.secondary}>Command: </Text>
-				<Text color={colors.primary}>{command}</Text>
-			</Box>
+		const messageContent = (
+			<Box flexDirection="column">
+				<Text color={colors.tool}>⚒ execute_bash</Text>
 
-			{parsedResult && (
 				<Box>
-					<Text color={colors.secondary}>Output: </Text>
-					<Text color={colors.white}>
-						{fullOutputSize} characters (~{estimatedTokens} tokens sent to LLM)
-					</Text>
+					<Text color={colors.secondary}>Command: </Text>
+					<Text color={colors.primary}>{command}</Text>
 				</Box>
-			)}
-		</Box>
-	);
 
-	return <ToolMessage message={messageContent} hideBox={true} />;
-});
+				{parsedResult && (
+					<Box>
+						<Text color={colors.secondary}>Output: </Text>
+						<Text color={colors.white}>
+							{fullOutputSize} characters (~{estimatedTokens} tokens sent to
+							LLM)
+						</Text>
+					</Box>
+				)}
+			</Box>
+		);
 
-const formatter = async (args: any, result?: string): Promise<React.ReactElement> => {
+		return <ToolMessage message={messageContent} hideBox={true} />;
+	},
+);
+
+const formatter = async (
+	args: any,
+	result?: string,
+): Promise<React.ReactElement> => {
 	return <ExecuteBashFormatter args={args} result={result} />;
 };
 

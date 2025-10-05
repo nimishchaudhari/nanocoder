@@ -126,6 +126,18 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 				"name": "LM Studio",
 				"baseUrl": "http://localhost:1234/v1",
 				"models": ["local-model"]
+			},
+			{
+				"name": "Z.ai",
+				"baseUrl": "https://api.z.ai/api/paas/v4/",
+				"apiKey": "your-z.ai-api-key",
+				"models": ["glm-4.6", "glm-4.5", "glm-4.5-air"]
+			},
+			{
+				"name": "Z.ai Coding Subscription",
+				"baseUrl": "https://api.z.ai/api/coding/paas/v4/",
+				"apiKey": "your-z.ai-coding-api-key",
+				"models": ["glm-4.6", "glm-4.5", "glm-4.5-air"]
 			}
 		]
 	}
@@ -136,26 +148,20 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 
 - **llama.cpp server**: `"baseUrl": "http://localhost:8080/v1"`
 - **llama-swap**: `"baseUrl": "http://localhost:9292/v1"`
-- **Ollama (Local)**:
-
-  - First run: `ollama pull qwen2.5-coder:14b`
-  - Use: `"baseUrl": "http://localhost:11434/v1"`
-
-- **OpenRouter (Cloud)**:
-
-  - Use: `"baseUrl": "https://openrouter.ai/api/v1"`
-  - Requires: `"apiKey": "your-api-key"`
-
+- **Ollama (Local)**: `"baseUrl": "http://localhost:11434/v1"`
+- **OpenRouter (Cloud)**: `"baseUrl": "https://openrouter.ai/api/v1"`
 - **LM Studio**: `"baseUrl": "http://localhost:1234/v1"`
 - **vLLM**: `"baseUrl": "http://localhost:8000/v1"`
 - **LocalAI**: `"baseUrl": "http://localhost:8080/v1"`
 - **OpenAI**: `"baseUrl": "https://api.openai.com/v1"`
+- **Z.ai**: `"baseUrl": "https://api.z.ai/api/paas/v4/"`
+- **Z.ai Coding**: `"baseUrl": "https://api.z.ai/api/coding/paas/v4/"`
 
 **Provider Configuration:**
 
 - `name`: Display name used in `/provider` command
 - `baseUrl`: OpenAI-compatible API endpoint
-- `apiKey`: API key (optional for local servers)
+- `apiKey`: API key (optional, may not be required)
 - `models`: Available model list for `/model` command
 
 **Timeout Configuration:**

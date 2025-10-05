@@ -1,6 +1,10 @@
-import {LLMClient, Message, ProviderType} from '../../types/core.js';
+import {LLMClient, Message} from '../../types/core.js';
 import {createLLMClient} from '../../client-factory.js';
-import {updateLastUsed, savePreferences, loadPreferences} from '../../config/preferences.js';
+import {
+	updateLastUsed,
+	savePreferences,
+	loadPreferences,
+} from '../../config/preferences.js';
 import SuccessMessage from '../../components/success-message.js';
 import ErrorMessage from '../../components/error-message.js';
 import React from 'react';
@@ -9,10 +13,10 @@ import type {ThemePreset} from '../../types/ui.js';
 interface UseModeHandlersProps {
 	client: LLMClient | null;
 	currentModel: string;
-	currentProvider: ProviderType;
+	currentProvider: string;
 	setClient: (client: LLMClient | null) => void;
 	setCurrentModel: (model: string) => void;
-	setCurrentProvider: (provider: ProviderType) => void;
+	setCurrentProvider: (provider: string) => void;
 	setCurrentTheme: (theme: ThemePreset) => void;
 	setMessages: (messages: Message[]) => void;
 	setIsModelSelectionMode: (mode: boolean) => void;
@@ -37,7 +41,6 @@ export function useModeHandlers({
 	addToChatQueue,
 	componentKeyCounter,
 }: UseModeHandlersProps) {
-
 	// Helper function to enter model selection mode
 	const enterModelSelectionMode = () => {
 		setIsModelSelectionMode(true);
@@ -75,14 +78,14 @@ export function useModeHandlers({
 	};
 
 	// Handle provider selection
-	const handleProviderSelect = async (selectedProvider: ProviderType) => {
+	const handleProviderSelect = async (selectedProvider: string) => {
 		if (selectedProvider !== currentProvider) {
 			try {
 				// Create new client for the selected provider
 				const {client: newClient, actualProvider} = await createLLMClient(
 					selectedProvider,
 				);
-				
+
 				// Check if we got the provider we requested
 				if (actualProvider !== selectedProvider) {
 					// Provider was forced to a different one (likely due to missing config)
@@ -95,7 +98,7 @@ export function useModeHandlers({
 					);
 					return; // Don't change anything
 				}
-				
+
 				setClient(newClient);
 				setCurrentProvider(actualProvider);
 
@@ -147,7 +150,7 @@ export function useModeHandlers({
 		const preferences = loadPreferences();
 		preferences.selectedTheme = selectedTheme;
 		savePreferences(preferences);
-		
+
 		// Update the theme state immediately for real-time switching
 		setCurrentTheme(selectedTheme);
 

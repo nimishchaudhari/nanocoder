@@ -151,7 +151,8 @@ export function cleanContentFromToolCalls(
 
 	// Use the new XML parser to clean XML tool calls
 	if (XMLToolCallParser.hasToolCalls(cleanedContent)) {
-		cleanedContent = XMLToolCallParser.removeToolCallsFromContent(cleanedContent);
+		cleanedContent =
+			XMLToolCallParser.removeToolCallsFromContent(cleanedContent);
 	}
 
 	// XML cleaning is handled by XMLToolCallParser.removeToolCallsFromContent above

@@ -20,7 +20,9 @@ const handler: ToolHandler = async (args: InsertLinesArgs): Promise<string> => {
 
 	// Validate line number
 	if (!line_number || line_number < 1) {
-		throw new Error(`Invalid line_number: ${line_number}. Must be a positive integer.`);
+		throw new Error(
+			`Invalid line_number: ${line_number}. Must be a positive integer.`,
+		);
 	}
 
 	const absPath = resolve(path);
@@ -30,7 +32,7 @@ const handler: ToolHandler = async (args: InsertLinesArgs): Promise<string> => {
 	// Validate line number is within range
 	if (line_number > lines.length + 1) {
 		throw new Error(
-			`Line number ${line_number} is out of range (file has ${lines.length} lines)`
+			`Line number ${line_number} is out of range (file has ${lines.length} lines)`,
 		);
 	}
 
@@ -51,23 +53,33 @@ const handler: ToolHandler = async (args: InsertLinesArgs): Promise<string> => {
 		fileContext += `${lineNumStr}: ${line}\n`;
 	}
 
-	return `Successfully inserted ${insertLines.length} line${insertLines.length > 1 ? 's' : ''} at line ${line_number}.${fileContext}`;
+	return `Successfully inserted ${insertLines.length} line${
+		insertLines.length > 1 ? 's' : ''
+	} at line ${line_number}.${fileContext}`;
 };
 
-const InsertLinesFormatter = React.memo(({args, result}: {args: any; result?: string}) => {
-	const {colors} = React.useContext(ThemeContext)!;
-	const [preview, setPreview] = React.useState<React.ReactElement | null>(null);
+const InsertLinesFormatter = React.memo(
+	({args, result}: {args: any; result?: string}) => {
+		const {colors} = React.useContext(ThemeContext)!;
+		const [preview, setPreview] = React.useState<React.ReactElement | null>(
+			null,
+		);
 
-	React.useEffect(() => {
-		const generatePreview = async () => {
-			const formattedPreview = await formatInsertLinesPreview(args, result, colors);
-			setPreview(formattedPreview);
-		};
-		generatePreview();
-	}, [args, result, colors]);
+		React.useEffect(() => {
+			const generatePreview = async () => {
+				const formattedPreview = await formatInsertLinesPreview(
+					args,
+					result,
+					colors,
+				);
+				setPreview(formattedPreview);
+			};
+			generatePreview();
+		}, [args, result, colors]);
 
-	return preview;
-});
+		return preview;
+	},
+);
 
 async function formatInsertLinesPreview(
 	args: any,
@@ -80,7 +92,9 @@ async function formatInsertLinesPreview(
 
 	// Validate line number
 	if (!lineNumber || lineNumber < 1) {
-		throw new Error(`Invalid line_number: ${line_number}. Must be a positive integer.`);
+		throw new Error(
+			`Invalid line_number: ${line_number}. Must be a positive integer.`,
+		);
 	}
 
 	const isResult = result !== undefined;
@@ -97,14 +111,18 @@ async function formatInsertLinesPreview(
 			const insertLines = content.split('\n');
 			const contextLines = 5;
 			const showStart = Math.max(0, lineNumber - 1 - contextLines);
-			const showEnd = Math.min(lines.length - 1, lineNumber - 1 + insertLines.length + contextLines);
+			const showEnd = Math.min(
+				lines.length - 1,
+				lineNumber - 1 + insertLines.length + contextLines,
+			);
 
 			const contextElements: React.ReactElement[] = [];
 
 			for (let i = showStart; i <= showEnd; i++) {
 				const lineNumStr = String(i + 1).padStart(4, ' ');
 				const line = lines[i] || '';
-				const isInsertedLine = i + 1 >= lineNumber && i + 1 < lineNumber + insertLines.length;
+				const isInsertedLine =
+					i + 1 >= lineNumber && i + 1 < lineNumber + insertLines.length;
 
 				let displayLine: string;
 				try {
@@ -148,7 +166,9 @@ async function formatInsertLinesPreview(
 					</Box>
 
 					<Box flexDirection="column" marginTop={1}>
-						<Text color={themeColors.success}>✓ Insert completed successfully</Text>
+						<Text color={themeColors.success}>
+							✓ Insert completed successfully
+						</Text>
 					</Box>
 
 					<Box flexDirection="column" marginTop={1}>
@@ -164,7 +184,7 @@ async function formatInsertLinesPreview(
 		// Preview mode - show what will be inserted
 		if (lineNumber > lines.length + 1) {
 			throw new Error(
-				`Line number ${lineNumber} is out of range (file has ${lines.length} lines)`
+				`Line number ${lineNumber} is out of range (file has ${lines.length} lines)`,
 			);
 		}
 
@@ -252,7 +272,8 @@ async function formatInsertLinesPreview(
 
 				<Box flexDirection="column" marginTop={1}>
 					<Text color={themeColors.success}>
-						✓ Inserting {insertLines.length} line{insertLines.length > 1 ? 's' : ''}
+						✓ Inserting {insertLines.length} line
+						{insertLines.length > 1 ? 's' : ''}
 					</Text>
 					<Box flexDirection="column">
 						{contextBefore}
@@ -287,7 +308,10 @@ async function formatInsertLinesPreview(
 	}
 }
 
-const formatter = async (args: any, result?: string): Promise<React.ReactElement> => {
+const formatter = async (
+	args: any,
+	result?: string,
+): Promise<React.ReactElement> => {
 	return <InsertLinesFormatter args={args} result={result} />;
 };
 
@@ -308,11 +332,13 @@ export const insertLinesTool: ToolDefinition = {
 					},
 					line_number: {
 						type: 'number',
-						description: 'The line number (1-based) where content should be inserted.',
+						description:
+							'The line number (1-based) where content should be inserted.',
 					},
 					content: {
 						type: 'string',
-						description: 'The content to insert. Can contain multiple lines separated by \\n.',
+						description:
+							'The content to insert. Can contain multiple lines separated by \\n.',
 					},
 				},
 				required: ['path', 'line_number', 'content'],

@@ -9,7 +9,9 @@ let globalAddToChatQueue: ((component: React.ReactNode) => void) | null = null;
 let componentKeyCounter = 0;
 
 // Set the global chat queue function
-export function setGlobalMessageQueue(addToChatQueue: (component: React.ReactNode) => void) {
+export function setGlobalMessageQueue(
+	addToChatQueue: (component: React.ReactNode) => void,
+) {
 	globalAddToChatQueue = addToChatQueue;
 }
 
@@ -20,7 +22,11 @@ function getNextKey(): string {
 }
 
 // Add message to chat queue
-export function addMessageToQueue(type: MessageType, message: string, hideBox: boolean = true) {
+export function addMessageToQueue(
+	type: MessageType,
+	message: string,
+	hideBox: boolean = true,
+) {
 	if (!globalAddToChatQueue) {
 		// Fallback to console if queue not available
 		console[type === 'error' ? 'error' : 'log'](message);
@@ -33,31 +39,17 @@ export function addMessageToQueue(type: MessageType, message: string, hideBox: b
 	switch (type) {
 		case 'error':
 			component = (
-				<ErrorMessage
-					key={key}
-					message={message}
-					hideBox={hideBox}
-				/>
+				<ErrorMessage key={key} message={message} hideBox={hideBox} />
 			);
 			break;
 		case 'success':
 			component = (
-				<SuccessMessage
-					key={key}
-					message={message}
-					hideBox={hideBox}
-				/>
+				<SuccessMessage key={key} message={message} hideBox={hideBox} />
 			);
 			break;
 		case 'info':
 		default:
-			component = (
-				<InfoMessage
-					key={key}
-					message={message}
-					hideBox={hideBox}
-				/>
-			);
+			component = <InfoMessage key={key} message={message} hideBox={hideBox} />;
 			break;
 	}
 

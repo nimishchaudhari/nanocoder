@@ -1,10 +1,9 @@
-import type { ProviderType } from "./core.js";
-import type { ThemePreset } from "./ui.js";
+import type {ThemePreset} from './ui.js';
 
 // LangChain provider configurations
 export interface LangChainProviderConfig {
   name: string;
-  type: "openai" | "anthropic" | "openai-compatible" | string;
+  type: string;
   models: string[];
   requestTimeout?: number;
   socketTimeout?: number;
@@ -40,14 +39,14 @@ export interface AppConfig {
 }
 
 export interface UserPreferences {
-  lastProvider?: ProviderType;
-  lastModel?: string;
-  providerModels?: {
-    [key in ProviderType]?: string;
-  };
-  lastUpdateCheck?: number;
-  selectedTheme?: ThemePreset;
-  trustedDirectories?: string[];
+	lastProvider?: string;
+	lastModel?: string;
+	providerModels?: {
+		[key in string]?: string;
+	};
+	lastUpdateCheck?: number;
+	selectedTheme?: ThemePreset;
+	trustedDirectories?: string[];
 }
 
-export type LogLevel = "silent" | "normal" | "verbose";
+export type LogLevel = 'silent' | 'normal' | 'verbose';

@@ -12,10 +12,15 @@ const handler: ToolHandler = async (args: {
 	if (!Array.isArray(args.paths)) {
 		throw new Error('paths must be an array of strings');
 	}
-	const results = [] as {path: string; content: string; size: number; estimatedTokens: number}[];
+	const results = [] as {
+		path: string;
+		content: string;
+		size: number;
+		estimatedTokens: number;
+	}[];
 	let totalSize = 0;
 	let totalEstimatedTokens = 0;
-	
+
 	for (const p of args.paths) {
 		try {
 			const content = await readFile(resolve(p), 'utf-8');
@@ -34,10 +39,10 @@ const handler: ToolHandler = async (args: {
 			totalEstimatedTokens += estimatedTokens;
 
 			results.push({
-				path: p, 
+				path: p,
 				content: numberedContent.slice(0, -1),
 				size: fileSize,
-				estimatedTokens
+				estimatedTokens,
 			});
 		} catch (err) {
 			results.push({
@@ -46,19 +51,19 @@ const handler: ToolHandler = async (args: {
 					err instanceof Error ? err.message : String(err)
 				}`,
 				size: 0,
-				estimatedTokens: 0
+				estimatedTokens: 0,
 			});
 		}
 	}
-	
+
 	// Include summary in the output
 	const summary = {
 		totalFiles: args.paths.length,
 		totalSize,
 		totalEstimatedTokens,
-		files: results
+		files: results,
 	};
-	
+
 	return JSON.stringify(summary);
 };
 
@@ -78,7 +83,11 @@ const ReadManyFilesFormatter = React.memo(({args}: {args: any}) => {
 	}
 
 	// Calculate total file size and estimated tokens
-	const [fileInfo, setFileInfo] = React.useState({totalFiles: 0, totalSize: 0, totalTokens: 0});
+	const [fileInfo, setFileInfo] = React.useState({
+		totalFiles: 0,
+		totalSize: 0,
+		totalTokens: 0,
+	});
 
 	React.useEffect(() => {
 		const calculateInfo = async () => {
@@ -92,7 +101,11 @@ const ReadManyFilesFormatter = React.memo(({args}: {args: any}) => {
 				}
 			}
 			const estimatedTokens = Math.ceil(totalSize / 4);
-			setFileInfo({totalFiles: paths.length, totalSize, totalTokens: estimatedTokens});
+			setFileInfo({
+				totalFiles: paths.length,
+				totalSize,
+				totalTokens: estimatedTokens,
+			});
 		};
 		calculateInfo();
 	}, [paths]);
@@ -131,7 +144,6 @@ const ReadManyFilesFormatter = React.memo(({args}: {args: any}) => {
 const formatter = async (args: any): Promise<React.ReactElement> => {
 	return <ReadManyFilesFormatter args={args} />;
 };
-
 
 export const readManyFilesTool: ToolDefinition = {
 	handler,
