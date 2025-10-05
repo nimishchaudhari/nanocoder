@@ -371,7 +371,6 @@ function ModelsTabView({
 						Model Database:
 					</Text>
 				</Box>
-
 				<Tabs
 					onChange={name => onTabChange(name as 'local' | 'api')}
 					defaultValue={activeTab}
@@ -400,6 +399,11 @@ function ModelsTabView({
 			borderColor={colors.secondary}
 			padding={1}
 		>
+			<Box marginBottom={1}>
+				<Text color={colors.primary} bold underline>
+					Model Database:
+				</Text>
+			</Box>
 			<Tabs
 				onChange={name => onTabChange(name as 'local' | 'api')}
 				defaultValue={activeTab}
@@ -409,8 +413,8 @@ function ModelsTabView({
 					},
 				}}
 			>
-				<Tab name="local">Local</Tab>
-				<Tab name="api">API</Tab>
+				<Tab name="local">Local Models</Tab>
+				<Tab name="api">API Models</Tab>
 			</Tabs>
 
 			<Box flexDirection="column" marginTop={1}>
