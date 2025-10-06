@@ -329,17 +329,32 @@ export function useChatHandler({
 
 			for (const toolCall of validToolCalls) {
 				if (!toolManager?.hasTool(toolCall.function.name)) {
+					// Get list of available tools for helpful error message
+					const availableTools =
+						toolManager?.getAllTools().map(t => t.function.name) || [];
+					const toolList = availableTools.slice(0, 5).join(', ');
+					const moreTools =
+						availableTools.length > 5
+							? ` (and ${availableTools.length - 5} more)`
+							: '';
+
 					// Create error result for unknown tool
 					const errorResult: ToolResult = {
 						tool_call_id: toolCall.id,
 						role: 'tool' as const,
 						name: toolCall.function.name,
-						content: `Error: Unknown tool: ${toolCall.function.name}`,
+						content: `⚒ Unknown tool: "${toolCall.function.name}". Available tools: ${toolList}${moreTools}`,
 					};
 					unknownToolErrors.push(errorResult);
 
-					// Display the error result
-					await displayToolResult(toolCall, errorResult);
+					// Display the error to user
+					addToChatQueue(
+						<ErrorMessage
+							key={`unknown-tool-${toolCall.id}-${Date.now()}`}
+							message={`⚒ Unknown tool: "${toolCall.function.name}"`}
+							hideBox={true}
+						/>,
+					);
 				} else {
 					// Tool exists, add to valid list
 					knownToolCalls.push(toolCall);
@@ -384,7 +399,9 @@ export function useChatHandler({
 				// Check if tool has a validator
 				let validationFailed = false;
 				if (toolManager) {
-					const validator = toolManager.getToolValidator(toolCall.function.name);
+					const validator = toolManager.getToolValidator(
+						toolCall.function.name,
+					);
 					if (validator) {
 						try {
 							// Parse arguments if they're a JSON string
@@ -433,7 +450,9 @@ export function useChatHandler({
 						}
 
 						// Run validator if available
-						const validator = toolManager?.getToolValidator(toolCall.function.name);
+						const validator = toolManager?.getToolValidator(
+							toolCall.function.name,
+						);
 						if (validator) {
 							// Parse arguments if they're a JSON string
 							let parsedArgs = toolCall.function.arguments;
@@ -673,7 +692,9 @@ export function useChatHandler({
 					// Check if tool has a validator
 					let validationFailed = false;
 					if (toolManager) {
-						const validator = toolManager.getToolValidator(toolCall.function.name);
+						const validator = toolManager.getToolValidator(
+							toolCall.function.name,
+						);
 						if (validator) {
 							try {
 								// Parse arguments if they're a JSON string
