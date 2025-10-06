@@ -1,6 +1,7 @@
 import React from 'react';
 import {resolve} from 'node:path';
-import {readFile, writeFile} from 'node:fs/promises';
+import {readFile, writeFile, access} from 'node:fs/promises';
+import {constants} from 'node:fs';
 import {highlight} from 'cli-highlight';
 import {Text, Box} from 'ink';
 import type {ToolHandler, ToolDefinition} from '../types/index.js';
@@ -315,9 +316,61 @@ const formatter = async (
 	return <InsertLinesFormatter args={args} result={result} />;
 };
 
+const validator = async (
+	args: InsertLinesArgs,
+): Promise<{valid: true} | {valid: false; error: string}> => {
+	const {path, line_number} = args;
+
+	// Check if file exists
+	const absPath = resolve(path);
+	try {
+		await access(absPath, constants.F_OK);
+	} catch (error: any) {
+		if (error.code === 'ENOENT') {
+			return {
+				valid: false,
+				error: `⚒ File "${path}" does not exist`,
+			};
+		}
+		return {
+			valid: false,
+			error: `⚒ Cannot access file "${path}": ${error.message}`,
+		};
+	}
+
+	// Validate line number
+	if (!line_number || line_number < 1) {
+		return {
+			valid: false,
+			error: `⚒ Invalid line_number: ${line_number}. Must be a positive integer.`,
+		};
+	}
+
+	// Check line number is within valid range (can be 1 past end for append)
+	try {
+		const fileContent = await readFile(absPath, 'utf-8');
+		const lines = fileContent.split('\n');
+
+		if (line_number > lines.length + 1) {
+			return {
+				valid: false,
+				error: `⚒ Line number ${line_number} is out of range (file has ${lines.length} lines, can insert at line ${lines.length + 1})`,
+			};
+		}
+	} catch (error: any) {
+		return {
+			valid: false,
+			error: `⚒ Error reading file: ${error.message}`,
+		};
+	}
+
+	return {valid: true};
+};
+
 export const insertLinesTool: ToolDefinition = {
 	handler,
 	formatter,
+	validator,
 	config: {
 		type: 'function',
 		function: {

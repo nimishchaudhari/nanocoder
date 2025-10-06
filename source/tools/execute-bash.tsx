@@ -128,9 +128,45 @@ const formatter = async (
 	return <ExecuteBashFormatter args={args} result={result} />;
 };
 
+const validator = async (args: {
+	command: string;
+}): Promise<{valid: true} | {valid: false; error: string}> => {
+	const command = args.command?.trim();
+
+	// Check if command is empty
+	if (!command) {
+		return {
+			valid: false,
+			error: '⚒ Command cannot be empty',
+		};
+	}
+
+	// Check for extremely dangerous commands
+	const dangerousPatterns = [
+		/rm\s+-rf\s+\/(?!\w)/i, // rm -rf / (but allow /path)
+		/mkfs/i, // Format filesystem
+		/dd\s+if=/i, // Direct disk write
+		/:(){:|:&};:/i, // Fork bomb
+		/>\s*\/dev\/sd[a-z]/i, // Writing to raw disk devices
+		/chmod\s+-R\s+000/i, // Remove all permissions recursively
+	];
+
+	for (const pattern of dangerousPatterns) {
+		if (pattern.test(command)) {
+			return {
+				valid: false,
+				error: `⚒ Command contains potentially destructive operation: "${command}". This command is blocked for safety.`,
+			};
+		}
+	}
+
+	return {valid: true};
+};
+
 export const executeBashTool: ToolDefinition = {
 	handler,
 	formatter,
+	validator,
 	config: {
 		type: 'function',
 		function: {

@@ -43,3 +43,13 @@ export const toolFormatters: Record<
 		.filter(def => def.formatter)
 		.map(def => [def.config.function.name, def.formatter!]),
 );
+
+// Export validator registry
+export const toolValidators: Record<
+	string,
+	(args: any) => Promise<{valid: true} | {valid: false; error: string}>
+> = Object.fromEntries(
+	toolDefinitions
+		.filter(def => def.validator)
+		.map(def => [def.config.function.name, def.validator!]),
+);

@@ -191,6 +191,88 @@ export function useToolHandler({
 					/>,
 				);
 			}
+
+			// Run validator if available
+			const validator = toolManager.getToolValidator(currentTool.function.name);
+			if (validator) {
+				try {
+					// Parse arguments if they're a JSON string
+					let parsedArgs = currentTool.function.arguments;
+					if (typeof parsedArgs === 'string') {
+						try {
+							parsedArgs = JSON.parse(parsedArgs);
+						} catch (e) {
+							// If parsing fails, use as-is
+						}
+					}
+
+					const validationResult = await validator(parsedArgs);
+					if (!validationResult.valid) {
+						// Validation failed - show error and skip execution
+						const errorResult = {
+							tool_call_id: currentTool.id,
+							role: 'tool' as const,
+							name: currentTool.function.name,
+							content: validationResult.error,
+						};
+
+						const newResults = [...completedToolResults, errorResult];
+						setCompletedToolResults(newResults);
+
+						// Display the error
+						addToChatQueue(
+							<ErrorMessage
+								key={`tool-validation-error-${componentKeyCounter}-${Date.now()}`}
+								message={validationResult.error}
+								hideBox={true}
+							/>,
+						);
+
+						// Move to next tool or complete the process
+						if (currentToolIndex + 1 < pendingToolCalls.length) {
+							setCurrentToolIndex(currentToolIndex + 1);
+							// Return to confirmation mode for next tool
+							setIsToolExecuting(false);
+							setIsToolConfirmationMode(true);
+						} else {
+							// All tools processed, continue conversation loop with the results
+							setIsToolExecuting(false);
+							await continueConversationWithToolResults(newResults);
+						}
+						return;
+					}
+				} catch (validationError) {
+					// Validation threw an error - treat as validation failure
+					const errorResult = {
+						tool_call_id: currentTool.id,
+						role: 'tool' as const,
+						name: currentTool.function.name,
+						content: `Validation error: ${validationError instanceof Error ? validationError.message : String(validationError)}`,
+					};
+
+					const newResults = [...completedToolResults, errorResult];
+					setCompletedToolResults(newResults);
+
+					addToChatQueue(
+						<ErrorMessage
+							key={`tool-validation-error-${componentKeyCounter}-${Date.now()}`}
+							message={`Validation error: ${validationError}`}
+							hideBox={true}
+						/>,
+					);
+
+					// Move to next tool or complete the process
+					if (currentToolIndex + 1 < pendingToolCalls.length) {
+						setCurrentToolIndex(currentToolIndex + 1);
+						setIsToolExecuting(false);
+						setIsToolConfirmationMode(true);
+					} else {
+						setIsToolExecuting(false);
+						await continueConversationWithToolResults(newResults);
+					}
+					return;
+				}
+			}
 		}
 
 		try {

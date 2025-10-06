@@ -1,5 +1,6 @@
 import {resolve} from 'node:path';
-import {readFile} from 'node:fs/promises';
+import {readFile, access} from 'node:fs/promises';
+import {constants} from 'node:fs';
 import React from 'react';
 import {Text, Box} from 'ink';
 import type {ToolHandler, ToolDefinition} from '../types/index.js';
@@ -47,11 +48,14 @@ const ReadFileFormatter = React.memo(({args}: {args: any}) => {
 	React.useEffect(() => {
 		const loadFileInfo = async () => {
 			try {
+				// Check if file exists first
+				await access(resolve(path), constants.F_OK);
 				const content = await readFile(resolve(path), 'utf-8');
 				const fileSize = content.length;
 				const estimatedTokens = Math.ceil(fileSize / 4);
 				setFileInfo({size: fileSize, tokens: estimatedTokens});
 			} catch (error) {
+				// File doesn't exist or can't be read - show 0
 				setFileInfo({size: 0, tokens: 0});
 			}
 		};
@@ -89,13 +93,43 @@ const ReadFileFormatter = React.memo(({args}: {args: any}) => {
 	return <ToolMessage message={messageContent} hideBox={true} />;
 });
 
-const formatter = async (args: any): Promise<React.ReactElement> => {
+const formatter = async (
+	args: any,
+	result?: string,
+): Promise<React.ReactElement> => {
+	// If result is an error message, don't try to read the file
+	if (result && result.startsWith('Error:')) {
+		return <></>;
+	}
 	return <ReadFileFormatter args={args} />;
+};
+
+const validator = async (args: {
+	path: string;
+}): Promise<{valid: true} | {valid: false; error: string}> => {
+	const absPath = resolve(args.path);
+
+	try {
+		await access(absPath, constants.F_OK);
+		return {valid: true};
+	} catch (error: any) {
+		if (error.code === 'ENOENT') {
+			return {
+				valid: false,
+				error: `⚒ File "${args.path}" does not exist`,
+			};
+		}
+		return {
+			valid: false,
+			error: `⚒ Cannot access file "${args.path}": ${error.message}`,
+		};
+	}
 };
 
 export const readFileTool: ToolDefinition = {
 	handler,
 	formatter,
+	validator,
 	requiresConfirmation: false,
 	config: {
 		type: 'function',

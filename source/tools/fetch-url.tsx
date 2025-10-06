@@ -114,9 +114,50 @@ const formatter = async (
 	return <FetchUrlFormatter args={args} result={result} />;
 };
 
+const validator = async (
+	args: FetchArgs,
+): Promise<{valid: true} | {valid: false; error: string}> => {
+	// Validate URL format
+	try {
+		const parsedUrl = new URL(args.url);
+
+		// Check for valid protocol
+		if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+			return {
+				valid: false,
+				error: `Invalid URL protocol "${parsedUrl.protocol}". Only http: and https: are supported.`,
+			};
+		}
+
+		// Check for localhost/internal IPs (security consideration)
+		const hostname = parsedUrl.hostname.toLowerCase();
+		if (
+			hostname === 'localhost' ||
+			hostname === '127.0.0.1' ||
+			hostname === '0.0.0.0' ||
+			hostname.startsWith('192.168.') ||
+			hostname.startsWith('10.') ||
+			hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)
+		) {
+			return {
+				valid: false,
+				error: `⚒ Cannot fetch from internal/private network address: ${hostname}`,
+			};
+		}
+
+		return {valid: true};
+	} catch (error: any) {
+		return {
+			valid: false,
+			error: `⚒ Invalid URL format: ${args.url}`,
+		};
+	}
+};
+
 export const fetchUrlTool: ToolDefinition = {
 	handler,
 	formatter,
+	validator,
 	requiresConfirmation: false,
 	config: {
 		type: 'function',

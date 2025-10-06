@@ -1,6 +1,7 @@
 import React from 'react';
 import {resolve} from 'node:path';
-import {readFile, writeFile} from 'node:fs/promises';
+import {readFile, writeFile, access} from 'node:fs/promises';
+import {constants} from 'node:fs';
 import {highlight} from 'cli-highlight';
 import {Text, Box} from 'ink';
 import type {ToolHandler, ToolDefinition} from '../types/index.js';
@@ -380,9 +381,76 @@ const formatter = async (
 	return <ReplaceLinesFormatter args={args} result={result} />;
 };
 
+const validator = async (
+	args: ReplaceLinesArgs,
+): Promise<{valid: true} | {valid: false; error: string}> => {
+	const {path, line_number, end_line} = args;
+
+	// Check if file exists
+	const absPath = resolve(path);
+	try {
+		await access(absPath, constants.F_OK);
+	} catch (error: any) {
+		if (error.code === 'ENOENT') {
+			return {
+				valid: false,
+				error: `⚒ File "${path}" does not exist`,
+			};
+		}
+		return {
+			valid: false,
+			error: `⚒ Cannot access file "${path}": ${error.message}`,
+		};
+	}
+
+	// Validate line numbers
+	if (!line_number || line_number < 1) {
+		return {
+			valid: false,
+			error: `⚒ Invalid line_number: ${line_number}. Must be a positive integer.`,
+		};
+	}
+
+	const endLine = end_line ?? line_number;
+	if (endLine < line_number) {
+		return {
+			valid: false,
+			error: `⚒ end_line (${endLine}) cannot be less than line_number (${line_number}).`,
+		};
+	}
+
+	// Check line numbers are within file bounds
+	try {
+		const fileContent = await readFile(absPath, 'utf-8');
+		const lines = fileContent.split('\n');
+
+		if (line_number > lines.length) {
+			return {
+				valid: false,
+				error: `⚒ Line number ${line_number} is out of range (file has ${lines.length} lines)`,
+			};
+		}
+
+		if (endLine > lines.length) {
+			return {
+				valid: false,
+				error: `⚒ End line ${endLine} is out of range (file has ${lines.length} lines)`,
+			};
+		}
+	} catch (error: any) {
+		return {
+			valid: false,
+			error: `⚒ Error reading file: ${error.message}`,
+		};
+	}
+
+	return {valid: true};
+};
+
 export const replaceLinesTool: ToolDefinition = {
 	handler,
 	formatter,
+	validator,
 	config: {
 		type: 'function',
 		function: {

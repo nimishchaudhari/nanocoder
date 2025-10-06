@@ -152,9 +152,34 @@ const formatter = async (
 	return <WebSearchFormatter args={args} result={result} />;
 };
 
+const validator = async (
+	args: SearchArgs,
+): Promise<{valid: true} | {valid: false; error: string}> => {
+	const query = args.query?.trim();
+
+	// Check if query is empty
+	if (!query) {
+		return {
+			valid: false,
+			error: '⚒ Search query cannot be empty',
+		};
+	}
+
+	// Check query length (reasonable limit)
+	if (query.length > 500) {
+		return {
+			valid: false,
+			error: `⚒ Search query is too long (${query.length} characters). Maximum length is 500 characters.`,
+		};
+	}
+
+	return {valid: true};
+};
+
 export const webSearchTool: ToolDefinition = {
 	handler,
 	formatter,
+	validator,
 	requiresConfirmation: false,
 	config: {
 		type: 'function',

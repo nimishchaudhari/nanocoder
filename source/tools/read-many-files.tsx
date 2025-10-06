@@ -1,5 +1,6 @@
 import {resolve} from 'node:path';
-import {readFile} from 'node:fs/promises';
+import {readFile, access} from 'node:fs/promises';
+import {constants} from 'node:fs';
 import React from 'react';
 import {Text, Box} from 'ink';
 import type {ToolHandler, ToolDefinition} from '../types/index.js';
@@ -141,13 +142,62 @@ const ReadManyFilesFormatter = React.memo(({args}: {args: any}) => {
 	return <ToolMessage message={messageContent} hideBox={true} />;
 });
 
-const formatter = async (args: any): Promise<React.ReactElement> => {
+const formatter = async (
+	args: any,
+	result?: string,
+): Promise<React.ReactElement> => {
+	// If result is an error message, don't try to read the files
+	if (result && result.startsWith('Error:')) {
+		return <></>;
+	}
 	return <ReadManyFilesFormatter args={args} />;
+};
+
+const validator = async (args: {
+	paths: string[];
+}): Promise<{valid: true} | {valid: false; error: string}> => {
+	if (!Array.isArray(args.paths)) {
+		return {
+			valid: false,
+			error: '⚒ Paths must be an array of strings',
+		};
+	}
+
+	const missingFiles: string[] = [];
+
+	for (const path of args.paths) {
+		const absPath = resolve(path);
+		try {
+			await access(absPath, constants.F_OK);
+		} catch (error: any) {
+			if (error.code === 'ENOENT') {
+				missingFiles.push(path);
+			} else {
+				return {
+					valid: false,
+					error: `⚒ Cannot access file "${path}": ${error.message}`,
+				};
+			}
+		}
+	}
+
+	if (missingFiles.length > 0) {
+		const fileList = missingFiles.map(f => `  • ${f}`).join('\n');
+		return {
+			valid: false,
+			error: `⚒ The following file${missingFiles.length > 1 ? 's' : ''} do${
+				missingFiles.length > 1 ? '' : 'es'
+			} not exist:\n${fileList}`,
+		};
+	}
+
+	return {valid: true};
 };
 
 export const readManyFilesTool: ToolDefinition = {
 	handler,
 	formatter,
+	validator,
 	config: {
 		type: 'function',
 		function: {

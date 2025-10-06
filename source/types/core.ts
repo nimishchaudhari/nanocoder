@@ -50,6 +50,7 @@ export interface ToolDefinition {
 		| React.ReactElement
 		| Promise<React.ReactElement>;
 	requiresConfirmation?: boolean;
+	validator?: (args: any) => Promise<{valid: true} | {valid: false; error: string}>;
 }
 
 export interface LLMClient {

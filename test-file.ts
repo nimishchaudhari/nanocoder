@@ -69,7 +69,7 @@ export function floor(n: number): number {
 }
 
 /**
- * Rounds a number up to the nearest integer
+ * Calculates the ceiling of a number, returning the smallest integer greater than or equal to the given value
  * @param n - The number to round up
  * @returns The smallest integer greater than or equal to n
  */

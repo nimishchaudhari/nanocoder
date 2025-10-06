@@ -4,6 +4,7 @@ import {
 	tools as staticTools,
 	toolRegistry as staticToolRegistry,
 	toolFormatters as staticToolFormatters,
+	toolValidators as staticToolValidators,
 } from './index.js';
 import {MCPClient} from '../mcp/mcp-client.js';
 import {MCPToolAdapter} from '../mcp/mcp-tool-adapter.js';
@@ -25,12 +26,17 @@ export class ToolManager {
 			| React.ReactElement
 			| Promise<React.ReactElement>
 	> = {};
+	private toolValidators: Record<
+		string,
+		(args: any) => Promise<{valid: true} | {valid: false; error: string}>
+	> = {};
 	private allTools: Tool[] = [];
 
 	constructor() {
 		// Initialize with static tools
 		this.toolRegistry = {...staticToolRegistry};
 		this.toolFormatters = {...staticToolFormatters};
+		this.toolValidators = {...staticToolValidators};
 		this.allTools = [...staticTools];
 	}
 
@@ -96,6 +102,17 @@ export class ToolManager {
 				| Promise<React.ReactElement>)
 		| undefined {
 		return this.toolFormatters[toolName];
+	}
+
+	/**
+	 * Get a specific tool validator
+	 */
+	getToolValidator(
+		toolName: string,
+	):
+		| ((args: any) => Promise<{valid: true} | {valid: false; error: string}>)
+		| undefined {
+		return this.toolValidators[toolName];
 	}
 
 	/**

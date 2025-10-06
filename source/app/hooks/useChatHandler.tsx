@@ -372,6 +372,7 @@ export function useChatHandler({
 			// Use knownToolCalls for the rest of the processing
 
 			// Separate tools that need confirmation vs those that don't
+			// BUT: if a tool fails validation, execute directly (skip confirmation)
 			const toolsNeedingConfirmation: ToolCall[] = [];
 			const toolsToExecuteDirectly: ToolCall[] = [];
 
@@ -380,7 +381,38 @@ export function useChatHandler({
 					def => def.config.function.name === toolCall.function.name,
 				);
 
-				if (toolDef && toolDef.requiresConfirmation === false) {
+				// Check if tool has a validator
+				let validationFailed = false;
+				if (toolManager) {
+					const validator = toolManager.getToolValidator(toolCall.function.name);
+					if (validator) {
+						try {
+							// Parse arguments if they're a JSON string
+							let parsedArgs = toolCall.function.arguments;
+							if (typeof parsedArgs === 'string') {
+								try {
+									parsedArgs = JSON.parse(parsedArgs);
+								} catch (e) {
+									// If parsing fails, use as-is
+								}
+							}
+
+							const validationResult = await validator(parsedArgs);
+							if (!validationResult.valid) {
+								validationFailed = true;
+							}
+						} catch (error) {
+							// Validation threw an error - treat as validation failure
+							validationFailed = true;
+						}
+					}
+				}
+
+				// If validation failed OR tool doesn't require confirmation, execute directly
+				if (
+					validationFailed ||
+					(toolDef && toolDef.requiresConfirmation === false)
+				) {
 					toolsToExecuteDirectly.push(toolCall);
 				} else {
 					toolsNeedingConfirmation.push(toolCall);
@@ -398,6 +430,49 @@ export function useChatHandler({
 						// Double-check tool exists before execution (safety net)
 						if (!toolManager?.hasTool(toolCall.function.name)) {
 							throw new Error(`Unknown tool: ${toolCall.function.name}`);
+						}
+
+						// Run validator if available
+						const validator = toolManager?.getToolValidator(toolCall.function.name);
+						if (validator) {
+							// Parse arguments if they're a JSON string
+							let parsedArgs = toolCall.function.arguments;
+							if (typeof parsedArgs === 'string') {
+								try {
+									parsedArgs = JSON.parse(parsedArgs);
+								} catch (e) {
+									// If parsing fails, use as-is
+								}
+							}
+
+							const validationResult = await validator(parsedArgs);
+							if (!validationResult.valid) {
+								// Validation failed - create error result and skip execution
+								const errorResult: ToolResult = {
+									tool_call_id: toolCall.id,
+									role: 'tool' as const,
+									name: toolCall.function.name,
+									content: validationResult.error,
+								};
+								directResults.push(errorResult);
+
+								// Update conversation state with error
+								conversationStateManager.current.updateAfterToolExecution(
+									toolCall,
+									errorResult.content,
+								);
+
+								// Display the validation error to the user
+								addToChatQueue(
+									<ErrorMessage
+										key={`validation-error-${toolCall.id}-${Date.now()}`}
+										message={validationResult.error}
+										hideBox={true}
+									/>,
+								);
+
+								continue; // Skip to next tool
+							}
 						}
 
 						const result = await processToolUse(toolCall);
@@ -586,6 +661,7 @@ export function useChatHandler({
 			// Handle tool calls if present - this continues the loop
 			if (validToolCalls && validToolCalls.length > 0) {
 				// Separate tools that need confirmation vs those that don't
+				// BUT: if a tool fails validation, execute directly (skip confirmation)
 				const toolsNeedingConfirmation: ToolCall[] = [];
 				const toolsToExecuteDirectly: ToolCall[] = [];
 
@@ -593,7 +669,39 @@ export function useChatHandler({
 					const toolDef = toolDefinitions.find(
 						def => def.config.function.name === toolCall.function.name,
 					);
-					if (toolDef && toolDef.requiresConfirmation === false) {
+
+					// Check if tool has a validator
+					let validationFailed = false;
+					if (toolManager) {
+						const validator = toolManager.getToolValidator(toolCall.function.name);
+						if (validator) {
+							try {
+								// Parse arguments if they're a JSON string
+								let parsedArgs = toolCall.function.arguments;
+								if (typeof parsedArgs === 'string') {
+									try {
+										parsedArgs = JSON.parse(parsedArgs);
+									} catch (e) {
+										// If parsing fails, use as-is
+									}
+								}
+
+								const validationResult = await validator(parsedArgs);
+								if (!validationResult.valid) {
+									validationFailed = true;
+								}
+							} catch (error) {
+								// Validation threw an error - treat as validation failure
+								validationFailed = true;
+							}
+						}
+					}
+
+					// If validation failed OR tool doesn't require confirmation, execute directly
+					if (
+						validationFailed ||
+						(toolDef && toolDef.requiresConfirmation === false)
+					) {
 						toolsToExecuteDirectly.push(toolCall);
 					} else {
 						toolsNeedingConfirmation.push(toolCall);
@@ -608,6 +716,51 @@ export function useChatHandler({
 
 					for (const toolCall of toolsToExecuteDirectly) {
 						try {
+							// Run validator if available
+							const validator = toolManager?.getToolValidator(
+								toolCall.function.name,
+							);
+							if (validator) {
+								// Parse arguments if they're a JSON string
+								let parsedArgs = toolCall.function.arguments;
+								if (typeof parsedArgs === 'string') {
+									try {
+										parsedArgs = JSON.parse(parsedArgs);
+									} catch (e) {
+										// If parsing fails, use as-is
+									}
+								}
+
+								const validationResult = await validator(parsedArgs);
+								if (!validationResult.valid) {
+									// Validation failed - create error result and skip execution
+									const errorResult: ToolResult = {
+										tool_call_id: toolCall.id,
+										role: 'tool' as const,
+										name: toolCall.function.name,
+										content: validationResult.error,
+									};
+									directResults.push(errorResult);
+
+									// Update conversation state with error
+									conversationStateManager.current.updateAfterToolExecution(
+										toolCall,
+										errorResult.content,
+									);
+
+									// Display the validation error to the user
+									addToChatQueue(
+										<ErrorMessage
+											key={`validation-error-${toolCall.id}-${Date.now()}`}
+											message={validationResult.error}
+											hideBox={true}
+										/>,
+									);
+
+									continue; // Skip to next tool
+								}
+							}
+
 							const result = await processToolUse(toolCall);
 							directResults.push(result);
 

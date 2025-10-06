@@ -1,5 +1,6 @@
-import {resolve} from 'node:path';
-import {writeFile} from 'node:fs/promises';
+import {resolve, dirname} from 'node:path';
+import {writeFile, access} from 'node:fs/promises';
+import {constants} from 'node:fs';
 import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
@@ -84,9 +85,73 @@ const formatter = async (args: any): Promise<React.ReactElement> => {
 	return <CreateFileFormatter args={args} />;
 };
 
+const validator = async (args: {
+	path: string;
+	content: string;
+}): Promise<{valid: true} | {valid: false; error: string}> => {
+	const absPath = resolve(args.path);
+
+	// Check if file already exists
+	try {
+		await access(absPath, constants.F_OK);
+		return {
+			valid: false,
+			error: `⚒ File "${args.path}" already exists. Use a file editing tool instead.`,
+		};
+	} catch (error: any) {
+		// ENOENT is good - file doesn't exist
+		if (error.code !== 'ENOENT') {
+			return {
+				valid: false,
+				error: `⚒ Cannot access path "${args.path}": ${error.message}`,
+			};
+		}
+	}
+
+	// Check if parent directory exists
+	const parentDir = dirname(absPath);
+	try {
+		await access(parentDir, constants.F_OK);
+	} catch (error: any) {
+		if (error.code === 'ENOENT') {
+			return {
+				valid: false,
+				error: `⚒ Parent directory does not exist: "${parentDir}"`,
+			};
+		}
+		return {
+			valid: false,
+			error: `⚒ Cannot access parent directory "${parentDir}": ${error.message}`,
+		};
+	}
+
+	// Check for invalid path characters or attempts to write to system directories
+	const invalidPatterns = [
+		/^\/etc\//i,
+		/^\/sys\//i,
+		/^\/proc\//i,
+		/^\/dev\//i,
+		/^\/boot\//i,
+		/^C:\\Windows\\/i,
+		/^C:\\Program Files\\/i,
+	];
+
+	for (const pattern of invalidPatterns) {
+		if (pattern.test(absPath)) {
+			return {
+				valid: false,
+				error: `⚒ Cannot create files in system directory: "${args.path}"`,
+			};
+		}
+	}
+
+	return {valid: true};
+};
+
 export const createFileTool: ToolDefinition = {
 	handler,
 	formatter,
+	validator,
 	config: {
 		type: 'function',
 		function: {
