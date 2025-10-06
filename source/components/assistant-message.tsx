@@ -2,73 +2,95 @@ import {Text, Box} from 'ink';
 import {memo, useMemo} from 'react';
 import {useTheme} from '../hooks/useTheme.js';
 import type {AssistantMessageProps} from '../types/index.js';
+import chalk from 'chalk';
 
-// Performance optimization: truncate very long messages to prevent input lag
-const MAX_MESSAGE_LENGTH = 6000; // characters - beyond this causes input lag
-const TRUNCATE_PREVIEW_LENGTH = 3000; // characters to show before truncation
+// Basic markdown parser for terminal
+function parseMarkdown(text: string, themeColors: any): string {
+	let result = text;
+
+	// Code blocks (```language\ncode\n```)
+	result = result.replace(
+		/```(\w+)?\n([\s\S]*?)```/g,
+		(_match, _lang, code) => {
+			return chalk.hex(themeColors.tool)(code.trim());
+		},
+	);
+
+	// Inline code (`code`)
+	result = result.replace(/`([^`]+)`/g, (_match, code) => {
+		return chalk.hex(themeColors.tool)(code);
+	});
+
+	// Bold (**text** or __text__)
+	result = result.replace(/\*\*([^*]+)\*\*/g, (_match, text) => {
+		return chalk.hex(themeColors.white).bold(text);
+	});
+	result = result.replace(/__([^_]+)__/g, (_match, text) => {
+		return chalk.hex(themeColors.white).bold(text);
+	});
+
+	// Italic (*text* or _text_)
+	result = result.replace(/\*([^*]+)\*/g, (_match, text) => {
+		return chalk.hex(themeColors.white).italic(text);
+	});
+	result = result.replace(/_([^_]+)_/g, (_match, text) => {
+		return chalk.hex(themeColors.white).italic(text);
+	});
+
+	// Headings (# Heading)
+	result = result.replace(/^(#{1,6})\s+(.+)$/gm, (_match, hashes, text) => {
+		return chalk.hex(themeColors.primary).bold(text);
+	});
+
+	// Links [text](url)
+	result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, text, url) => {
+		return (
+			chalk.hex(themeColors.info).underline(text) +
+			' ' +
+			chalk.hex(themeColors.secondary)(`(${url})`)
+		);
+	});
+
+	// Blockquotes (> text)
+	result = result.replace(/^>\s+(.+)$/gm, (_match, text) => {
+		return chalk.hex(themeColors.secondary).italic(`> ${text}`);
+	});
+
+	// List items (- item or * item or 1. item)
+	result = result.replace(/^[\s]*[-*]\s+(.+)$/gm, (_match, text) => {
+		return chalk.hex(themeColors.white)(`• ${text}`);
+	});
+	result = result.replace(/^[\s]*\d+\.\s+(.+)$/gm, (_match, text) => {
+		return chalk.hex(themeColors.white)(text);
+	});
+
+	return result;
+}
 
 export default memo(function AssistantMessage({
 	message,
 	model,
 }: AssistantMessageProps) {
 	const {colors} = useTheme();
-	const {displayMessage, wasTruncated, remainingChars} = useMemo(() => {
-		if (message.length <= MAX_MESSAGE_LENGTH) {
-			return {
-				displayMessage: message,
-				wasTruncated: false,
-				remainingChars: 0,
-			};
+
+	// Render markdown to terminal-formatted text with theme colors
+	const renderedMessage = useMemo(() => {
+		try {
+			return parseMarkdown(message, colors);
+		} catch {
+			// Fallback to plain text if markdown parsing fails
+			return message;
 		}
-
-		// Find a good truncation point (prefer end of line or sentence)
-		const truncateAt = TRUNCATE_PREVIEW_LENGTH;
-		let cutPoint = truncateAt;
-
-		// Try to find a natural break point near the truncation point
-		const searchArea = message.slice(
-			Math.max(0, truncateAt - 100),
-			truncateAt + 100,
-		);
-		const lineBreak = searchArea.lastIndexOf('\n');
-		const sentenceEnd = searchArea.lastIndexOf('.');
-		const paragraphEnd = searchArea.lastIndexOf('\n\n');
-
-		if (paragraphEnd !== -1) {
-			cutPoint = truncateAt - 100 + paragraphEnd + 2;
-		} else if (lineBreak !== -1) {
-			cutPoint = truncateAt - 100 + lineBreak + 1;
-		} else if (sentenceEnd !== -1) {
-			cutPoint = truncateAt - 100 + sentenceEnd + 1;
-		}
-
-		return {
-			displayMessage: message.slice(0, cutPoint).trimEnd(),
-			wasTruncated: true,
-			remainingChars: message.length - cutPoint,
-		};
-	}, [message]);
+	}, [message, colors]);
 
 	return (
 		<Box flexDirection="column" marginBottom={1}>
-			<Box>
+			<Box marginBottom={1}>
 				<Text color={colors.primary} bold>
 					{model}:
 				</Text>
 			</Box>
-			<Text color={colors.white}>{displayMessage}</Text>
-			{wasTruncated && (
-				<Box marginTop={1} flexDirection="column">
-					<Text color={colors.secondary} dimColor>
-						... [{remainingChars.toLocaleString()} more characters truncated for
-						performance]
-					</Text>
-					<Text color={colors.info}>
-						Scroll up to see the beginning or use terminal's buffer to view full
-						response
-					</Text>
-				</Box>
-			)}
+			<Text>{renderedMessage}</Text>
 		</Box>
 	);
 });

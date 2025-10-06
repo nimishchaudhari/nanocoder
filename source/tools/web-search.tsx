@@ -5,7 +5,6 @@ import {Text, Box} from 'ink';
 import type {ToolHandler, ToolDefinition} from '../types/index.js';
 import {ThemeContext} from '../hooks/useTheme.js';
 import ToolMessage from '../components/tool-message.js';
-import {logInfo} from '../utils/message-queue.js';
 
 interface SearchArgs {
 	query: string;
