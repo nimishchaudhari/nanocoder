@@ -161,7 +161,7 @@ export const webSearchTool: ToolDefinition = {
 		function: {
 			name: 'web_search',
 			description:
-				'Search the web using Brave Search and return relevant results with URLs, titles, and descriptions. Use this to find up-to-date information, documentation, or answers to questions. Use in conjuction with the `fetch-url` tool to get page information on search results.',
+				'Search the web using Brave Search and return relevant results with URLs, titles, and descriptions. Use this to find up-to-date information, documentation, or answers to questions that require. Use in conjuction with the `fetch_url` tool to get page information on search results.',
 			parameters: {
 				type: 'object',
 				properties: {
