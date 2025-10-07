@@ -129,21 +129,32 @@ function RecommendationsDisplay({onCancel}: RecommendationsDisplayProps) {
 					);
 				};
 
-				const getQualityScore = (model: ModelRecommendationEnhanced) => {
+				// Local model scoring: agentic is most important, then feasibility (can it run on this system)
+				const getLocalScore = (model: ModelRecommendationEnhanced) => {
+					const canRun = canRunLocally(model);
+					if (!canRun) return 0; // Can't run = score of 0
+
 					return (
-						model.model.quality.coding +
-						model.model.quality.agentic +
-						model.model.quality.tools
+						model.model.quality.agentic * 3.0 +
+						model.model.quality.local * 1.5
+					);
+				};
+
+				// API model scoring: agentic is most important, then cost (value for money)
+				const getApiScore = (model: ModelRecommendationEnhanced) => {
+					return (
+						model.model.quality.agentic * 3.0 +
+						model.model.quality.cost * 1.2
 					);
 				};
 
 				const localModels = result.allModels
-					.filter(m => m.model.local && canRunLocally(m))
-					.sort((a, b) => getQualityScore(b) - getQualityScore(a));
+					.filter(m => m.model.local)
+					.sort((a, b) => getLocalScore(b) - getLocalScore(a));
 
 				const apiModels = result.allModels
 					.filter(m => m.model.api)
-					.sort((a, b) => getQualityScore(b) - getQualityScore(a));
+					.sort((a, b) => getApiScore(b) - getApiScore(a));
 
 				setTopLocalModel(localModels[0] || null);
 				setTopApiModel(apiModels[0] || null);
@@ -384,15 +395,6 @@ function ModelsTabView({
 	searchQuery: string;
 	currentTabModels: ModelRecommendationEnhanced[];
 }) {
-	// Calculate quality scores for sorting
-	const getQualityScore = (model: ModelRecommendationEnhanced) => {
-		return (
-			model.model.quality.coding +
-			model.model.quality.agentic +
-			model.model.quality.tools
-		);
-	};
-
 	// Check if model can run locally on this system
 	const canRunLocally = (model: ModelRecommendationEnhanced) => {
 		return (
@@ -401,25 +403,33 @@ function ModelsTabView({
 		);
 	};
 
-	// Separate models into local and API, then sort by quality
-	// For local models, prioritize runnable models over non-runnable
+	// Local model scoring: agentic is most important, then feasibility
+	const getLocalScore = (model: ModelRecommendationEnhanced) => {
+		const canRun = canRunLocally(model);
+		if (!canRun) return 0; // Can't run = score of 0
+
+		return (
+			model.model.quality.agentic * 3.0 +
+			model.model.quality.local * 1.5
+		);
+	};
+
+	// API model scoring: agentic is most important, then cost (value for money)
+	const getApiScore = (model: ModelRecommendationEnhanced) => {
+		return (
+			model.model.quality.agentic * 3.0 +
+			model.model.quality.cost * 1.2
+		);
+	};
+
+	// Separate models into local and API, then sort by appropriate score
 	const localModels = models
 		.filter(m => m.model.local)
-		.sort((a, b) => {
-			const aCanRun = canRunLocally(a);
-			const bCanRun = canRunLocally(b);
-
-			// Runnable models first
-			if (aCanRun && !bCanRun) return -1;
-			if (!aCanRun && bCanRun) return 1;
-
-			// Then by quality
-			return getQualityScore(b) - getQualityScore(a);
-		});
+		.sort((a, b) => getLocalScore(b) - getLocalScore(a));
 
 	const apiModels = models
 		.filter(m => m.model.api)
-		.sort((a, b) => getQualityScore(b) - getQualityScore(a));
+		.sort((a, b) => getApiScore(b) - getApiScore(a));
 
 	// Use passed in currentTabModels if in search mode, otherwise calculate
 	const currentModels = searchMode
@@ -504,7 +514,8 @@ function ModelsTabView({
 					model={currentModel}
 					colors={colors}
 					showScore={true}
-					qualityScore={getQualityScore(currentModel)}
+					localScore={getLocalScore(currentModel)}
+					apiScore={getApiScore(currentModel)}
 					isLocalTab={activeTab === 'local'}
 					systemCaps={systemCaps}
 					searchMode={searchMode}
@@ -518,7 +529,8 @@ function ModelItem({
 	model,
 	colors,
 	showScore,
-	qualityScore,
+	localScore,
+	apiScore,
 	isLocalTab,
 	systemCaps,
 	searchMode,
@@ -526,7 +538,8 @@ function ModelItem({
 	model: ModelRecommendationEnhanced;
 	colors: any;
 	showScore?: boolean;
-	qualityScore?: number;
+	localScore?: number;
+	apiScore?: number;
 	isLocalTab?: boolean;
 	systemCaps?: SystemCapabilities;
 	searchMode?: boolean;
@@ -542,31 +555,67 @@ function ModelItem({
 		!model.model.minMemoryGB ||
 		(systemCaps && systemCaps.memory.total >= model.model.minMemoryGB);
 
-	// Get score color and label based on quality
+	// Get score color and label based on quality (normalized to 10)
 	const getScoreInfo = (score: number, forLocal: boolean) => {
-		let adjustedScore = score;
+		// Different max scores for local vs API
+		// Local max: 10*3 + 10*1.5 = 45
+		// API max: 10*3 + 10*1.2 = 42
+		const maxScore = forLocal ? 45 : 42;
+		const normalizedScore = (score / maxScore) * 10;
 
-		// If scoring for local but can't run locally, severely penalize
-		if (forLocal && !canRunLocally) {
-			adjustedScore = Math.floor(score * 0.3); // Reduce to 30% of original score
-		}
-
-		if (adjustedScore >= 24) return {color: colors.success, label: 'Excellent'};
-		if (adjustedScore >= 18) return {color: colors.primary, label: 'Good'};
-		if (adjustedScore >= 12) return {color: colors.warning, label: 'Decent'};
-		return {color: colors.error, label: 'Poor'};
+		if (normalizedScore >= 7.5) return {color: colors.success, label: 'Excellent', score: normalizedScore};
+		if (normalizedScore >= 6.5) return {color: colors.primary, label: 'Good', score: normalizedScore};
+		if (normalizedScore >= 5.0) return {color: colors.warning, label: 'Decent', score: normalizedScore};
+		return {color: colors.error, label: 'Poor', score: normalizedScore};
 	};
 
 	// In search mode with both local and API, show both scores
 	const showBothScores = searchMode && model.model.local && model.model.api;
 	const localScoreInfo =
-		qualityScore !== undefined && (showBothScores || isLocalTab)
-			? getScoreInfo(qualityScore, true)
+		localScore !== undefined && (showBothScores || isLocalTab)
+			? getScoreInfo(localScore, true)
 			: null;
 	const apiScoreInfo =
-		qualityScore !== undefined && (showBothScores || !isLocalTab)
-			? getScoreInfo(qualityScore, false)
+		apiScore !== undefined && (showBothScores || !isLocalTab)
+			? getScoreInfo(apiScore, false)
 			: null;
+
+	// Generate weaknesses based on context and scores
+	const getWeaknesses = (): string[] => {
+		const weaknesses: string[] = [];
+		const activeScoreInfo = isLocalTab ? localScoreInfo : apiScoreInfo;
+		const activeScore = isLocalTab ? localScore : apiScore;
+
+		// Only show weaknesses if score is Poor or Decent
+		if (!activeScoreInfo || activeScoreInfo.score >= 6.5) return weaknesses;
+
+		if (isLocalTab) {
+			// Local weaknesses
+			if (!canRunLocally) {
+				const required = model.model.minMemoryGB || 0;
+				const available = systemCaps?.memory.total || 0;
+				weaknesses.push(`Cannot run locally - requires ${required}GB RAM (you have ${available}GB)`);
+			}
+			if (model.model.quality.agentic < 5) {
+				weaknesses.push('Limited agentic coding capabilities');
+			}
+			if (model.model.quality.local < 5 && canRunLocally) {
+				weaknesses.push('Difficult to run locally - requires significant resources');
+			}
+		} else {
+			// API weaknesses
+			if (model.model.quality.agentic < 5) {
+				weaknesses.push('Limited agentic coding capabilities');
+			}
+			if (model.model.quality.cost < 5) {
+				weaknesses.push('Expensive API pricing');
+			}
+		}
+
+		return weaknesses;
+	};
+
+	const weaknesses = getWeaknesses();
 
 	return (
 		<Box flexDirection="column" marginBottom={1}>
@@ -601,7 +650,7 @@ function ModelItem({
 									<Text color={localScoreInfo.color} bold>
 										{localScoreInfo.label}
 									</Text>
-									<Text dimColor> ({qualityScore}/30)</Text>
+									<Text dimColor> ({localScoreInfo.score.toFixed(1)}/10)</Text>
 								</Text>
 							)}
 							{apiScoreInfo && (
@@ -610,7 +659,7 @@ function ModelItem({
 									<Text color={apiScoreInfo.color} bold>
 										{apiScoreInfo.label}
 									</Text>
-									<Text dimColor> ({qualityScore}/30)</Text>
+									<Text dimColor> ({apiScoreInfo.score.toFixed(1)}/10)</Text>
 								</Text>
 							)}
 						</>
@@ -622,7 +671,7 @@ function ModelItem({
 							<Text color={(localScoreInfo || apiScoreInfo)!.color} bold>
 								{(localScoreInfo || apiScoreInfo)!.label}
 							</Text>
-							<Text dimColor> ({qualityScore}/30)</Text>
+							<Text dimColor> ({(localScoreInfo || apiScoreInfo)!.score.toFixed(1)}/10)</Text>
 						</Text>
 					) : null}
 				</Box>
@@ -636,6 +685,18 @@ function ModelItem({
 						</Text>
 					))}
 				</Box>
+				{weaknesses.length > 0 && (
+					<Box flexDirection="column" marginTop={1}>
+						<Text color={colors.error} bold>
+							Weaknesses:
+						</Text>
+						{weaknesses.map((line, i) => (
+							<Text key={i} color={colors.error}>
+								• {line}
+							</Text>
+						))}
+					</Box>
+				)}
 			</Box>
 		</Box>
 	);

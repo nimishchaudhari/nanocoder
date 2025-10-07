@@ -1,25 +1,175 @@
 import {ModelEntry} from '../types/index.js';
 
-/**
-export interface ModelEntry {
-	name: string;
-	size: string; // "7B", "13B", "70B", "Unknown" for API models
-	local: boolean; // Can be run locally (Ollama, etc.)
-	api: boolean; // Available via hosted API (OpenRouter, etc.)
-	minMemoryGB?: number; // Minimum RAM needed (only for local models, GPU always recommended)
-	// Quality ratings (1-5 scale)
-	quality: {
-		coding: number // Overall coding ability
-		agentic: number // Multi-step task planning and execution
-		tools: number // Function calling and tool usage
-	};
-	// Cost info
-	costType: 'free' | 'paid';
-	costDetails?: string; // e.g., "$0.15/1M tokens" or "Free via Ollama"
-}
-*/
-
 export const MODEL_DATABASE: ModelEntry[] = [
+	{
+		name: 'qwen2.5-coder:0.5b',
+		author: 'Alibaba',
+		size: '0.5B',
+		local: true,
+		api: false,
+		minMemoryGB: 2,
+		quality: {
+			agentic: 0,
+			local: 10,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails: 'Free to run locally.',
+	},
+	{
+		name: 'qwen2.5-coder:1.5b',
+		author: 'Alibaba',
+		size: '1.5B',
+		local: true,
+		api: false,
+		minMemoryGB: 2,
+		quality: {
+			agentic: 0,
+			local: 10,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails: 'Free to run locally.',
+	},
+	{
+		name: 'qwen2.5-coder:3b',
+		author: 'Alibaba',
+		size: '3B',
+		local: true,
+		api: false,
+		minMemoryGB: 4,
+		quality: {
+			agentic: 1,
+			local: 10,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails: 'Free to run locally.',
+	},
+	{
+		name: 'qwen2.5-coder:7b',
+		author: 'Alibaba',
+		size: '7B',
+		local: true,
+		api: true,
+		minMemoryGB: 8,
+		quality: {
+			agentic: 2,
+			local: 9,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails:
+			'Free to run locally. API: from $0.03/M input, $0.09/M output.',
+	},
+	{
+		name: 'qwen2.5-coder:14b',
+		author: 'Alibaba',
+		size: '14B',
+		local: true,
+		api: false,
+		minMemoryGB: 12,
+		quality: {
+			agentic: 3,
+			local: 8,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails: 'Free to run locally.',
+	},
+	{
+		name: 'qwen2.5-coder:32b',
+		author: 'Alibaba',
+		size: '32B',
+		local: true,
+		api: true,
+		minMemoryGB: 24,
+		quality: {
+			agentic: 5,
+			local: 7,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails:
+			'Free to run locally. API: from $0.04/M input, $0.16/M output.',
+	},
+	{
+		name: 'gemma3:270m',
+		author: 'Google',
+		size: '270M',
+		local: true,
+		api: false,
+		minMemoryGB: 2,
+		quality: {
+			agentic: 0,
+			local: 10,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails: 'Free to run locally.',
+	},
+	{
+		name: 'gemma3:1b',
+		author: 'Google',
+		size: '1B',
+		local: true,
+		api: false,
+		minMemoryGB: 2,
+		quality: {
+			agentic: 0,
+			local: 10,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails: 'Free to run locally.',
+	},
+	{
+		name: 'gemma3:4b',
+		author: 'Google',
+		size: '4B',
+		local: true,
+		api: true,
+		minMemoryGB: 4,
+		quality: {
+			agentic: 0,
+			local: 10,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails:
+			'Free to run locally. API: from $0.04/M input, $0.08/M output.',
+	},
+	{
+		name: 'gemma3:12b',
+		author: 'Google',
+		size: '12B',
+		local: true,
+		api: false,
+		minMemoryGB: 10,
+		quality: {
+			agentic: 1,
+			local: 7,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails: 'Free to run locally.',
+	},
+	{
+		name: 'gemma3:27b',
+		author: 'Google',
+		size: '27B',
+		local: true,
+		api: true,
+		minMemoryGB: 20,
+		quality: {
+			agentic: 2,
+			local: 6,
+			cost: 10,
+		},
+		costType: 'free',
+		costDetails:
+			'Free to run locally. API: from $0.09/M input, $0.16/M output.',
+	},
 	{
 		name: 'gpt-oss-20b',
 		author: 'OpenAI',
@@ -28,12 +178,13 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		api: true,
 		minMemoryGB: 16,
 		quality: {
-			coding: 4,
-			agentic: 4,
-			tools: 4,
+			agentic: 5,
+			local: 7,
+			cost: 10,
 		},
 		costType: 'free',
-		costDetails: 'Free to run locally. API costs vary.',
+		costDetails:
+			'Free to run locally. API: from $0.03/M input, $0.14/M output.',
 	},
 	{
 		name: 'gpt-oss-120b',
@@ -43,12 +194,13 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		api: true,
 		minMemoryGB: 80,
 		quality: {
-			coding: 5,
-			agentic: 5,
-			tools: 5,
+			agentic: 6,
+			local: 3,
+			cost: 10,
 		},
 		costType: 'free',
-		costDetails: 'Free to run locally. API costs vary.',
+		costDetails:
+			'Free to run locally. API: from $0.04/M input tokens, $0.40/M output tokens.',
 	},
 	{
 		name: 'qwen3-coder:30b',
@@ -58,12 +210,13 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		api: true,
 		minMemoryGB: 24,
 		quality: {
-			coding: 4,
-			agentic: 4,
-			tools: 4,
+			agentic: 6,
+			local: 7,
+			cost: 10,
 		},
 		costType: 'free',
-		costDetails: 'Free to run locally. API costs vary.',
+		costDetails:
+			'Free to run locally. API: from $0.06/M input, $0.25/M output.',
 	},
 	{
 		name: 'qwen3-coder:480b',
@@ -73,12 +226,13 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		api: true,
 		minMemoryGB: 256,
 		quality: {
-			coding: 8,
 			agentic: 8,
-			tools: 8,
+			local: 1,
+			cost: 8,
 		},
 		costType: 'free',
-		costDetails: 'Free to run locally. API costs vary.',
+		costDetails:
+			'Free to run locally. API: from $0.22/M input, $0.95/M output.',
 	},
 	{
 		name: 'glm-4.6',
@@ -88,12 +242,13 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		api: true,
 		minMemoryGB: 256,
 		quality: {
-			coding: 8.5,
-			agentic: 8.5,
-			tools: 8.5,
+			agentic: 9,
+			local: 1,
+			cost: 8,
 		},
 		costType: 'free',
-		costDetails: 'Free to run locally. API costs vary.',
+		costDetails:
+			'Free to run locally. API: from $0.50/M input, $1.75/M output.',
 	},
 	{
 		name: 'glm-4.5-air',
@@ -103,12 +258,56 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		api: true,
 		minMemoryGB: 80,
 		quality: {
-			coding: 7,
-			agentic: 7,
-			tools: 7,
+			agentic: 7.5,
+			local: 3,
+			cost: 10,
 		},
 		costType: 'free',
-		costDetails: 'Free to run locally. API costs vary.',
+		costDetails: 'Free to run locally. Free API solutions.',
+	},
+	{
+		name: 'devstral-small',
+		author: 'Mistral',
+		size: '24B',
+		local: true,
+		api: true,
+		minMemoryGB: 18,
+		quality: {
+			agentic: 5,
+			local: 7,
+			cost: 9,
+		},
+		costType: 'free',
+		costDetails:
+			'Free to run locally. API: from $0.07/M input, $0.28/M output.',
+	},
+	{
+		name: 'devstral-medium',
+		author: 'Mistral',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			agentic: 7,
+			local: 0,
+			cost: 8,
+		},
+		costType: 'paid',
+		costDetails: 'API: from $0.40/M input, $2.00/M output.',
+	},
+	{
+		name: 'codestral',
+		author: 'Mistral',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			agentic: 6,
+			local: 0,
+			cost: 9,
+		},
+		costType: 'paid',
+		costDetails: 'API: from $0.30/M input, $0.90/M output.',
 	},
 	{
 		name: 'grok-code-fast-1',
@@ -117,12 +316,140 @@ export const MODEL_DATABASE: ModelEntry[] = [
 		local: false,
 		api: true,
 		quality: {
-			coding: 8,
 			agentic: 8,
-			tools: 8,
+			local: 0,
+			cost: 7,
 		},
 		costType: 'paid',
-		costDetails: '$0.20/input, $1.50/output',
+		costDetails: 'API: from $0.20/M input, $1.50/M output.',
+	},
+	{
+		name: 'gpt-5-pro',
+		author: 'OpenAI',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			agentic: 10,
+			local: 0,
+			cost: 0,
+		},
+		costType: 'paid',
+		costDetails: 'API: from $15/M input, $120/M output.',
+	},
+	{
+		name: 'gpt-5-codex',
+		author: 'OpenAI',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			agentic: 10,
+			local: 0,
+			cost: 5,
+		},
+		costType: 'paid',
+		costDetails: 'API: from $1.25/M input, $10/M output.',
+	},
+	{
+		name: 'gpt-5-mini',
+		author: 'OpenAI',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			agentic: 6,
+			local: 0,
+			cost: 7,
+		},
+		costType: 'paid',
+		costDetails: 'API: from $0.25/M input, $2/M output.',
+	},
+	{
+		name: 'gpt-5-mini',
+		author: 'OpenAI',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			agentic: 6,
+			local: 0,
+			cost: 7,
+		},
+		costType: 'paid',
+		costDetails: 'API: from $0.25/M input, $2/M output.',
+	},
+	{
+		name: 'claude-sonnet-4.5',
+		author: 'Anthropic',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			agentic: 9,
+			local: 0,
+			cost: 6,
+		},
+		costType: 'paid',
+		costDetails: 'API: from $3/M input, $15/M output.',
+	},
+	{
+		name: 'claude-opus-4.1',
+		author: 'Anthropic',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			agentic: 9,
+			local: 0,
+			cost: 3,
+		},
+		costType: 'paid',
+		costDetails: 'API: from $15/M input, $75/M output.',
+	},
+	{
+		name: 'gemini-2.5-pro',
+		author: 'Google',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			agentic: 7,
+			local: 0,
+			cost: 5,
+		},
+		costType: 'paid',
+		costDetails: 'API: from $1.25/M input, $10/M output.',
+	},
+	{
+		name: 'gemini-2.5-flash',
+		author: 'Google',
+		size: 'Unknown',
+		local: false,
+		api: true,
+		quality: {
+			agentic: 5,
+			local: 0,
+			cost: 5,
+		},
+		costType: 'paid',
+		costDetails: 'API: from $0.30/M input, $2.50/M output.',
+	},
+	{
+		name: 'deepseek-chat-v3.1-terminus',
+		author: 'DeepSeek',
+		size: '671B',
+		local: true,
+		api: true,
+		minMemoryGB: 400,
+		quality: {
+			agentic: 7,
+			local: 1,
+			cost: 7,
+		},
+		costType: 'free',
+		costDetails:
+			'Free to run locally. API: from $0.30/M input, $2.50/M output.',
 	},
 ];
 

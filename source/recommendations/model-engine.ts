@@ -167,23 +167,15 @@ export class ModelMatchingEngine {
 
 		// Capability warnings based on ratings (0-10 scale, 0 = not supported)
 		if (model.quality.agentic === 0) {
-			warnings.push('Does not support agentic/multi-step workflows well');
+			warnings.push('Does not support agentic coding workflows');
 		} else if (model.quality.agentic <= 4) {
-			warnings.push('Limited capabilities for complex multi-step workflows');
+			warnings.push('Limited capabilities for complex agentic coding tasks');
 		}
 
-		if (model.quality.tools === 0) {
-			warnings.push(
-				'Does not support tool/function calling. Nanocoder has support for non-tool calling models but performance may be limited.',
-			);
-		} else if (model.quality.tools <= 4) {
-			warnings.push(
-				'Basic tool usage - may struggle with complex integrations',
-			);
-		}
-
-		if (model.quality.coding === 0) {
-			warnings.push('Not suitable for coding tasks');
+		if (model.quality.local === 0) {
+			warnings.push('Cannot be run locally - proprietary/closed-source model');
+		} else if (model.quality.local <= 3) {
+			warnings.push('Difficult to run locally - requires significant resources');
 		}
 
 		return warnings;
@@ -206,26 +198,22 @@ export class ModelMatchingEngine {
 		const strengths: string[] = [];
 
 		// Analyze capabilities (0-10 scale)
-		if (model.quality.coding >= 8) {
-			strengths.push('Excellent code quality');
-		} else if (model.quality.coding >= 6) {
-			strengths.push('Good code quality');
-		}
-
 		if (model.quality.agentic >= 8) {
-			strengths.push('Strong agentic workflows');
+			strengths.push('Excellent agentic coding abilities');
 		} else if (model.quality.agentic >= 6) {
-			strengths.push('Decent agentic capabilities');
+			strengths.push('Good agentic coding capabilities');
 		}
 
-		if (model.quality.tools >= 8) {
-			strengths.push('Advanced tool usage');
-		} else if (model.quality.tools >= 6) {
-			strengths.push('Good tool support');
+		if (model.quality.local >= 8) {
+			strengths.push('Easy to run locally');
+		} else if (model.quality.local >= 6) {
+			strengths.push('Reasonable to run locally');
 		}
 
-		if (model.costType === 'free') {
-			strengths.push('Completely free');
+		if (model.quality.cost >= 8) {
+			strengths.push('Excellent value - free or very cheap');
+		} else if (model.quality.cost >= 6) {
+			strengths.push('Good cost-effectiveness');
 		}
 
 		if (model.local && model.api) {
@@ -258,11 +246,12 @@ export class ModelMatchingEngine {
 	}
 
 	private calculateOverallCapabilityScore(model: ModelEntry): number {
-		// Weight agentic tasks and tool usage higher for this use case
+		// Weight heavily in favor of agentic capabilities (coding ability is most important)
+		// Then local feasibility, and finally cost
 		return (
-			model.quality.coding * 1.2 +
-			model.quality.agentic * 1.5 +
-			model.quality.tools * 1.3
+			model.quality.agentic * 3.0 +
+			model.quality.local * 0.8 +
+			model.quality.cost * 0.5
 		);
 	}
 }

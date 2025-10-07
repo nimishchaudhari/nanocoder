@@ -35,9 +35,9 @@ export interface ModelEntry {
 	minMemoryGB?: number; // Minimum RAM needed (only for local models, GPU always recommended)
 	// Quality ratings (0-10 scale, 0 = not supported)
 	quality: {
-		coding: number; // Overall coding ability
-		agentic: number; // Multi-step task planning and execution
-		tools: number; // Function calling and tool usage
+		agentic: number; // Tool use, instruction following, multi-file reasoning for coding tasks
+		local: number; // Feasibility to run locally (0 = proprietary/impossible, 10 = easy to run locally)
+		cost: number; // Cost-effectiveness (10 = free/cheap, 0 = very expensive)
 	};
 	// Cost info
 	costType: 'free' | 'paid';

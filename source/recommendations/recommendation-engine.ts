@@ -97,13 +97,13 @@ export class RecommendationEngine {
 		models: ModelRecommendationEnhanced[]
 	): ModelRecommendationEnhanced[] {
 		return models.sort((a, b) => {
-			// Calculate quality scores (agentic + coding + tool usage)
-			const aQuality = a.model.quality.agentic +
-							 a.model.quality.coding +
-							 a.model.quality.tools;
-			const bQuality = b.model.quality.agentic +
-							 b.model.quality.coding +
-							 b.model.quality.tools;
+			// Calculate quality scores - prioritize agentic capabilities heavily
+			const aQuality = a.model.quality.agentic * 3.0 +
+							 a.model.quality.local * 0.8 +
+							 a.model.quality.cost * 0.5;
+			const bQuality = b.model.quality.agentic * 3.0 +
+							 b.model.quality.local * 0.8 +
+							 b.model.quality.cost * 0.5;
 
 			// Determine what the user can ACTUALLY use based on recommendedProvider
 			const aCanUseLocal = a.recommendedProvider.includes('local');
@@ -111,9 +111,9 @@ export class RecommendationEngine {
 			const aApiOnly = a.recommendedProvider === 'api';
 			const bApiOnly = b.recommendedProvider === 'api';
 
-			// Define quality thresholds (out of 30 possible on 0-10 scale)
-			const highQuality = 20;  // 20+ = high quality
-			const decentQuality = 12; // 12+ = decent, below = poor
+			// Define quality thresholds (out of 43 possible with new weighting: agentic*3 + local*0.8 + cost*0.5)
+			const highQuality = 24;  // 24+ = high quality (agentic 8+)
+			const decentQuality = 15; // 15+ = decent (agentic 5+), below = poor
 			const aHighQuality = aQuality >= highQuality;
 			const bHighQuality = bQuality >= highQuality;
 			const aDecentQuality = aQuality >= decentQuality;
