@@ -666,7 +666,7 @@ function ModelItem({
 					) : showScore && (localScoreInfo || apiScoreInfo) ? (
 						<Text color={colors.white}>
 							<Text bold>
-								Quality For You {localScoreInfo ? 'Locally' : 'via API'}:{' '}
+								Quality For You {isLocalTab || (model.model.local && !model.model.api) ? 'Locally' : 'via API'}:{' '}
 							</Text>
 							<Text color={(localScoreInfo || apiScoreInfo)!.color} bold>
 								{(localScoreInfo || apiScoreInfo)!.label}
