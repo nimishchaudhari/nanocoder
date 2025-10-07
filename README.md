@@ -404,5 +404,6 @@ Nanocoder could benefit from help all across the board. Such as:
 - Reporting bugs or suggesting features
 - Marketing and getting the word out
 - Design and building more great software
+- Model cards for our recommendations database
 
 All contributions and community participation are welcome!
