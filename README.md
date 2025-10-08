@@ -364,12 +364,15 @@ Generate comprehensive unit tests for {{component}}. Include:
 ### 🎯 Enhanced User Experience
 
 - **Smart autocomplete**: Tab completion for commands with real-time suggestions
-- **Prompt history**: Access and reuse previous prompts with `/history`
 - **Configurable logging**: Silent, normal, or verbose output levels
 - **Colorized output**: Syntax highlighting and structured display
 - **Session persistence**: Maintains context and preferences across sessions
 - **Real-time indicators**: Shows token usage, timing, and processing status
 - **First-time directory security disclaimer**: Prompts on first run and stores a per-project trust decision to prevent accidental exposure of local code or secrets.
+- **Development modes**: Three modes to control tool execution behavior (toggle with Shift+Tab)
+  - **Normal mode**: Standard tool confirmation flow - review each tool call before execution
+  - **Auto-accept mode**: Automatically accepts all tool calls without confirmation for faster workflows
+  - **Plan mode**: AI suggests actions but doesn't execute tools - useful for planning and exploration
 
 ### ⚙️ Developer Features
 
