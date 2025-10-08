@@ -1,5 +1,5 @@
 import {useState, useCallback} from 'react';
-import {LLMClient, Message} from '../../types/core.js';
+import {LLMClient, Message, DevelopmentMode} from '../../types/core.js';
 import {ToolManager} from '../../tools/tool-manager.js';
 import {CustomCommandLoader} from '../../custom-commands/loader.js';
 import {CustomCommandExecutor} from '../../custom-commands/executor.js';
@@ -74,6 +74,9 @@ export function useAppState() {
 	const [isToolExecuting, setIsToolExecuting] = useState<boolean>(false);
 	const [isBashExecuting, setIsBashExecuting] = useState<boolean>(false);
 	const [currentBashCommand, setCurrentBashCommand] = useState<string>('');
+
+	// Development mode state
+	const [developmentMode, setDevelopmentMode] = useState<DevelopmentMode>('normal');
 
 	// Tool confirmation state
 	const [pendingToolCalls, setPendingToolCalls] = useState<any[]>([]);
@@ -176,6 +179,7 @@ export function useAppState() {
 		isToolExecuting,
 		isBashExecuting,
 		currentBashCommand,
+		developmentMode,
 		pendingToolCalls,
 		currentToolIndex,
 		completedToolResults,
@@ -209,6 +213,7 @@ export function useAppState() {
 		setIsToolExecuting,
 		setIsBashExecuting,
 		setCurrentBashCommand,
+		setDevelopmentMode,
 		setPendingToolCalls,
 		setCurrentToolIndex,
 		setCompletedToolResults,

@@ -8,6 +8,7 @@ import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 import {useUIStateContext} from '../hooks/useUIState.js';
 import {useInputState} from '../hooks/useInputState.js';
 import {Completion} from '../types/index.js';
+import {DevelopmentMode, DEVELOPMENT_MODE_LABELS} from '../types/core.js';
 
 interface ChatProps {
 	onSubmit?: (message: string) => void;
@@ -15,6 +16,8 @@ interface ChatProps {
 	customCommands?: string[]; // List of custom command names and aliases
 	disabled?: boolean; // Disable input when AI is processing
 	onCancel?: () => void; // Callback when user presses escape while thinking
+	onToggleMode?: () => void; // Callback when user presses shift+tab to toggle development mode
+	developmentMode?: DevelopmentMode; // Current development mode
 }
 
 export default function UserInput({
@@ -23,6 +26,8 @@ export default function UserInput({
 	customCommands = [],
 	disabled = false,
 	onCancel,
+	onToggleMode,
+	developmentMode = 'normal',
 }: ChatProps) {
 	const {isFocused, focus} = useFocus({autoFocus: !disabled, id: 'user-input'});
 	const {colors} = useTheme();
@@ -177,6 +182,12 @@ export default function UserInput({
 			return;
 		}
 
+		// Handle shift+tab to toggle development mode (always available)
+		if (key.tab && key.shift && onToggleMode) {
+			onToggleMode();
+			return;
+		}
+
 		// Block all other input when disabled
 		if (disabled) {
 			return;
@@ -313,6 +324,22 @@ export default function UserInput({
 						))}
 					</Box>
 				)}
+			</Box>
+
+			{/* Development mode indicator - always visible */}
+			<Box marginTop={1}>
+				<Text
+					color={
+						developmentMode === 'normal'
+							? colors.secondary
+							: developmentMode === 'auto-accept'
+							? colors.info
+							: colors.warning
+					}
+				>
+					<Text bold>{DEVELOPMENT_MODE_LABELS[developmentMode]}</Text>{' '}
+					<Text dimColor>(Shift+Tab to cycle)</Text>
+				</Text>
 			</Box>
 		</Box>
 	);

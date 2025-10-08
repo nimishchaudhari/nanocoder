@@ -1,4 +1,4 @@
-import {Message, LLMClient} from '../../types/core.js';
+import {Message, LLMClient, DevelopmentMode} from '../../types/core.js';
 import {processToolUse, getToolManager} from '../../message-handler.js';
 import {ConversationContext} from './useAppState.js';
 import InfoMessage from '../../components/info-message.js';
@@ -27,6 +27,7 @@ interface UseToolHandlerProps {
 	) => Promise<void>;
 	client?: LLMClient | null;
 	currentProvider?: string;
+	setDevelopmentMode?: (mode: DevelopmentMode) => void;
 }
 
 export function useToolHandler({
@@ -47,6 +48,7 @@ export function useToolHandler({
 	onProcessAssistantResponse,
 	client,
 	currentProvider,
+	setDevelopmentMode,
 }: UseToolHandlerProps) {
 	// Display tool result with proper formatting
 	const displayToolResult = async (toolCall: any, result: any) => {
@@ -276,6 +278,30 @@ export function useToolHandler({
 		}
 
 		try {
+			// Special handling for switch_mode tool
+			if (currentTool.function.name === 'switch_mode' && setDevelopmentMode) {
+				let parsedArgs = currentTool.function.arguments;
+				if (typeof parsedArgs === 'string') {
+					try {
+						parsedArgs = JSON.parse(parsedArgs);
+					} catch (e) {
+						// If parsing fails, use as-is
+					}
+				}
+
+				// Actually switch the mode
+				const requestedMode = parsedArgs.mode as DevelopmentMode;
+				setDevelopmentMode(requestedMode);
+
+				addToChatQueue(
+					<InfoMessage
+						key={`mode-switched-${componentKeyCounter}-${Date.now()}`}
+						message={`Development mode switched to: ${requestedMode.toUpperCase()}`}
+						hideBox={true}
+					/>,
+				);
+			}
+
 			const result = await processToolUse(currentTool);
 
 			const newResults = [...completedToolResults, result];

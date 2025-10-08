@@ -41,6 +41,13 @@ export function subtract(a: number, b: number): number {
 	return a - b;
 }
 
+/**
+ * Divides the first number by the second number
+ * @param a - The dividend
+ * @param b - The divisor
+ * @returns The quotient of a and b
+ * @throws Error if b is zero
+ */
 export function divide(a: number, b: number): number {
 	if (b === 0) {
 		throw new Error('Division by zero');
@@ -48,22 +55,48 @@ export function divide(a: number, b: number): number {
 	return a / b;
 }
 
+/**
+ * Raises a base number to the power of an exponent
+ * @param base - The base number
+ * @param exponent - The exponent to raise the base to
+ * @returns The result of base raised to the power of exponent
+ */
 export function power(base: number, exponent: number): number {
 	return Math.pow(base, exponent);
 }
 
+/**
+ * Calculates the square root of a number
+ * @param n - The number to calculate the square root of
+ * @returns The square root of n
+ */
 export function sqrt(n: number): number {
 	return Math.sqrt(n);
 }
 
+/**
+ * Returns the absolute value of a number
+ * @param n - The number to get the absolute value of
+ * @returns The absolute value of n
+ */
 export function abs(n: number): number {
 	return Math.abs(n);
 }
 
+/**
+ * Rounds a number to the nearest integer
+ * @param n - The number to round
+ * @returns The nearest integer to n
+ */
 export function round(n: number): number {
 	return Math.round(n);
 }
 
+/**
+ * Rounds a number down to the nearest integer
+ * @param n - The number to round down
+ * @returns The largest integer less than or equal to n
+ */
 export function floor(n: number): number {
 	return Math.floor(n);
 }

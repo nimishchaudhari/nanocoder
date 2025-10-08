@@ -72,6 +72,7 @@ export default function App() {
 		componentKeyCounter: appState.componentKeyCounter,
 		abortController: appState.abortController,
 		setAbortController: appState.setAbortController,
+		developmentMode: appState.developmentMode,
 		onStartToolConfirmationFlow: (
 			toolCalls,
 			updatedMessages,
@@ -109,6 +110,7 @@ export default function App() {
 		onProcessAssistantResponse: chatHandler.processAssistantResponse,
 		client: appState.client,
 		currentProvider: appState.currentProvider,
+		setDevelopmentMode: appState.setDevelopmentMode,
 	});
 
 	// Setup mode handlers
@@ -157,6 +159,15 @@ export default function App() {
 			appState.abortController.abort();
 		}
 	}, [appState.abortController, appState.setIsCancelling]);
+
+	const handleToggleDevelopmentMode = React.useCallback(() => {
+		appState.setDevelopmentMode(currentMode => {
+			const modes: Array<'normal' | 'auto-accept' | 'plan'> = ['normal', 'auto-accept', 'plan'];
+			const currentIndex = modes.indexOf(currentMode);
+			const nextIndex = (currentIndex + 1) % modes.length;
+			return modes[nextIndex];
+		});
+	}, [appState.setDevelopmentMode]);
 
 	const handleMessageSubmit = React.useCallback(
 		async (message: string) => {
@@ -321,6 +332,8 @@ export default function App() {
 										appState.isBashExecuting
 									}
 									onCancel={handleCancel}
+									onToggleMode={handleToggleDevelopmentMode}
+									developmentMode={appState.developmentMode}
 								/>
 							) : appState.mcpInitialized && !appState.client ? (
 								<Text color={themeContextValue.colors.secondary}>

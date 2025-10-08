@@ -67,6 +67,7 @@ interface UseChatHandlerProps {
 	componentKeyCounter: number;
 	abortController: AbortController | null;
 	setAbortController: (controller: AbortController | null) => void;
+	developmentMode?: 'normal' | 'auto-accept' | 'plan';
 	onStartToolConfirmationFlow: (
 		toolCalls: any[],
 		updatedMessages: Message[],
@@ -89,6 +90,7 @@ export function useChatHandler({
 	componentKeyCounter,
 	abortController,
 	setAbortController,
+	developmentMode = 'normal',
 	onStartToolConfirmationFlow,
 }: UseChatHandlerProps) {
 	// Conversation state manager for enhanced context
@@ -386,6 +388,53 @@ export function useChatHandler({
 			// If we get here, all tools are valid - proceed with normal flow
 			// Use knownToolCalls for the rest of the processing
 
+			// In Plan Mode, block file modification tools
+			if (developmentMode === 'plan') {
+				const fileModificationTools = ['create_file', 'delete_lines', 'insert_lines', 'replace_lines'];
+				const blockedTools = knownToolCalls.filter(tc => fileModificationTools.includes(tc.function.name));
+
+				if (blockedTools.length > 0) {
+					// Create error results for blocked tools
+					const blockedToolErrors: ToolResult[] = blockedTools.map(toolCall => ({
+						tool_call_id: toolCall.id,
+						role: 'tool' as const,
+						name: toolCall.function.name,
+						content: `⚠ Tool "${toolCall.function.name}" is not allowed in Plan Mode. File modification tools are restricted in this mode. Switch to Normal Mode or Auto-accept Mode to execute file modifications.`,
+					}));
+
+					// Display error messages
+					for (const error of blockedToolErrors) {
+						addToChatQueue(
+							<ErrorMessage
+								key={`plan-mode-blocked-${error.tool_call_id}-${Date.now()}`}
+								message={error.content}
+								hideBox={true}
+							/>,
+						);
+					}
+
+					// Continue conversation with error messages
+					const toolMessages = blockedToolErrors.map(result => ({
+						role: 'tool' as const,
+						content: result.content || '',
+						tool_call_id: result.tool_call_id,
+						name: result.name,
+					}));
+
+					const updatedMessagesWithError = [
+						...messages,
+						assistantMsg,
+						...toolMessages,
+					];
+
+					setMessages(updatedMessagesWithError);
+
+					// Continue the main conversation loop with error messages as context
+					await processAssistantResponse(systemMessage, updatedMessagesWithError);
+					return;
+				}
+			}
+
 			// Separate tools that need confirmation vs those that don't
 			// BUT: if a tool fails validation, execute directly (skip confirmation)
 			const toolsNeedingConfirmation: ToolCall[] = [];
@@ -425,10 +474,11 @@ export function useChatHandler({
 					}
 				}
 
-				// If validation failed OR tool doesn't require confirmation, execute directly
+				// If validation failed OR tool doesn't require confirmation OR in auto-accept mode, execute directly
 				if (
 					validationFailed ||
-					(toolDef && toolDef.requiresConfirmation === false)
+					(toolDef && toolDef.requiresConfirmation === false) ||
+					developmentMode === 'auto-accept'
 				) {
 					toolsToExecuteDirectly.push(toolCall);
 				} else {
@@ -679,6 +729,57 @@ export function useChatHandler({
 
 			// Handle tool calls if present - this continues the loop
 			if (validToolCalls && validToolCalls.length > 0) {
+				// In Plan Mode, block file modification tools
+				if (developmentMode === 'plan') {
+					const fileModificationTools = ['create_file', 'delete_lines', 'insert_lines', 'replace_lines'];
+					const blockedTools = validToolCalls.filter(tc => fileModificationTools.includes(tc.function.name));
+
+					if (blockedTools.length > 0) {
+						// Create error results for blocked tools
+						const blockedToolErrors: ToolResult[] = blockedTools.map(toolCall => ({
+							tool_call_id: toolCall.id,
+							role: 'tool' as const,
+							name: toolCall.function.name,
+							content: `⚠ Tool "${toolCall.function.name}" is not allowed in Plan Mode. File modification tools are restricted in this mode. Switch to Normal Mode or Auto-accept Mode to execute file modifications.`,
+						}));
+
+						// Display error messages
+						for (const error of blockedToolErrors) {
+							addToChatQueue(
+								<ErrorMessage
+									key={`plan-mode-blocked-${error.tool_call_id}-${Date.now()}`}
+									message={error.content}
+									hideBox={true}
+								/>,
+							);
+						}
+
+						// Continue conversation with error messages
+						const toolMessages = blockedToolErrors.map(result => ({
+							role: 'tool' as const,
+							content: result.content || '',
+							tool_call_id: result.tool_call_id,
+							name: result.name,
+						}));
+
+						const updatedMessagesWithError = [
+							...messages,
+							assistantMsg,
+							...toolMessages,
+						];
+						setMessages(updatedMessagesWithError);
+
+						// Continue the main conversation loop with error messages as context
+						const controller = new AbortController();
+						await processAssistantResponseWithTokenTracking(
+							systemMessage,
+							updatedMessagesWithError,
+							controller,
+						);
+						return;
+					}
+				}
+
 				// Separate tools that need confirmation vs those that don't
 				// BUT: if a tool fails validation, execute directly (skip confirmation)
 				const toolsNeedingConfirmation: ToolCall[] = [];
@@ -718,10 +819,11 @@ export function useChatHandler({
 						}
 					}
 
-					// If validation failed OR tool doesn't require confirmation, execute directly
+					// If validation failed OR tool doesn't require confirmation OR in auto-accept mode, execute directly
 					if (
 						validationFailed ||
-						(toolDef && toolDef.requiresConfirmation === false)
+						(toolDef && toolDef.requiresConfirmation === false) ||
+						developmentMode === 'auto-accept'
 					) {
 						toolsToExecuteDirectly.push(toolCall);
 					} else {

@@ -50,7 +50,9 @@ export interface ToolDefinition {
 		| React.ReactElement
 		| Promise<React.ReactElement>;
 	requiresConfirmation?: boolean;
-	validator?: (args: any) => Promise<{valid: true} | {valid: false; error: string}>;
+	validator?: (
+		args: any,
+	) => Promise<{valid: true} | {valid: false; error: string}>;
 }
 
 export interface LLMClient {
@@ -67,3 +69,11 @@ export interface ToolExecutionResult {
 	executed: boolean;
 	results: ToolResult[];
 }
+
+export type DevelopmentMode = 'normal' | 'auto-accept' | 'plan';
+
+export const DEVELOPMENT_MODE_LABELS: Record<DevelopmentMode, string> = {
+	normal: '▶ normal model on',
+	'auto-accept': '⏵⏵ auto-accept mode on',
+	plan: '⏸ plan mode on',
+};
