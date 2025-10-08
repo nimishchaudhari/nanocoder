@@ -270,10 +270,8 @@ export default function UserInput({
 			>
 				{!isBashMode && (
 					<>
-						<Text color={disabled ? colors.secondary : colors.primary} bold>
-							{disabled
-								? 'Please wait, AI is thinking...'
-								: 'What would you like me to help with?'}
+						<Text color={colors.primary} bold>
+							{disabled ? '' : 'What would you like me to help with?'}
 						</Text>
 					</>
 				)}

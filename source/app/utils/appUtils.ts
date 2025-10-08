@@ -77,12 +77,11 @@ ${result.fullOutput || '(No output)'}`;
 
 			// Add the truncated output to the LLM context for future interactions
 			if (result.llmContext) {
-				const toolMessage = {
-					role: 'tool',
-					content: result.llmContext,
-					name: 'execute_bash',
+				const userMessage = {
+					role: 'user',
+					content: `Bash command output:\n\`\`\`\n$ ${bashCommand}\n${result.llmContext}\n\`\`\``,
 				};
-				setMessages([...messages, toolMessage]);
+				setMessages([...messages, userMessage]);
 			}
 
 			// Clear bash execution state
