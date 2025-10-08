@@ -2,7 +2,7 @@ import {Box} from 'ink';
 import {ReactNode, useMemo, Fragment, memo} from 'react';
 import type {ChatQueueProps} from '../types/index.js';
 
-const defaultDisplayCount = 20;
+const defaultDisplayCount = 5;
 
 export default memo(function ChatQueue({
 	staticComponents = [],
