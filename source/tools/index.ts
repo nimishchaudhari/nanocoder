@@ -7,7 +7,6 @@ import {readManyFilesTool} from './read-many-files.js';
 import {executeBashTool} from './execute-bash.js';
 import {webSearchTool} from './web-search.js';
 import {fetchUrlTool} from './fetch-url.js';
-import {switchModeTool} from './switch-mode.js';
 import React from 'react';
 import type {ToolHandler, Tool, ToolDefinition} from '../types/index.js';
 
@@ -21,7 +20,6 @@ export const toolDefinitions: ToolDefinition[] = [
 	executeBashTool,
 	webSearchTool,
 	fetchUrlTool,
-	switchModeTool,
 ];
 
 export const toolRegistry: Record<string, ToolHandler> = Object.fromEntries(
