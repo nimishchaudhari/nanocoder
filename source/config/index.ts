@@ -5,6 +5,7 @@ import {fileURLToPath} from 'url';
 import {logError} from '../utils/message-queue.js';
 import {loadPreferences} from './preferences.js';
 import {getThemeColors, defaultTheme} from './themes.js';
+import {substituteEnvVars} from './env-substitution.js';
 
 // Function to load app configuration from agents.config.json if it exists
 function loadAppConfig(): AppConfig {
@@ -12,12 +13,16 @@ function loadAppConfig(): AppConfig {
 
 	if (existsSync(agentsJsonPath)) {
 		try {
-			const agentsData = JSON.parse(readFileSync(agentsJsonPath, 'utf-8'));
+			const rawData = readFileSync(agentsJsonPath, 'utf-8');
+			const agentsData = JSON.parse(rawData);
 
-			if (agentsData.nanocoder) {
+			// Apply environment variable substitution
+			const processedData = substituteEnvVars(agentsData);
+
+			if (processedData.nanocoder) {
 				return {
-					providers: agentsData.nanocoder.providers,
-					mcpServers: agentsData.nanocoder.mcpServers,
+					providers: processedData.nanocoder.providers,
+					mcpServers: processedData.nanocoder.mcpServers,
 				};
 			}
 		} catch (error) {
