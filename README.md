@@ -164,6 +164,15 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 - `apiKey`: API key (optional, may not be required)
 - `models`: Available model list for `/model` command
 
+**Environment Variables:**
+
+Keep API keys out of version control using environment variables. Variables are loaded from shell environment (`.bashrc`, `.zshrc`) or `.env` file in your working directory.
+
+**Syntax:** `$VAR_NAME`, `${VAR_NAME}`, or `${VAR_NAME:-default}`
+**Supported in:** `baseUrl`, `apiKey`, `models`, MCP server `command`, `args`, `env`
+
+See `.env.example` for setup instructions
+
 **Timeout Configuration:**
 
 Nanocoder allows you to configure timeouts for your AI providers to handle long-running requests.
@@ -235,6 +244,13 @@ Nanocoder supports connecting to MCP servers to extend its capabilities with add
 	}
 }
 ```
+
+**MCP Server Configuration:**
+
+- `name`: Display name for the MCP server
+- `command`: Executable command to start the server
+- `args`: Array of command-line arguments
+- `env`: Environment variables for the server process
 
 When MCP servers are configured, Nanocoder will:
 
