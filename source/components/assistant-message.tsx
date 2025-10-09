@@ -3,6 +3,7 @@ import {memo, useMemo} from 'react';
 import {useTheme} from '../hooks/useTheme.js';
 import type {AssistantMessageProps} from '../types/index.js';
 import chalk from 'chalk';
+import {highlight} from 'cli-highlight';
 
 // Basic markdown parser for terminal
 function parseMarkdown(text: string, themeColors: any): string {
@@ -11,8 +12,18 @@ function parseMarkdown(text: string, themeColors: any): string {
 	// Code blocks (```language\ncode\n```)
 	result = result.replace(
 		/```(\w+)?\n([\s\S]*?)```/g,
-		(_match, _lang, code) => {
-			return chalk.hex(themeColors.tool)(code.trim());
+		(_match, lang, code) => {
+			try {
+				// Apply syntax highlighting with detected language
+				const highlighted = highlight(code.trim(), {
+					language: lang || 'plaintext',
+					theme: 'default',
+				});
+				return highlighted;
+			} catch {
+				// Fallback to plain colored text if highlighting fails
+				return chalk.hex(themeColors.tool)(code.trim());
+			}
 		},
 	);
 
@@ -38,7 +49,7 @@ function parseMarkdown(text: string, themeColors: any): string {
 	});
 
 	// Headings (# Heading)
-	result = result.replace(/^(#{1,6})\s+(.+)$/gm, (_match, hashes, text) => {
+	result = result.replace(/^(#{1,6})\s+(.+)$/gm, (_match, _hashes, text) => {
 		return chalk.hex(themeColors.primary).bold(text);
 	});
 
