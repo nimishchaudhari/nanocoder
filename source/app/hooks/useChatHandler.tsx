@@ -475,10 +475,12 @@ export function useChatHandler({
 				}
 
 				// If validation failed OR tool doesn't require confirmation OR in auto-accept mode, execute directly
+				// EXCEPT: execute_bash always requires confirmation for security
+				const isBashTool = toolCall.function.name === 'execute_bash';
 				if (
 					validationFailed ||
 					(toolDef && toolDef.requiresConfirmation === false) ||
-					developmentMode === 'auto-accept'
+					(developmentMode === 'auto-accept' && !isBashTool)
 				) {
 					toolsToExecuteDirectly.push(toolCall);
 				} else {
@@ -820,10 +822,12 @@ export function useChatHandler({
 					}
 
 					// If validation failed OR tool doesn't require confirmation OR in auto-accept mode, execute directly
+					// EXCEPT: execute_bash always requires confirmation for security
+					const isBashTool = toolCall.function.name === 'execute_bash';
 					if (
 						validationFailed ||
 						(toolDef && toolDef.requiresConfirmation === false) ||
-						developmentMode === 'auto-accept'
+						(developmentMode === 'auto-accept' && !isBashTool)
 					) {
 						toolsToExecuteDirectly.push(toolCall);
 					} else {
