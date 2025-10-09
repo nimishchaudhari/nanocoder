@@ -2,10 +2,14 @@ import type {AppConfig, Colors} from '../types/index.js';
 import {existsSync, readFileSync} from 'fs';
 import {join, dirname} from 'path';
 import {fileURLToPath} from 'url';
+import {config as loadEnv} from 'dotenv';
 import {logError} from '../utils/message-queue.js';
 import {loadPreferences} from './preferences.js';
 import {getThemeColors, defaultTheme} from './themes.js';
 import {substituteEnvVars} from './env-substitution.js';
+
+// Load .env file from working directory (shell environment takes precedence)
+loadEnv({path: join(process.cwd(), '.env')});
 
 // Function to load app configuration from agents.config.json if it exists
 function loadAppConfig(): AppConfig {
