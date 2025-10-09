@@ -73,7 +73,7 @@ export interface ToolExecutionResult {
 export type DevelopmentMode = 'normal' | 'auto-accept' | 'plan';
 
 export const DEVELOPMENT_MODE_LABELS: Record<DevelopmentMode, string> = {
-	normal: '▶ normal model on',
+	normal: '▶ normal mode on',
 	'auto-accept': '⏵⏵ auto-accept mode on',
 	plan: '⏸ plan mode on',
 };
