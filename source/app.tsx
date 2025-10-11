@@ -1,4 +1,4 @@
-import {Box, Text, useApp} from 'ink';
+import {Box, Text, useApp, Static} from 'ink';
 import WelcomeMessage from './components/welcome-message.js';
 import React from 'react';
 import {getThemeColors} from './config/themes.js';
@@ -162,7 +162,11 @@ export default function App() {
 
 	const handleToggleDevelopmentMode = React.useCallback(() => {
 		appState.setDevelopmentMode(currentMode => {
-			const modes: Array<'normal' | 'auto-accept' | 'plan'> = ['normal', 'auto-accept', 'plan'];
+			const modes: Array<'normal' | 'auto-accept' | 'plan'> = [
+				'normal',
+				'auto-accept',
+				'plan',
+			];
 			const currentIndex = modes.indexOf(currentMode);
 			const nextIndex = (currentIndex + 1) % modes.length;
 			return modes[nextIndex];
@@ -257,12 +261,21 @@ export default function App() {
 		<ThemeContext.Provider value={themeContextValue}>
 			<UIStateProvider>
 				<Box flexDirection="column" padding={1} width="100%">
-					<Box flexGrow={1} flexDirection="column" minHeight={0}>
-						<WelcomeMessage />
+					{/* Use natural flexGrow layout - Static components prevent re-renders */}
+					<Box
+						flexGrow={1}
+						flexDirection="column"
+						minHeight={0}
+					>
+						{/* Wrap WelcomeMessage in Static since it never changes */}
+						<Static items={[1]}>
+							{() => <WelcomeMessage />}
+						</Static>
 						{appState.startChat && (
 							<ChatQueue
 								staticComponents={staticComponents}
 								queuedComponents={appState.chatComponents}
+								forceAllStatic={appState.isToolConfirmationMode}
 							/>
 						)}
 					</Box>
