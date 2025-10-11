@@ -262,15 +262,9 @@ export default function App() {
 			<UIStateProvider>
 				<Box flexDirection="column" padding={1} width="100%">
 					{/* Use natural flexGrow layout - Static components prevent re-renders */}
-					<Box
-						flexGrow={1}
-						flexDirection="column"
-						minHeight={0}
-					>
+					<Box flexGrow={1} flexDirection="column" minHeight={0}>
 						{/* Wrap WelcomeMessage in Static since it never changes */}
-						<Static items={[1]}>
-							{() => <WelcomeMessage />}
-						</Static>
+						<Static items={[1]}>{() => <WelcomeMessage />}</Static>
 						{appState.startChat && (
 							<ChatQueue
 								staticComponents={staticComponents}

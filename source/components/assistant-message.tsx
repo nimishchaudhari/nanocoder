@@ -10,22 +10,19 @@ export function parseMarkdown(text: string, themeColors: any): string {
 	let result = text;
 
 	// Code blocks (```language\ncode\n```)
-	result = result.replace(
-		/```(\w+)?\n([\s\S]*?)```/g,
-		(_match, lang, code) => {
-			try {
-				// Apply syntax highlighting with detected language
-				const highlighted = highlight(code.trim(), {
-					language: lang || 'plaintext',
-					theme: 'default',
-				});
-				return highlighted;
-			} catch {
-				// Fallback to plain colored text if highlighting fails
-				return chalk.hex(themeColors.tool)(code.trim());
-			}
-		},
-	);
+	result = result.replace(/```(\w+)?\n([\s\S]*?)```/g, (_match, lang, code) => {
+		try {
+			// Apply syntax highlighting with detected language
+			const highlighted = highlight(code.trim(), {
+				language: lang || 'plaintext',
+				theme: 'default',
+			});
+			return highlighted;
+		} catch {
+			// Fallback to plain colored text if highlighting fails
+			return chalk.hex(themeColors.tool)(code.trim());
+		}
+	});
 
 	// Inline code (`code`)
 	result = result.replace(/`([^`]+)`/g, (_match, code) => {

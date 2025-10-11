@@ -8,7 +8,9 @@ import {
 } from '../../tool-calling/index.js';
 import {ConversationStateManager} from '../utils/conversationState.js';
 import UserMessage from '../../components/user-message.js';
-import AssistantMessage, {parseMarkdown} from '../../components/assistant-message.js';
+import AssistantMessage, {
+	parseMarkdown,
+} from '../../components/assistant-message.js';
 import ErrorMessage from '../../components/error-message.js';
 import ToolMessage from '../../components/tool-message.js';
 import {ThinkingStats} from './useAppState.js';
@@ -455,17 +457,26 @@ export function useChatHandler({
 
 			// In Plan Mode, block file modification tools
 			if (developmentMode === 'plan') {
-				const fileModificationTools = ['create_file', 'delete_lines', 'insert_lines', 'replace_lines'];
-				const blockedTools = knownToolCalls.filter(tc => fileModificationTools.includes(tc.function.name));
+				const fileModificationTools = [
+					'create_file',
+					'delete_lines',
+					'insert_lines',
+					'replace_lines',
+				];
+				const blockedTools = knownToolCalls.filter(tc =>
+					fileModificationTools.includes(tc.function.name),
+				);
 
 				if (blockedTools.length > 0) {
 					// Create error results for blocked tools
-					const blockedToolErrors: ToolResult[] = blockedTools.map(toolCall => ({
-						tool_call_id: toolCall.id,
-						role: 'tool' as const,
-						name: toolCall.function.name,
-						content: `⚠ Tool "${toolCall.function.name}" is not allowed in Plan Mode. File modification tools are restricted in this mode. Switch to Normal Mode or Auto-accept Mode to execute file modifications.`,
-					}));
+					const blockedToolErrors: ToolResult[] = blockedTools.map(
+						toolCall => ({
+							tool_call_id: toolCall.id,
+							role: 'tool' as const,
+							name: toolCall.function.name,
+							content: `⚠ Tool "${toolCall.function.name}" is not allowed in Plan Mode. File modification tools are restricted in this mode. Switch to Normal Mode or Auto-accept Mode to execute file modifications.`,
+						}),
+					);
 
 					// Display error messages
 					for (const error of blockedToolErrors) {
@@ -495,7 +506,10 @@ export function useChatHandler({
 					setMessages(updatedMessagesWithError);
 
 					// Continue the main conversation loop with error messages as context
-					await processAssistantResponse(systemMessage, updatedMessagesWithError);
+					await processAssistantResponse(
+						systemMessage,
+						updatedMessagesWithError,
+					);
 					return;
 				}
 			}
@@ -841,17 +855,26 @@ export function useChatHandler({
 			if (validToolCalls && validToolCalls.length > 0) {
 				// In Plan Mode, block file modification tools
 				if (developmentMode === 'plan') {
-					const fileModificationTools = ['create_file', 'delete_lines', 'insert_lines', 'replace_lines'];
-					const blockedTools = validToolCalls.filter(tc => fileModificationTools.includes(tc.function.name));
+					const fileModificationTools = [
+						'create_file',
+						'delete_lines',
+						'insert_lines',
+						'replace_lines',
+					];
+					const blockedTools = validToolCalls.filter(tc =>
+						fileModificationTools.includes(tc.function.name),
+					);
 
 					if (blockedTools.length > 0) {
 						// Create error results for blocked tools
-						const blockedToolErrors: ToolResult[] = blockedTools.map(toolCall => ({
-							tool_call_id: toolCall.id,
-							role: 'tool' as const,
-							name: toolCall.function.name,
-							content: `⚠ Tool "${toolCall.function.name}" is not allowed in Plan Mode. File modification tools are restricted in this mode. Switch to Normal Mode or Auto-accept Mode to execute file modifications.`,
-						}));
+						const blockedToolErrors: ToolResult[] = blockedTools.map(
+							toolCall => ({
+								tool_call_id: toolCall.id,
+								role: 'tool' as const,
+								name: toolCall.function.name,
+								content: `⚠ Tool "${toolCall.function.name}" is not allowed in Plan Mode. File modification tools are restricted in this mode. Switch to Normal Mode or Auto-accept Mode to execute file modifications.`,
+							}),
+						);
 
 						// Display error messages
 						for (const error of blockedToolErrors) {
