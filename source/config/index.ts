@@ -32,9 +32,10 @@ export function getClosestConfigFile(fileName: string='agents.config.json'): str
 		const appName = 'nanocoder';
 		appDataPath += `/${appName}`;
 
-		// First, lets check for a working directly config
+		// First, lets check for a working directory config
 		if (existsSync(join(process.cwd(), fileName))) {
 			confDirMap[fileName] = join(process.cwd(), fileName);
+
 			return join(process.cwd(), fileName);
 		}
 
@@ -56,6 +57,7 @@ export function getClosestConfigFile(fileName: string='agents.config.json'): str
 		// If we cant find any, lets assume this is the first user run, create the
 		// correct file and direct the user to configure them correctly,
 		if (!existsSync(appDataPath)) {
+			// Maybe add a better sample config?
 			let sampleConfig = {};
 
 			mkdirSync(appDataPath, {recursive: true});
