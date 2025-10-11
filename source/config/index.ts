@@ -21,8 +21,9 @@ export function getClosestConfigFile(fileName: string='agents.config.json'): str
 		// 'win32' will set this correctly via the environment.
 		// The config path can be set via the `APPDATA` environment variable.
 		// For darwin, we set the correct app path.
+		// We try to use `process.env.$XDG_CONFIG_HOME`, but cant count on it.
 		// For all other unix-like systems, we use the $HOME/.config
-		let appDataPath: string = process.env.APPDATA || (process.platform === 'darwin'
+		let appDataPath: string = process.env.APPDATA || process.env.XDG_CONFIG_HOME || (process.platform === 'darwin'
 			? `${process.env.HOME}/Library/Preferences`
 			: `${process.env.HOME}/.config`
 		);
