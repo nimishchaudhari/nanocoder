@@ -7,17 +7,16 @@ import {getClosestConfigFile} from './index.js';
 
 import type {UserPreferences} from '../types/index.js';
 
-const PREFERENCES_PATH = join(homedir(), '.nanocoder-preferences.json');
+
+const PREFERENCES_PATH = getClosestConfigFile('nanocoder-preferences.json')
 
 export function loadPreferences(): UserPreferences {
-	if (existsSync(PREFERENCES_PATH)) {
-		try {
-			const data = readFileSync(PREFERENCES_PATH, 'utf-8');
-			return JSON.parse(data);
-		} catch (error) {
-			if (shouldLog('warn')) {
-				logError(`Failed to load preferences: ${error}`);
-			}
+	try {
+		const data = readFileSync(PREFERENCES_PATH, 'utf-8');
+		return JSON.parse(data);
+	} catch (error) {
+		if (shouldLog('warn')) {
+			logError(`Failed to load preferences: ${error}`);
 		}
 	}
 	return {};
