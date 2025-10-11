@@ -7,9 +7,11 @@ import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
 import {checkForUpdates} from '../utils/update-checker.js';
 import {themes} from '../config/themes.js';
+import {confDirMap} from '../config/index.js';
 
 // Get CWD once at module load time
 const cwd = process.cwd();
+ 
 
 interface UpdateInfo {
 	hasUpdate: boolean;
@@ -63,6 +65,10 @@ export default memo(function Status({
 			<Text color={colors.info}>
 				<Text bold={true}>CWD: </Text>
 				{cwd}
+			</Text>
+			<Text color={colors.info}>
+				<Text bold={true}>Config: </Text>
+				{confDirMap['agents.config.json']}
 			</Text>
 			<Text color={colors.success}>
 				<Text bold={true}>Provider: </Text>

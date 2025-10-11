@@ -3,6 +3,7 @@ import {join} from 'path';
 import {homedir} from 'os';
 import {shouldLog} from './logging.js';
 import {logError} from '../utils/message-queue.js';
+import {getClosestConfigFile} from './index.js';
 
 import type {UserPreferences} from '../types/index.js';
 

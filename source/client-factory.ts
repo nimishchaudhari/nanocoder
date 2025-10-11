@@ -1,5 +1,5 @@
 import {LangGraphClient} from './langgraph-client.js';
-import {appConfig} from './config/index.js';
+import {appConfig, getClosestConfigFile} from './config/index.js';
 import {loadPreferences} from './config/preferences.js';
 import type {LLMClient, LangChainProviderConfig} from './types/index.js';
 import {existsSync} from 'fs';
@@ -9,7 +9,7 @@ export async function createLLMClient(
 	provider?: string,
 ): Promise<{client: LLMClient; actualProvider: string}> {
 	// Check if agents.config.json exists
-	const agentsJsonPath = join(process.cwd(), 'agents.config.json');
+	const agentsJsonPath = getClosestConfigFile('agents.config.json');
 	const hasConfigFile = existsSync(agentsJsonPath);
 
 	// Always use LangGraph - it handles both tool-calling and non-tool-calling models
