@@ -264,17 +264,18 @@ export default function App() {
 					{/* Use natural flexGrow layout - Static components prevent re-renders */}
 					<Box flexGrow={1} flexDirection="column" minHeight={0}>
 						{/* Wrap WelcomeMessage in Static since it never changes */}
-						<Static items={[1]}>{() => <WelcomeMessage />}</Static>
+						<Static items={['welcome']}>
+							{item => <WelcomeMessage key={item} />}
+						</Static>
 						{appState.startChat && (
 							<ChatQueue
 								staticComponents={staticComponents}
 								queuedComponents={appState.chatComponents}
-								forceAllStatic={appState.isToolConfirmationMode}
 							/>
 						)}
 					</Box>
 					{appState.startChat && (
-						<Box flexDirection="column">
+						<Box flexDirection="column" marginLeft={-1}>
 							{appState.isCancelling ? (
 								<CancellingIndicator />
 							) : appState.isThinking ? (

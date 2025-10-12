@@ -8,35 +8,11 @@ import {
 } from '../../tool-calling/index.js';
 import {ConversationStateManager} from '../utils/conversationState.js';
 import UserMessage from '../../components/user-message.js';
-import AssistantMessage, {
-	parseMarkdown,
-} from '../../components/assistant-message.js';
+import AssistantMessage from '../../components/assistant-message.js';
 import ErrorMessage from '../../components/error-message.js';
 import ToolMessage from '../../components/tool-message.js';
 import {ThinkingStats} from './useAppState.js';
 import React from 'react';
-import {Text, Box} from 'ink';
-import {useTheme} from '../../hooks/useTheme.js';
-
-// Lightweight component for streaming chunks (no header, just content)
-// This prevents repeated headers when breaking responses into chunks
-// Applies markdown parsing for syntax highlighting
-const StreamingChunk = ({content}: {content: string}) => {
-	const {colors} = useTheme();
-	const renderedContent = React.useMemo(() => {
-		try {
-			return parseMarkdown(content, colors);
-		} catch {
-			return content;
-		}
-	}, [content, colors]);
-
-	return (
-		<Box flexDirection="column">
-			<Text>{renderedContent}</Text>
-		</Box>
-	);
-};
 
 // Helper function to filter out invalid tool calls and deduplicate by ID and function
 const filterValidToolCalls = (toolCalls: any[]): any[] => {
@@ -270,12 +246,6 @@ export function useChatHandler({
 		let tokenCount = 0;
 		let hasContent = false;
 
-		// Track chunks for progressive rendering
-		let currentChunk = '';
-		const chunkThreshold = 300; // Add to queue every ~300 characters
-		let chunkCounter = 0;
-		let isFirstChunk = true;
-
 		// Process streaming response with cancellation support
 		const cancellableStream = makeCancellableStream(stream, controller.signal);
 		for await (const chunk of cancellableStream) {
@@ -283,33 +253,7 @@ export function useChatHandler({
 
 			if (chunk.message?.content) {
 				fullContent += chunk.message.content;
-				currentChunk += chunk.message.content;
 				tokenCount = Math.ceil(fullContent.length / 4);
-
-				// Progressively add chunks to queue to keep them in Static
-				// This prevents long streaming responses from causing flicker
-				if (currentChunk.length >= chunkThreshold) {
-					if (isFirstChunk) {
-						// First chunk shows the model header
-						addToChatQueue(
-							<AssistantMessage
-								key={`assistant-chunk-${componentKeyCounter}-${chunkCounter++}`}
-								message={currentChunk}
-								model={currentModel}
-							/>,
-						);
-						isFirstChunk = false;
-					} else {
-						// Subsequent chunks are lightweight (no header)
-						addToChatQueue(
-							<StreamingChunk
-								key={`assistant-chunk-${componentKeyCounter}-${chunkCounter++}`}
-								content={currentChunk}
-							/>,
-						);
-					}
-					currentChunk = ''; // Reset for next chunk
-				}
 			}
 
 			// If server provides eval_count, use it as it's more accurate
@@ -346,34 +290,23 @@ export function useChatHandler({
 			throw new Error('No response received from model');
 		}
 
-		// Add any remaining chunk that didn't reach the threshold
-		if (currentChunk.trim()) {
-			if (isFirstChunk) {
-				// If we never reached threshold, show the full message with header
-				addToChatQueue(
-					<AssistantMessage
-						key={`assistant-chunk-${componentKeyCounter}-${chunkCounter++}`}
-						message={currentChunk}
-						model={currentModel}
-					/>,
-				);
-			} else {
-				// Final chunk continuation (no header)
-				addToChatQueue(
-					<StreamingChunk
-						key={`assistant-chunk-${componentKeyCounter}-${chunkCounter++}`}
-						content={currentChunk}
-					/>,
-				);
-			}
-		}
-
 		// Parse any tool calls from content for non-tool-calling models
 		const parsedToolCalls = parseToolCallsFromContent(fullContent);
 		const cleanedContent = cleanContentFromToolCalls(
 			fullContent,
 			parsedToolCalls,
 		);
+
+		// Display the assistant response (cleaned of any tool calls)
+		if (cleanedContent.trim()) {
+			addToChatQueue(
+				<AssistantMessage
+					key={`assistant-${componentKeyCounter}`}
+					message={cleanedContent}
+					model={currentModel}
+				/>,
+			);
+		}
 
 		// Merge structured tool calls from LangGraph with content-parsed tool calls
 		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
@@ -392,6 +325,49 @@ export function useChatHandler({
 
 		// Handle tool calls if present - this continues the loop
 		if (validToolCalls && validToolCalls.length > 0) {
+			// Check for multiple tool calls - only one tool call per response allowed
+			if (validToolCalls.length > 1) {
+				const errorMessage =
+					'⚒ Only one tool call per response allowed. You attempted to make multiple tool calls in a single response. Please make one tool call at a time.';
+
+				// Create error result that feeds back to the model
+				const errorResult: ToolResult = {
+					tool_call_id: validToolCalls[0].id,
+					role: 'tool' as const,
+					name: 'system',
+					content: errorMessage,
+				};
+
+				// Display error to user
+				addToChatQueue(
+					<ErrorMessage
+						key={`multiple-tools-error-${Date.now()}`}
+						message={errorMessage}
+						hideBox={true}
+					/>,
+				);
+
+				// Add error as tool message and continue conversation
+				const toolMessage = {
+					role: 'tool' as const,
+					content: errorResult.content,
+					tool_call_id: errorResult.tool_call_id,
+					name: errorResult.name,
+				};
+
+				const updatedMessagesWithError = [
+					...messages,
+					assistantMsg,
+					toolMessage,
+				];
+
+				setMessages(updatedMessagesWithError);
+
+				// Continue the main conversation loop with error message as context
+				await processAssistantResponse(systemMessage, updatedMessagesWithError);
+				return;
+			}
+
 			// First, validate tools and separate valid from unknown
 			const knownToolCalls: ToolCall[] = [];
 			const unknownToolErrors: ToolResult[] = [];
@@ -726,12 +702,6 @@ export function useChatHandler({
 			let hasContent = false;
 			let tokenCount = 0;
 
-			// Track chunks for progressive rendering
-			let currentChunk = '';
-			const chunkThreshold = 300; // Add to queue every ~300 characters
-			let chunkCounter = 0;
-			let isFirstChunk = true;
-
 			// Process streaming response with progress updates and cancellation support
 			const cancellableStream = makeCancellableStream(
 				stream,
@@ -742,33 +712,7 @@ export function useChatHandler({
 
 				if (chunk.message?.content) {
 					fullContent += chunk.message.content;
-					currentChunk += chunk.message.content;
 					tokenCount = Math.ceil(fullContent.length / 4);
-
-					// Progressively add chunks to queue to keep them in Static
-					// This prevents long streaming responses from causing flicker
-					if (currentChunk.length >= chunkThreshold) {
-						if (isFirstChunk) {
-							// First chunk shows the model header
-							addToChatQueue(
-								<AssistantMessage
-									key={`assistant-chunk-${componentKeyCounter}-${chunkCounter++}`}
-									message={currentChunk}
-									model={currentModel}
-								/>,
-							);
-							isFirstChunk = false;
-						} else {
-							// Subsequent chunks are lightweight (no header)
-							addToChatQueue(
-								<StreamingChunk
-									key={`assistant-chunk-${componentKeyCounter}-${chunkCounter++}`}
-									content={currentChunk}
-								/>,
-							);
-						}
-						currentChunk = ''; // Reset for next chunk
-					}
 				}
 
 				// If server provides eval_count, use it as it's more accurate
@@ -807,34 +751,23 @@ export function useChatHandler({
 				throw new Error('No response received from model');
 			}
 
-			// Add any remaining chunk that didn't reach the threshold
-			if (currentChunk.trim()) {
-				if (isFirstChunk) {
-					// If we never reached threshold, show the full message with header
-					addToChatQueue(
-						<AssistantMessage
-							key={`assistant-chunk-${componentKeyCounter}-${chunkCounter++}`}
-							message={currentChunk}
-							model={currentModel}
-						/>,
-					);
-				} else {
-					// Final chunk continuation (no header)
-					addToChatQueue(
-						<StreamingChunk
-							key={`assistant-chunk-${componentKeyCounter}-${chunkCounter++}`}
-							content={currentChunk}
-						/>,
-					);
-				}
-			}
-
 			// Parse any tool calls from content for non-tool-calling models
 			const parsedToolCalls = parseToolCallsFromContent(fullContent);
 			const cleanedContent = cleanContentFromToolCalls(
 				fullContent,
 				parsedToolCalls,
 			);
+
+			// Display the assistant response (cleaned of any tool calls)
+			if (cleanedContent.trim()) {
+				addToChatQueue(
+					<AssistantMessage
+						key={`assistant-${componentKeyCounter}`}
+						message={cleanedContent}
+						model={currentModel}
+					/>,
+				);
+			}
 
 			// Merge structured tool calls from LangGraph with content-parsed tool calls
 			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
@@ -853,6 +786,53 @@ export function useChatHandler({
 
 			// Handle tool calls if present - this continues the loop
 			if (validToolCalls && validToolCalls.length > 0) {
+				// Check for multiple tool calls - only one tool call per response allowed
+				if (validToolCalls.length > 1) {
+					const errorMessage =
+						'Error: Only one tool call per response allowed. You attempted to make multiple tool calls in a single response. Please make one tool call at a time.';
+
+					// Create error result that feeds back to the model
+					const errorResult: ToolResult = {
+						tool_call_id: validToolCalls[0].id,
+						role: 'tool' as const,
+						name: 'system',
+						content: errorMessage,
+					};
+
+					// Display error to user
+					addToChatQueue(
+						<ErrorMessage
+							key={`multiple-tools-error-${Date.now()}`}
+							message={errorMessage}
+							hideBox={true}
+						/>,
+					);
+
+					// Add error as tool message and continue conversation
+					const toolMessage = {
+						role: 'tool' as const,
+						content: errorResult.content,
+						tool_call_id: errorResult.tool_call_id,
+						name: errorResult.name,
+					};
+
+					const updatedMessagesWithError = [
+						...messages,
+						assistantMsg,
+						toolMessage,
+					];
+					setMessages(updatedMessagesWithError);
+
+					// Continue the main conversation loop with error message as context
+					const controller = new AbortController();
+					await processAssistantResponseWithTokenTracking(
+						systemMessage,
+						updatedMessagesWithError,
+						controller,
+					);
+					return;
+				}
+
 				// In Plan Mode, block file modification tools
 				if (developmentMode === 'plan') {
 					const fileModificationTools = [

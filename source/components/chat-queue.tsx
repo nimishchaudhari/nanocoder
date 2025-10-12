@@ -1,13 +1,10 @@
 import {Box, Static} from 'ink';
-import {ReactNode, useMemo, Fragment, memo} from 'react';
+import {useMemo, Fragment, memo} from 'react';
 import type {ChatQueueProps} from '../types/index.js';
-
-const defaultDisplayCount = 5;
 
 export default memo(function ChatQueue({
 	staticComponents = [],
 	queuedComponents = [],
-	displayCount = defaultDisplayCount,
 	forceAllStatic = false,
 }: ChatQueueProps) {
 	// Split components into static (older) and dynamic (recent) messages
@@ -63,17 +60,19 @@ export default memo(function ChatQueue({
 			)}
 
 			{/* Recent messages that might still be updating */}
-			{recentMessages.map((component, index) => {
-				const key =
-					component &&
-					typeof component === 'object' &&
-					'key' in component &&
-					component.key
-						? component.key
-						: `recent-${index}`;
+			<Box marginLeft={-1}>
+				{recentMessages.map((component, index) => {
+					const key =
+						component &&
+						typeof component === 'object' &&
+						'key' in component &&
+						component.key
+							? component.key
+							: `recent-${index}`;
 
-				return <Fragment key={key}>{component}</Fragment>;
-			})}
+					return <Fragment key={key}>{component}</Fragment>;
+				})}
+			</Box>
 		</Box>
 	);
 });
