@@ -9,7 +9,6 @@ export interface UseModeHandlersProps {
 export interface UseToolHandlerProps {
 	client: any;
 	setIsThinking: (thinking: boolean) => void;
-	setThinkingStats: (stats: any) => void;
 	onAddToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 	messages: any[];
@@ -19,7 +18,6 @@ export interface UseToolHandlerProps {
 export interface UseChatHandlerProps {
 	client: any;
 	setIsThinking: (thinking: boolean) => void;
-	setThinkingStats: (stats: any) => void;
 	onAddToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 	messages: any[];

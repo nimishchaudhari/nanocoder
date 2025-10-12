@@ -29,12 +29,15 @@ import {
 	modelCommand,
 	providerCommand,
 	recommendationsCommand,
+	statusCommand,
 	themeCommand,
 	updateCommand,
 } from '../../commands/index.js';
 import SuccessMessage from '../../components/success-message.js';
 import ErrorMessage from '../../components/error-message.js';
 import InfoMessage from '../../components/info-message.js';
+import {checkForUpdates} from '../../utils/update-checker.js';
+import type {UpdateInfo} from '../../types/index.js';
 
 interface UseAppInitializationProps {
 	setClient: (client: LLMClient | null) => void;
@@ -46,6 +49,7 @@ interface UseAppInitializationProps {
 	setCustomCommandCache: (cache: Map<string, any>) => void;
 	setStartChat: (start: boolean) => void;
 	setMcpInitialized: (initialized: boolean) => void;
+	setUpdateInfo: (info: UpdateInfo | null) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 	customCommandCache: Map<string, any>;
@@ -61,6 +65,7 @@ export function useAppInitialization({
 	setCustomCommandCache,
 	setStartChat,
 	setMcpInitialized,
+	setUpdateInfo,
 	addToChatQueue,
 	componentKeyCounter,
 	customCommandCache,
@@ -252,10 +257,21 @@ export function useAppInitialization({
 				exportCommand,
 				updateCommand,
 				recommendationsCommand,
+				statusCommand,
 			]);
 
 			// Now start with the properly initialized objects (excluding MCP)
 			await start(newToolManager, newCustomCommandLoader, preferences);
+
+			// Check for updates before showing UI
+			try {
+				const info = await checkForUpdates();
+				setUpdateInfo(info);
+			} catch (error) {
+				// Silent failure - don't show errors for update checks
+				setUpdateInfo(null);
+			}
+
 			setStartChat(true);
 
 			// Initialize MCP servers after UI is shown

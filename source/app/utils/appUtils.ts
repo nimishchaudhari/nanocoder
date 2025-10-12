@@ -20,6 +20,7 @@ export async function handleMessageSubmission(
 		onEnterProviderSelectionMode,
 		onEnterThemeSelectionMode,
 		onEnterRecommendationsMode,
+		onShowStatus,
 		onHandleChatMessage,
 		onAddToChatQueue,
 		componentKeyCounter,
@@ -147,6 +148,9 @@ ${result.fullOutput || '(No output)'}`;
 				return;
 			} else if (commandName === 'recommendations') {
 				onEnterRecommendationsMode();
+				return;
+			} else if (commandName === 'status') {
+				onShowStatus();
 				return;
 			}
 

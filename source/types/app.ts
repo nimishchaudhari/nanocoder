@@ -11,6 +11,7 @@ export interface MessageSubmissionOptions {
 	onEnterProviderSelectionMode: () => void;
 	onEnterThemeSelectionMode: () => void;
 	onEnterRecommendationsMode: () => void;
+	onShowStatus: () => void;
 	onHandleChatMessage: (message: string) => Promise<void>;
 	onAddToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
@@ -20,6 +21,8 @@ export interface MessageSubmissionOptions {
 	setCurrentBashCommand: (command: string) => void;
 	provider: string;
 	model: string;
+	theme: string;
+	updateInfo: any;
 	getMessageTokens: (message: any) => number;
 }
 

@@ -14,6 +14,7 @@ interface UseModeHandlersProps {
 	client: LLMClient | null;
 	currentModel: string;
 	currentProvider: string;
+	currentTheme: ThemePreset;
 	setClient: (client: LLMClient | null) => void;
 	setCurrentModel: (model: string) => void;
 	setCurrentProvider: (provider: string) => void;
@@ -31,6 +32,7 @@ export function useModeHandlers({
 	client,
 	currentModel,
 	currentProvider,
+	currentTheme,
 	setClient,
 	setCurrentModel,
 	setCurrentProvider,

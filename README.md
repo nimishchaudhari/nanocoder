@@ -300,6 +300,7 @@ Nanocoder automatically saves your preferences to remember your choices across s
 - `/clear` - Clear chat history
 - `/model` - Switch between available models
 - `/provider` - Switch between configured AI providers
+- `/status` - Display current status (CWD, provider, model, theme, available updates, AGENTS setup)
 - `/recommendations` - Get AI model recommendations based on your system capabilities (RAM, GPU, network)
 - `/mcp` - Show connected MCP servers and their tools
 - `/debug` - Toggle logging levels (silent/normal/verbose)

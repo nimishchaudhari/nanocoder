@@ -1,4 +1,4 @@
-import React, {ReactNode} from 'react';
+import {ReactNode} from 'react';
 import {ToolCall, LLMClient} from './core.js';
 import {CustomCommand} from './commands.js';
 
@@ -15,6 +15,7 @@ export interface ChatQueueProps {
 	staticComponents?: ReactNode[];
 	queuedComponents?: ReactNode[];
 	displayCount?: number;
+	forceAllStatic?: boolean; // Force all messages to Static (e.g., during tool confirmation)
 }
 
 export interface ChatProps {
@@ -57,17 +58,10 @@ export interface ProviderOption {
 }
 
 export interface StatusProps {
-	thinkingStats: any;
 	conversationContext: any;
 	currentProvider: string;
 	currentModel: string;
 	updateInfo?: any;
-}
-
-export interface ThinkingIndicatorProps {
-	contextSize: number;
-	totalTokensUsed: number;
-	tokensPerSecond?: number;
 }
 
 export interface ToolConfirmationProps {

@@ -81,24 +81,7 @@ const handler: ToolHandler = async (args: DeleteLinesArgs): Promise<string> => {
 };
 
 const DeleteLinesFormatter = React.memo(
-	({args, result}: {args: any; result?: string}) => {
-		const {colors} = React.useContext(ThemeContext)!;
-		const [preview, setPreview] = React.useState<React.ReactElement | null>(
-			null,
-		);
-
-		React.useEffect(() => {
-			const generatePreview = async () => {
-				const formattedPreview = await formatDeleteLinesPreview(
-					args,
-					result,
-					colors,
-				);
-				setPreview(formattedPreview);
-			};
-			generatePreview();
-		}, [args, result, colors]);
-
+	({preview}: {preview: React.ReactElement}) => {
 		return preview;
 	},
 );
@@ -372,7 +355,9 @@ const formatter = async (
 	args: any,
 	result?: string,
 ): Promise<React.ReactElement> => {
-	return <DeleteLinesFormatter args={args} result={result} />;
+	const colors = getColors();
+	const preview = await formatDeleteLinesPreview(args, result, colors);
+	return <DeleteLinesFormatter preview={preview} />;
 };
 
 const validator = async (

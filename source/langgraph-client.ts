@@ -1,5 +1,5 @@
 import {ChatOpenAI} from '@langchain/openai';
-import { Agent, fetch, RequestInfo, RequestInit } from 'undici';
+import {Agent, fetch, RequestInfo, RequestInit} from 'undici';
 import {
 	AIMessage,
 	HumanMessage,
@@ -83,17 +83,22 @@ export class LangGraphClient implements LLMClient {
 		this.availableModels = providerConfig.models;
 		this.currentModel = providerConfig.models[0] || '';
 
-		const { requestTimeout, socketTimeout, connectionPool } = this.providerConfig;
-		const resolvedSocketTimeout = socketTimeout === -1 ? 0 : socketTimeout || requestTimeout === -1 ? 0 : requestTimeout || 120000;
+		const {requestTimeout, socketTimeout, connectionPool} = this.providerConfig;
+		const resolvedSocketTimeout =
+			socketTimeout === -1
+				? 0
+				: socketTimeout || requestTimeout === -1
+				? 0
+				: requestTimeout || 120000;
 
 		this.undiciAgent = new Agent({
 			connect: {
-				timeout: resolvedSocketTimeout
+				timeout: resolvedSocketTimeout,
 			},
 			bodyTimeout: resolvedSocketTimeout,
 			headersTimeout: resolvedSocketTimeout,
 			keepAliveTimeout: connectionPool?.idleTimeout,
-			keepAliveMaxTimeout: connectionPool?.cumulativeMaxIdleTimeout
+			keepAliveMaxTimeout: connectionPool?.cumulativeMaxIdleTimeout,
 		});
 
 		this.chatModel = this.createChatModel();
@@ -103,10 +108,6 @@ export class LangGraphClient implements LLMClient {
 		providerConfig: LangChainProviderConfig,
 	): Promise<LangGraphClient> {
 		const client = new LangGraphClient(providerConfig);
-
-		// Fetch OpenRouter model info if this is OpenRouter
-		await client.fetchModelInfo();
-
 		return client;
 	}
 
@@ -116,7 +117,7 @@ export class LangGraphClient implements LLMClient {
 		const customFetch = (url: RequestInfo, options: RequestInit) => {
 			return fetch(url, {
 				...options,
-				dispatcher: this.undiciAgent
+				dispatcher: this.undiciAgent,
 			});
 		};
 
@@ -302,29 +303,5 @@ export class LangGraphClient implements LLMClient {
 
 	async clearContext(): Promise<void> {
 		// No internal state to clear in unified approach
-	}
-
-	private async fetchModelInfo(): Promise<void> {
-		if (this.providerConfig.name.toLowerCase() !== 'openrouter') {
-			return;
-		}
-
-		try {
-			const response = await fetch('https://openrouter.ai/api/v1/models', {
-				headers: {
-					Authorization: `Bearer ${this.providerConfig.config.apiKey}`,
-					'Content-Type': 'application/json',
-				},
-			});
-
-			if (response.ok) {
-				const data: any = await response.json();
-				for (const model of data.data) {
-					this.modelInfoCache.set(model.id, model);
-				}
-			}
-		} catch (error) {
-			logError(`Failed to fetch OpenRouter model info: ${error}`);
-		}
 	}
 }
