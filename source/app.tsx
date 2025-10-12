@@ -117,6 +117,7 @@ export default function App() {
 		client: appState.client,
 		currentModel: appState.currentModel,
 		currentProvider: appState.currentProvider,
+		currentTheme: appState.currentTheme,
 		setClient: appState.setClient,
 		setCurrentModel: appState.setCurrentModel,
 		setCurrentProvider: appState.setCurrentProvider,
@@ -141,6 +142,7 @@ export default function App() {
 		setCustomCommandCache: appState.setCustomCommandCache,
 		setStartChat: appState.setStartChat,
 		setMcpInitialized: appState.setMcpInitialized,
+		setUpdateInfo: appState.setUpdateInfo,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 		customCommandCache: appState.customCommandCache,
@@ -172,6 +174,25 @@ export default function App() {
 		});
 	}, [appState.setDevelopmentMode]);
 
+	const handleShowStatus = React.useCallback(() => {
+		appState.addToChatQueue(
+			<Status
+				key={`status-${appState.componentKeyCounter}`}
+				provider={appState.currentProvider}
+				model={appState.currentModel}
+				theme={appState.currentTheme}
+				updateInfo={appState.updateInfo}
+			/>,
+		);
+	}, [
+		appState.addToChatQueue,
+		appState.componentKeyCounter,
+		appState.currentProvider,
+		appState.currentModel,
+		appState.currentTheme,
+		appState.updateInfo,
+	]);
+
 	const handleMessageSubmit = React.useCallback(
 		async (message: string) => {
 			await handleMessageSubmission(message, {
@@ -183,6 +204,7 @@ export default function App() {
 				onEnterProviderSelectionMode: modeHandlers.enterProviderSelectionMode,
 				onEnterThemeSelectionMode: modeHandlers.enterThemeSelectionMode,
 				onEnterRecommendationsMode: modeHandlers.enterRecommendationsMode,
+				onShowStatus: handleShowStatus,
 				onHandleChatMessage: chatHandler.handleChatMessage,
 				onAddToChatQueue: appState.addToChatQueue,
 				componentKeyCounter: appState.componentKeyCounter,
@@ -192,6 +214,8 @@ export default function App() {
 				setCurrentBashCommand: appState.setCurrentBashCommand,
 				provider: appState.currentProvider,
 				model: appState.currentModel,
+				theme: appState.currentTheme,
+				updateInfo: appState.updateInfo,
 				getMessageTokens: appState.getMessageTokens,
 			});
 		},
@@ -202,6 +226,7 @@ export default function App() {
 			clearMessages,
 			modeHandlers.enterModelSelectionMode,
 			modeHandlers.enterProviderSelectionMode,
+			handleShowStatus,
 			chatHandler.handleChatMessage,
 			appState.addToChatQueue,
 			appState.componentKeyCounter,
@@ -220,9 +245,16 @@ export default function App() {
 				key="status"
 				provider={appState.currentProvider}
 				model={appState.currentModel}
+				theme={appState.currentTheme}
+				updateInfo={appState.updateInfo}
 			/>,
 		],
-		[appState.currentProvider, appState.currentModel],
+		[
+			appState.currentProvider,
+			appState.currentModel,
+			appState.currentTheme,
+			appState.updateInfo,
+		],
 	);
 
 	// Handle loading state for directory trust check

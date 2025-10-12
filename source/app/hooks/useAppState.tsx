@@ -6,6 +6,7 @@ import {CustomCommandExecutor} from '../../custom-commands/executor.js';
 import {loadPreferences} from '../../config/preferences.js';
 import {defaultTheme} from '../../config/themes.js';
 import type {ThemePreset} from '../../types/ui.js';
+import type {UpdateInfo} from '../../types/index.js';
 import React from 'react';
 
 export interface ThinkingStats {
@@ -46,6 +47,7 @@ export function useAppState() {
 	>(new Map());
 	const [startChat, setStartChat] = useState<boolean>(false);
 	const [mcpInitialized, setMcpInitialized] = useState<boolean>(false);
+	const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 
 	// Thinking indicator state
 	const [isThinking, setIsThinking] = useState<boolean>(false);
@@ -163,6 +165,7 @@ export function useAppState() {
 		customCommandCache,
 		startChat,
 		mcpInitialized,
+		updateInfo,
 		isThinking,
 		isCancelling,
 		abortController,
@@ -196,6 +199,7 @@ export function useAppState() {
 		setCustomCommandCache,
 		setStartChat,
 		setMcpInitialized,
+		setUpdateInfo,
 		setIsThinking,
 		setIsCancelling,
 		setAbortController,
