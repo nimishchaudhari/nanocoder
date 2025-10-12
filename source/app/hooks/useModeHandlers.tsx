@@ -59,6 +59,10 @@ export function useModeHandlers({
 			client.setModel(selectedModel);
 			setCurrentModel(selectedModel);
 
+			// Clear message history when switching models
+			setMessages([]);
+			await client.clearContext();
+
 			// Update preferences
 			updateLastUsed(currentProvider, selectedModel);
 
@@ -66,7 +70,7 @@ export function useModeHandlers({
 			addToChatQueue(
 				<SuccessMessage
 					key={`model-changed-${componentKeyCounter}`}
-					message={`Model changed to: ${selectedModel}`}
+					message={`Model changed to: ${selectedModel}. Chat history cleared.`}
 					hideBox={true}
 				/>,
 			);
