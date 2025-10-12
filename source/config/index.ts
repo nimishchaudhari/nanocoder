@@ -9,7 +9,17 @@ import {getThemeColors, defaultTheme} from './themes.js';
 import {substituteEnvVars} from './env-substitution.js';
 
 // Load .env file from working directory (shell environment takes precedence)
-loadEnv({path: join(process.cwd(), '.env')});
+// Suppress dotenv console output by temporarily redirecting stdout
+const envPath = join(process.cwd(), '.env');
+if (existsSync(envPath)) {
+	const originalWrite = process.stdout.write;
+	process.stdout.write = () => true;
+	try {
+		loadEnv({path: envPath});
+	} finally {
+		process.stdout.write = originalWrite;
+	}
+}
 
 // Function to load app configuration from agents.config.json if it exists
 function loadAppConfig(): AppConfig {

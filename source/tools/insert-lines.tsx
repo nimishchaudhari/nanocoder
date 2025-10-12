@@ -60,24 +60,7 @@ const handler: ToolHandler = async (args: InsertLinesArgs): Promise<string> => {
 };
 
 const InsertLinesFormatter = React.memo(
-	({args, result}: {args: any; result?: string}) => {
-		const {colors} = React.useContext(ThemeContext)!;
-		const [preview, setPreview] = React.useState<React.ReactElement | null>(
-			null,
-		);
-
-		React.useEffect(() => {
-			const generatePreview = async () => {
-				const formattedPreview = await formatInsertLinesPreview(
-					args,
-					result,
-					colors,
-				);
-				setPreview(formattedPreview);
-			};
-			generatePreview();
-		}, [args, result, colors]);
-
+	({preview}: {preview: React.ReactElement}) => {
 		return preview;
 	},
 );
@@ -313,7 +296,9 @@ const formatter = async (
 	args: any,
 	result?: string,
 ): Promise<React.ReactElement> => {
-	return <InsertLinesFormatter args={args} result={result} />;
+	const colors = getColors();
+	const preview = await formatInsertLinesPreview(args, result, colors);
+	return <InsertLinesFormatter preview={preview} />;
 };
 
 const validator = async (

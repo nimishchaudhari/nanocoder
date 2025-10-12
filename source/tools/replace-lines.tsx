@@ -80,24 +80,7 @@ const handler: ToolHandler = async (
 };
 
 const ReplaceLinesFormatter = React.memo(
-	({args, result}: {args: any; result?: string}) => {
-		const {colors} = React.useContext(ThemeContext)!;
-		const [preview, setPreview] = React.useState<React.ReactElement | null>(
-			null,
-		);
-
-		React.useEffect(() => {
-			const generatePreview = async () => {
-				const formattedPreview = await formatReplaceLinesPreview(
-					args,
-					result,
-					colors,
-				);
-				setPreview(formattedPreview);
-			};
-			generatePreview();
-		}, [args, result, colors]);
-
+	({preview}: {preview: React.ReactElement}) => {
 		return preview;
 	},
 );
@@ -378,7 +361,9 @@ const formatter = async (
 	args: any,
 	result?: string,
 ): Promise<React.ReactElement> => {
-	return <ReplaceLinesFormatter args={args} result={result} />;
+	const colors = getColors();
+	const preview = await formatReplaceLinesPreview(args, result, colors);
+	return <ReplaceLinesFormatter preview={preview} />;
 };
 
 const validator = async (
