@@ -1,4 +1,4 @@
-import {Box, Text, useApp, Static} from 'ink';
+import {Box, Text, useApp} from 'ink';
 import WelcomeMessage from './components/welcome-message.js';
 import React from 'react';
 import {getThemeColors} from './config/themes.js';
@@ -67,7 +67,6 @@ export default function App() {
 		currentModel: appState.currentModel,
 		setIsThinking: appState.setIsThinking,
 		setIsCancelling: appState.setIsCancelling,
-		setThinkingStats: appState.setThinkingStats,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 		abortController: appState.abortController,
@@ -216,6 +215,7 @@ export default function App() {
 	// Memoize static components to prevent unnecessary re-renders
 	const staticComponents = React.useMemo(
 		() => [
+			<WelcomeMessage key="welcome" />,
 			<Status
 				key="status"
 				provider={appState.currentProvider}
@@ -263,10 +263,6 @@ export default function App() {
 				<Box flexDirection="column" padding={1} width="100%">
 					{/* Use natural flexGrow layout - Static components prevent re-renders */}
 					<Box flexGrow={1} flexDirection="column" minHeight={0}>
-						{/* Wrap WelcomeMessage in Static since it never changes */}
-						<Static items={['welcome']}>
-							{item => <WelcomeMessage key={item} />}
-						</Static>
 						{appState.startChat && (
 							<ChatQueue
 								staticComponents={staticComponents}
@@ -279,11 +275,7 @@ export default function App() {
 							{appState.isCancelling ? (
 								<CancellingIndicator />
 							) : appState.isThinking ? (
-								<ThinkingIndicator
-									contextSize={appState.thinkingStats.contextSize}
-									totalTokensUsed={appState.thinkingStats.totalTokensUsed}
-									tokensPerSecond={appState.thinkingStats.tokensPerSecond}
-								/>
+								<ThinkingIndicator />
 							) : null}
 							{appState.isModelSelectionMode ? (
 								<ModelSelector

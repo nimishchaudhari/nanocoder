@@ -58,17 +58,10 @@ export interface ProviderOption {
 }
 
 export interface StatusProps {
-	thinkingStats: any;
 	conversationContext: any;
 	currentProvider: string;
 	currentModel: string;
 	updateInfo?: any;
-}
-
-export interface ThinkingIndicatorProps {
-	contextSize: number;
-	totalTokensUsed: number;
-	tokensPerSecond?: number;
 }
 
 export interface ToolConfirmationProps {

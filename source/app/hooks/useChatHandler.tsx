@@ -60,9 +60,7 @@ interface UseChatHandlerProps {
 	currentModel: string;
 	setIsThinking: (thinking: boolean) => void;
 	setIsCancelling: (cancelling: boolean) => void;
-	setThinkingStats: (
-		stats: ThinkingStats | ((prev: ThinkingStats) => ThinkingStats),
-	) => void;
+
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 	abortController: AbortController | null;
@@ -85,7 +83,6 @@ export function useChatHandler({
 	currentModel,
 	setIsThinking,
 	setIsCancelling,
-	setThinkingStats,
 	addToChatQueue,
 	componentKeyCounter,
 	abortController,
@@ -163,24 +160,6 @@ export function useChatHandler({
 			}
 		}
 	};
-	// Throttle thinking stats updates to reduce re-renders
-	const throttledSetThinkingStats = React.useCallback(
-		(() => {
-			let lastUpdate = 0;
-			const throttleMs = 250; // Update at most 4 times per second
-
-			return (
-				stats: ThinkingStats | ((prev: ThinkingStats) => ThinkingStats),
-			) => {
-				const now = Date.now();
-				if (now - lastUpdate >= throttleMs) {
-					lastUpdate = now;
-					setThinkingStats(stats);
-				}
-			};
-		})(),
-		[setThinkingStats],
-	);
 
 	// Helper to make async iterator cancellable with frequent abort checking
 	const makeCancellableStream = async function* (
@@ -224,453 +203,6 @@ export function useChatHandler({
 		} finally {
 			if (iterator.return) {
 				await iterator.return();
-			}
-		}
-	};
-
-	// Process assistant response with token tracking (for initial user messages)
-	const processAssistantResponseWithTokenTracking = async (
-		systemMessage: Message,
-		messages: Message[],
-		controller: AbortController,
-	) => {
-		if (!client) return;
-
-		const stream = client.chatStream(
-			[systemMessage, ...messages],
-			toolManager?.getAllTools() || [],
-		);
-
-		let toolCalls: any = null;
-		let fullContent = '';
-		let tokenCount = 0;
-		let hasContent = false;
-
-		// Process streaming response with cancellation support
-		const cancellableStream = makeCancellableStream(stream, controller.signal);
-		for await (const chunk of cancellableStream) {
-			hasContent = true;
-
-			if (chunk.message?.content) {
-				fullContent += chunk.message.content;
-				tokenCount = Math.ceil(fullContent.length / 4);
-			}
-
-			// If server provides eval_count, use it as it's more accurate
-			// But ensure we don't reset to a lower count if content tokens are higher
-			if (chunk.eval_count) {
-				tokenCount = Math.max(tokenCount, chunk.eval_count);
-			}
-
-			if (chunk.message?.tool_calls) {
-				toolCalls = chunk.message.tool_calls;
-			}
-
-			// Update thinking stats in real-time
-			if (!chunk.done) {
-				const systemTokens = Math.ceil(systemMessage.content.length / 4); // Use actual system prompt length
-				const conversationTokens = getMessageTokens
-					? messages.reduce((total, msg) => total + getMessageTokens(msg), 0)
-					: messages.reduce(
-							(total, msg) => total + Math.ceil((msg.content?.length || 0) / 4),
-							0,
-					  );
-				const totalTokensUsed = systemTokens + conversationTokens + tokenCount;
-
-				throttledSetThinkingStats({
-					tokenCount,
-					contextSize: client.getContextSize(),
-					totalTokensUsed,
-					tokensPerSecond: chunk.tokens_per_second,
-				});
-			}
-		}
-
-		if (!hasContent) {
-			throw new Error('No response received from model');
-		}
-
-		// Parse any tool calls from content for non-tool-calling models
-		const parsedToolCalls = parseToolCallsFromContent(fullContent);
-		const cleanedContent = cleanContentFromToolCalls(
-			fullContent,
-			parsedToolCalls,
-		);
-
-		// Display the assistant response (cleaned of any tool calls)
-		if (cleanedContent.trim()) {
-			addToChatQueue(
-				<AssistantMessage
-					key={`assistant-${componentKeyCounter}`}
-					message={cleanedContent}
-					model={currentModel}
-				/>,
-			);
-		}
-
-		// Merge structured tool calls from LangGraph with content-parsed tool calls
-		const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-		const validToolCalls = filterValidToolCalls(allToolCalls);
-
-		// Add assistant message to conversation history
-		const assistantMsg: Message = {
-			role: 'assistant',
-			content: cleanedContent,
-			tool_calls: validToolCalls.length > 0 ? validToolCalls : undefined,
-		};
-		setMessages([...messages, assistantMsg]);
-
-		// Update conversation state with assistant message
-		conversationStateManager.current.updateAssistantMessage(assistantMsg);
-
-		// Handle tool calls if present - this continues the loop
-		if (validToolCalls && validToolCalls.length > 0) {
-			// Check for multiple tool calls - only one tool call per response allowed
-			if (validToolCalls.length > 1) {
-				const errorMessage =
-					'⚒ Only one tool call per response allowed. You attempted to make multiple tool calls in a single response. Please make one tool call at a time.';
-
-				// Create error result that feeds back to the model
-				const errorResult: ToolResult = {
-					tool_call_id: validToolCalls[0].id,
-					role: 'tool' as const,
-					name: 'system',
-					content: errorMessage,
-				};
-
-				// Display error to user
-				addToChatQueue(
-					<ErrorMessage
-						key={`multiple-tools-error-${Date.now()}`}
-						message={errorMessage}
-						hideBox={true}
-					/>,
-				);
-
-				// Add error as tool message and continue conversation
-				const toolMessage = {
-					role: 'tool' as const,
-					content: errorResult.content,
-					tool_call_id: errorResult.tool_call_id,
-					name: errorResult.name,
-				};
-
-				const updatedMessagesWithError = [
-					...messages,
-					assistantMsg,
-					toolMessage,
-				];
-
-				setMessages(updatedMessagesWithError);
-
-				// Continue the main conversation loop with error message as context
-				await processAssistantResponse(systemMessage, updatedMessagesWithError);
-				return;
-			}
-
-			// First, validate tools and separate valid from unknown
-			const knownToolCalls: ToolCall[] = [];
-			const unknownToolErrors: ToolResult[] = [];
-
-			for (const toolCall of validToolCalls) {
-				if (!toolManager?.hasTool(toolCall.function.name)) {
-					// Get list of available tools for helpful error message
-					const availableTools =
-						toolManager?.getAllTools().map(t => t.function.name) || [];
-					const toolList = availableTools.slice(0, 5).join(', ');
-					const moreTools =
-						availableTools.length > 5
-							? ` (and ${availableTools.length - 5} more)`
-							: '';
-
-					// Create error result for unknown tool
-					const errorResult: ToolResult = {
-						tool_call_id: toolCall.id,
-						role: 'tool' as const,
-						name: toolCall.function.name,
-						content: `⚒ Unknown tool: "${toolCall.function.name}". Available tools: ${toolList}${moreTools}`,
-					};
-					unknownToolErrors.push(errorResult);
-
-					// Display the error to user
-					addToChatQueue(
-						<ErrorMessage
-							key={`unknown-tool-${toolCall.id}-${Date.now()}`}
-							message={`⚒ Unknown tool: "${toolCall.function.name}"`}
-							hideBox={true}
-						/>,
-					);
-				} else {
-					// Tool exists, add to valid list
-					knownToolCalls.push(toolCall);
-				}
-			}
-
-			// If there were unknown tools, continue conversation with all errors
-			if (unknownToolErrors.length > 0) {
-				const toolMessages = unknownToolErrors.map(result => ({
-					role: 'tool' as const,
-					content: result.content || '',
-					tool_call_id: result.tool_call_id,
-					name: result.name,
-				}));
-
-				const updatedMessagesWithError = [
-					...messages,
-					assistantMsg,
-					...toolMessages,
-				];
-
-				setMessages(updatedMessagesWithError);
-
-				// Continue the main conversation loop with error messages as context
-				await processAssistantResponse(systemMessage, updatedMessagesWithError);
-				return;
-			}
-
-			// If we get here, all tools are valid - proceed with normal flow
-			// Use knownToolCalls for the rest of the processing
-
-			// In Plan Mode, block file modification tools
-			if (developmentMode === 'plan') {
-				const fileModificationTools = [
-					'create_file',
-					'delete_lines',
-					'insert_lines',
-					'replace_lines',
-				];
-				const blockedTools = knownToolCalls.filter(tc =>
-					fileModificationTools.includes(tc.function.name),
-				);
-
-				if (blockedTools.length > 0) {
-					// Create error results for blocked tools
-					const blockedToolErrors: ToolResult[] = blockedTools.map(
-						toolCall => ({
-							tool_call_id: toolCall.id,
-							role: 'tool' as const,
-							name: toolCall.function.name,
-							content: `⚠ Tool "${toolCall.function.name}" is not allowed in Plan Mode. File modification tools are restricted in this mode. Switch to Normal Mode or Auto-accept Mode to execute file modifications.`,
-						}),
-					);
-
-					// Display error messages
-					for (const error of blockedToolErrors) {
-						addToChatQueue(
-							<ErrorMessage
-								key={`plan-mode-blocked-${error.tool_call_id}-${Date.now()}`}
-								message={error.content}
-								hideBox={true}
-							/>,
-						);
-					}
-
-					// Continue conversation with error messages
-					const toolMessages = blockedToolErrors.map(result => ({
-						role: 'tool' as const,
-						content: result.content || '',
-						tool_call_id: result.tool_call_id,
-						name: result.name,
-					}));
-
-					const updatedMessagesWithError = [
-						...messages,
-						assistantMsg,
-						...toolMessages,
-					];
-
-					setMessages(updatedMessagesWithError);
-
-					// Continue the main conversation loop with error messages as context
-					await processAssistantResponse(
-						systemMessage,
-						updatedMessagesWithError,
-					);
-					return;
-				}
-			}
-
-			// Separate tools that need confirmation vs those that don't
-			// BUT: if a tool fails validation, execute directly (skip confirmation)
-			const toolsNeedingConfirmation: ToolCall[] = [];
-			const toolsToExecuteDirectly: ToolCall[] = [];
-
-			for (const toolCall of knownToolCalls) {
-				const toolDef = toolDefinitions.find(
-					def => def.config.function.name === toolCall.function.name,
-				);
-
-				// Check if tool has a validator
-				let validationFailed = false;
-				if (toolManager) {
-					const validator = toolManager.getToolValidator(
-						toolCall.function.name,
-					);
-					if (validator) {
-						try {
-							// Parse arguments if they're a JSON string
-							let parsedArgs = toolCall.function.arguments;
-							if (typeof parsedArgs === 'string') {
-								try {
-									parsedArgs = JSON.parse(parsedArgs);
-								} catch (e) {
-									// If parsing fails, use as-is
-								}
-							}
-
-							const validationResult = await validator(parsedArgs);
-							if (!validationResult.valid) {
-								validationFailed = true;
-							}
-						} catch (error) {
-							// Validation threw an error - treat as validation failure
-							validationFailed = true;
-						}
-					}
-				}
-
-				// If validation failed OR tool doesn't require confirmation OR in auto-accept mode, execute directly
-				// EXCEPT: execute_bash always requires confirmation for security
-				const isBashTool = toolCall.function.name === 'execute_bash';
-				if (
-					validationFailed ||
-					(toolDef && toolDef.requiresConfirmation === false) ||
-					(developmentMode === 'auto-accept' && !isBashTool)
-				) {
-					toolsToExecuteDirectly.push(toolCall);
-				} else {
-					toolsNeedingConfirmation.push(toolCall);
-				}
-			}
-
-			// Execute non-confirmation tools directly
-			if (toolsToExecuteDirectly.length > 0) {
-				// Import processToolUse here to avoid circular dependencies
-				const {processToolUse} = await import('../../message-handler.js');
-				const directResults: ToolResult[] = [];
-
-				for (const toolCall of toolsToExecuteDirectly) {
-					try {
-						// Double-check tool exists before execution (safety net)
-						if (!toolManager?.hasTool(toolCall.function.name)) {
-							throw new Error(`Unknown tool: ${toolCall.function.name}`);
-						}
-
-						// Run validator if available
-						const validator = toolManager?.getToolValidator(
-							toolCall.function.name,
-						);
-						if (validator) {
-							// Parse arguments if they're a JSON string
-							let parsedArgs = toolCall.function.arguments;
-							if (typeof parsedArgs === 'string') {
-								try {
-									parsedArgs = JSON.parse(parsedArgs);
-								} catch (e) {
-									// If parsing fails, use as-is
-								}
-							}
-
-							const validationResult = await validator(parsedArgs);
-							if (!validationResult.valid) {
-								// Validation failed - create error result and skip execution
-								const errorResult: ToolResult = {
-									tool_call_id: toolCall.id,
-									role: 'tool' as const,
-									name: toolCall.function.name,
-									content: validationResult.error,
-								};
-								directResults.push(errorResult);
-
-								// Update conversation state with error
-								conversationStateManager.current.updateAfterToolExecution(
-									toolCall,
-									errorResult.content,
-								);
-
-								// Display the validation error to the user
-								addToChatQueue(
-									<ErrorMessage
-										key={`validation-error-${toolCall.id}-${Date.now()}`}
-										message={validationResult.error}
-										hideBox={true}
-									/>,
-								);
-
-								continue; // Skip to next tool
-							}
-						}
-
-						const result = await processToolUse(toolCall);
-						directResults.push(result);
-
-						// Update conversation state with tool execution
-						conversationStateManager.current.updateAfterToolExecution(
-							toolCall,
-							result.content,
-						);
-
-						// Display the tool result immediately
-						await displayToolResult(toolCall, result);
-					} catch (error) {
-						// Handle tool execution errors
-						const errorResult: ToolResult = {
-							tool_call_id: toolCall.id,
-							role: 'tool' as const,
-							name: toolCall.function.name,
-							content: `Error: ${
-								error instanceof Error ? error.message : String(error)
-							}`,
-						};
-						directResults.push(errorResult);
-
-						// Update conversation state with error
-						conversationStateManager.current.updateAfterToolExecution(
-							toolCall,
-							errorResult.content,
-						);
-
-						// Display the error result
-						await displayToolResult(toolCall, errorResult);
-					}
-				}
-
-				// If we have results, continue the conversation with them
-				if (directResults.length > 0) {
-					// Format tool results as standard tool messages
-					const toolMessages = directResults.map(result => ({
-						role: 'tool' as const,
-						content: result.content || '',
-						tool_call_id: result.tool_call_id,
-						name: result.name,
-					}));
-
-					const updatedMessagesWithTools = [
-						...messages,
-						assistantMsg,
-						...toolMessages,
-					];
-
-					setMessages(updatedMessagesWithTools);
-
-					// Continue the main conversation loop with tool results as context
-					await processAssistantResponse(
-						systemMessage,
-						updatedMessagesWithTools,
-					);
-					return;
-				}
-			}
-
-			// Start confirmation flow only for tools that need it
-			if (toolsNeedingConfirmation.length > 0) {
-				onStartToolConfirmationFlow(
-					toolsNeedingConfirmation,
-					messages,
-					assistantMsg,
-					systemMessage,
-				);
-				return; // IMPORTANT: Stop processing here, wait for user confirmation
 			}
 		}
 	};
@@ -724,27 +256,6 @@ export function useChatHandler({
 				if (chunk.message?.tool_calls) {
 					toolCalls = chunk.message.tool_calls;
 				}
-
-				// Update thinking stats in real-time (similar to initial response)
-				if (!chunk.done) {
-					const systemTokens = Math.ceil(systemMessage.content.length / 4); // Use actual system prompt length
-					const conversationTokens = getMessageTokens
-						? messages.reduce((total, msg) => total + getMessageTokens(msg), 0)
-						: messages.reduce(
-								(total, msg) =>
-									total + Math.ceil((msg.content?.length || 0) / 4),
-								0,
-						  );
-					const totalTokensUsed =
-						systemTokens + conversationTokens + tokenCount;
-
-					throttledSetThinkingStats({
-						tokenCount,
-						contextSize: client.getContextSize(),
-						totalTokensUsed,
-						tokensPerSecond: chunk.tokens_per_second,
-					});
-				}
 			}
 
 			if (!hasContent) {
@@ -786,53 +297,6 @@ export function useChatHandler({
 
 			// Handle tool calls if present - this continues the loop
 			if (validToolCalls && validToolCalls.length > 0) {
-				// Check for multiple tool calls - only one tool call per response allowed
-				if (validToolCalls.length > 1) {
-					const errorMessage =
-						'Error: Only one tool call per response allowed. You attempted to make multiple tool calls in a single response. Please make one tool call at a time.';
-
-					// Create error result that feeds back to the model
-					const errorResult: ToolResult = {
-						tool_call_id: validToolCalls[0].id,
-						role: 'tool' as const,
-						name: 'system',
-						content: errorMessage,
-					};
-
-					// Display error to user
-					addToChatQueue(
-						<ErrorMessage
-							key={`multiple-tools-error-${Date.now()}`}
-							message={errorMessage}
-							hideBox={true}
-						/>,
-					);
-
-					// Add error as tool message and continue conversation
-					const toolMessage = {
-						role: 'tool' as const,
-						content: errorResult.content,
-						tool_call_id: errorResult.tool_call_id,
-						name: errorResult.name,
-					};
-
-					const updatedMessagesWithError = [
-						...messages,
-						assistantMsg,
-						toolMessage,
-					];
-					setMessages(updatedMessagesWithError);
-
-					// Continue the main conversation loop with error message as context
-					const controller = new AbortController();
-					await processAssistantResponseWithTokenTracking(
-						systemMessage,
-						updatedMessagesWithError,
-						controller,
-					);
-					return;
-				}
-
 				// In Plan Mode, block file modification tools
 				if (developmentMode === 'plan') {
 					const fileModificationTools = [
@@ -883,11 +347,9 @@ export function useChatHandler({
 						setMessages(updatedMessagesWithError);
 
 						// Continue the main conversation loop with error messages as context
-						const controller = new AbortController();
-						await processAssistantResponseWithTokenTracking(
+						await processAssistantResponse(
 							systemMessage,
 							updatedMessagesWithError,
-							controller,
 						);
 						return;
 					}
@@ -1051,11 +513,9 @@ export function useChatHandler({
 						setMessages(updatedMessagesWithTools);
 
 						// Continue the main conversation loop with tool results as context
-						const controller = new AbortController();
-						await processAssistantResponseWithTokenTracking(
+						await processAssistantResponse(
 							systemMessage,
 							updatedMessagesWithTools,
-							controller,
 						);
 						return;
 					}
@@ -1148,18 +608,9 @@ export function useChatHandler({
 			// Use the new conversation loop
 			// Initialize per-message stats with actual system prompt tokens
 			const systemTokens = Math.ceil(systemMessage.content.length / 4);
-			setThinkingStats({
-				tokenCount: 0,
-				contextSize: client.getContextSize(),
-				totalTokensUsed: systemTokens + existingConversationTokens,
-			});
 
 			// Use the new conversation loop
-			await processAssistantResponseWithTokenTracking(
-				systemMessage,
-				updatedMessages,
-				controller,
-			);
+			await processAssistantResponse(systemMessage, updatedMessages);
 		} catch (error) {
 			if (
 				error instanceof Error &&

@@ -1,7 +1,6 @@
 import {memo, useState, useEffect, useRef} from 'react';
 import {Box, Text} from 'ink';
 import {useTheme} from '../hooks/useTheme.js';
-import type {ThinkingIndicatorProps} from '../types/index.js';
 
 const THINKING_WORDS = [
 	'Thinking',
@@ -36,11 +35,7 @@ const THINKING_WORDS = [
 	'Meditating',
 ];
 
-export default memo(function ThinkingIndicator({
-	contextSize,
-	totalTokensUsed,
-	tokensPerSecond,
-}: ThinkingIndicatorProps) {
+export default memo(function ThinkingIndicator() {
 	const {colors} = useTheme();
 	const [elapsedSeconds, setElapsedSeconds] = useState(0);
 	const [wordIndex, setWordIndex] = useState(0);
@@ -73,18 +68,6 @@ export default memo(function ThinkingIndicator({
 		};
 	}, []);
 
-	const percentage =
-		contextSize > 0 ? Math.round((totalTokensUsed / contextSize) * 100) : 0;
-
-	// Clamp percentage to prevent display jitter from values over 100%
-	const displayPercentage = Math.min(percentage, 100);
-
-	// Format tokens per second display
-	const tokensPerSecondDisplay =
-		tokensPerSecond !== undefined && tokensPerSecond > 0
-			? ` • ${tokensPerSecond} tok/s`
-			: '';
-
 	// Cycle through 1-3 dots based on elapsed seconds
 	const dots = '.'.repeat((elapsedSeconds % 4) + 1);
 
@@ -95,10 +78,7 @@ export default memo(function ThinkingIndicator({
 					{THINKING_WORDS[wordIndex]}
 					{dots}{' '}
 				</Text>
-				<Text color={colors.white}>
-					{elapsedSeconds}s{tokensPerSecondDisplay}
-					{contextSize > 0 ? ` • ${displayPercentage}% context used` : ''}
-				</Text>
+				<Text color={colors.white}>{elapsedSeconds}s</Text>
 			</Box>
 			<Box marginTop={1}>
 				<Text color={colors.secondary}>Press Escape to cancel</Text>
