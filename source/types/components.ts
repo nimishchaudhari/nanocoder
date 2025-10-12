@@ -1,4 +1,4 @@
-import React, {ReactNode} from 'react';
+import {ReactNode} from 'react';
 import {ToolCall, LLMClient} from './core.js';
 import {CustomCommand} from './commands.js';
 
