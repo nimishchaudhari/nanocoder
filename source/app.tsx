@@ -67,7 +67,6 @@ export default function App() {
 		currentModel: appState.currentModel,
 		setIsThinking: appState.setIsThinking,
 		setIsCancelling: appState.setIsCancelling,
-		setThinkingStats: appState.setThinkingStats,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 		abortController: appState.abortController,
@@ -118,6 +117,7 @@ export default function App() {
 		client: appState.client,
 		currentModel: appState.currentModel,
 		currentProvider: appState.currentProvider,
+		currentTheme: appState.currentTheme,
 		setClient: appState.setClient,
 		setCurrentModel: appState.setCurrentModel,
 		setCurrentProvider: appState.setCurrentProvider,
@@ -142,6 +142,7 @@ export default function App() {
 		setCustomCommandCache: appState.setCustomCommandCache,
 		setStartChat: appState.setStartChat,
 		setMcpInitialized: appState.setMcpInitialized,
+		setUpdateInfo: appState.setUpdateInfo,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 		customCommandCache: appState.customCommandCache,
@@ -162,12 +163,35 @@ export default function App() {
 
 	const handleToggleDevelopmentMode = React.useCallback(() => {
 		appState.setDevelopmentMode(currentMode => {
-			const modes: Array<'normal' | 'auto-accept' | 'plan'> = ['normal', 'auto-accept', 'plan'];
+			const modes: Array<'normal' | 'auto-accept' | 'plan'> = [
+				'normal',
+				'auto-accept',
+				'plan',
+			];
 			const currentIndex = modes.indexOf(currentMode);
 			const nextIndex = (currentIndex + 1) % modes.length;
 			return modes[nextIndex];
 		});
 	}, [appState.setDevelopmentMode]);
+
+	const handleShowStatus = React.useCallback(() => {
+		appState.addToChatQueue(
+			<Status
+				key={`status-${appState.componentKeyCounter}`}
+				provider={appState.currentProvider}
+				model={appState.currentModel}
+				theme={appState.currentTheme}
+				updateInfo={appState.updateInfo}
+			/>,
+		);
+	}, [
+		appState.addToChatQueue,
+		appState.componentKeyCounter,
+		appState.currentProvider,
+		appState.currentModel,
+		appState.currentTheme,
+		appState.updateInfo,
+	]);
 
 	const handleMessageSubmit = React.useCallback(
 		async (message: string) => {
@@ -180,6 +204,7 @@ export default function App() {
 				onEnterProviderSelectionMode: modeHandlers.enterProviderSelectionMode,
 				onEnterThemeSelectionMode: modeHandlers.enterThemeSelectionMode,
 				onEnterRecommendationsMode: modeHandlers.enterRecommendationsMode,
+				onShowStatus: handleShowStatus,
 				onHandleChatMessage: chatHandler.handleChatMessage,
 				onAddToChatQueue: appState.addToChatQueue,
 				componentKeyCounter: appState.componentKeyCounter,
@@ -189,6 +214,8 @@ export default function App() {
 				setCurrentBashCommand: appState.setCurrentBashCommand,
 				provider: appState.currentProvider,
 				model: appState.currentModel,
+				theme: appState.currentTheme,
+				updateInfo: appState.updateInfo,
 				getMessageTokens: appState.getMessageTokens,
 			});
 		},
@@ -199,6 +226,7 @@ export default function App() {
 			clearMessages,
 			modeHandlers.enterModelSelectionMode,
 			modeHandlers.enterProviderSelectionMode,
+			handleShowStatus,
 			chatHandler.handleChatMessage,
 			appState.addToChatQueue,
 			appState.componentKeyCounter,
@@ -212,13 +240,21 @@ export default function App() {
 	// Memoize static components to prevent unnecessary re-renders
 	const staticComponents = React.useMemo(
 		() => [
+			<WelcomeMessage key="welcome" />,
 			<Status
 				key="status"
 				provider={appState.currentProvider}
 				model={appState.currentModel}
+				theme={appState.currentTheme}
+				updateInfo={appState.updateInfo}
 			/>,
 		],
-		[appState.currentProvider, appState.currentModel],
+		[
+			appState.currentProvider,
+			appState.currentModel,
+			appState.currentTheme,
+			appState.updateInfo,
+		],
 	);
 
 	// Handle loading state for directory trust check
@@ -257,8 +293,8 @@ export default function App() {
 		<ThemeContext.Provider value={themeContextValue}>
 			<UIStateProvider>
 				<Box flexDirection="column" padding={1} width="100%">
+					{/* Use natural flexGrow layout - Static components prevent re-renders */}
 					<Box flexGrow={1} flexDirection="column" minHeight={0}>
-						<WelcomeMessage />
 						{appState.startChat && (
 							<ChatQueue
 								staticComponents={staticComponents}
@@ -267,15 +303,11 @@ export default function App() {
 						)}
 					</Box>
 					{appState.startChat && (
-						<Box flexDirection="column">
+						<Box flexDirection="column" marginLeft={-1}>
 							{appState.isCancelling ? (
 								<CancellingIndicator />
 							) : appState.isThinking ? (
-								<ThinkingIndicator
-									contextSize={appState.thinkingStats.contextSize}
-									totalTokensUsed={appState.thinkingStats.totalTokensUsed}
-									tokensPerSecond={appState.thinkingStats.tokensPerSecond}
-								/>
+								<ThinkingIndicator />
 							) : null}
 							{appState.isModelSelectionMode ? (
 								<ModelSelector

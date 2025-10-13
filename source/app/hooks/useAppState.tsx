@@ -6,6 +6,7 @@ import {CustomCommandExecutor} from '../../custom-commands/executor.js';
 import {loadPreferences} from '../../config/preferences.js';
 import {defaultTheme} from '../../config/themes.js';
 import type {ThemePreset} from '../../types/ui.js';
+import type {UpdateInfo} from '../../types/index.js';
 import React from 'react';
 
 export interface ThinkingStats {
@@ -46,15 +47,11 @@ export function useAppState() {
 	>(new Map());
 	const [startChat, setStartChat] = useState<boolean>(false);
 	const [mcpInitialized, setMcpInitialized] = useState<boolean>(false);
+	const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 
 	// Thinking indicator state
 	const [isThinking, setIsThinking] = useState<boolean>(false);
 	const [isCancelling, setIsCancelling] = useState<boolean>(false);
-	const [thinkingStats, setThinkingStats] = useState<ThinkingStats>({
-		tokenCount: 0,
-		contextSize: 0,
-		totalTokensUsed: 0,
-	});
 
 	// Cancellation state
 	const [abortController, setAbortController] =
@@ -76,7 +73,8 @@ export function useAppState() {
 	const [currentBashCommand, setCurrentBashCommand] = useState<string>('');
 
 	// Development mode state
-	const [developmentMode, setDevelopmentMode] = useState<DevelopmentMode>('normal');
+	const [developmentMode, setDevelopmentMode] =
+		useState<DevelopmentMode>('normal');
 
 	// Tool confirmation state
 	const [pendingToolCalls, setPendingToolCalls] = useState<any[]>([]);
@@ -167,9 +165,9 @@ export function useAppState() {
 		customCommandCache,
 		startChat,
 		mcpInitialized,
+		updateInfo,
 		isThinking,
 		isCancelling,
-		thinkingStats,
 		abortController,
 		isModelSelectionMode,
 		isProviderSelectionMode,
@@ -201,9 +199,9 @@ export function useAppState() {
 		setCustomCommandCache,
 		setStartChat,
 		setMcpInitialized,
+		setUpdateInfo,
 		setIsThinking,
 		setIsCancelling,
-		setThinkingStats,
 		setAbortController,
 		setIsModelSelectionMode,
 		setIsProviderSelectionMode,

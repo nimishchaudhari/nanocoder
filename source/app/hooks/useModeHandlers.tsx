@@ -14,6 +14,7 @@ interface UseModeHandlersProps {
 	client: LLMClient | null;
 	currentModel: string;
 	currentProvider: string;
+	currentTheme: ThemePreset;
 	setClient: (client: LLMClient | null) => void;
 	setCurrentModel: (model: string) => void;
 	setCurrentProvider: (provider: string) => void;
@@ -31,6 +32,7 @@ export function useModeHandlers({
 	client,
 	currentModel,
 	currentProvider,
+	currentTheme,
 	setClient,
 	setCurrentModel,
 	setCurrentProvider,
@@ -59,6 +61,10 @@ export function useModeHandlers({
 			client.setModel(selectedModel);
 			setCurrentModel(selectedModel);
 
+			// Clear message history when switching models
+			setMessages([]);
+			await client.clearContext();
+
 			// Update preferences
 			updateLastUsed(currentProvider, selectedModel);
 
@@ -66,7 +72,7 @@ export function useModeHandlers({
 			addToChatQueue(
 				<SuccessMessage
 					key={`model-changed-${componentKeyCounter}`}
-					message={`Model changed to: ${selectedModel}`}
+					message={`Model changed to: ${selectedModel}. Chat history cleared.`}
 					hideBox={true}
 				/>,
 			);

@@ -11,7 +11,17 @@ import {substituteEnvVars} from './env-substitution.js';
 
 
 // Load .env file from working directory (shell environment takes precedence)
-loadEnv({path: join(process.cwd(), '.env')});
+// Suppress dotenv console output by temporarily redirecting stdout
+const envPath = join(process.cwd(), '.env');
+if (existsSync(envPath)) {
+	const originalWrite = process.stdout.write;
+	process.stdout.write = () => true;
+	try {
+		loadEnv({path: envPath});
+	} finally {
+		process.stdout.write = originalWrite;
+	}
+}
 
 // Hold a map of what config files are where
 export const confDirMap: Record<string, string> = {};

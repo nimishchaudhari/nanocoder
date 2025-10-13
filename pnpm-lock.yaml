@@ -15,8 +15,8 @@ importers:
         specifier: ^0.4.9
         version: 0.4.9(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(react@19.1.1)(zod-to-json-schema@3.24.6(zod@3.25.76))
       '@langchain/openai':
-        specifier: ^0.6.10
-        version: 0.6.11(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(ws@8.18.3)
+        specifier: ^0.6.15
+        version: 0.6.15(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(ws@8.18.3)
       '@mishieck/ink-titled-box':
         specifier: ^0.3.0
         version: 0.3.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
@@ -243,8 +243,8 @@ packages:
       zod-to-json-schema:
         optional: true
 
-  '@langchain/openai@0.6.11':
-    resolution: {integrity: sha512-BkaudQTLsmdt9mF6tn6CrsK2TEFKk4EhAWYkouGTy/ljJIH/p2Nz9awIOGdrQiQt6AJ5mvKGupyVqy3W/jim2Q==}
+  '@langchain/openai@0.6.15':
+    resolution: {integrity: sha512-eMxTujxuK7ioOh3EyH/Z/vCbo7PbfjVG/dHjN3o6++WIrM9q0KkZCtp9i68uuSijVJYLDYhQJ0F79S03X44Cig==}
     engines: {node: '>=18'}
     peerDependencies:
       '@langchain/core': '>=0.3.68 <0.4.0'
@@ -3359,7 +3359,7 @@ snapshots:
       - react
       - react-dom
 
-  '@langchain/openai@0.6.11(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(ws@8.18.3)':
+  '@langchain/openai@0.6.15(@langchain/core@0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(ws@8.18.3)':
     dependencies:
       '@langchain/core': 0.3.72(openai@5.12.2(ws@8.18.3)(zod@3.25.76))
       js-tiktoken: 1.0.21
