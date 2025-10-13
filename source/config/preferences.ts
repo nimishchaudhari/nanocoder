@@ -1,18 +1,22 @@
-import {existsSync, readFileSync, writeFileSync} from 'fs';
-import {join} from 'path';
-import {homedir} from 'os';
+import {readFileSync, writeFileSync} from 'fs';
 import {shouldLog} from './logging.js';
 import {logError} from '../utils/message-queue.js';
 import {getClosestConfigFile} from './index.js';
 
 import type {UserPreferences} from '../types/index.js';
 
+let PREFERENCES_PATH: string | null = null;
 
-const PREFERENCES_PATH = getClosestConfigFile('nanocoder-preferences.json')
+function getPreferencesPath(): string {
+	if (!PREFERENCES_PATH) {
+		PREFERENCES_PATH = getClosestConfigFile('nanocoder-preferences.json');
+	}
+	return PREFERENCES_PATH;
+}
 
 export function loadPreferences(): UserPreferences {
 	try {
-		const data = readFileSync(PREFERENCES_PATH, 'utf-8');
+		const data = readFileSync(getPreferencesPath(), 'utf-8');
 		return JSON.parse(data);
 	} catch (error) {
 		if (shouldLog('warn')) {
@@ -24,7 +28,7 @@ export function loadPreferences(): UserPreferences {
 
 export function savePreferences(preferences: UserPreferences): void {
 	try {
-		writeFileSync(PREFERENCES_PATH, JSON.stringify(preferences, null, 2));
+		writeFileSync(getPreferencesPath(), JSON.stringify(preferences, null, 2));
 	} catch (error) {
 		if (shouldLog('warn')) {
 			logError(`Failed to save preferences: ${error}`);
