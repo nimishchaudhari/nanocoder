@@ -1,15 +1,28 @@
 import {LangGraphClient} from './langgraph-client.js';
-import {appConfig} from './config/index.js';
+import {appConfig, getClosestConfigFile} from './config/index.js';
 import {loadPreferences} from './config/preferences.js';
 import type {LLMClient, LangChainProviderConfig} from './types/index.js';
 import {existsSync} from 'fs';
 import {join} from 'path';
 
+// Custom error class for configuration errors that need special UI handling
+export class ConfigurationError extends Error {
+	constructor(
+		message: string,
+		public configPath: string,
+		public cwdPath?: string,
+		public isEmptyConfig: boolean = false,
+	) {
+		super(message);
+		this.name = 'ConfigurationError';
+	}
+}
+
 export async function createLLMClient(
 	provider?: string,
 ): Promise<{client: LLMClient; actualProvider: string}> {
 	// Check if agents.config.json exists
-	const agentsJsonPath = join(process.cwd(), 'agents.config.json');
+	const agentsJsonPath = getClosestConfigFile('agents.config.json');
 	const hasConfigFile = existsSync(agentsJsonPath);
 
 	// Always use LangGraph - it handles both tool-calling and non-tool-calling models
@@ -24,12 +37,25 @@ async function createLangGraphClient(
 	const providers = loadProviderConfigs();
 
 	if (providers.length === 0) {
+		const configPath = getClosestConfigFile('agents.config.json');
+		const cwd = process.cwd();
+		const isInCwd = configPath.startsWith(cwd);
+		const cwdPath = !isInCwd ? join(cwd, 'agents.config.json') : undefined;
+
 		if (!hasConfigFile) {
-			throw new Error(
-				'No agents.config.json found. Please create a configuration file with provider settings.',
+			throw new ConfigurationError(
+				'No agents.config.json found',
+				configPath,
+				cwdPath,
+				false,
 			);
 		} else {
-			throw new Error('No providers configured in agents.config.json');
+			throw new ConfigurationError(
+				'No providers configured in agents.config.json',
+				configPath,
+				cwdPath,
+				true,
+			);
 		}
 	}
 

@@ -3,7 +3,7 @@ import {LLMClient} from '../../types/core.js';
 import {ToolManager} from '../../tools/tool-manager.js';
 import {CustomCommandLoader} from '../../custom-commands/loader.js';
 import {CustomCommandExecutor} from '../../custom-commands/executor.js';
-import {createLLMClient} from '../../client-factory.js';
+import {createLLMClient, ConfigurationError} from '../../client-factory.js';
 import {
 	getLastUsedModel,
 	loadPreferences,
@@ -36,6 +36,7 @@ import {
 import SuccessMessage from '../../components/success-message.js';
 import ErrorMessage from '../../components/error-message.js';
 import InfoMessage from '../../components/info-message.js';
+import ConfigErrorMessage from '../../components/config-error-message.js';
 import {checkForUpdates} from '../../utils/update-checker.js';
 import type {UpdateInfo} from '../../types/index.js';
 
@@ -188,14 +189,26 @@ export function useAppInitialization({
 		try {
 			await initializeClient(preferences.lastProvider);
 		} catch (error) {
-			// Don't crash the app - just show the error and continue without a client
-			addToChatQueue(
-				<ErrorMessage
-					key={`init-error-${componentKeyCounter}`}
-					message={`No providers available: ${error}`}
-					hideBox={true}
-				/>,
-			);
+			// Check if it's a ConfigurationError and render the fancy component
+			if (error instanceof ConfigurationError) {
+				addToChatQueue(
+					<ConfigErrorMessage
+						key={`config-error-${componentKeyCounter}`}
+						configPath={error.configPath}
+						cwdPath={error.cwdPath}
+						isEmptyConfig={error.isEmptyConfig}
+					/>,
+				);
+			} else {
+				// Regular error - show simple error message
+				addToChatQueue(
+					<ErrorMessage
+						key={`init-error-${componentKeyCounter}`}
+						message={`No providers available: ${error}`}
+						hideBox={true}
+					/>,
+				);
+			}
 			// Leave client as null - the UI will handle this gracefully
 		}
 
