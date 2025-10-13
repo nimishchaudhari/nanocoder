@@ -266,11 +266,11 @@ Popular MCP servers:
 - **Memory**: Persistent context storage
 - [View more MCP servers](https://github.com/modelcontextprotocol/servers)
 
-> **Note**: The default save palace for configuration is `~/config/nanocoder/`. Placing a `agents.config.json` run Nanocoder, will **override** the default for project-by-project configuration with different models or API keys per repository.
+> **Note**: The default save palace for configuration is `~/config/nanocoder/`. Placing a `agents.config.json` where you run Nanocoder, will **override** the default for project-by-project configuration with different models or API keys per repository.
 
 ### User Preferences
 
-Nanocoder automatically saves your preferences to remember your choices across sessions. Preferences are stored in `~/config/nanocoder/nanocoder-preferences.json`. placing a `nanocoder-preferences.json` run Nanocoder, will **override** the default for project-by-project configuration
+Nanocoder automatically saves your preferences to remember your choices across sessions. Preferences are stored in `~/config/nanocoder/nanocoder-preferences.json`. placing a `nanocoder-preferences.json` where you run Nanocoder, will **override** the default for project-by-project configuration
 
 **What gets saved automatically:**
 
