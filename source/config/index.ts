@@ -16,21 +16,31 @@ loadEnv({path: join(process.cwd(), '.env')});
 // Hold a map of what config files are where
 export const confDirMap: Record<string, string> = {};
 
-export function getClosestConfigFile(fileName: string='agents.config.json'): string {
-	try{
-		// 'win32' will set this correctly via the environment.
-		// The config path can be set via the `APPDATA` environment variable.
-		// For darwin, we set the correct app path.
+// Determine the correct path for local app configuration
+function getAppDataPath(): string {
+	// 'win32' will set this correctly via the environment.
+	// The config path can be set via the `APPDATA` environment variable.
+	let appDataPath = process.env.APPDATA
 		// We try to use `process.env.$XDG_CONFIG_HOME`, but cant count on it.
-		// For all other unix-like systems, we use the $HOME/.config
-		let appDataPath: string = process.env.APPDATA || process.env.XDG_CONFIG_HOME || (process.platform === 'darwin'
+		|| process.env.XDG_CONFIG_HOME
+		// For darwin, we set the correct app path.
+		|| (process.platform === 'darwin'
 			? `${process.env.HOME}/Library/Preferences`
+			// For all other unix-like systems, we use the $HOME/.config
 			: `${process.env.HOME}/.config`
 		);
 
-		// There doesn't seem to be a place to pull an "app name"
-		const appName = 'nanocoder';
-		appDataPath += `/${appName}`;
+	// There doesn't seem to be a place to pull an "app name"
+	const appName = 'nanocoder';
+	appDataPath += `/${appName}`;
+
+	return appDataPath;
+}
+
+// Find the closest config file for the requested configuration file
+export function getClosestConfigFile(fileName: string): string {
+	try{
+		const appDataPath = getAppDataPath();
 
 		// First, lets check for a working directory config
 		if (existsSync(join(process.cwd(), fileName))) {
@@ -48,29 +58,17 @@ export function getClosestConfigFile(fileName: string='agents.config.json'): str
 		}
 
 		// Last, lets look for an user level config.
-		if (existsSync(join(appDataPath, fileName))) {
-			confDirMap[fileName] = join(appDataPath, fileName);
 
-			return join(appDataPath, fileName);
+		// If the file doesn't exist, create it
+		if (!existsSync(join(appDataPath, fileName))) {
+			createDefaultConfFile(appDataPath, fileName);
 		}
 
-		// If we cant find any, lets assume this is the first user run, create the
-		// correct file and direct the user to configure them correctly,
-		if (!existsSync(appDataPath)) {
-			// Maybe add a better sample config?
-			let sampleConfig = {};
+		confDirMap[fileName] = join(appDataPath, fileName);
 
-			mkdirSync(appDataPath, {recursive: true});
-			writeFileSync(join(appDataPath, fileName), JSON.stringify(sampleConfig, null, 4), 'utf-8');
+		return join(appDataPath, fileName);
 
-			// Inform the user what just happened.
-			console.log(`Provider configuration is required!`);
-			console.log(`Please edit ${join(appDataPath, 'agents.config.json')}`);
-			console.log(`Refer to https://github.com/Nano-Collective/nanocoder for configuration help`);
-			// Kill the app since we cant do anything with out configuration.
-			process.exit(1);
-		}
-	}catch (error){
+	}catch (error) {
 		logError(`Failed to load ${fileName}: ${error}`);
 	}
 
@@ -78,9 +76,26 @@ export function getClosestConfigFile(fileName: string='agents.config.json'): str
 	return fileName;
 }
 
+export function createDefaultConfFile(filePath: string, fileName: string): void {
+	try{
+		// If we cant find any, lets assume this is the first user run, create the
+		// correct file and direct the user to configure them correctly,
+		if (!existsSync(join(filePath, fileName))) {
+			// Maybe add a better sample config?
+			let sampleConfig = {};
+
+			mkdirSync(filePath, {recursive: true});
+			writeFileSync(join(filePath, fileName), JSON.stringify(sampleConfig, null, 2), 'utf-8');
+
+		}
+	}catch(error){
+		logError(`Failed to write ${filePath}: ${error}`);
+	}
+}
+
 // Function to load app configuration from agents.config.json if it exists
 function loadAppConfig(): AppConfig {
-	const agentsJsonPath = join(getClosestConfigFile(), 'agents.config.json');
+	const agentsJsonPath = getClosestConfigFile('agents.config.json');
 
 	try {
 		const rawData = readFileSync(agentsJsonPath, 'utf-8');
