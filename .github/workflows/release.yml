@@ -77,6 +77,22 @@ jobs:
           fi
           echo "✅ Build successful: dist/cli.js exists"
 
+      - name: Extract Changelog
+        id: changelog
+        run: |
+          # Extract changelog for current version
+          CHANGELOG=$(node scripts/extract-changelog.js 2>&1)
+          if [ $? -eq 0 ]; then
+            echo "✅ Changelog extracted successfully"
+            # Use EOF to handle multi-line output
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ No changelog entry found, using default message"
+            echo "CHANGELOG=No changelog available for this version." >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish to NPM
         run: npm publish --access public
         env:
@@ -92,7 +108,7 @@ jobs:
           body: |
             ## What's Changed
 
-            Auto-generated release for nanocoder v${{ needs.check-version.outputs.package-version }}.
+            ${{ steps.changelog.outputs.CHANGELOG }}
 
             ### Installation
             ```bash
@@ -115,7 +131,7 @@ jobs:
             -d '{
               "embeds": [{
                 "title": "🎉 New Release: Nanocoder v${{ needs.check-version.outputs.package-version }}",
-                "description": "A new version of Nanocoder has been released!",
+                "description": "A new version of Nanocoder has been released!\n\n[View the full changelog on GitHub](https://github.com/${{ github.repository }}/releases/tag/v${{ needs.check-version.outputs.package-version }})",
                 "color": 5763719,
                 "fields": [
                   {
