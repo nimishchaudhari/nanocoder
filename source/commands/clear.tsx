@@ -4,10 +4,7 @@ import SuccessMessage from '../components/success-message.js';
 
 function Clear() {
 	return (
-		<SuccessMessage
-			hideBox={true}
-			message="✔️ Chat Cleared..."
-		></SuccessMessage>
+		<SuccessMessage hideBox={true} message="Chat Cleared."></SuccessMessage>
 	);
 }
 
