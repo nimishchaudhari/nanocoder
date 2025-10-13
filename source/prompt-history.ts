@@ -2,8 +2,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import {logError} from './utils/message-queue.js';
+import {getClosestConfigFile} from './config/index.js'
 
-const HISTORY_FILE = path.join(os.homedir(), '.nano-coder-history');
+const HISTORY_FILE = getClosestConfigFile('.nano-coder-history');
 const MAX_HISTORY_SIZE = 100;
 const ENTRY_SEPARATOR = '\n---ENTRY_SEPARATOR---\n';
 
