@@ -63,7 +63,6 @@ export default function App() {
 		toolManager: appState.toolManager,
 		messages: appState.messages,
 		setMessages: appState.updateMessages,
-		getMessageTokens: appState.getMessageTokens,
 		currentModel: appState.currentModel,
 		setIsThinking: appState.setIsThinking,
 		setIsCancelling: appState.setIsCancelling,
