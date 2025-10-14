@@ -21,10 +21,11 @@ based on the Software, must include clear and prominent attribution to the
 original creators and contributors of Nanocoder. This attribution must include:
 
 1. The name "Nanocoder" and a reference to the original project
-2. A link to the original repository: https://github.com/nano-collective/nano-coder
+2. A link to the original repository: https://github.com/nano-collective/nanocoder
 3. Credit to "Nano Collective and contributors"
 
 This attribution should be included in:
+
 - User-facing documentation (README, About pages, etc.)
 - Source code comments or LICENSE files in derivative works
 - Any public presentation, publication, or distribution of the Software
