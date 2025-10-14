@@ -406,7 +406,7 @@ We're a small community-led team building Nanocoder and would love your help! Wh
 
 - Head to our GitHub issues or discussions to open and join current conversations with others in the community.
 
-**What does Nanocoder you need help with?**
+**What does Nanocoder need help with?**
 
 Nanocoder could benefit from help all across the board. Such as:
 
