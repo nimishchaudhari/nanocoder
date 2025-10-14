@@ -11,14 +11,11 @@ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 ## Attribution Requirement
 
-Any use, reproduction, or distribution of the Software, or any derivative works
-based on the Software, must include clear and prominent attribution to the
-original creators and contributors of Nanocoder. This attribution must include:
+Any use, reproduction, or distribution of the Software, or any derivative works based on the Software, must include clear and prominent attribution to the original creators and contributors of Nanocoder. This attribution must include:
 
 1. The name "Nanocoder" and a reference to the original project
 2. A link to the original repository: https://github.com/nano-collective/nanocoder
