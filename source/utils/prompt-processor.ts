@@ -1,10 +1,77 @@
 import {readFileSync, existsSync} from 'fs';
 import {join} from 'path';
+import {platform, homedir, release} from 'os';
 import {promptPath} from '@/config/index';
 import type {Tool} from '@/types/index';
 
 /**
- * Process the main prompt template by injecting dynamic tool documentation
+ * Get the default shell for the current platform
+ */
+function getDefaultShell(): string {
+	const shellEnv = process.env.SHELL;
+	if (shellEnv) {
+		return shellEnv;
+	}
+
+	switch (platform()) {
+		case 'win32':
+			return process.env.COMSPEC || 'cmd.exe';
+		case 'darwin':
+			return '/bin/zsh';
+		default:
+			return '/bin/bash';
+	}
+}
+
+/**
+ * Get a human-readable OS name
+ */
+function getOSName(): string {
+	const plat = platform();
+	switch (plat) {
+		case 'darwin':
+			return 'macOS';
+		case 'win32':
+			return 'Windows';
+		case 'linux':
+			return 'Linux';
+		default:
+			return plat;
+	}
+}
+
+/**
+ * Generate system information string
+ */
+function generateSystemInfo(): string {
+	const now = new Date();
+	const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+	const timeStr = now.toTimeString().split(' ')[0]; // HH:MM:SS
+
+	return `Operating System: ${getOSName()}
+OS Version: ${release()}
+Platform: ${platform()}
+Default Shell: ${getDefaultShell()}
+Home Directory: ${homedir()}
+Current Working Directory: ${process.cwd()}
+Current Date: ${dateStr}
+Current Time: ${timeStr}`;
+}
+
+/**
+ * Inject system information into the prompt template
+ */
+function injectSystemInfo(prompt: string): string {
+	const systemInfo = generateSystemInfo();
+
+	return prompt.replace(
+		/<!-- DYNAMIC_SYSTEM_INFO_START -->[\s\S]*?<!-- DYNAMIC_SYSTEM_INFO_END -->/,
+		systemInfo,
+	);
+}
+
+/**
+ * Process the main prompt template by injecting dynamic tool documentation and system info
  */
 export function processPromptTemplate(tools: Tool[]): string {
 	let systemPrompt = 'You are a helpful AI assistant.'; // fallback
@@ -17,6 +84,9 @@ export function processPromptTemplate(tools: Tool[]): string {
 			console.warn(`Failed to load system prompt from ${promptPath}: ${error}`);
 		}
 	}
+
+	// Inject system information
+	systemPrompt = injectSystemInfo(systemPrompt);
 
 	// Inject dynamic tool documentation
 	systemPrompt = injectToolDocumentation(systemPrompt, tools);
