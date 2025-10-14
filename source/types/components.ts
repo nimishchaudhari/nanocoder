@@ -15,7 +15,6 @@ export interface ChatQueueProps {
 	staticComponents?: ReactNode[];
 	queuedComponents?: ReactNode[];
 	displayCount?: number;
-	forceAllStatic?: boolean; // Force all messages to Static (e.g., during tool confirmation)
 }
 
 export interface ChatProps {
