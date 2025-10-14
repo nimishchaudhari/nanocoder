@@ -14,7 +14,6 @@ export interface BashExecutionIndicatorProps {
 export interface ChatQueueProps {
 	staticComponents?: ReactNode[];
 	queuedComponents?: ReactNode[];
-	displayCount?: number;
 }
 
 export interface ChatProps {
