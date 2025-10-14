@@ -1,6 +1,6 @@
-import {Command, Message} from '../types/index.js';
+import {Command, Message} from '@/types/index';
 import React from 'react';
-import SuccessMessage from '../components/success-message.js';
+import SuccessMessage from '@/components/success-message';
 import fs from 'fs/promises';
 import path from 'path';
 

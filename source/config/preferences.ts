@@ -1,9 +1,9 @@
 import {readFileSync, writeFileSync} from 'fs';
-import {shouldLog} from './logging.js';
-import {logError} from '../utils/message-queue.js';
-import {getClosestConfigFile} from './index.js';
+import {shouldLog} from '@/config/logging';
+import {logError} from '@/utils/message-queue';
+import {getClosestConfigFile} from '@/config/index';
 
-import type {UserPreferences} from '../types/index.js';
+import type {UserPreferences} from '@/types/index';
 
 let PREFERENCES_PATH: string | null = null;
 

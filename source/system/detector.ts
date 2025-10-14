@@ -1,7 +1,7 @@
 import {exec} from 'node:child_process';
 import {promisify} from 'node:util';
 import * as si from 'systeminformation';
-import {SystemCapabilities} from '../types/index.js';
+import {SystemCapabilities} from '@/types/index';
 
 const execAsync = promisify(exec);
 

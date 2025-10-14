@@ -4,11 +4,10 @@ import {readFile, writeFile, access} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {highlight} from 'cli-highlight';
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition} from '../types/index.js';
-import {ThemeContext} from '../hooks/useTheme.js';
-import {getColors} from '../config/index.js';
-import {getLanguageFromExtension} from '../utils/programming-language-helper.js';
-import ToolMessage from '../components/tool-message.js';
+import type {ToolHandler, ToolDefinition} from '@/types/index';
+import {getColors} from '@/config/index';
+import {getLanguageFromExtension} from '@/utils/programming-language-helper';
+import ToolMessage from '@/components/tool-message';
 
 interface DeleteLinesArgs {
 	path: string;

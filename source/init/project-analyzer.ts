@@ -1,6 +1,9 @@
-import {FileScanner} from './file-scanner.js';
-import {LanguageDetector, DetectedLanguages} from './language-detector.js';
-import {FrameworkDetector, ProjectDependencies} from './framework-detector.js';
+import {FileScanner} from '@/init/file-scanner';
+import {LanguageDetector, DetectedLanguages} from '@/init/language-detector';
+import {
+	FrameworkDetector,
+	ProjectDependencies,
+} from '@/init/framework-detector';
 import {readFileSync, existsSync} from 'fs';
 import {join, basename} from 'path';
 

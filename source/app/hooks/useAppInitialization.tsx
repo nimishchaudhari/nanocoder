@@ -1,22 +1,19 @@
 import React, {useEffect} from 'react';
-import {LLMClient} from '../../types/core.js';
-import {ToolManager} from '../../tools/tool-manager.js';
-import {CustomCommandLoader} from '../../custom-commands/loader.js';
-import {CustomCommandExecutor} from '../../custom-commands/executor.js';
-import {createLLMClient, ConfigurationError} from '../../client-factory.js';
+import {LLMClient} from '@/types/core';
+import {ToolManager} from '@/tools/tool-manager';
+import {CustomCommandLoader} from '@/custom-commands/loader';
+import {CustomCommandExecutor} from '@/custom-commands/executor';
+import {createLLMClient, ConfigurationError} from '@/client-factory';
 import {
 	getLastUsedModel,
 	loadPreferences,
 	updateLastUsed,
-} from '../../config/preferences.js';
-import type {MCPInitResult, UserPreferences} from '../../types/index.js';
-import {
-	setToolManagerGetter,
-	setToolRegistryGetter,
-} from '../../message-handler.js';
-import {commandRegistry} from '../../commands.js';
-import {shouldLog} from '../../config/logging.js';
-import {appConfig} from '../../config/index.js';
+} from '@/config/preferences';
+import type {MCPInitResult, UserPreferences} from '@/types/index';
+import {setToolManagerGetter, setToolRegistryGetter} from '@/message-handler';
+import {commandRegistry} from '@/commands';
+import {shouldLog} from '@/config/logging';
+import {appConfig} from '@/config/index';
 import {
 	clearCommand,
 	commandsCommand,
@@ -32,13 +29,13 @@ import {
 	statusCommand,
 	themeCommand,
 	updateCommand,
-} from '../../commands/index.js';
-import SuccessMessage from '../../components/success-message.js';
-import ErrorMessage from '../../components/error-message.js';
-import InfoMessage from '../../components/info-message.js';
-import ConfigErrorMessage from '../../components/config-error-message.js';
-import {checkForUpdates} from '../../utils/update-checker.js';
-import type {UpdateInfo} from '../../types/index.js';
+} from '@/commands/index';
+import SuccessMessage from '@/components/success-message';
+import ErrorMessage from '@/components/error-message';
+import InfoMessage from '@/components/info-message';
+import ConfigErrorMessage from '@/components/config-error-message';
+import {checkForUpdates} from '@/utils/update-checker';
+import type {UpdateInfo} from '@/types/index';
 
 interface UseAppInitializationProps {
 	setClient: (client: LLMClient | null) => void;

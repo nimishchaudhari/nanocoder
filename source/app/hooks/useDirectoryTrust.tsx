@@ -1,8 +1,8 @@
 import {useState, useEffect, useCallback} from 'react';
 import path from 'path';
-import {loadPreferences, savePreferences} from '../../config/preferences.js';
-import {logError} from '../../utils/message-queue.js';
-import {shouldLog} from '../../config/logging.js';
+import {loadPreferences, savePreferences} from '@/config/preferences';
+import {logError} from '@/utils/message-queue';
+import {shouldLog} from '@/config/logging';
 
 export interface UseDirectoryTrustReturn {
 	isTrusted: boolean;

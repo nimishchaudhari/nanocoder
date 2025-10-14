@@ -1,7 +1,7 @@
 import {Text, Box} from 'ink';
 import {memo, useMemo} from 'react';
-import {useTheme} from '../hooks/useTheme.js';
-import type {AssistantMessageProps} from '../types/index.js';
+import {useTheme} from '@/hooks/useTheme';
+import type {AssistantMessageProps} from '@/types/index';
 import chalk from 'chalk';
 import {highlight} from 'cli-highlight';
 

@@ -1,15 +1,15 @@
-import {Command} from '../types/index.js';
+import {Command} from '@/types/index';
 import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
-import {colors} from '../config/index.js';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
-import ErrorMessage from '../components/error-message.js';
+import {colors} from '@/config/index';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import ErrorMessage from '@/components/error-message';
 import {existsSync, mkdirSync, writeFileSync} from 'fs';
 import {join} from 'path';
-import {ProjectAnalyzer} from '../init/project-analyzer.js';
-import {AgentsTemplateGenerator} from '../init/agents-template-generator.js';
-import {ExistingRulesExtractor} from '../init/existing-rules-extractor.js';
+import {ProjectAnalyzer} from '@/init/project-analyzer';
+import {AgentsTemplateGenerator} from '@/init/agents-template-generator';
+import {ExistingRulesExtractor} from '@/init/existing-rules-extractor';
 
 function InitSuccess({
 	created,

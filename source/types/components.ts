@@ -1,6 +1,6 @@
 import {ReactNode} from 'react';
-import {ToolCall, LLMClient} from './core.js';
-import {CustomCommand} from './commands.js';
+import {ToolCall, LLMClient} from '@/types/core';
+import {CustomCommand} from '@/types/commands';
 
 export interface AssistantMessageProps {
 	message: string;

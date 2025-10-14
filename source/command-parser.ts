@@ -1,4 +1,4 @@
-import type {ParsedCommand} from './types/index.js';
+import type {ParsedCommand} from '@/types/index';
 
 export function parseInput(input: string): ParsedCommand {
 	const trimmed = input.trim();

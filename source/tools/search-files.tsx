@@ -5,9 +5,9 @@ import React from 'react';
 
 const execAsync = promisify(exec);
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition} from '../types/index.js';
-import {ThemeContext} from '../hooks/useTheme.js';
-import ToolMessage from '../components/tool-message.js';
+import type {ToolHandler, ToolDefinition} from '@/types/index';
+import {ThemeContext} from '@/hooks/useTheme';
+import ToolMessage from '@/components/tool-message';
 
 interface SearchMatch {
 	file: string;
@@ -34,7 +34,10 @@ async function searchFiles(
 	try {
 		// Use grep for content search
 		const {stdout} = await execAsync(
-			`grep -rn -i --include="*" --exclude-dir={node_modules,dist,.git,build,coverage} "${query.replace(/"/g, '\\"')}" . | head -n ${maxResults}`,
+			`grep -rn -i --include="*" --exclude-dir={node_modules,dist,.git,build,coverage} "${query.replace(
+				/"/g,
+				'\\"',
+			)}" . | head -n ${maxResults}`,
 			{cwd, maxBuffer: 1024 * 1024},
 		);
 

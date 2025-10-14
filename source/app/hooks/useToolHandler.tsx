@@ -1,9 +1,9 @@
-import {Message, LLMClient, DevelopmentMode} from '../../types/core.js';
-import {processToolUse, getToolManager} from '../../message-handler.js';
-import {ConversationContext} from './useAppState.js';
-import InfoMessage from '../../components/info-message.js';
-import ErrorMessage from '../../components/error-message.js';
-import ToolMessage from '../../components/tool-message.js';
+import {Message, LLMClient, DevelopmentMode} from '@/types/core';
+import {processToolUse, getToolManager} from '@/message-handler';
+import {ConversationContext} from '@/app/hooks/useAppState';
+import InfoMessage from '@/components/info-message';
+import ErrorMessage from '@/components/error-message';
+import ToolMessage from '@/components/tool-message';
 import React from 'react';
 
 interface UseToolHandlerProps {
@@ -249,7 +249,11 @@ export function useToolHandler({
 						tool_call_id: currentTool.id,
 						role: 'tool' as const,
 						name: currentTool.function.name,
-						content: `Validation error: ${validationError instanceof Error ? validationError.message : String(validationError)}`,
+						content: `Validation error: ${
+							validationError instanceof Error
+								? validationError.message
+								: String(validationError)
+						}`,
 					};
 
 					const newResults = [...completedToolResults, errorResult];

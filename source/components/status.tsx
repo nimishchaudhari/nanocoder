@@ -3,14 +3,14 @@ import {memo} from 'react';
 import {existsSync} from 'fs';
 
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
-import {confDirMap} from '../config/index.js';
-import {themes, getThemeColors} from '../config/themes.js';
-import type {ThemePreset} from '../types/ui.js';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {confDirMap} from '@/config/index';
+import {themes, getThemeColors} from '@/config/themes';
+import type {ThemePreset} from '@/types/ui';
 
 // Get CWD once at module load time
 const cwd = process.cwd();
- 
+
 interface UpdateInfo {
 	hasUpdate: boolean;
 	currentVersion: string;

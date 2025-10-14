@@ -5,5 +5,5 @@
 export {
 	parseToolCallsFromContent,
 	cleanContentFromToolCalls,
-} from './json-parser.js';
-export type {ToolExecutionResult} from '../types/index.js';
+} from '@/tool-calling/json-parser';
+export type {ToolExecutionResult} from '@/types/index';

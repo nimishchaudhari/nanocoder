@@ -1,6 +1,6 @@
-import {Command} from './types/index.js';
+import {Command} from '@/types/index';
 import React from 'react';
-import ErrorMessage from './components/error-message.js';
+import ErrorMessage from '@/components/error-message';
 
 export class CommandRegistry {
 	private commands = new Map<string, Command>();
@@ -29,7 +29,7 @@ export class CommandRegistry {
 
 	async execute(
 		input: string,
-		messages: import('./types/index.js').Message[],
+		messages: import('@/types/index').Message[],
 		metadata: {provider: string; model: string; tokens: number},
 	): Promise<void | string | React.ReactNode> {
 		const parts = input.trim().split(/\s+/);

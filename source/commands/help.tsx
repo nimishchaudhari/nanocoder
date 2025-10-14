@@ -1,13 +1,13 @@
-import {Command} from '../types/index.js';
-import {commandRegistry} from '../commands.js';
+import {Command} from '@/types/index';
+import {commandRegistry} from '@/commands';
 import fs from 'fs';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
-import {useTheme} from '../hooks/useTheme.js';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -5,7 +5,7 @@ import React, {
 	useMemo,
 	useState,
 } from 'react';
-import {Completion} from '../types/index.js';
+import {Completion} from '@/types/index';
 
 export type UIState = {
 	showClearMessage: boolean;

@@ -4,10 +4,10 @@ import {constants} from 'node:fs';
 import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition} from '../types/index.js';
-import {ThemeContext} from '../hooks/useTheme.js';
-import {getLanguageFromExtension} from '../utils/programming-language-helper.js';
-import ToolMessage from '../components/tool-message.js';
+import type {ToolHandler, ToolDefinition} from '@/types/index';
+import {ThemeContext} from '@/hooks/useTheme';
+import {getLanguageFromExtension} from '@/utils/programming-language-helper';
+import ToolMessage from '@/components/tool-message';
 
 const handler: ToolHandler = async (args: {
 	path: string;

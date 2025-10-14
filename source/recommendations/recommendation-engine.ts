@@ -1,6 +1,5 @@
-import {SystemCapabilities, ModelEntry, ModelRecommendation} from '../types/index.js';
-import {modelDatabase} from './model-database.js';
-import {modelMatchingEngine} from './model-engine.js';
+import {SystemCapabilities, ModelRecommendation} from '@/types/index';
+import {modelMatchingEngine} from '@/recommendations/model-engine';
 
 export interface ModelRecommendationEnhanced extends ModelRecommendation {
 	recommendedProvider: string; // Best provider to use for this model
@@ -24,18 +23,21 @@ export class RecommendationEngine {
 	/**
 	 * Get all recommendations based on system capabilities
 	 */
-	getRecommendations(systemCapabilities: SystemCapabilities): RecommendationResult {
+	getRecommendations(
+		systemCapabilities: SystemCapabilities,
+	): RecommendationResult {
 		// Get all compatible models
-		const compatibleModels = modelMatchingEngine.getCompatibleModels(systemCapabilities);
+		const compatibleModels =
+			modelMatchingEngine.getCompatibleModels(systemCapabilities);
 
 		// Enhance each model with setup instructions
 		const enhancedModels = compatibleModels.map(model =>
-			this.enhanceModel(model, systemCapabilities)
+			this.enhanceModel(model, systemCapabilities),
 		);
 
 		// Filter out incompatible models
 		const usableModels = enhancedModels.filter(
-			m => m.compatibility !== 'incompatible'
+			m => m.compatibility !== 'incompatible',
 		);
 
 		// Sort models by priority:
@@ -59,12 +61,13 @@ export class RecommendationEngine {
 	 */
 	private enhanceModel(
 		modelRec: ModelRecommendation,
-		systemCapabilities: SystemCapabilities
+		systemCapabilities: SystemCapabilities,
 	): ModelRecommendationEnhanced {
 		const model = modelRec.model;
 
 		// Determine best access method based on system capabilities
-		const canUseLocal = model.local &&
+		const canUseLocal =
+			model.local &&
 			systemCapabilities.memory.total >= (model.minMemoryGB || 8);
 		const canUseApi = model.api && systemCapabilities.network.connected;
 
@@ -94,16 +97,18 @@ export class RecommendationEngine {
 	 * 4. Lower-quality API models
 	 */
 	private sortModelsByPriority(
-		models: ModelRecommendationEnhanced[]
+		models: ModelRecommendationEnhanced[],
 	): ModelRecommendationEnhanced[] {
 		return models.sort((a, b) => {
 			// Calculate quality scores - prioritize agentic capabilities heavily
-			const aQuality = a.model.quality.agentic * 3.0 +
-							 a.model.quality.local * 0.8 +
-							 a.model.quality.cost * 0.5;
-			const bQuality = b.model.quality.agentic * 3.0 +
-							 b.model.quality.local * 0.8 +
-							 b.model.quality.cost * 0.5;
+			const aQuality =
+				a.model.quality.agentic * 3.0 +
+				a.model.quality.local * 0.8 +
+				a.model.quality.cost * 0.5;
+			const bQuality =
+				b.model.quality.agentic * 3.0 +
+				b.model.quality.local * 0.8 +
+				b.model.quality.cost * 0.5;
 
 			// Determine what the user can ACTUALLY use based on recommendedProvider
 			const aCanUseLocal = a.recommendedProvider.includes('local');
@@ -112,7 +117,7 @@ export class RecommendationEngine {
 			const bApiOnly = b.recommendedProvider === 'api';
 
 			// Define quality thresholds (out of 43 possible with new weighting: agentic*3 + local*0.8 + cost*0.5)
-			const highQuality = 24;  // 24+ = high quality (agentic 8+)
+			const highQuality = 24; // 24+ = high quality (agentic 8+)
 			const decentQuality = 15; // 15+ = decent (agentic 5+), below = poor
 			const aHighQuality = aQuality >= highQuality;
 			const bHighQuality = bQuality >= highQuality;
@@ -120,7 +125,8 @@ export class RecommendationEngine {
 			const bDecentQuality = bQuality >= decentQuality;
 
 			// 1. High-quality API beats poor-quality local (don't recommend trash just because it's free)
-			if (aApiOnly && bCanUseLocal && aHighQuality && !bDecentQuality) return -1;
+			if (aApiOnly && bCanUseLocal && aHighQuality && !bDecentQuality)
+				return -1;
 			if (bApiOnly && aCanUseLocal && bHighQuality && !aDecentQuality) return 1;
 
 			// 2. Decent+ local models beat API-only (free is better if quality is acceptable)
@@ -145,18 +151,23 @@ export class RecommendationEngine {
 			}
 
 			// 5. Compare by compatibility as final tiebreaker
-			const compatibilityOrder = {perfect: 4, good: 3, marginal: 2, incompatible: 1};
-			return compatibilityOrder[b.compatibility] - compatibilityOrder[a.compatibility];
+			const compatibilityOrder = {
+				perfect: 4,
+				good: 3,
+				marginal: 2,
+				incompatible: 1,
+			};
+			return (
+				compatibilityOrder[b.compatibility] -
+				compatibilityOrder[a.compatibility]
+			);
 		});
 	}
-
 
 	/**
 	 * Get a simple quick start recommendation
 	 */
-	getQuickStartRecommendation(
-		systemCapabilities: SystemCapabilities
-	): {
+	getQuickStartRecommendation(systemCapabilities: SystemCapabilities): {
 		model: string;
 		provider: string;
 		reasoning: string;

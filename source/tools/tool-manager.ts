@@ -1,13 +1,13 @@
 import React from 'react';
-import type {Tool, ToolHandler, MCPInitResult} from '../types/index.js';
+import type {Tool, ToolHandler, MCPInitResult} from '@/types/index';
 import {
 	tools as staticTools,
 	toolRegistry as staticToolRegistry,
 	toolFormatters as staticToolFormatters,
 	toolValidators as staticToolValidators,
-} from './index.js';
-import {MCPClient} from '../mcp/mcp-client.js';
-import {MCPToolAdapter} from '../mcp/mcp-tool-adapter.js';
+} from '@/tools/index';
+import {MCPClient} from '@/mcp/mcp-client';
+import {MCPToolAdapter} from '@/mcp/mcp-tool-adapter';
 
 /**
  * Manages both static tools and dynamic MCP tools

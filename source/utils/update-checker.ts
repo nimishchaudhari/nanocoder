@@ -1,10 +1,10 @@
 import {readFileSync} from 'fs';
 import {join, dirname} from 'path';
 import {fileURLToPath} from 'url';
-import {loadPreferences, savePreferences} from '../config/preferences.js';
-import {shouldLog} from '../config/logging.js';
-import {logError} from './message-queue.js';
-import type {NpmRegistryResponse, UpdateInfo} from '../types/index.js';
+import {loadPreferences, savePreferences} from '@/config/preferences';
+import {shouldLog} from '@/config/logging';
+import {logError} from '@/utils/message-queue';
+import type {NpmRegistryResponse, UpdateInfo} from '@/types/index';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

@@ -1,4 +1,4 @@
-import {Message} from './core.js';
+import {Message} from '@/types/core';
 
 export interface Command<T = React.ReactElement> {
 	name: string;

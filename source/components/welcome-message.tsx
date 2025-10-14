@@ -2,8 +2,8 @@ import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
 import {memo} from 'react';
 
-import {useTheme} from '../hooks/useTheme.js';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
+import {useTheme} from '@/hooks/useTheme';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 
 import fs from 'fs';
 import path from 'path';

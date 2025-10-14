@@ -1,5 +1,5 @@
 import React from 'react';
-import type {Command} from '../types/index.js';
+import type {Command} from '@/types/index';
 
 export const themeCommand: Command = {
 	name: 'theme',

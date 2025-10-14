@@ -2,13 +2,9 @@ import {spawn} from 'node:child_process';
 import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
-import type {
-	ToolHandler,
-	ToolDefinition,
-	BashToolResult,
-} from '../types/index.js';
-import {ThemeContext} from '../hooks/useTheme.js';
-import ToolMessage from '../components/tool-message.js';
+import type {ToolHandler, ToolDefinition, BashToolResult} from '@/types/index';
+import {ThemeContext} from '@/hooks/useTheme';
+import ToolMessage from '@/components/tool-message';
 
 const handler: ToolHandler = async (args: {
 	command: string;

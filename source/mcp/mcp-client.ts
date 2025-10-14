@@ -1,10 +1,10 @@
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
-import type {Tool} from '../types/index.js';
-import {shouldLog} from '../config/logging.js';
-import {logInfo, logError} from '../utils/message-queue.js';
+import type {Tool} from '@/types/index';
+import {shouldLog} from '@/config/logging';
+import {logInfo, logError} from '@/utils/message-queue';
 
-import type {MCPServer, MCPTool, MCPInitResult} from '../types/index.js';
+import type {MCPServer, MCPTool, MCPInitResult} from '@/types/index';
 
 export class MCPClient {
 	private clients: Map<string, Client> = new Map();

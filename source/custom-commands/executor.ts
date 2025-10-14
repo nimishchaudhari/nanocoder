@@ -1,5 +1,5 @@
-import type {CustomCommand} from '../types/index.js';
-import {substituteTemplateVariables} from './parser.js';
+import type {CustomCommand} from '@/types/index';
+import {substituteTemplateVariables} from '@/custom-commands/parser';
 
 export class CustomCommandExecutor {
 	/**

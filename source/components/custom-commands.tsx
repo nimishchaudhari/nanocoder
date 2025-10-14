@@ -1,8 +1,8 @@
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
-import {useTheme} from '../hooks/useTheme.js';
-import type {CustomCommand} from '../types/index.js';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
+import {useTheme} from '@/hooks/useTheme';
+import type {CustomCommand} from '@/types/index';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 
 interface CustomCommandsProps {
 	commands: CustomCommand[];

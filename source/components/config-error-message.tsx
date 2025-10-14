@@ -4,8 +4,8 @@ import {memo} from 'react';
 import chalk from 'chalk';
 import {highlight} from 'cli-highlight';
 
-import {useTheme} from '../hooks/useTheme.js';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
+import {useTheme} from '@/hooks/useTheme';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 
 interface ConfigErrorMessageProps {
 	configPath: string;

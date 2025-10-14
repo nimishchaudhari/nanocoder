@@ -2,10 +2,10 @@ import {useState, useEffect} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {useTheme} from '../hooks/useTheme.js';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
-import {themes} from '../config/themes.js';
-import type {ThemePreset} from '../types/ui.js';
+import {useTheme} from '@/hooks/useTheme';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {themes} from '@/config/themes';
+import type {ThemePreset} from '@/types/ui';
 import Gradient from 'ink-gradient';
 import BigText from 'ink-big-text';
 

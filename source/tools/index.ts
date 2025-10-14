@@ -1,15 +1,15 @@
-import {readFileTool} from './read-file.js';
-import {createFileTool} from './create-file.js';
-import {insertLinesTool} from './insert-lines.js';
-import {replaceLinesTool} from './replace-lines.js';
-import {deleteLinesTool} from './delete-lines.js';
-import {readManyFilesTool} from './read-many-files.js';
-import {executeBashTool} from './execute-bash.js';
-import {webSearchTool} from './web-search.js';
-import {fetchUrlTool} from './fetch-url.js';
-import {searchFilesTool} from './search-files.js';
+import {readFileTool} from '@/tools/read-file';
+import {createFileTool} from '@/tools/create-file';
+import {insertLinesTool} from '@/tools/insert-lines';
+import {replaceLinesTool} from '@/tools/replace-lines';
+import {deleteLinesTool} from '@/tools/delete-lines';
+import {readManyFilesTool} from '@/tools/read-many-files';
+import {executeBashTool} from '@/tools/execute-bash';
+import {webSearchTool} from '@/tools/web-search';
+import {fetchUrlTool} from '@/tools/fetch-url';
+import {searchFilesTool} from '@/tools/search-files';
 import React from 'react';
-import type {ToolHandler, Tool, ToolDefinition} from '../types/index.js';
+import type {ToolHandler, Tool, ToolDefinition} from '@/types/index';
 
 export const toolDefinitions: ToolDefinition[] = [
 	readFileTool,

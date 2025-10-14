@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {toolRegistry} from '../tools/index.js';
-import InfoMessage from './info-message.js';
-import SuccessMessage from './success-message.js';
-import ErrorMessage from './error-message.js';
-import {checkForUpdates} from '../utils/update-checker.js';
+import {toolRegistry} from '@/tools/index';
+import InfoMessage from '@/components/info-message';
+import SuccessMessage from '@/components/success-message';
+import ErrorMessage from '@/components/error-message';
+import {checkForUpdates} from '@/utils/update-checker';
 
 enum Status {
 	Checking = 'checking',

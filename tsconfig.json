@@ -2,8 +2,8 @@
 	"compilerOptions": {
 		"target": "ES2022",
 		"lib": ["ES2022"],
-		"module": "Node16",
-		"moduleResolution": "Node16",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
 		"outDir": "dist",
 		"rootDir": "source",
 		"strict": true,
@@ -15,8 +15,20 @@
 		"declaration": true,
 		"declarationMap": true,
 		"sourceMap": true,
-		"types": ["node"]
+		"types": ["node"],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["source/*"]
+		}
 	},
 	"include": ["source/**/*"],
-	"exclude": ["dist", "node_modules"]
+	"exclude": ["dist", "node_modules"],
+	"tsc-alias": {
+		"resolveFullPaths": true,
+		"replacers": {
+			"default": {
+				"enabled": true
+			}
+		}
+	}
 }

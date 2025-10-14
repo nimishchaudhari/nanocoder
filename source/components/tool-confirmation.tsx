@@ -2,11 +2,11 @@ import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {useTheme} from '../hooks/useTheme.js';
-import type {ToolCall} from '../types/core.js';
-import {toolFormatters} from '../tools/index.js';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
-import {getToolManager} from '../message-handler.js';
+import {useTheme} from '@/hooks/useTheme';
+import type {ToolCall} from '@/types/core';
+import {toolFormatters} from '@/tools/index';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {getToolManager} from '@/message-handler';
 
 interface ToolConfirmationProps {
 	toolCall: ToolCall;
@@ -71,7 +71,9 @@ export default function ToolConfirmation({
 						}
 					} catch (error) {
 						console.error('Error running validator:', error);
-						const errorMsg = `Validation error: ${error instanceof Error ? error.message : String(error)}`;
+						const errorMsg = `Validation error: ${
+							error instanceof Error ? error.message : String(error)
+						}`;
 						setValidationError(errorMsg);
 						setHasValidationError(true);
 						setFormatterPreview(<Text color={colors.error}>{errorMsg}</Text>);

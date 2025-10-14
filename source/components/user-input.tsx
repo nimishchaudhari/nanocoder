@@ -1,14 +1,14 @@
 import {Box, Text, useFocus, useInput} from 'ink';
 import TextInput from 'ink-text-input';
 import {useCallback, useEffect, useState} from 'react';
-import {useTheme} from '../hooks/useTheme.js';
-import {promptHistory} from '../prompt-history.js';
-import {commandRegistry} from '../commands.js';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
-import {useUIStateContext} from '../hooks/useUIState.js';
-import {useInputState} from '../hooks/useInputState.js';
-import {Completion} from '../types/index.js';
-import {DevelopmentMode, DEVELOPMENT_MODE_LABELS} from '../types/core.js';
+import {useTheme} from '@/hooks/useTheme';
+import {promptHistory} from '@/prompt-history';
+import {commandRegistry} from '@/commands';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useUIStateContext} from '@/hooks/useUIState';
+import {useInputState} from '@/hooks/useInputState';
+import {Completion} from '@/types/index';
+import {DevelopmentMode, DEVELOPMENT_MODE_LABELS} from '@/types/core';
 
 interface ChatProps {
 	onSubmit?: (message: string) => void;

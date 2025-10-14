@@ -1,7 +1,7 @@
-import {LangGraphClient} from './langgraph-client.js';
-import {appConfig, getClosestConfigFile} from './config/index.js';
-import {loadPreferences} from './config/preferences.js';
-import type {LLMClient, LangChainProviderConfig} from './types/index.js';
+import {LangGraphClient} from '@/langgraph-client';
+import {appConfig, getClosestConfigFile} from '@/config/index';
+import {loadPreferences} from '@/config/preferences';
+import type {LLMClient, LangChainProviderConfig} from '@/types/index';
 import {existsSync} from 'fs';
 import {join} from 'path';
 

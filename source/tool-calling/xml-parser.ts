@@ -1,4 +1,4 @@
-import type {ToolCall} from '../types/index.js';
+import type {ToolCall} from '@/types/index';
 
 export interface ParsedToolCall {
 	toolName: string;

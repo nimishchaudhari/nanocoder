@@ -1,38 +1,38 @@
 import {Box, Text, useApp} from 'ink';
-import WelcomeMessage from './components/welcome-message.js';
+import WelcomeMessage from '@/components/welcome-message';
 import React from 'react';
-import {getThemeColors} from './config/themes.js';
-import {ThemeContext} from './hooks/useTheme.js';
-import UserInput from './components/user-input.js';
-import Status from './components/status.js';
-import ChatQueue from './components/chat-queue.js';
-import ModelSelector from './components/model-selector.js';
-import ProviderSelector from './components/provider-selector.js';
-import ThemeSelector from './components/theme-selector.js';
-import ThinkingIndicator from './components/thinking-indicator.js';
-import CancellingIndicator from './components/cancelling-indicator.js';
-import ToolConfirmation from './components/tool-confirmation.js';
-import ToolExecutionIndicator from './components/tool-execution-indicator.js';
-import BashExecutionIndicator from './components/bash-execution-indicator.js';
-import {setGlobalMessageQueue} from './utils/message-queue.js';
+import {getThemeColors} from '@/config/themes';
+import {ThemeContext} from '@/hooks/useTheme';
+import UserInput from '@/components/user-input';
+import Status from '@/components/status';
+import ChatQueue from '@/components/chat-queue';
+import ModelSelector from '@/components/model-selector';
+import ProviderSelector from '@/components/provider-selector';
+import ThemeSelector from '@/components/theme-selector';
+import ThinkingIndicator from '@/components/thinking-indicator';
+import CancellingIndicator from '@/components/cancelling-indicator';
+import ToolConfirmation from '@/components/tool-confirmation';
+import ToolExecutionIndicator from '@/components/tool-execution-indicator';
+import BashExecutionIndicator from '@/components/bash-execution-indicator';
+import {setGlobalMessageQueue} from '@/utils/message-queue';
 import Spinner from 'ink-spinner';
-import SecurityDisclaimer from './components/security-disclaimer.js';
-import {RecommendationsDisplay} from './commands/recommendations.js';
+import SecurityDisclaimer from '@/components/security-disclaimer';
+import {RecommendationsDisplay} from '@/commands/recommendations';
 
 // Import extracted hooks and utilities
-import {useAppState} from './app/hooks/useAppState.js';
-import {useChatHandler} from './app/hooks/useChatHandler.js';
-import {useToolHandler} from './app/hooks/useToolHandler.js';
-import {useModeHandlers} from './app/hooks/useModeHandlers.js';
-import {useAppInitialization} from './app/hooks/useAppInitialization.js';
-import {useDirectoryTrust} from './app/hooks/useDirectoryTrust.js';
+import {useAppState} from '@/app/hooks/useAppState';
+import {useChatHandler} from '@/app/hooks/useChatHandler';
+import {useToolHandler} from '@/app/hooks/useToolHandler';
+import {useModeHandlers} from '@/app/hooks/useModeHandlers';
+import {useAppInitialization} from '@/app/hooks/useAppInitialization';
+import {useDirectoryTrust} from '@/app/hooks/useDirectoryTrust';
 import {
 	createClearMessagesHandler,
 	handleMessageSubmission,
-} from './app/utils/appUtils.js';
+} from '@/app/utils/appUtils';
 
 // Provide shared UI state to components
-import {UIStateProvider} from './hooks/useUIState.js';
+import {UIStateProvider} from '@/hooks/useUIState';
 
 export default function App() {
 	// Use extracted hooks

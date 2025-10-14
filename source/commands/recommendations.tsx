@@ -2,14 +2,14 @@ import React, {useState, useEffect} from 'react';
 import {Box, Text, useInput, useFocus} from 'ink';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Tabs, Tab} from 'ink-tab';
-import {Command, SystemCapabilities} from '../types/index.js';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
-import {useTheme} from '../hooks/useTheme.js';
-import {systemDetector} from '../system/detector.js';
+import {Command, SystemCapabilities} from '@/types/index';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
+import {systemDetector} from '@/system/detector';
 import {
 	recommendationEngine,
 	ModelRecommendationEnhanced,
-} from '../recommendations/recommendation-engine.js';
+} from '@/recommendations/recommendation-engine';
 
 interface RecommendationsDisplayProps {
 	onCancel?: () => void;
@@ -135,16 +135,14 @@ function RecommendationsDisplay({onCancel}: RecommendationsDisplayProps) {
 					if (!canRun) return 0; // Can't run = score of 0
 
 					return (
-						model.model.quality.agentic * 3.0 +
-						model.model.quality.local * 1.5
+						model.model.quality.agentic * 3.0 + model.model.quality.local * 1.5
 					);
 				};
 
 				// API model scoring: agentic is most important, then cost (value for money)
 				const getApiScore = (model: ModelRecommendationEnhanced) => {
 					return (
-						model.model.quality.agentic * 3.0 +
-						model.model.quality.cost * 1.2
+						model.model.quality.agentic * 3.0 + model.model.quality.cost * 1.2
 					);
 				};
 
@@ -408,18 +406,12 @@ function ModelsTabView({
 		const canRun = canRunLocally(model);
 		if (!canRun) return 0; // Can't run = score of 0
 
-		return (
-			model.model.quality.agentic * 3.0 +
-			model.model.quality.local * 1.5
-		);
+		return model.model.quality.agentic * 3.0 + model.model.quality.local * 1.5;
 	};
 
 	// API model scoring: agentic is most important, then cost (value for money)
 	const getApiScore = (model: ModelRecommendationEnhanced) => {
-		return (
-			model.model.quality.agentic * 3.0 +
-			model.model.quality.cost * 1.2
-		);
+		return model.model.quality.agentic * 3.0 + model.model.quality.cost * 1.2;
 	};
 
 	// Separate models into local and API, then sort by appropriate score
@@ -563,9 +555,16 @@ function ModelItem({
 		const maxScore = forLocal ? 45 : 42;
 		const normalizedScore = (score / maxScore) * 10;
 
-		if (normalizedScore >= 7.5) return {color: colors.success, label: 'Excellent', score: normalizedScore};
-		if (normalizedScore >= 6.5) return {color: colors.primary, label: 'Good', score: normalizedScore};
-		if (normalizedScore >= 5.0) return {color: colors.warning, label: 'Decent', score: normalizedScore};
+		if (normalizedScore >= 7.5)
+			return {
+				color: colors.success,
+				label: 'Excellent',
+				score: normalizedScore,
+			};
+		if (normalizedScore >= 6.5)
+			return {color: colors.primary, label: 'Good', score: normalizedScore};
+		if (normalizedScore >= 5.0)
+			return {color: colors.warning, label: 'Decent', score: normalizedScore};
 		return {color: colors.error, label: 'Poor', score: normalizedScore};
 	};
 
@@ -594,13 +593,17 @@ function ModelItem({
 			if (!canRunLocally) {
 				const required = model.model.minMemoryGB || 0;
 				const available = systemCaps?.memory.total || 0;
-				weaknesses.push(`Cannot run locally - requires ${required}GB RAM (you have ${available}GB)`);
+				weaknesses.push(
+					`Cannot run locally - requires ${required}GB RAM (you have ${available}GB)`,
+				);
 			}
 			if (model.model.quality.agentic < 5) {
 				weaknesses.push('Limited agentic coding capabilities');
 			}
 			if (model.model.quality.local < 5 && canRunLocally) {
-				weaknesses.push('Difficult to run locally - requires significant resources');
+				weaknesses.push(
+					'Difficult to run locally - requires significant resources',
+				);
 			}
 		} else {
 			// API weaknesses
@@ -666,12 +669,19 @@ function ModelItem({
 					) : showScore && (localScoreInfo || apiScoreInfo) ? (
 						<Text color={colors.white}>
 							<Text bold>
-								Quality For You {isLocalTab || (model.model.local && !model.model.api) ? 'Locally' : 'via API'}:{' '}
+								Quality For You{' '}
+								{isLocalTab || (model.model.local && !model.model.api)
+									? 'Locally'
+									: 'via API'}
+								:{' '}
 							</Text>
 							<Text color={(localScoreInfo || apiScoreInfo)!.color} bold>
 								{(localScoreInfo || apiScoreInfo)!.label}
 							</Text>
-							<Text dimColor> ({(localScoreInfo || apiScoreInfo)!.score.toFixed(1)}/10)</Text>
+							<Text dimColor>
+								{' '}
+								({(localScoreInfo || apiScoreInfo)!.score.toFixed(1)}/10)
+							</Text>
 						</Text>
 					) : null}
 				</Box>

@@ -1,6 +1,6 @@
 import {memo, useState, useEffect, useRef} from 'react';
 import {Box, Text} from 'ink';
-import {useTheme} from '../hooks/useTheme.js';
+import {useTheme} from '@/hooks/useTheme';
 
 const THINKING_WORDS = [
 	'Thinking',

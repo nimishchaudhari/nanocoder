@@ -12,8 +12,8 @@ import type {
 	Tool,
 	LLMClient,
 	LangChainProviderConfig,
-} from './types/index.js';
-import {XMLToolCallParser} from './tool-calling/xml-parser.js';
+} from '@/types/index';
+import {XMLToolCallParser} from '@/tool-calling/xml-parser';
 
 /**
  * Parses LangChain/API errors into user-friendly messages
@@ -27,7 +27,9 @@ function parseAPIError(error: unknown): string {
 
 	// Extract status code and clean message from common error patterns
 	// Pattern: "400 400 Bad Request: message" or "Error: 400 message"
-	const statusMatch = errorMessage.match(/(?:Error: )?(\d{3})\s+(?:\d{3}\s+)?(?:Bad Request|[^:]+):\s*(.+)/i);
+	const statusMatch = errorMessage.match(
+		/(?:Error: )?(\d{3})\s+(?:\d{3}\s+)?(?:Bad Request|[^:]+):\s*(.+)/i,
+	);
 	if (statusMatch) {
 		const [, statusCode, message] = statusMatch;
 		const cleanMessage = message.trim();
@@ -58,12 +60,18 @@ function parseAPIError(error: unknown): string {
 	}
 
 	// Handle network errors
-	if (errorMessage.includes('ECONNREFUSED') || errorMessage.includes('connect')) {
+	if (
+		errorMessage.includes('ECONNREFUSED') ||
+		errorMessage.includes('connect')
+	) {
 		return 'Connection failed: Unable to reach the model server';
 	}
 
 	// Handle context length errors specifically
-	if (errorMessage.includes('context length') || errorMessage.includes('too many tokens')) {
+	if (
+		errorMessage.includes('context length') ||
+		errorMessage.includes('too many tokens')
+	) {
 		return 'Context too large: Please reduce the conversation length or message size';
 	}
 
@@ -242,7 +250,11 @@ export class LangGraphClient implements LLMClient {
 		return this.availableModels;
 	}
 
-	async chat(messages: Message[], tools: Tool[], signal?: AbortSignal): Promise<any> {
+	async chat(
+		messages: Message[],
+		tools: Tool[],
+		signal?: AbortSignal,
+	): Promise<any> {
 		// Check if already aborted before starting
 		if (signal?.aborted) {
 			throw new Error('Operation was cancelled');
@@ -283,7 +295,10 @@ export class LangGraphClient implements LLMClient {
 				}
 			} else {
 				// No tools, use base model
-				result = (await this.chatModel.invoke(langchainMessages, invokeOptions)) as AIMessage;
+				result = (await this.chatModel.invoke(
+					langchainMessages,
+					invokeOptions,
+				)) as AIMessage;
 			}
 
 			let convertedMessage = convertFromLangChainMessage(result);

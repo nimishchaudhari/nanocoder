@@ -1,5 +1,5 @@
-import type {ToolCall, ToolResult, ToolHandler} from './types/index.js';
-import type {ToolManager} from './tools/tool-manager.js';
+import type {ToolCall, ToolResult, ToolHandler} from '@/types/index';
+import type {ToolManager} from '@/tools/tool-manager';
 
 // This will be set by the ChatSession
 let toolRegistryGetter: (() => Record<string, ToolHandler>) | null = null;

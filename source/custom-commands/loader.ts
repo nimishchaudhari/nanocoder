@@ -1,8 +1,8 @@
 import {existsSync, readdirSync, statSync} from 'fs';
 import {join, basename} from 'path';
-import type {CustomCommand} from '../types/index.js';
-import {parseCommandFile} from './parser.js';
-import {logError} from '../utils/message-queue.js';
+import type {CustomCommand} from '@/types/index';
+import {parseCommandFile} from '@/custom-commands/parser';
+import {logError} from '@/utils/message-queue';
 
 export class CustomCommandLoader {
 	private commands: Map<string, CustomCommand> = new Map();

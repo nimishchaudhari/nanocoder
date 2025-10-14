@@ -1,14 +1,14 @@
-import {LLMClient, Message} from '../../types/core.js';
-import {createLLMClient} from '../../client-factory.js';
+import {LLMClient, Message} from '@/types/core';
+import {createLLMClient} from '@/client-factory';
 import {
 	updateLastUsed,
 	savePreferences,
 	loadPreferences,
-} from '../../config/preferences.js';
-import SuccessMessage from '../../components/success-message.js';
-import ErrorMessage from '../../components/error-message.js';
+} from '@/config/preferences';
+import SuccessMessage from '@/components/success-message';
+import ErrorMessage from '@/components/error-message';
 import React from 'react';
-import type {ThemePreset} from '../../types/ui.js';
+import type {ThemePreset} from '@/types/ui';
 
 interface UseModeHandlersProps {
 	client: LLMClient | null;

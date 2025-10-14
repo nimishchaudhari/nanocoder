@@ -1,11 +1,11 @@
-import type {Command, LogLevel} from '../types/index.js';
-import {getLogLevel, setLogLevel} from '../config/logging.js';
+import type {Command, LogLevel} from '@/types/index';
+import {getLogLevel, setLogLevel} from '@/config/logging';
 import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
-import {useTheme} from '../hooks/useTheme.js';
-import {getColors} from '../config/index.js';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
+import {getColors} from '@/config/index';
 
 interface DebugProps {
 	currentLevel: LogLevel;

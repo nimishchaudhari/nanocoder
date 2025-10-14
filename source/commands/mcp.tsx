@@ -1,11 +1,11 @@
-import type {Command} from '../types/index.js';
-import {ToolManager} from '../tools/tool-manager.js';
-import {getToolManager} from '../message-handler.js';
+import type {Command} from '@/types/index';
+import {ToolManager} from '@/tools/tool-manager';
+import {getToolManager} from '@/message-handler';
 import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
-import {useTerminalWidth} from '../hooks/useTerminalWidth.js';
-import {useTheme} from '../hooks/useTheme.js';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
 
 interface MCPProps {
 	toolManager: ToolManager | null;

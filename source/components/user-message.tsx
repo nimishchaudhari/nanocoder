@@ -1,7 +1,7 @@
 import {Box, Text} from 'ink';
 import {memo} from 'react';
-import {useTheme} from '../hooks/useTheme.js';
-import type {UserMessageProps} from '../types/index.js';
+import {useTheme} from '@/hooks/useTheme';
+import type {UserMessageProps} from '@/types/index';
 
 export default memo(function UserMessage({message}: UserMessageProps) {
 	const {colors} = useTheme();
