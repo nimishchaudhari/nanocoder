@@ -7,6 +7,7 @@ import {
 	cleanContentFromToolCalls,
 } from '@/tool-calling/index';
 import {ConversationStateManager} from '@/app/utils/conversationState';
+import {promptHistory} from '@/prompt-history';
 import UserMessage from '@/components/user-message';
 import AssistantMessage from '@/components/assistant-message';
 import ErrorMessage from '@/components/error-message';
@@ -493,9 +494,15 @@ export function useChatHandler({
 	const handleChatMessage = async (message: string) => {
 		if (!client || !toolManager) return;
 
-		// Add user message to chat
+		// For display purposes, try to get the placeholder version from history
+		// This preserves the nice placeholder display in chat history
+		const history = promptHistory.getHistory();
+		const lastEntry = history[history.length - 1];
+		const displayMessage = lastEntry?.displayValue || message;
+
+		// Add user message to chat using display version (with placeholders)
 		addToChatQueue(
-			<UserMessage key={`user-${componentKeyCounter}`} message={message} />,
+			<UserMessage key={`user-${componentKeyCounter}`} message={displayMessage} />,
 		);
 
 		// Add user message to conversation history

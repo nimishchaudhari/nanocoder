@@ -7,6 +7,7 @@ import {commandRegistry} from '@/commands';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useUIStateContext} from '@/hooks/useUIState';
 import {useInputState} from '@/hooks/useInputState';
+import {assemblePrompt} from '@/utils/prompt-processor';
 import {Completion} from '@/types/index';
 import {DevelopmentMode, DEVELOPMENT_MODE_LABELS} from '@/types/core';
 
@@ -38,23 +39,25 @@ export default function UserInput({
 
 	const {
 		input,
-		hasLargeContent,
 		originalInput,
 		historyIndex,
 		setOriginalInput,
 		setHistoryIndex,
 		updateInput,
 		resetInput,
-		cachedLineCount,
+		// New paste handling functions
+		undo,
+		redo,
+		deletePlaceholder,
+		currentState,
+		setInputState,
 	} = inputState;
 
 	const {
 		showClearMessage,
-		showFullContent,
 		showCompletions,
 		completions,
 		setShowClearMessage,
-		setShowFullContent,
 		setShowCompletions,
 		setCompletions,
 		resetUIState,
@@ -69,8 +72,6 @@ export default function UserInput({
 	}, []);
 
 	// Helper functions
-
-	const getExpandKey = () => 'Ctrl+B';
 
 	// Command completion logic
 	const handleCommandCompletion = useCallback(
@@ -105,14 +106,17 @@ export default function UserInput({
 	// Handle form submission
 	const handleSubmit = useCallback(() => {
 		if (input.trim() && onSubmit) {
-			const message = input.trim();
-			promptHistory.addPrompt(message);
-			onSubmit(message);
+			// Assemble the full prompt by replacing placeholders with content
+			const fullMessage = assemblePrompt(currentState);
+
+			// Save the InputState to history and send assembled message to AI
+			promptHistory.addPrompt(currentState);
+			onSubmit(fullMessage);
 			resetInput();
 			resetUIState();
 			promptHistory.resetIndex();
 		}
-	}, [input, onSubmit, resetInput, resetUIState]);
+	}, [input, onSubmit, resetInput, resetUIState, currentState]);
 
 	// Handle escape key logic
 	const handleEscape = useCallback(() => {
@@ -135,12 +139,12 @@ export default function UserInput({
 				if (historyIndex === -1) {
 					setOriginalInput(input);
 					setHistoryIndex(history.length - 1);
-					updateInput(history[history.length - 1]);
+					setInputState(history[history.length - 1]);
 					setTextInputKey(prev => prev + 1);
 				} else if (historyIndex > 0) {
 					const newIndex = historyIndex - 1;
 					setHistoryIndex(newIndex);
-					updateInput(history[newIndex]);
+					setInputState(history[newIndex]);
 					setTextInputKey(prev => prev + 1);
 				} else {
 					setHistoryIndex(-2);
@@ -151,7 +155,7 @@ export default function UserInput({
 				if (historyIndex >= 0 && historyIndex < history.length - 1) {
 					const newIndex = historyIndex + 1;
 					setHistoryIndex(newIndex);
-					updateInput(history[newIndex]);
+					setInputState(history[newIndex]);
 					setTextInputKey(prev => prev + 1);
 				} else if (historyIndex === history.length - 1) {
 					setHistoryIndex(-1);
@@ -160,7 +164,7 @@ export default function UserInput({
 					setTextInputKey(prev => prev + 1);
 				} else if (historyIndex === -2) {
 					setHistoryIndex(0);
-					updateInput(history[0]);
+					setInputState(history[0]);
 					setTextInputKey(prev => prev + 1);
 				}
 			}
@@ -171,7 +175,7 @@ export default function UserInput({
 			originalInput,
 			setHistoryIndex,
 			setOriginalInput,
-			updateInput,
+			setInputState,
 		],
 	);
 
@@ -199,10 +203,17 @@ export default function UserInput({
 			return;
 		}
 
-		if (key.ctrl && inputChar === 'b') {
-			if (hasLargeContent && input.length > 150) {
-				setShowFullContent(prev => !prev);
-			}
+		// Ctrl+B removed - no longer needed with new paste system
+
+		// Undo: Ctrl+_ (Ctrl+Shift+-)
+		if (key.ctrl && inputChar === '_') {
+			undo();
+			return;
+		}
+
+		// Redo: Ctrl+Y
+		if (key.ctrl && inputChar === 'y') {
+			redo();
 			return;
 		}
 
@@ -243,17 +254,6 @@ export default function UserInput({
 	// Render function - NEVER modifies state, only for display
 	const renderDisplayContent = () => {
 		if (!input) return placeholder;
-
-		if (hasLargeContent && input.length > 150 && !showFullContent) {
-			// Use cached line count from the hook (debounced)
-			return (
-				<>
-					{`[${input.length} characters, ${cachedLineCount} lines] `}
-					<Text color={colors.secondary}>({getExpandKey()} to expand)</Text>
-				</>
-			);
-		}
-
 		return input;
 	};
 
@@ -277,27 +277,21 @@ export default function UserInput({
 				)}
 
 				{/* Input row */}
-				{hasLargeContent && input.length > 150 && !showFullContent ? (
-					<Text color={textColor}>
-						{'>'} {renderDisplayContent()}
-					</Text>
-				) : (
-					<Box>
-						<Text color={textColor}>{'>'} </Text>
-						{disabled ? (
-							<Text color={colors.secondary}>...</Text>
-						) : (
-							<TextInput
-								key={textInputKey}
-								value={input}
-								onChange={updateInput}
-								onSubmit={handleSubmit}
-								placeholder={placeholder}
-								focus={isFocused}
-							/>
-						)}
-					</Box>
-				)}
+				<Box>
+					<Text color={textColor}>{'>'} </Text>
+					{disabled ? (
+						<Text color={colors.secondary}>...</Text>
+					) : (
+						<TextInput
+							key={textInputKey}
+							value={input}
+							onChange={updateInput}
+							onSubmit={handleSubmit}
+							placeholder={placeholder}
+							focus={isFocused}
+						/>
+					)}
+				</Box>
 
 				{isBashMode && (
 					<Text color={colors.tool} dimColor>

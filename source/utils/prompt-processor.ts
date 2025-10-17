@@ -1,8 +1,10 @@
 import {readFileSync, existsSync} from 'fs';
 import {join} from 'path';
 import {platform, homedir, release} from 'os';
-import {promptPath} from '@/config/index';
-import type {Tool} from '@/types/index';
+import {promptPath} from '../config/index.js';
+import type {Tool} from '../types/index.js';
+import type {InputState} from '../types/hooks.js';
+import {PlaceholderType} from '../types/hooks.js';
 
 /**
  * Get the default shell for the current platform
@@ -197,4 +199,72 @@ function formatToolDocumentation(tool: Tool): string {
 	}
 
 	return doc;
+}
+
+/**
+ * Assemble the final prompt by replacing all placeholders with their full content
+ * This function is called before sending the prompt to the AI
+ */
+export function assemblePrompt(inputState: InputState): string {
+	let assembledPrompt = inputState.displayValue;
+
+	// Replace each placeholder with its full content
+	Object.entries(inputState.placeholderContent).forEach(
+		([placeholderId, placeholderContent]) => {
+			// Each placeholder type can have its own replacement logic
+			let replacementContent = placeholderContent.content || '';
+
+			// Type-specific content assembly (extensible for future types)
+			switch (placeholderContent.type) {
+				case PlaceholderType.PASTE:
+					// For paste, use content directly
+					replacementContent = placeholderContent.content;
+					break;
+				case PlaceholderType.FILE:
+					// For file, could add file headers or other formatting
+					replacementContent = placeholderContent.content;
+					break;
+				default:
+					// TypeScript will ensure this is unreachable with proper enum usage
+					const _exhaustive: never = placeholderContent;
+					// Fallback for safety, though this should never be reached
+					replacementContent =
+						(placeholderContent as any).displayText ||
+						(placeholderContent as any).content ||
+						'';
+			}
+
+			// Use the displayText to find and replace the placeholder
+			const displayText = placeholderContent.displayText;
+			if (displayText) {
+				assembledPrompt = assembledPrompt.replace(
+					displayText,
+					replacementContent,
+				);
+			} else {
+				// Fallback for legacy paste format
+				const placeholderPattern = `\\[Paste #${placeholderId}: \\d+ chars\\]`;
+				const regex = new RegExp(placeholderPattern, 'g');
+				assembledPrompt = assembledPrompt.replace(regex, replacementContent);
+			}
+		},
+	);
+
+	return assembledPrompt;
+}
+
+/**
+ * Extract all placeholder IDs from a display value
+ * Useful for atomic deletion and validation
+ */
+export function extractPlaceholderIds(displayValue: string): string[] {
+	const placeholderRegex = /\[Paste #(\d+): \d+ chars\]/g;
+	const matches = [];
+	let match;
+
+	while ((match = placeholderRegex.exec(displayValue)) !== null) {
+		matches.push(match[1]); // The captured paste ID
+	}
+
+	return matches;
 }

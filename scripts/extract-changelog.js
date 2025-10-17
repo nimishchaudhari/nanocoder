@@ -40,7 +40,10 @@ try {
 const versionPatterns = [
 	// Pattern 1: ## [version] or ## version
 	new RegExp(
-		`##+ \\[?${version.replace(/\./g, '\\.')}\\]?.*?\\n([\\s\\S]*?)(?=\\n##+ |$)`,
+		`##+ \\[?${version.replace(
+			/\./g,
+			'\\.',
+		)}\\]?.*?\\n([\\s\\S]*?)(?=\\n##+ |$)`,
 	),
 	// Pattern 2: # version
 	new RegExp(
