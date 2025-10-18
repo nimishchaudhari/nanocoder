@@ -5,7 +5,7 @@ import type {UserMessageProps} from '@/types/index';
 
 export default memo(function UserMessage({message}: UserMessageProps) {
 	const {colors} = useTheme();
-	
+
 	const lines = message.split('\n');
 
 	return (

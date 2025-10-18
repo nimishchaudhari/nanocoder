@@ -1,10 +1,5 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {
-	InputState,
-	PlaceholderContent,
-	PastePlaceholderContent,
-	PlaceholderType,
-} from '../types/hooks.js';
+import {InputState, PlaceholderType} from '../types/hooks.js';
 import {handlePaste} from '../utils/paste-utils.js';
 import {PasteDetector} from '../utils/paste-detection.js';
 import {handleAtomicDeletion} from '../utils/atomic-deletion.js';

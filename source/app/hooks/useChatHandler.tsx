@@ -502,7 +502,10 @@ export function useChatHandler({
 
 		// Add user message to chat using display version (with placeholders)
 		addToChatQueue(
-			<UserMessage key={`user-${componentKeyCounter}`} message={displayMessage} />,
+			<UserMessage
+				key={`user-${componentKeyCounter}`}
+				message={displayMessage}
+			/>,
 		);
 
 		// Add user message to conversation history
