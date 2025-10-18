@@ -1,3 +1,10 @@
+## 1.13.8
+
+- Fix: Issue #55
+- Rolling out testing to the release pipeline
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 ## 1.13.7
 
 - Updated `LICENSE.md` to be `MIT License with Attribution`. This was done to keep the spirit of MIT but also ensure the technology built by contributors is properly credited.
