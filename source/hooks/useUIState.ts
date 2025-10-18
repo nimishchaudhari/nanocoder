@@ -9,11 +9,9 @@ import {Completion} from '@/types/index';
 
 export type UIState = {
 	showClearMessage: boolean;
-	showFullContent: boolean;
 	showCompletions: boolean;
 	completions: Completion[];
 	setShowClearMessage: React.Dispatch<React.SetStateAction<boolean>>;
-	setShowFullContent: React.Dispatch<React.SetStateAction<boolean>>;
 	setShowCompletions: React.Dispatch<React.SetStateAction<boolean>>;
 	setCompletions: React.Dispatch<React.SetStateAction<Completion[]>>;
 	resetUIState: () => void;
@@ -24,13 +22,11 @@ const UIStateContext = createContext<UIState | undefined>(undefined);
 // Existing hook that builds the UI state (kept to separate creation from context)
 export function useUIState(): UIState {
 	const [showClearMessage, setShowClearMessage] = useState(false);
-	const [showFullContent, setShowFullContent] = useState(false);
 	const [showCompletions, setShowCompletions] = useState(false);
 	const [completions, setCompletions] = useState<Completion[]>([]);
 
 	const resetUIState = useCallback(() => {
 		setShowClearMessage(false);
-		setShowFullContent(false);
 		setShowCompletions(false);
 		setCompletions([]);
 	}, []);
@@ -38,22 +34,14 @@ export function useUIState(): UIState {
 	return useMemo(
 		() => ({
 			showClearMessage,
-			showFullContent,
 			showCompletions,
 			completions,
 			setShowClearMessage,
-			setShowFullContent,
 			setShowCompletions,
 			setCompletions,
 			resetUIState,
 		}),
-		[
-			showClearMessage,
-			showFullContent,
-			showCompletions,
-			completions,
-			resetUIState,
-		],
+		[showClearMessage, showCompletions, completions, resetUIState],
 	);
 }
 
