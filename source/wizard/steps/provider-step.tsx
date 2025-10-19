@@ -1,0 +1,269 @@
+import React, {useState} from 'react';
+import {Box, Text, useInput} from 'ink';
+import SelectInput from 'ink-select-input';
+import TextInput from 'ink-text-input';
+import type {ProviderConfig} from '../../types/config.js';
+import {
+	PROVIDER_TEMPLATES,
+	type ProviderTemplate,
+} from '../templates/provider-templates.js';
+
+interface ProviderStepProps {
+	onComplete: (providers: ProviderConfig[]) => void;
+	onBack?: () => void;
+	existingProviders?: ProviderConfig[];
+}
+
+type Mode =
+	| 'select-template-or-custom'
+	| 'template-selection'
+	| 'field-input'
+	| 'done';
+
+interface TemplateOption {
+	label: string;
+	value: string;
+}
+
+export function ProviderStep({
+	onComplete,
+	onBack,
+	existingProviders = [],
+}: ProviderStepProps) {
+	const [providers, setProviders] =
+		useState<ProviderConfig[]>(existingProviders);
+	const [mode, setMode] = useState<Mode>('select-template-or-custom');
+	const [selectedTemplate, setSelectedTemplate] =
+		useState<ProviderTemplate | null>(null);
+	const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
+	const [fieldAnswers, setFieldAnswers] = useState<Record<string, string>>({});
+	const [currentValue, setCurrentValue] = useState('');
+	const [error, setError] = useState<string | null>(null);
+
+	const initialOptions = [
+		{label: '[1] Yes - Choose from common templates', value: 'templates'},
+		{label: '[2] No - Add custom provider manually', value: 'custom'},
+		{label: '[3] Skip - Configure later', value: 'skip'},
+	];
+
+	const templateOptions: TemplateOption[] = [
+		...PROVIDER_TEMPLATES.map((template, index) => ({
+			label: `[${index + 1}] ${template.name} - ${template.description}`,
+			value: template.id,
+		})),
+		{
+			label: `[${PROVIDER_TEMPLATES.length + 1}] Done adding providers`,
+			value: 'done',
+		},
+	];
+
+	const handleInitialSelect = (item: {value: string}) => {
+		if (item.value === 'templates') {
+			setMode('template-selection');
+		} else if (item.value === 'custom') {
+			// Find custom template
+			const customTemplate = PROVIDER_TEMPLATES.find(t => t.id === 'custom');
+			if (customTemplate) {
+				setSelectedTemplate(customTemplate);
+				setCurrentFieldIndex(0);
+				setFieldAnswers({});
+				setCurrentValue('');
+				setMode('field-input');
+			}
+		} else {
+			// Skip
+			onComplete(providers);
+		}
+	};
+
+	const handleTemplateSelect = (item: TemplateOption) => {
+		if (item.value === 'done') {
+			onComplete(providers);
+			return;
+		}
+
+		const template = PROVIDER_TEMPLATES.find(t => t.id === item.value);
+		if (template) {
+			setSelectedTemplate(template);
+			setCurrentFieldIndex(0);
+			setFieldAnswers({});
+			setCurrentValue(template.fields[0]?.default || '');
+			setError(null);
+			setMode('field-input');
+		}
+	};
+
+	const handleFieldSubmit = () => {
+		if (!selectedTemplate) return;
+
+		const currentField = selectedTemplate.fields[currentFieldIndex];
+		if (!currentField) return;
+
+		// Validate required fields
+		if (currentField.required && !currentValue.trim()) {
+			setError('This field is required');
+			return;
+		}
+
+		// Validate with custom validator
+		if (currentField.validator && currentValue.trim()) {
+			const validationError = currentField.validator(currentValue);
+			if (validationError) {
+				setError(validationError);
+				return;
+			}
+		}
+
+		// Save answer
+		const newAnswers = {
+			...fieldAnswers,
+			[currentField.name]: currentValue.trim(),
+		};
+		setFieldAnswers(newAnswers);
+		setError(null);
+
+		// Move to next field or complete
+		if (currentFieldIndex < selectedTemplate.fields.length - 1) {
+			setCurrentFieldIndex(currentFieldIndex + 1);
+			const nextField = selectedTemplate.fields[currentFieldIndex + 1];
+			setCurrentValue(nextField?.default || '');
+		} else {
+			// Build config and add provider
+			try {
+				const providerConfig = selectedTemplate.buildConfig(newAnswers);
+				setProviders([...providers, providerConfig]);
+				// Reset for next provider
+				setSelectedTemplate(null);
+				setCurrentFieldIndex(0);
+				setFieldAnswers({});
+				setCurrentValue('');
+				setMode('template-selection');
+			} catch (err) {
+				setError(
+					err instanceof Error ? err.message : 'Failed to build configuration',
+				);
+			}
+		}
+	};
+
+	useInput((input, key) => {
+		if (mode === 'field-input') {
+			if (key.return) {
+				handleFieldSubmit();
+			} else if (key.escape) {
+				// Go back to template selection
+				setMode('template-selection');
+				setSelectedTemplate(null);
+				setCurrentFieldIndex(0);
+				setFieldAnswers({});
+				setCurrentValue('');
+				setError(null);
+			}
+		}
+	});
+
+	if (mode === 'select-template-or-custom') {
+		return (
+			<Box flexDirection="column" paddingX={2} paddingY={1}>
+				<Box marginBottom={1}>
+					<Text bold>
+						Let&apos;s add AI providers. Would you like to use a template?
+					</Text>
+				</Box>
+				{providers.length > 0 && (
+					<Box marginBottom={1}>
+						<Text color="green">
+							{providers.length} provider(s) already added
+						</Text>
+					</Box>
+				)}
+				<SelectInput
+					items={initialOptions}
+					onSelect={handleInitialSelect as any}
+				/>
+			</Box>
+		);
+	}
+
+	if (mode === 'template-selection') {
+		return (
+			<Box flexDirection="column" paddingX={2} paddingY={1}>
+				<Box marginBottom={1}>
+					<Text bold>Choose a provider template:</Text>
+				</Box>
+				{providers.length > 0 && (
+					<Box marginBottom={1}>
+						<Text color="green">
+							Added: {providers.map(p => p.name).join(', ')}
+						</Text>
+					</Box>
+				)}
+				<SelectInput
+					items={templateOptions}
+					onSelect={handleTemplateSelect as any}
+				/>
+			</Box>
+		);
+	}
+
+	if (mode === 'field-input' && selectedTemplate) {
+		const currentField = selectedTemplate.fields[currentFieldIndex];
+		if (!currentField) return null;
+
+		return (
+			<Box flexDirection="column" paddingX={2} paddingY={1}>
+				<Box marginBottom={1}>
+					<Text bold>{selectedTemplate.name} Configuration</Text>
+					<Text dimColor>
+						{' '}
+						(Field {currentFieldIndex + 1}/{selectedTemplate.fields.length})
+					</Text>
+				</Box>
+
+				<Box marginBottom={1}>
+					<Text>
+						{currentField.prompt}
+						{currentField.required && <Text color="red"> *</Text>}
+						{currentField.default && (
+							<Text dimColor> [{currentField.default}]</Text>
+						)}
+						: {currentField.sensitive && '****'}
+					</Text>
+				</Box>
+
+				{!currentField.sensitive && (
+					<Box marginBottom={1}>
+						<TextInput
+							value={currentValue}
+							onChange={setCurrentValue}
+							onSubmit={handleFieldSubmit}
+						/>
+					</Box>
+				)}
+
+				{currentField.sensitive && (
+					<Box marginBottom={1}>
+						<TextInput
+							value={currentValue}
+							onChange={setCurrentValue}
+							onSubmit={handleFieldSubmit}
+							mask="*"
+						/>
+					</Box>
+				)}
+
+				{error && (
+					<Box marginBottom={1}>
+						<Text color="red">Error: {error}</Text>
+					</Box>
+				)}
+
+				<Box>
+					<Text dimColor>Press Enter to continue | Esc to cancel</Text>
+				</Box>
+			</Box>
+		);
+	}
+
+	return null;
+}

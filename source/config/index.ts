@@ -125,7 +125,7 @@ function loadAppConfig(): AppConfig {
 			};
 		}
 	} catch (error) {
-		logError(`Failed to parse : ${'agents.config.json'}`);
+		//
 	}
 
 	return {};

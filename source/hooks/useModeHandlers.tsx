@@ -24,6 +24,7 @@ interface UseModeHandlersProps {
 	setIsProviderSelectionMode: (mode: boolean) => void;
 	setIsThemeSelectionMode: (mode: boolean) => void;
 	setIsRecommendationsMode: (mode: boolean) => void;
+	setIsConfigWizardMode: (mode: boolean) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 }
@@ -42,6 +43,7 @@ export function useModeHandlers({
 	setIsProviderSelectionMode,
 	setIsThemeSelectionMode,
 	setIsRecommendationsMode,
+	setIsConfigWizardMode,
 	addToChatQueue,
 	componentKeyCounter,
 }: UseModeHandlersProps) {
@@ -189,11 +191,68 @@ export function useModeHandlers({
 		setIsRecommendationsMode(false);
 	};
 
+	// Helper function to enter config wizard mode
+	const enterConfigWizardMode = () => {
+		setIsConfigWizardMode(true);
+	};
+
+	// Handle config wizard cancel/complete
+	const handleConfigWizardComplete = async (configPath?: string) => {
+		setIsConfigWizardMode(false);
+		if (configPath) {
+			addToChatQueue(
+				<SuccessMessage
+					key={`config-wizard-complete-${componentKeyCounter}`}
+					message={`Configuration saved to: ${configPath}. Initializing...`}
+					hideBox={true}
+				/>,
+			);
+
+			// Reinitialize client with new configuration
+			try {
+				const preferences = loadPreferences();
+				const {client: newClient, actualProvider} = await createLLMClient(
+					preferences.lastProvider,
+				);
+				setClient(newClient);
+				setCurrentProvider(actualProvider);
+
+				const newModel = newClient.getCurrentModel();
+				setCurrentModel(newModel);
+
+				// Clear message history when switching providers
+				setMessages([]);
+				await newClient.clearContext();
+
+				addToChatQueue(
+					<SuccessMessage
+						key={`config-init-${componentKeyCounter}`}
+						message={`Ready! Using provider: ${actualProvider}, model: ${newModel}`}
+						hideBox={true}
+					/>,
+				);
+			} catch (error) {
+				addToChatQueue(
+					<ErrorMessage
+						key={`config-init-error-${componentKeyCounter}`}
+						message={`Failed to initialize with new configuration: ${error}`}
+						hideBox={true}
+					/>,
+				);
+			}
+		}
+	};
+
+	const handleConfigWizardCancel = () => {
+		setIsConfigWizardMode(false);
+	};
+
 	return {
 		enterModelSelectionMode,
 		enterProviderSelectionMode,
 		enterThemeSelectionMode,
 		enterRecommendationsMode,
+		enterConfigWizardMode,
 		handleModelSelect,
 		handleModelSelectionCancel,
 		handleProviderSelect,
@@ -201,5 +260,7 @@ export function useModeHandlers({
 		handleThemeSelect,
 		handleThemeSelectionCancel,
 		handleRecommendationsCancel,
+		handleConfigWizardComplete,
+		handleConfigWizardCancel,
 	};
 }

@@ -20,6 +20,7 @@ export async function handleMessageSubmission(
 		onEnterProviderSelectionMode,
 		onEnterThemeSelectionMode,
 		onEnterRecommendationsMode,
+		onEnterConfigWizardMode,
 		onShowStatus,
 		onHandleChatMessage,
 		onAddToChatQueue,
@@ -148,6 +149,9 @@ ${result.fullOutput || '(No output)'}`;
 				return;
 			} else if (commandName === 'recommendations') {
 				onEnterRecommendationsMode();
+				return;
+			} else if (commandName === 'setup-config') {
+				onEnterConfigWizardMode();
 				return;
 			} else if (commandName === 'status') {
 				onShowStatus();

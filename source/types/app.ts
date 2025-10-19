@@ -11,6 +11,7 @@ export interface MessageSubmissionOptions {
 	onEnterProviderSelectionMode: () => void;
 	onEnterThemeSelectionMode: () => void;
 	onEnterRecommendationsMode: () => void;
+	onEnterConfigWizardMode: () => void;
 	onShowStatus: () => void;
 	onHandleChatMessage: (message: string) => Promise<void>;
 	onAddToChatQueue: (component: React.ReactNode) => void;

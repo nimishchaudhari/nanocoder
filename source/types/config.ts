@@ -14,6 +14,23 @@ export interface LangChainProviderConfig {
 	config: Record<string, any>;
 }
 
+// Provider configuration type for wizard and config building
+export interface ProviderConfig {
+	name: string;
+	baseUrl?: string;
+	apiKey?: string;
+	models: string[];
+	requestTimeout?: number;
+	socketTimeout?: number;
+	organizationId?: string;
+	timeout?: number;
+	connectionPool?: {
+		idleTimeout?: number;
+		cumulativeMaxIdleTimeout?: number;
+	};
+	[key: string]: any; // Allow additional provider-specific config
+}
+
 export interface AppConfig {
 	// Providers array structure - all OpenAI compatible
 	providers?: {

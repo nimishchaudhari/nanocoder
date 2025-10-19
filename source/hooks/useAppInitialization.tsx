@@ -26,6 +26,7 @@ import {
 	modelCommand,
 	providerCommand,
 	recommendationsCommand,
+	setupConfigCommand,
 	statusCommand,
 	themeCommand,
 	updateCommand,
@@ -33,7 +34,6 @@ import {
 import SuccessMessage from '@/components/success-message';
 import ErrorMessage from '@/components/error-message';
 import InfoMessage from '@/components/info-message';
-import ConfigErrorMessage from '@/components/config-error-message';
 import {checkForUpdates} from '@/utils/update-checker';
 import type {UpdateInfo} from '@/types/index';
 
@@ -51,6 +51,7 @@ interface UseAppInitializationProps {
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
 	customCommandCache: Map<string, any>;
+	setIsConfigWizardMode: (mode: boolean) => void;
 }
 
 export function useAppInitialization({
@@ -67,6 +68,7 @@ export function useAppInitialization({
 	addToChatQueue,
 	componentKeyCounter,
 	customCommandCache,
+	setIsConfigWizardMode,
 }: UseAppInitializationProps) {
 	// Initialize LLM client and model
 	const initializeClient = async (preferredProvider?: string) => {
@@ -186,16 +188,19 @@ export function useAppInitialization({
 		try {
 			await initializeClient(preferences.lastProvider);
 		} catch (error) {
-			// Check if it's a ConfigurationError and render the fancy component
+			// Check if it's a ConfigurationError - launch wizard for any config issue
 			if (error instanceof ConfigurationError) {
 				addToChatQueue(
-					<ConfigErrorMessage
+					<InfoMessage
 						key={`config-error-${componentKeyCounter}`}
-						configPath={error.configPath}
-						cwdPath={error.cwdPath}
-						isEmptyConfig={error.isEmptyConfig}
+						message="Configuration needed. Let's set up your providers..."
+						hideBox={true}
 					/>,
 				);
+				// Trigger wizard mode after showing UI
+				setTimeout(() => {
+					setIsConfigWizardMode(true);
+				}, 100);
 			} else {
 				// Regular error - show simple error message
 				addToChatQueue(
@@ -268,6 +273,7 @@ export function useAppInitialization({
 				updateCommand,
 				recommendationsCommand,
 				statusCommand,
+				setupConfigCommand,
 			]);
 
 			// Now start with the properly initialized objects (excluding MCP)

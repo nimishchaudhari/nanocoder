@@ -18,6 +18,7 @@ import {setGlobalMessageQueue} from '@/utils/message-queue';
 import Spinner from 'ink-spinner';
 import SecurityDisclaimer from '@/components/security-disclaimer';
 import {RecommendationsDisplay} from '@/commands/recommendations';
+import {ConfigWizard} from '@/wizard/config-wizard';
 
 // Import extracted hooks and utilities
 import {useAppState} from '@/hooks/useAppState';
@@ -126,6 +127,7 @@ export default function App() {
 		setIsProviderSelectionMode: appState.setIsProviderSelectionMode,
 		setIsThemeSelectionMode: appState.setIsThemeSelectionMode,
 		setIsRecommendationsMode: appState.setIsRecommendationsMode,
+		setIsConfigWizardMode: appState.setIsConfigWizardMode,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 	});
@@ -145,6 +147,7 @@ export default function App() {
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 		customCommandCache: appState.customCommandCache,
+		setIsConfigWizardMode: appState.setIsConfigWizardMode,
 	});
 
 	// Memoize handlers to prevent unnecessary re-renders
@@ -203,6 +206,7 @@ export default function App() {
 				onEnterProviderSelectionMode: modeHandlers.enterProviderSelectionMode,
 				onEnterThemeSelectionMode: modeHandlers.enterThemeSelectionMode,
 				onEnterRecommendationsMode: modeHandlers.enterRecommendationsMode,
+				onEnterConfigWizardMode: modeHandlers.enterConfigWizardMode,
 				onShowStatus: handleShowStatus,
 				onHandleChatMessage: chatHandler.handleChatMessage,
 				onAddToChatQueue: appState.addToChatQueue,
@@ -329,6 +333,12 @@ export default function App() {
 							) : appState.isRecommendationsMode ? (
 								<RecommendationsDisplay
 									onCancel={modeHandlers.handleRecommendationsCancel}
+								/>
+							) : appState.isConfigWizardMode ? (
+								<ConfigWizard
+									projectDir={process.cwd()}
+									onComplete={modeHandlers.handleConfigWizardComplete}
+									onCancel={modeHandlers.handleConfigWizardCancel}
 								/>
 							) : appState.isToolConfirmationMode &&
 							  appState.pendingToolCalls[appState.currentToolIndex] ? (
