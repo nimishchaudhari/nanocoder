@@ -1,3 +1,9 @@
+# 1.13.9
+
+- Added Anthropic Claude Haiku 4.5 to model database
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 ## 1.13.8
 
 - Fix: Issue #55
