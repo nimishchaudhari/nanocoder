@@ -1,6 +1,11 @@
 # 1.13.9
 
-- Added Anthropic Claude Haiku 4.5 to model database
+- Added Anthropic Claude Haiku 4.5 to model database.
+- UI updates to welcome message, status and user input placeholder on narrow terminals.
+- Updated `CONTRIBUTING.md` and `pull_request_template.md` to reflect new testing requirements.
+- Fix: Declining a tool suggestion and then sending a follow up message caused an error.
+- Fix: Removed duplicate `hooks` directories and consolidated into one.
+- Fix: Removed unneccessary `ollama` package.
 
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
