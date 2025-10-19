@@ -1,9 +1,9 @@
-import {Text} from 'ink';
+import {Box, Text} from 'ink';
 import {memo} from 'react';
 import {existsSync} from 'fs';
 
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import {confDirMap} from '@/config/index';
 import {themes, getThemeColors} from '@/config/themes';
 import type {ThemePreset} from '@/types/ui';
@@ -31,64 +31,110 @@ export default memo(function Status({
 	updateInfo?: UpdateInfo | null;
 	agentsMdLoaded?: boolean;
 }) {
-	const boxWidth = useTerminalWidth();
+	const {boxWidth, isNarrow, truncatePath} = useResponsiveTerminal();
 	const colors = getThemeColors(theme);
 
 	// Check for AGENTS.md synchronously if not provided
 	const hasAgentsMd = agentsMdLoaded ?? existsSync(`${cwd}/AGENTS.md`);
 
+	// Calculate max path length based on terminal size
+	const maxPathLength = isNarrow ? 30 : 60;
+
 	return (
-		<TitledBox
-			key={colors.primary}
-			borderStyle="round"
-			titles={['Status']}
-			titleStyles={titleStyles.pill}
-			width={boxWidth}
-			borderColor={colors.info}
-			paddingX={2}
-			paddingY={1}
-			flexDirection="column"
-			marginBottom={1}
-		>
-			<Text color={colors.info}>
-				<Text bold={true}>CWD: </Text>
-				{cwd}
-			</Text>
-			<Text color={colors.info}>
-				<Text bold={true}>Config: </Text>
-				{confDirMap['agents.config.json']}
-			</Text>
-			<Text color={colors.success}>
-				<Text bold={true}>Provider: </Text>
-				{provider}, <Text bold={true}>Model: </Text>
-				{model}
-			</Text>
-			<Text color={colors.primary}>
-				<Text bold={true}>Theme: </Text>
-				{themes[theme].displayName}
-			</Text>
-			{hasAgentsMd ? (
-				<Text color={colors.secondary} italic>
-					<Text>↳ Using AGENTS.md. Project initialized</Text>
-				</Text>
-			) : (
-				<Text color={colors.secondary} italic>
-					↳ No AGENTS.md file found, run `/init` to initialize this directory
-				</Text>
-			)}
-			{updateInfo?.hasUpdate && (
-				<>
-					<Text color={colors.warning}>
-						<Text bold={true}>Update Available: </Text>v
-						{updateInfo.currentVersion} → v{updateInfo.latestVersion}
+		<>
+			{/* Narrow terminal: simple text without box */}
+			{isNarrow ? (
+				<Box
+					flexDirection="column"
+					marginBottom={1}
+					borderStyle="round"
+					borderColor={colors.info}
+					paddingY={1}
+					paddingX={2}
+				>
+					<Text color={colors.info}>
+						<Text bold={true}>CWD: </Text>
+						{truncatePath(cwd, maxPathLength)}
 					</Text>
-					{updateInfo.updateCommand && (
-						<Text color={colors.secondary}>
-							↳ Run: /update or {updateInfo.updateCommand}
+					<Text color={colors.success}>
+						<Text bold={true}>Model: </Text>
+						{model}
+					</Text>
+					<Text color={colors.primary}>
+						<Text bold={true}>Theme: </Text>
+						{themes[theme].displayName}
+					</Text>
+					{hasAgentsMd ? (
+						<Text color={colors.secondary} italic>
+							✓ AGENTS.md
+						</Text>
+					) : (
+						<Text color={colors.secondary} italic>
+							✗ No AGENTS.md
 						</Text>
 					)}
-				</>
+					{updateInfo?.hasUpdate && (
+						<Text color={colors.warning}>
+							⚠ v{updateInfo.currentVersion} → v{updateInfo.latestVersion}
+						</Text>
+					)}
+				</Box>
+			) : (
+				/* Normal/Wide terminal: full layout with TitledBox */
+				<TitledBox
+					key={colors.primary}
+					borderStyle="round"
+					titles={['Status']}
+					titleStyles={titleStyles.pill}
+					width={boxWidth}
+					borderColor={colors.info}
+					paddingX={2}
+					paddingY={1}
+					flexDirection="column"
+					marginBottom={1}
+				>
+					<Text color={colors.info}>
+						<Text bold={true}>CWD: </Text>
+						{truncatePath(cwd, maxPathLength)}
+					</Text>
+					<Text color={colors.info}>
+						<Text bold={true}>Config: </Text>
+						{truncatePath(confDirMap['agents.config.json'], maxPathLength)}
+					</Text>
+					<Text color={colors.success}>
+						<Text bold={true}>Provider: </Text>
+						{provider}, <Text bold={true}>Model: </Text>
+						{model}
+					</Text>
+					<Text color={colors.primary}>
+						<Text bold={true}>Theme: </Text>
+						{themes[theme].displayName}
+					</Text>
+					{hasAgentsMd ? (
+						<Text color={colors.secondary} italic>
+							<Text>↳ Using AGENTS.md. Project initialized</Text>
+						</Text>
+					) : (
+						<Text color={colors.secondary} italic>
+							↳ No AGENTS.md file found, run `/init` to initialize this
+							directory
+						</Text>
+					)}
+					{updateInfo?.hasUpdate && (
+						<>
+							<Text color={colors.warning}>
+								<Text bold={true}>Update Available: </Text>v
+								{updateInfo.currentVersion} → v{updateInfo.latestVersion}
+							</Text>
+							{updateInfo.updateCommand && (
+								<Text color={colors.secondary}>
+									↳ Run: /update or {updateInfo.updateCommand}
+								</Text>
+							)}
+						</>
+					)}
+				</TitledBox>
 			)}
-		</TitledBox>
+		</>
 	);
 });

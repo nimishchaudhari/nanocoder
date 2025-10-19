@@ -4,7 +4,7 @@ import {useCallback, useEffect, useState} from 'react';
 import {useTheme} from '@/hooks/useTheme';
 import {promptHistory} from '@/prompt-history';
 import {commandRegistry} from '@/commands';
-import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import {useUIStateContext} from '@/hooks/useUIState';
 import {useInputState} from '@/hooks/useInputState';
 import {assemblePrompt} from '@/utils/prompt-processor';
@@ -23,7 +23,7 @@ interface ChatProps {
 
 export default function UserInput({
 	onSubmit,
-	placeholder = 'Type `/` and then press Tab for command suggestions or `!` to execute bash commands. Use ↑/↓ for history.',
+	placeholder,
 	customCommands = [],
 	disabled = false,
 	onCancel,
@@ -34,8 +34,14 @@ export default function UserInput({
 	const {colors} = useTheme();
 	const inputState = useInputState();
 	const uiState = useUIStateContext();
-	const boxWidth = useTerminalWidth();
+	const {boxWidth, isNarrow} = useResponsiveTerminal();
 	const [textInputKey, setTextInputKey] = useState(0);
+
+	// Responsive placeholder text
+	const defaultPlaceholder = isNarrow
+		? '/ for commands, ! for bash, ↑/↓ history'
+		: 'Type `/` and then press Tab for command suggestions or `!` to execute bash commands. Use ↑/↓ for history.';
+	const actualPlaceholder = placeholder ?? defaultPlaceholder;
 
 	const {
 		input,
@@ -251,12 +257,6 @@ export default function UserInput({
 		}
 	});
 
-	// Render function - NEVER modifies state, only for display
-	const renderDisplayContent = () => {
-		if (!input) return placeholder;
-		return input;
-	};
-
 	const textColor = disabled || !input ? colors.secondary : colors.primary;
 
 	return (
@@ -287,7 +287,7 @@ export default function UserInput({
 							value={input}
 							onChange={updateInput}
 							onSubmit={handleSubmit}
-							placeholder={placeholder}
+							placeholder={actualPlaceholder}
 							focus={isFocused}
 						/>
 					)}
