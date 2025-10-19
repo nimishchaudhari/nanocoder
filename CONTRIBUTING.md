@@ -113,9 +113,29 @@ We follow conventional commits:
 
 ## Testing
 
+### Automated Testing Requirements
+
+All new features and bug fixes should include appropriate tests:
+
+1. **Test Suite**: We use AVA for testing with TypeScript support
+2. **Test Files**: Place test files alongside source code with `.spec.ts` extension (e.g., `source/utils/parser.spec.ts`)
+3. **Running Tests**: Execute the full test suite with:
+
+   ```bash
+   pnpm test:all
+   ```
+
+   This runs both Prettier formatting checks and AVA tests.
+
+4. **Test Requirements for PRs**:
+   - New features **must** include passing tests in `.spec.ts` files
+   - Bug fixes should include regression tests when possible
+   - All tests must pass before merging (`pnpm test:all` should complete successfully)
+   - Tests should cover both success cases and error scenarios
+
 ### Manual Testing
 
-Since Nanocoder is a CLI tool, most testing is currently manual:
+In addition to automated tests, manual testing is important for CLI interactions:
 
 1. **Test different AI providers:**
 
@@ -135,13 +155,43 @@ Since Nanocoder is a CLI tool, most testing is currently manual:
    - Invalid configurations
    - Missing dependencies
 
-### Adding Tests
+### Writing Tests
 
-We welcome contributions that add automated testing:
+When adding tests:
 
-- Unit tests for core functions
-- Integration tests for AI providers
-- CLI interaction tests
+- Use descriptive test names that explain what is being tested
+- Follow the existing test patterns in the codebase
+- Test edge cases and error conditions
+- Keep tests focused and isolated
+- Mock external dependencies (APIs, file system) when appropriate
+
+**Test File Organization**:
+
+For simple cases, place test files alongside the source code:
+
+```
+source/utils/parser.ts
+source/utils/parser.spec.ts
+```
+
+For complex testing scenarios requiring multiple test files or shared test utilities, use a `__tests__` directory:
+
+```
+source/hooks/useInputState.ts
+source/hooks/__tests__/
+  ├── test-helpers.ts
+  ├── useInputState.deletion.spec.ts
+  ├── useInputState.state-management.spec.ts
+  └── useInputState.undo-redo.spec.ts
+```
+
+This pattern is useful when:
+
+- A single module requires multiple test files organized by category or feature
+- Tests need shared fixtures, mocks, or helper functions
+- Test complexity benefits from separation of concerns
+
+See `source/hooks/__tests__/` for examples of this pattern in practice.
 
 ## Coding Standards
 

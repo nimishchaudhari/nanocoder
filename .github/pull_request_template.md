@@ -11,6 +11,14 @@ Brief description of what this PR does
 
 ## Testing
 
+### Automated Tests
+
+- [ ] New features include passing tests in `.spec.ts` files
+- [ ] All existing tests pass (`pnpm test:all` completes successfully)
+- [ ] Tests cover both success and error scenarios
+
+### Manual Testing
+
 - [ ] Tested with Ollama
 - [ ] Tested with OpenRouter
 - [ ] Tested with OpenAI-compatible API
