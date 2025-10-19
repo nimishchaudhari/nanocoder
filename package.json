@@ -98,6 +98,11 @@
 		},
 		"nodeArguments": [
 			"--import=tsx"
+		],
+		"files": [
+			"source/**/*.spec.ts",
+			"!source/**/*-helpers.ts",
+			"!source/**/test-helpers.ts"
 		]
 	},
 	"xo": {

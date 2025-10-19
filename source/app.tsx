@@ -20,12 +20,12 @@ import SecurityDisclaimer from '@/components/security-disclaimer';
 import {RecommendationsDisplay} from '@/commands/recommendations';
 
 // Import extracted hooks and utilities
-import {useAppState} from '@/app/hooks/useAppState';
-import {useChatHandler} from '@/app/hooks/useChatHandler';
-import {useToolHandler} from '@/app/hooks/useToolHandler';
-import {useModeHandlers} from '@/app/hooks/useModeHandlers';
-import {useAppInitialization} from '@/app/hooks/useAppInitialization';
-import {useDirectoryTrust} from '@/app/hooks/useDirectoryTrust';
+import {useAppState} from '@/hooks/useAppState';
+import {useChatHandler} from '@/hooks/useChatHandler';
+import {useToolHandler} from '@/hooks/useToolHandler';
+import {useModeHandlers} from '@/hooks/useModeHandlers';
+import {useAppInitialization} from '@/hooks/useAppInitialization';
+import {useDirectoryTrust} from '@/hooks/useDirectoryTrust';
 import {
 	createClearMessagesHandler,
 	handleMessageSubmission,
