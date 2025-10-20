@@ -1,9 +1,10 @@
-import React, {useState} from 'react';
-import {Box, Text} from 'ink';
+import {useState} from 'react';
+import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
-import {homedir} from 'node:os';
 import {join} from 'node:path';
 import {existsSync} from 'node:fs';
+import {colors} from '@/config';
+import {getAppDataPath} from '@/config/paths';
 
 export type ConfigLocation = 'project' | 'global';
 
@@ -24,12 +25,7 @@ export function LocationStep({
 	projectDir,
 }: LocationStepProps) {
 	const projectPath = join(projectDir, 'agents.config.json');
-	const globalPath = join(
-		homedir(),
-		'.config',
-		'nanocoder',
-		'agents.config.json',
-	);
+	const globalPath = join(getAppDataPath(), 'agents.config.json');
 
 	const projectExists = existsSync(projectPath);
 	const globalExists = existsSync(globalPath);
@@ -50,18 +46,18 @@ export function LocationStep({
 
 	const locationOptions: LocationOption[] = [
 		{
-			label: `[1] Current project directory (${projectPath})`,
+			label: `Current project directory`,
 			value: 'project',
 		},
 		{
-			label: `[2] Global user config (${globalPath})`,
+			label: `Global user config`,
 			value: 'global',
 		},
 	];
 
 	const existingConfigOptions = [
-		{label: '[1] Edit this configuration', value: 'edit'},
-		{label: '[2] Create new config in different location', value: 'new'},
+		{label: 'Edit this configuration', value: 'edit'},
+		{label: 'Create new config in different location', value: 'new'},
 	];
 
 	const handleLocationSelect = (item: LocationOption) => {
@@ -81,12 +77,27 @@ export function LocationStep({
 		}
 	};
 
+	// Handle Ctrl+B to go back from select-location to existing-config
+	useInput((input, key) => {
+		if (key.ctrl && input === 'b') {
+			// If we're in select-location mode and came from existing-config, go back
+			if (mode === 'select-location' && (projectExists || globalExists)) {
+				setMode('existing-config');
+			} else {
+				// Otherwise, let the parent wizard handle it
+				onBack?.();
+			}
+		}
+	});
+
 	if (mode === 'existing-config') {
 		return (
-			<Box flexDirection="column" paddingX={2} paddingY={1}>
-				<Box marginBottom={1}>
-					<Text bold>Configuration found at: </Text>
-					<Text color="cyan">{existingPath}</Text>
+			<Box flexDirection="column">
+				<Box marginBottom={1} flexDirection="column">
+					<Text bold color={colors.primary}>
+						Configuration found at:{' '}
+					</Text>
+					<Text color={colors.secondary}>{existingPath}</Text>
 				</Box>
 				<SelectInput
 					items={existingConfigOptions}
@@ -97,13 +108,16 @@ export function LocationStep({
 	}
 
 	return (
-		<Box flexDirection="column" paddingX={2} paddingY={1}>
+		<Box flexDirection="column">
 			<Box marginBottom={1}>
-				<Text bold>Where would you like to create your configuration?</Text>
+				<Text bold color={colors.primary}>
+					Where would you like to create your configuration?
+				</Text>
 			</Box>
 			{globalExists && !projectExists && (
-				<Box marginBottom={1}>
-					<Text color="yellow">Note: Global config exists at {globalPath}</Text>
+				<Box marginBottom={1} flexDirection="column">
+					<Text color="yellow">Note: Global config exists at</Text>
+					<Text color={colors.secondary}>{globalPath}</Text>
 				</Box>
 			)}
 			<SelectInput
@@ -111,7 +125,7 @@ export function LocationStep({
 				onSelect={handleLocationSelect as any}
 			/>
 			<Box marginTop={1}>
-				<Text dimColor>
+				<Text color={colors.secondary}>
 					Tip: Project configs are useful for team settings. Global configs work
 					across all projects.
 				</Text>

@@ -164,7 +164,7 @@ export function ProviderStep({
 
 	if (mode === 'select-template-or-custom') {
 		return (
-			<Box flexDirection="column" paddingX={2} paddingY={1}>
+			<Box flexDirection="column" paddingX={1} paddingY={1}>
 				<Box marginBottom={1}>
 					<Text bold>
 						Let&apos;s add AI providers. Would you like to use a template?
@@ -187,7 +187,7 @@ export function ProviderStep({
 
 	if (mode === 'template-selection') {
 		return (
-			<Box flexDirection="column" paddingX={2} paddingY={1}>
+			<Box flexDirection="column" paddingX={1} paddingY={1}>
 				<Box marginBottom={1}>
 					<Text bold>Choose a provider template:</Text>
 				</Box>
@@ -211,7 +211,7 @@ export function ProviderStep({
 		if (!currentField) return null;
 
 		return (
-			<Box flexDirection="column" paddingX={2} paddingY={1}>
+			<Box flexDirection="column" paddingX={1} paddingY={1}>
 				<Box marginBottom={1}>
 					<Text bold>{selectedTemplate.name} Configuration</Text>
 					<Text dimColor>

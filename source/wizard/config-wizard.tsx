@@ -1,20 +1,23 @@
-import React, {useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import {Box, Text, useInput, useFocus} from 'ink';
 import Spinner from 'ink-spinner';
 import {writeFileSync, mkdirSync, existsSync, readFileSync} from 'node:fs';
 import {dirname} from 'node:path';
-import type {ProviderConfig} from '../types/config.js';
-import type {McpServerConfig} from './templates/mcp-templates.js';
-import {LocationStep, type ConfigLocation} from './steps/location-step.js';
-import {ProviderStep} from './steps/provider-step.js';
+import type {ProviderConfig} from '../types/config';
+import type {McpServerConfig} from './templates/mcp-templates';
+import {LocationStep, type ConfigLocation} from './steps/location-step';
+import {ProviderStep} from './steps/provider-step';
 import {McpStep} from './steps/mcp-step.js';
-import {SummaryStep} from './steps/summary-step.js';
+import {SummaryStep} from './steps/summary-step';
 import {
 	validateConfig,
 	testAllProviders,
 	buildConfigObject,
 	type ProviderTestResult,
 } from './validation.js';
+import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
+import {colors} from '@/config/index.js';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
 interface ConfigWizardProps {
 	projectDir: string;
@@ -22,7 +25,14 @@ interface ConfigWizardProps {
 	onCancel?: () => void;
 }
 
-type WizardStep = 'location' | 'providers' | 'mcp' | 'summary' | 'saving' | 'validating' | 'complete';
+type WizardStep =
+	| 'location'
+	| 'providers'
+	| 'mcp'
+	| 'summary'
+	| 'saving'
+	| 'validating'
+	| 'complete';
 
 export function ConfigWizard({
 	projectDir,
@@ -30,12 +40,18 @@ export function ConfigWizard({
 	onCancel,
 }: ConfigWizardProps) {
 	const [step, setStep] = useState<WizardStep>('location');
-	const [configLocation, setConfigLocation] = useState<ConfigLocation>('project');
+	const [configLocation, setConfigLocation] =
+		useState<ConfigLocation>('project');
 	const [configPath, setConfigPath] = useState('');
 	const [providers, setProviders] = useState<ProviderConfig[]>([]);
-	const [mcpServers, setMcpServers] = useState<Record<string, McpServerConfig>>({});
-	const [validationResults, setValidationResults] = useState<ProviderTestResult[]>([]);
+	const [mcpServers, setMcpServers] = useState<Record<string, McpServerConfig>>(
+		{},
+	);
+	const [validationResults, setValidationResults] = useState<
+		ProviderTestResult[]
+	>([]);
 	const [error, setError] = useState<string | null>(null);
+	const {boxWidth, isNarrow, isNormal} = useResponsiveTerminal();
 
 	// Capture focus to ensure keyboard handling works properly
 	useFocus({autoFocus: true, id: 'config-wizard'});
@@ -71,7 +87,9 @@ export function ConfigWizard({
 		setStep('mcp');
 	};
 
-	const handleMcpComplete = (newMcpServers: Record<string, McpServerConfig>) => {
+	const handleMcpComplete = (
+		newMcpServers: Record<string, McpServerConfig>,
+	) => {
 		setMcpServers(newMcpServers);
 		setStep('summary');
 	};
@@ -84,7 +102,9 @@ export function ConfigWizard({
 			// Validate configuration
 			const validation = validateConfig(providers, mcpServers);
 			if (!validation.valid) {
-				setError(`Configuration validation failed: ${validation.errors.join(', ')}`);
+				setError(
+					`Configuration validation failed: ${validation.errors.join(', ')}`,
+				);
 				setStep('summary');
 				return;
 			}
@@ -113,7 +133,9 @@ export function ConfigWizard({
 				onComplete(configPath);
 			}, 2000);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Failed to save configuration');
+			setError(
+				err instanceof Error ? err.message : 'Failed to save configuration',
+			);
 			setStep('summary');
 		}
 	};
@@ -245,26 +267,29 @@ export function ConfigWizard({
 						</Box>
 						<Box marginBottom={1} flexDirection="column">
 							<Text color="green">✓ Testing provider connections...</Text>
-							{validationResults.map((result) => (
+							{validationResults.map(result => (
 								<Box key={result.providerName} marginLeft={2}>
 									<Text>
-										  • {result.providerName}:{' '}
+										• {result.providerName}:{' '}
 										{result.connected ? (
 											<Text color="green">Connected ✓</Text>
 										) : (
-											<Text color="yellow">
-												Not reachable (may still work)
-											</Text>
+											<Text color="yellow">Not reachable (may still work)</Text>
 										)}
 									</Text>
 								</Box>
 							))}
 						</Box>
 						<Box marginBottom={1}>
-							<Text color="green" bold>✓ Configuration complete!</Text>
+							<Text color="green" bold>
+								✓ Configuration complete!
+							</Text>
 						</Box>
 						<Box>
-							<Text>Nanocoder is ready to use. Type your first message to start chatting.</Text>
+							<Text>
+								Nanocoder is ready to use. Type your first message to start
+								chatting.
+							</Text>
 						</Box>
 					</Box>
 				);
@@ -276,46 +301,37 @@ export function ConfigWizard({
 	};
 
 	return (
-		<Box flexDirection="column">
-			<Box borderStyle="round" borderColor="cyan" paddingX={1} marginBottom={1}>
-				<Text bold color="cyan">Configuration Wizard</Text>
-				<Text dimColor> (Step {getStepNumber(step)}/4)</Text>
-			</Box>
-
+		<TitledBox
+			key={colors.primary}
+			borderStyle="round"
+			titles={[`Configuration Wizard`]}
+			titleStyles={titleStyles.pill}
+			width={boxWidth}
+			borderColor={colors.primary}
+			paddingX={2}
+			paddingY={1}
+			flexDirection="column"
+			marginBottom={1}
+		>
 			{error && (
-				<Box marginBottom={1} paddingX={2}>
+				<Box marginBottom={1}>
 					<Text color="red">Error: {error}</Text>
 				</Box>
 			)}
 
 			{renderStep()}
 
-			{(step === 'location' || step === 'providers' || step === 'mcp' || step === 'summary') && (
-				<Box marginTop={1} paddingX={2}>
-					<Text dimColor>
+			{(step === 'location' ||
+				step === 'providers' ||
+				step === 'mcp' ||
+				step === 'summary') && (
+				<Box marginTop={1}>
+					<Text color={colors.secondary}>
 						Esc: Exit wizard | Ctrl+B: Go back
 						{step === 'summary' && ' | Ctrl+E: Edit manually'}
 					</Text>
 				</Box>
 			)}
-		</Box>
+		</TitledBox>
 	);
-}
-
-function getStepNumber(step: WizardStep): number {
-	switch (step) {
-		case 'location':
-			return 1;
-		case 'providers':
-			return 2;
-		case 'mcp':
-			return 3;
-		case 'summary':
-		case 'saving':
-		case 'validating':
-		case 'complete':
-			return 4;
-		default:
-			return 1;
-	}
 }

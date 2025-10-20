@@ -8,6 +8,7 @@ import {logError} from '@/utils/message-queue';
 import {loadPreferences} from '@/config/preferences';
 import {getThemeColors, defaultTheme} from '@/config/themes';
 import {substituteEnvVars} from '@/config/env-substitution';
+import {getAppDataPath} from '@/config/paths';
 
 // Load .env file from working directory (shell environment takes precedence)
 // Suppress dotenv console output by temporarily redirecting stdout
@@ -24,27 +25,6 @@ if (existsSync(envPath)) {
 
 // Hold a map of what config files are where
 export const confDirMap: Record<string, string> = {};
-
-// Determine the correct path for local app configuration
-function getAppDataPath(): string {
-	// 'win32' will set this correctly via the environment.
-	// The config path can be set via the `APPDATA` environment variable.
-	let appDataPath =
-		process.env.APPDATA ||
-		// We try to use `process.env.$XDG_CONFIG_HOME`, but cant count on it.
-		process.env.XDG_CONFIG_HOME ||
-		// For darwin, we set the correct app path.
-		(process.platform === 'darwin'
-			? `${process.env.HOME}/Library/Preferences`
-			: // For all other unix-like systems, we use the $HOME/.config
-			  `${process.env.HOME}/.config`);
-
-	// There doesn't seem to be a place to pull an "app name"
-	const appName = 'nanocoder';
-	appDataPath += `/${appName}`;
-
-	return appDataPath;
-}
 
 // Find the closest config file for the requested configuration file
 export function getClosestConfigFile(fileName: string): string {
