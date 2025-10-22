@@ -1,8 +1,8 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
-import type {ProviderConfig} from '../../types/config.js';
-import type {McpServerConfig} from '../templates/mcp-templates.js';
+import type {ProviderConfig} from '../../types/config';
+import type {McpServerConfig} from '../templates/mcp-templates';
 
 interface SummaryStepProps {
 	configPath: string;
@@ -82,7 +82,7 @@ export function SummaryStep({
 			<Box marginBottom={1} flexDirection="column">
 				<Text bold>Providers ({providers.length}):</Text>
 				{providers.length === 0 ? (
-					<Text color="yellow">  No providers configured</Text>
+					<Text color="yellow"> No providers configured</Text>
 				) : (
 					providers.map((provider, index) => (
 						<Box key={index} flexDirection="column" marginLeft={2}>
@@ -93,7 +93,7 @@ export function SummaryStep({
 								)}
 							</Text>
 							<Text dimColor>
-								  - Models: {provider.models?.join(', ') || 'none'}
+								- Models: {provider.models?.join(', ') || 'none'}
 							</Text>
 						</Box>
 					))
@@ -103,9 +103,9 @@ export function SummaryStep({
 			<Box marginBottom={1} flexDirection="column">
 				<Text bold>MCP Servers ({serverNames.length}):</Text>
 				{serverNames.length === 0 ? (
-					<Text color="yellow">  No MCP servers configured</Text>
+					<Text color="yellow"> No MCP servers configured</Text>
 				) : (
-					serverNames.map((name) => {
+					serverNames.map(name => {
 						const server = mcpServers[name];
 						return (
 							<Box key={name} flexDirection="column" marginLeft={2}>
@@ -113,11 +113,11 @@ export function SummaryStep({
 									• <Text color="green">{server.name}</Text>
 								</Text>
 								<Text dimColor>
-									  - Command: {server.command} {server.args.join(' ')}
+									- Command: {server.command} {server.args.join(' ')}
 								</Text>
 								{server.env && Object.keys(server.env).length > 0 && (
 									<Text dimColor>
-										  - Env vars: {Object.keys(server.env).join(', ')}
+										- Env vars: {Object.keys(server.env).join(', ')}
 									</Text>
 								)}
 							</Box>
@@ -133,8 +133,8 @@ export function SummaryStep({
 			{providers.length === 0 && (
 				<Box marginBottom={1}>
 					<Text color="yellow">
-						⚠️  Warning: No providers configured. Nanocoder requires at least
-						one provider to function.
+						⚠️ Warning: No providers configured. Nanocoder requires at least one
+						provider to function.
 					</Text>
 				</Box>
 			)}
@@ -142,7 +142,9 @@ export function SummaryStep({
 			<SelectInput items={options} onSelect={handleSelect as any} />
 
 			<Box marginTop={1}>
-				<Text dimColor>Press Ctrl+E to open in editor for manual configuration</Text>
+				<Text dimColor>
+					Press Ctrl+E to open in editor for manual configuration
+				</Text>
 			</Box>
 		</Box>
 	);

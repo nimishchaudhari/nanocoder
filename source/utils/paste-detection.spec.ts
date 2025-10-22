@@ -1,5 +1,5 @@
 import test from 'ava';
-import {PasteDetector} from './paste-detection.js';
+import {PasteDetector} from './paste-detection';
 
 // Tests for PasteDetector class
 // Validates CLI paste detection logic

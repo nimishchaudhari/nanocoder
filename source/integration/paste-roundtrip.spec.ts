@@ -3,8 +3,8 @@ import type {
 	InputState,
 	PlaceholderContent,
 	PastePlaceholderContent,
-} from '../types/hooks.js';
-import {PlaceholderType} from '../types/hooks.js';
+} from '../types/hooks';
+import {PlaceholderType} from '../types/hooks';
 
 // Self-contained implementations for integration testing
 class PasteDetector {

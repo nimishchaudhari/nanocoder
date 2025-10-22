@@ -1,5 +1,5 @@
-import type {ProviderConfig} from '../types/config.js';
-import type {McpServerConfig} from './templates/mcp-templates.js';
+import type {ProviderConfig} from '../types/config';
+import type {McpServerConfig} from './templates/mcp-templates';
 
 export interface ValidationResult {
 	valid: boolean;
@@ -88,7 +88,10 @@ export async function testProviderConnection(
 		const url = new URL(provider.baseUrl);
 
 		// Only test localhost connections (don't want to spam cloud APIs)
-		if (!url.hostname.includes('localhost') && !url.hostname.includes('127.0.0.1')) {
+		if (
+			!url.hostname.includes('localhost') &&
+			!url.hostname.includes('127.0.0.1')
+		) {
 			return {
 				providerName: provider.name,
 				connected: true, // Assume cloud APIs are reachable
@@ -131,7 +134,7 @@ export async function testAllProviders(
 	providers: ProviderConfig[],
 ): Promise<ProviderTestResult[]> {
 	return Promise.all(
-		providers.map((provider) => testProviderConnection(provider)),
+		providers.map(provider => testProviderConnection(provider)),
 	);
 }
 
@@ -144,7 +147,7 @@ export function buildConfigObject(
 ): Record<string, any> {
 	const config: Record<string, any> = {
 		nanocoder: {
-			providers: providers.map((p) => {
+			providers: providers.map(p => {
 				const providerConfig: Record<string, any> = {
 					name: p.name,
 					models: p.models,

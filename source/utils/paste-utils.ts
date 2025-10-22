@@ -3,7 +3,7 @@ import {
 	PastePlaceholderContent,
 	PlaceholderContent,
 	PlaceholderType,
-} from '../types/hooks.js';
+} from '../types/hooks';
 
 export function handlePaste(
 	pastedText: string,

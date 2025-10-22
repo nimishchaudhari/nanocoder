@@ -1,5 +1,5 @@
 import test from 'ava';
-import {createMockToolCall} from './test-helpers.js';
+import {createMockToolCall} from './test-helpers';
 
 // ============================================================================
 // Tests for Validation and Edge Cases

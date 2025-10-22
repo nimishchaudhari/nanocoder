@@ -4,7 +4,7 @@ import type {ConversationContext} from '@/hooks/useAppState';
 import {
 	createMockToolCall,
 	createMockConversationContext,
-} from './test-helpers.js';
+} from './test-helpers';
 
 // ============================================================================
 // Tests for Tool Cancellation

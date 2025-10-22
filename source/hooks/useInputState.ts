@@ -1,8 +1,8 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InputState, PlaceholderType} from '../types/hooks.js';
-import {handlePaste} from '../utils/paste-utils.js';
-import {PasteDetector} from '../utils/paste-detection.js';
-import {handleAtomicDeletion} from '../utils/atomic-deletion.js';
+import {InputState, PlaceholderType} from '../types/hooks';
+import {handlePaste} from '../utils/paste-utils';
+import {PasteDetector} from '../utils/paste-detection';
+import {handleAtomicDeletion} from '../utils/atomic-deletion';
 
 // Helper functions
 function createEmptyInputState(): InputState {

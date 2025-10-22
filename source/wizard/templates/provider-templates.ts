@@ -1,4 +1,4 @@
-import type {ProviderConfig} from '../../types/config.js';
+import type {ProviderConfig} from '../../types/config';
 
 export interface TemplateField {
 	name: string;

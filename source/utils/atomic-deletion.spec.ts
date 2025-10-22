@@ -3,9 +3,9 @@ import {
 	handleAtomicDeletion,
 	findPlaceholderAtPosition,
 	wouldPartiallyDeletePlaceholder,
-} from './atomic-deletion.js';
-import type {InputState, PastePlaceholderContent} from '../types/hooks.js';
-import {PlaceholderType} from '../types/hooks.js';
+} from './atomic-deletion';
+import type {InputState, PastePlaceholderContent} from '../types/hooks';
+import {PlaceholderType} from '../types/hooks';
 
 // Tests for atomic placeholder deletion
 test('handleAtomicDeletion removes placeholder when backspaced', t => {

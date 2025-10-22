@@ -3,7 +3,7 @@ import type {Message} from '@/types/core';
 import {
 	createMockToolCall,
 	createMockConversationContext,
-} from './test-helpers.js';
+} from './test-helpers';
 
 // ============================================================================
 // Tests for Tool Execution Flow

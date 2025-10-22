@@ -1,4 +1,4 @@
-import type {InputState} from '../types/hooks.js';
+import type {InputState} from '../types/hooks';
 
 /**
  * Detect if a text change represents a deletion that should be atomic

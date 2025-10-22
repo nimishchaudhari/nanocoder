@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import {logError} from '@/utils/message-queue';
 import {getClosestConfigFile} from '@/config/index';
-import type {InputState} from './types/hooks.js';
+import type {InputState} from './types/hooks';
 
 const HISTORY_FILE = getClosestConfigFile('.nano-coder-history');
 const MAX_HISTORY_SIZE = 100;

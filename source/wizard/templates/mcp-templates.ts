@@ -1,4 +1,4 @@
-import type {TemplateField} from './provider-templates.js';
+import type {TemplateField} from './provider-templates';
 
 export interface McpServerConfig {
 	name: string;
@@ -29,13 +29,13 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 				required: true,
 			},
 		],
-		buildConfig: (answers) => ({
+		buildConfig: answers => ({
 			name: 'filesystem',
 			command: 'npx',
 			args: [
 				'-y',
 				'@modelcontextprotocol/server-filesystem',
-				...answers.allowedDirs.split(',').map((d) => d.trim()),
+				...answers.allowedDirs.split(',').map(d => d.trim()),
 			],
 		}),
 	},
@@ -52,7 +52,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 				sensitive: true,
 			},
 		],
-		buildConfig: (answers) => ({
+		buildConfig: answers => ({
 			name: 'github',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-github'],
@@ -74,7 +74,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 				sensitive: true,
 			},
 		],
-		buildConfig: (answers) => ({
+		buildConfig: answers => ({
 			name: 'postgres',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-postgres'],
@@ -96,7 +96,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 				sensitive: true,
 			},
 		],
-		buildConfig: (answers) => ({
+		buildConfig: answers => ({
 			name: 'brave-search',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-brave-search'],
@@ -118,7 +118,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 				default: 'ModelContextProtocol/1.0',
 			},
 		],
-		buildConfig: (answers) => {
+		buildConfig: answers => {
 			const config: McpServerConfig = {
 				name: 'fetch',
 				command: 'npx',
@@ -157,12 +157,12 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 				required: false,
 			},
 		],
-		buildConfig: (answers) => {
+		buildConfig: answers => {
 			const config: McpServerConfig = {
 				name: answers.serverName,
 				command: answers.command,
 				args: answers.args
-					? answers.args.split(' ').map((arg) => arg.trim())
+					? answers.args.split(' ').map(arg => arg.trim())
 					: [],
 			};
 
@@ -185,5 +185,5 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 ];
 
 export function getMcpTemplate(id: string): McpTemplate | undefined {
-	return MCP_TEMPLATES.find((template) => template.id === id);
+	return MCP_TEMPLATES.find(template => template.id === id);
 }

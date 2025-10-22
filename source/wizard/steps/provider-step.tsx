@@ -6,8 +6,8 @@ import type {ProviderConfig} from '../../types/config';
 import {
 	PROVIDER_TEMPLATES,
 	type ProviderTemplate,
-} from '../templates/provider-templates.js';
-import {colors} from '@/config/index.js';
+} from '../templates/provider-templates';
+import {colors} from '@/config/index';
 
 interface ProviderStepProps {
 	onComplete: (providers: ProviderConfig[]) => void;

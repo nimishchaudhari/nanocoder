@@ -1,10 +1,10 @@
 import {readFileSync, existsSync} from 'fs';
 import {join} from 'path';
 import {platform, homedir, release} from 'os';
-import {promptPath} from '../config/index.js';
-import type {Tool} from '../types/index.js';
-import type {InputState} from '../types/hooks.js';
-import {PlaceholderType} from '../types/hooks.js';
+import {promptPath} from '../config/index';
+import type {Tool} from '../types/index';
+import type {InputState} from '../types/hooks';
+import {PlaceholderType} from '../types/hooks';
 
 /**
  * Get the default shell for the current platform

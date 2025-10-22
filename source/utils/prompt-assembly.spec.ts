@@ -1,6 +1,6 @@
 import test from 'ava';
-import type {InputState, PastePlaceholderContent} from '../types/hooks.js';
-import {PlaceholderType} from '../types/hooks.js';
+import type {InputState, PastePlaceholderContent} from '../types/hooks';
+import {PlaceholderType} from '../types/hooks';
 
 // Minimal implementation for testing - avoids complex dependencies
 function assemblePrompt(inputState: InputState): string {

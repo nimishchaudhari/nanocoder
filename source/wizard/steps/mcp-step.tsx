@@ -6,7 +6,7 @@ import {
 	MCP_TEMPLATES,
 	type McpTemplate,
 	type McpServerConfig,
-} from '../templates/mcp-templates.js';
+} from '../templates/mcp-templates';
 
 interface McpStepProps {
 	onComplete: (mcpServers: Record<string, McpServerConfig>) => void;
@@ -70,7 +70,7 @@ export function McpStep({
 			return;
 		}
 
-		const template = MCP_TEMPLATES.find((t) => t.id === item.value);
+		const template = MCP_TEMPLATES.find(t => t.id === item.value);
 		if (template) {
 			setSelectedTemplate(template);
 			setCurrentFieldIndex(0);
@@ -215,8 +215,8 @@ export function McpStep({
 			<Box flexDirection="column" paddingX={2} paddingY={1}>
 				<Box marginBottom={1}>
 					<Text bold>
-						Would you like to add MCP servers? MCP servers extend Nanocoder
-						with additional tools.
+						Would you like to add MCP servers? MCP servers extend Nanocoder with
+						additional tools.
 					</Text>
 				</Box>
 				{Object.keys(servers).length > 0 && (
@@ -226,7 +226,10 @@ export function McpStep({
 						</Text>
 					</Box>
 				)}
-				<SelectInput items={initialOptions} onSelect={handleInitialSelect as any} />
+				<SelectInput
+					items={initialOptions}
+					onSelect={handleInitialSelect as any}
+				/>
 			</Box>
 		);
 	}
@@ -239,12 +242,13 @@ export function McpStep({
 				</Box>
 				{Object.keys(servers).length > 0 && (
 					<Box marginBottom={1}>
-						<Text color="green">
-							Added: {Object.keys(servers).join(', ')}
-						</Text>
+						<Text color="green">Added: {Object.keys(servers).join(', ')}</Text>
 					</Box>
 				)}
-				<SelectInput items={templateOptions} onSelect={handleTemplateSelect as any} />
+				<SelectInput
+					items={templateOptions}
+					onSelect={handleTemplateSelect as any}
+				/>
 				<Box marginTop={1}>
 					<Text dimColor>Press Esc to go back</Text>
 				</Box>

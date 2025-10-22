@@ -1,5 +1,5 @@
 import test from 'ava';
-import {handlePaste} from './paste-utils.js';
+import {handlePaste} from './paste-utils';
 import type {PlaceholderContent, PastePlaceholderContent} from '@/types/hooks';
 import {PlaceholderType} from '@/types/hooks';
 

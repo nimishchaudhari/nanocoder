@@ -7,16 +7,16 @@ import type {ProviderConfig} from '../types/config';
 import type {McpServerConfig} from './templates/mcp-templates';
 import {LocationStep, type ConfigLocation} from './steps/location-step';
 import {ProviderStep} from './steps/provider-step';
-import {McpStep} from './steps/mcp-step.js';
+import {McpStep} from './steps/mcp-step';
 import {SummaryStep} from './steps/summary-step';
 import {
 	validateConfig,
 	testAllProviders,
 	buildConfigObject,
 	type ProviderTestResult,
-} from './validation.js';
+} from './validation';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {colors} from '@/config/index.js';
+import {colors} from '@/config/index';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
 interface ConfigWizardProps {
