@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import TextInput from 'ink-text-input';
@@ -46,6 +46,8 @@ export function ProviderStep({
 	const [fieldAnswers, setFieldAnswers] = useState<Record<string, string>>({});
 	const [currentValue, setCurrentValue] = useState('');
 	const [error, setError] = useState<string | null>(null);
+	const [inputKey, setInputKey] = useState(0);
+	const [cameFromCustom, setCameFromCustom] = useState(false);
 
 	const initialOptions = [
 		{label: 'Yes - Choose from common templates', value: 'templates'},
@@ -67,6 +69,7 @@ export function ProviderStep({
 	const handleInitialSelect = (item: {value: string}) => {
 		if (item.value === 'templates') {
 			setMode('template-selection');
+			setCameFromCustom(false);
 		} else if (item.value === 'custom') {
 			// Find custom template
 			const customTemplate = PROVIDER_TEMPLATES.find(t => t.id === 'custom');
@@ -76,6 +79,7 @@ export function ProviderStep({
 				setFieldAnswers({});
 				setCurrentValue('');
 				setMode('field-input');
+				setCameFromCustom(true);
 			}
 		} else {
 			// Skip
@@ -97,6 +101,7 @@ export function ProviderStep({
 			setCurrentValue(template.fields[0]?.default || '');
 			setError(null);
 			setMode('field-input');
+			setCameFromCustom(false);
 		}
 	};
 
@@ -154,6 +159,46 @@ export function ProviderStep({
 	};
 
 	useInput((_input, key) => {
+		// Handle Shift+Tab for going back
+		if (key.shift && key.tab) {
+			if (mode === 'field-input') {
+				// In field input mode, check if we can go back to previous field
+				if (currentFieldIndex > 0) {
+					// Go back to previous field
+					setCurrentFieldIndex(currentFieldIndex - 1);
+					const prevField = selectedTemplate?.fields[currentFieldIndex - 1];
+					setCurrentValue(
+						fieldAnswers[prevField?.name || ''] || prevField?.default || '',
+					);
+					setInputKey(prev => prev + 1); // Force remount to reset cursor position
+					setError(null);
+				} else {
+					// At first field, go back based on where we came from
+					if (cameFromCustom) {
+						// Came from custom selection, go back to initial choice
+						setMode('select-template-or-custom');
+					} else {
+						// Came from template selection, go back there
+						setMode('template-selection');
+					}
+					setSelectedTemplate(null);
+					setCurrentFieldIndex(0);
+					setFieldAnswers({});
+					setCurrentValue('');
+					setError(null);
+				}
+			} else if (mode === 'template-selection') {
+				// In template selection, go back to initial choice
+				setMode('select-template-or-custom');
+			} else if (mode === 'select-template-or-custom') {
+				// At root level, call parent's onBack
+				if (onBack) {
+					onBack();
+				}
+			}
+			return;
+		}
+
 		if (mode === 'field-input') {
 			if (key.return) {
 				handleFieldSubmit();
@@ -247,6 +292,7 @@ export function ProviderStep({
 						borderColor={colors.secondary}
 					>
 						<TextInput
+							key={inputKey}
 							value={currentValue}
 							onChange={setCurrentValue}
 							onSubmit={handleFieldSubmit}
@@ -261,6 +307,7 @@ export function ProviderStep({
 						borderColor={colors.secondary}
 					>
 						<TextInput
+							key={inputKey}
 							value={currentValue}
 							onChange={setCurrentValue}
 							onSubmit={handleFieldSubmit}
@@ -271,12 +318,14 @@ export function ProviderStep({
 
 				{error && (
 					<Box marginBottom={1}>
-						<Text color="red">Error: {error}</Text>
+						<Text color="red">{error}</Text>
 					</Box>
 				)}
 
 				<Box>
-					<Text color={colors.secondary}>Press Enter to continue</Text>
+					<Text color={colors.secondary}>
+						Press Enter to continue | Shift+Tab to go back
+					</Text>
 				</Box>
 			</Box>
 		);

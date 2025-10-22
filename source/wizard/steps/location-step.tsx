@@ -77,9 +77,9 @@ export function LocationStep({
 		}
 	};
 
-	// Handle Ctrl+B to go back from select-location to existing-config
-	useInput((input, key) => {
-		if (key.ctrl && input === 'b') {
+	// Handle Shift+Tab to go back from select-location to existing-config
+	useInput((_input, key) => {
+		if (key.shift && key.tab) {
 			// If we're in select-location mode and came from existing-config, go back
 			if (mode === 'select-location' && (projectExists || globalExists)) {
 				setMode('existing-config');

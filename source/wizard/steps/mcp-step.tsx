@@ -37,6 +37,7 @@ export function McpStep({
 	const [currentValue, setCurrentValue] = useState('');
 	const [multilineBuffer, setMultilineBuffer] = useState('');
 	const [error, setError] = useState<string | null>(null);
+	const [inputKey, setInputKey] = useState(0);
 
 	const initialOptions = [
 		{label: '[1] Yes - Choose from common MCP servers', value: 'yes'},
@@ -141,6 +142,42 @@ export function McpStep({
 	};
 
 	useInput((input, key) => {
+		// Handle Shift+Tab for going back
+		if (key.shift && key.tab) {
+			if (mode === 'field-input') {
+				// In field input mode, check if we can go back to previous field
+				if (currentFieldIndex > 0) {
+					// Go back to previous field
+					setCurrentFieldIndex(currentFieldIndex - 1);
+					const prevField = selectedTemplate?.fields[currentFieldIndex - 1];
+					setCurrentValue(
+						fieldAnswers[prevField?.name || ''] || prevField?.default || '',
+					);
+					setMultilineBuffer('');
+					setInputKey(prev => prev + 1); // Force remount to reset cursor position
+					setError(null);
+				} else {
+					// At first field, go back to template selection
+					setMode('template-selection');
+					setSelectedTemplate(null);
+					setCurrentFieldIndex(0);
+					setFieldAnswers({});
+					setCurrentValue('');
+					setMultilineBuffer('');
+					setError(null);
+				}
+			} else if (mode === 'template-selection') {
+				// In template selection, go back to initial question
+				setMode('ask-if-want-mcp');
+			} else if (mode === 'ask-if-want-mcp') {
+				// At root level, call parent's onBack
+				if (onBack) {
+					onBack();
+				}
+			}
+			return;
+		}
+
 		if (mode === 'field-input' && selectedTemplate) {
 			const currentField = selectedTemplate.fields[currentFieldIndex];
 			const isMultiline = currentField?.name === 'envVars';
@@ -256,6 +293,7 @@ export function McpStep({
 				) : currentField.sensitive ? (
 					<Box marginBottom={1}>
 						<TextInput
+							key={inputKey}
 							value={currentValue}
 							onChange={setCurrentValue}
 							onSubmit={handleFieldSubmit}
@@ -265,6 +303,7 @@ export function McpStep({
 				) : (
 					<Box marginBottom={1}>
 						<TextInput
+							key={inputKey}
 							value={currentValue}
 							onChange={setCurrentValue}
 							onSubmit={handleFieldSubmit}

@@ -164,18 +164,6 @@ export function ConfigWizard({
 			return;
 		}
 
-		// Ctrl+B - go back to previous step
-		if (key.ctrl && input === 'b') {
-			if (step === 'providers') {
-				setStep('location');
-			} else if (step === 'mcp') {
-				setStep('providers');
-			} else if (step === 'summary') {
-				setStep('mcp');
-			}
-			return;
-		}
-
 		// Ctrl+E to open editor (future enhancement)
 		if (key.ctrl && input === 'e' && step === 'summary') {
 			// Future: open editor
@@ -223,6 +211,7 @@ export function ConfigWizard({
 						onAddProviders={handleAddProviders}
 						onAddMcpServers={handleAddMcpServers}
 						onCancel={handleCancel}
+						onBack={() => setStep('mcp')}
 					/>
 				);
 			}
@@ -327,7 +316,7 @@ export function ConfigWizard({
 				step === 'summary') && (
 				<Box marginTop={1}>
 					<Text color={colors.secondary}>
-						Esc: Exit wizard | Ctrl+B: Go back
+						Esc: Exit wizard | Shift+Tab: Go back
 						{step === 'summary' && ' | Ctrl+E: Edit manually'}
 					</Text>
 				</Box>

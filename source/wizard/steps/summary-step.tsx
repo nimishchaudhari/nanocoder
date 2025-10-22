@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Text} from 'ink';
+import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import type {ProviderConfig} from '../../types/config.js';
 import type {McpServerConfig} from '../templates/mcp-templates.js';
@@ -12,6 +12,7 @@ interface SummaryStepProps {
 	onAddProviders: () => void;
 	onAddMcpServers: () => void;
 	onCancel: () => void;
+	onBack?: () => void;
 }
 
 export function SummaryStep({
@@ -22,6 +23,7 @@ export function SummaryStep({
 	onAddProviders,
 	onAddMcpServers,
 	onCancel,
+	onBack,
 }: SummaryStepProps) {
 	const options = [
 		{label: '[1] Save configuration', value: 'save'},
@@ -50,6 +52,15 @@ export function SummaryStep({
 			}
 		}
 	};
+
+	// Handle Shift+Tab to go back
+	useInput((_input, key) => {
+		if (key.shift && key.tab) {
+			if (onBack) {
+				onBack();
+			}
+		}
+	});
 
 	const serverNames = Object.keys(mcpServers);
 
