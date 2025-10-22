@@ -12,7 +12,6 @@ export interface TemplateField {
 export interface ProviderTemplate {
 	id: string;
 	name: string;
-	description: string;
 	fields: TemplateField[];
 	buildConfig: (answers: Record<string, string>) => ProviderConfig;
 }
@@ -31,7 +30,6 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 	{
 		id: 'ollama',
 		name: 'Ollama',
-		description: 'Local LLM inference via Ollama',
 		fields: [
 			{
 				name: 'baseUrl',
@@ -42,20 +40,65 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			{
 				name: 'model',
 				prompt: 'Model name',
-				default: 'qwen2.5-coder:32b',
+				default: '',
 				required: true,
 			},
 		],
-		buildConfig: (answers) => ({
+		buildConfig: answers => ({
 			name: 'ollama',
 			baseUrl: answers.baseUrl || 'http://localhost:11434/v1',
 			models: [answers.model],
 		}),
 	},
 	{
+		id: 'llama-cpp',
+		name: 'llama.cpp server',
+		fields: [
+			{
+				name: 'baseUrl',
+				prompt: 'Base URL',
+				default: 'http://localhost:8080/v1',
+				validator: urlValidator,
+			},
+			{
+				name: 'model',
+				prompt: 'Model name',
+				default: '',
+				required: true,
+			},
+		],
+		buildConfig: answers => ({
+			name: 'llama-cpp',
+			baseUrl: answers.baseUrl || 'http://localhost:8080/v1',
+			models: [answers.model],
+		}),
+	},
+	{
+		id: 'lmstudio',
+		name: 'LM Studio',
+		fields: [
+			{
+				name: 'baseUrl',
+				prompt: 'Base URL',
+				default: 'http://localhost:1234/v1',
+				validator: urlValidator,
+			},
+			{
+				name: 'model',
+				prompt: 'Model name',
+				default: '',
+				required: true,
+			},
+		],
+		buildConfig: answers => ({
+			name: 'lmstudio',
+			baseUrl: answers.baseUrl || 'http://localhost:1234/v1',
+			models: [answers.model],
+		}),
+	},
+	{
 		id: 'openrouter',
 		name: 'OpenRouter',
-		description: 'Cloud AI via OpenRouter',
 		fields: [
 			{
 				name: 'apiKey',
@@ -66,7 +109,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			{
 				name: 'model',
 				prompt: 'Model name',
-				default: 'anthropic/claude-3.5-sonnet',
+				default: 'z-ai/glm-4.6',
 				required: true,
 			},
 			{
@@ -75,7 +118,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 				default: 'openrouter',
 			},
 		],
-		buildConfig: (answers) => ({
+		buildConfig: answers => ({
 			name: answers.providerName || 'openrouter',
 			baseUrl: 'https://openrouter.ai/api/v1',
 			apiKey: answers.apiKey,
@@ -85,7 +128,6 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 	{
 		id: 'openai',
 		name: 'OpenAI',
-		description: 'OpenAI GPT models',
 		fields: [
 			{
 				name: 'apiKey',
@@ -96,7 +138,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			{
 				name: 'model',
 				prompt: 'Model name',
-				default: 'gpt-4',
+				default: 'gpt-5-codex',
 				required: true,
 			},
 			{
@@ -110,7 +152,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 				default: 'openai',
 			},
 		],
-		buildConfig: (answers) => {
+		buildConfig: answers => {
 			const config: ProviderConfig = {
 				name: answers.providerName || 'openai',
 				baseUrl: 'https://api.openai.com/v1',
@@ -126,7 +168,6 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 	{
 		id: 'anthropic',
 		name: 'Anthropic Claude',
-		description: 'Anthropic Claude models',
 		fields: [
 			{
 				name: 'apiKey',
@@ -137,7 +178,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			{
 				name: 'model',
 				prompt: 'Model name',
-				default: 'claude-3-5-sonnet-20241022',
+				default: 'claude-4-sonnet',
 				required: true,
 			},
 			{
@@ -146,7 +187,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 				default: 'anthropic',
 			},
 		],
-		buildConfig: (answers) => ({
+		buildConfig: answers => ({
 			name: answers.providerName || 'anthropic',
 			baseUrl: 'https://api.anthropic.com/v1',
 			apiKey: answers.apiKey,
@@ -154,33 +195,56 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		}),
 	},
 	{
-		id: 'lmstudio',
-		name: 'LM Studio',
-		description: 'Local LLM inference via LM Studio',
+		id: 'z-ai',
+		name: 'Z.ai',
 		fields: [
 			{
-				name: 'baseUrl',
-				prompt: 'Base URL',
-				default: 'http://localhost:1234/v1',
-				validator: urlValidator,
+				name: 'apiKey',
+				prompt: 'API Key',
+				required: true,
+				sensitive: true,
 			},
 			{
 				name: 'model',
 				prompt: 'Model name',
-				default: 'local-model',
+				default: 'glm-4.6',
 				required: true,
 			},
 		],
-		buildConfig: (answers) => ({
-			name: 'lmstudio',
-			baseUrl: answers.baseUrl || 'http://localhost:1234/v1',
+		buildConfig: answers => ({
+			name: 'Z.ai',
+			baseUrl: 'https://api.z.ai/api/paas/v4/',
+			apiKey: answers.apiKey,
+			models: [answers.model],
+		}),
+	},
+	{
+		id: 'z-ai-coding',
+		name: 'Z.ai Coding Subscription',
+		fields: [
+			{
+				name: 'apiKey',
+				prompt: 'API Key',
+				required: true,
+				sensitive: true,
+			},
+			{
+				name: 'model',
+				prompt: 'Model name',
+				default: 'glm-4.6',
+				required: true,
+			},
+		],
+		buildConfig: answers => ({
+			name: 'Z.ai Coding Subscription',
+			baseUrl: 'https://api.z.ai/api/coding/paas/v4/',
+			apiKey: answers.apiKey,
 			models: [answers.model],
 		}),
 	},
 	{
 		id: 'custom',
 		name: 'Custom Provider',
-		description: 'Custom OpenAI-compatible API',
 		fields: [
 			{
 				name: 'providerName',
@@ -208,7 +272,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 				name: 'timeout',
 				prompt: 'Request timeout (ms)',
 				default: '30000',
-				validator: (value) => {
+				validator: value => {
 					if (!value) return undefined;
 					const num = Number(value);
 					if (Number.isNaN(num) || num <= 0) {
@@ -218,7 +282,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 				},
 			},
 		],
-		buildConfig: (answers) => {
+		buildConfig: answers => {
 			const config: ProviderConfig = {
 				name: answers.providerName,
 				baseUrl: answers.baseUrl,
@@ -236,5 +300,5 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 ];
 
 export function getProviderTemplate(id: string): ProviderTemplate | undefined {
-	return PROVIDER_TEMPLATES.find((template) => template.id === id);
+	return PROVIDER_TEMPLATES.find(template => template.id === id);
 }

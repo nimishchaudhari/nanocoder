@@ -60,6 +60,7 @@
 		"ink-spinner": "^5.0.0",
 		"ink-tab": "^5.2.0",
 		"ink-text-input": "^6.0.0",
+		"knip": "^5.66.2",
 		"marked": "^15.0.12",
 		"marked-terminal": "^7.3.0",
 		"meow": "^11.0.0",

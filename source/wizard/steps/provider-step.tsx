@@ -1,12 +1,13 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import TextInput from 'ink-text-input';
-import type {ProviderConfig} from '../../types/config.js';
+import type {ProviderConfig} from '../../types/config';
 import {
 	PROVIDER_TEMPLATES,
 	type ProviderTemplate,
 } from '../templates/provider-templates.js';
+import {colors} from '@/config/index.js';
 
 interface ProviderStepProps {
 	onComplete: (providers: ProviderConfig[]) => void;
@@ -32,6 +33,12 @@ export function ProviderStep({
 }: ProviderStepProps) {
 	const [providers, setProviders] =
 		useState<ProviderConfig[]>(existingProviders);
+
+	// Update providers when existingProviders prop changes
+	useEffect(() => {
+		setProviders(existingProviders);
+	}, [existingProviders]);
+
 	const [mode, setMode] = useState<Mode>('select-template-or-custom');
 	const [selectedTemplate, setSelectedTemplate] =
 		useState<ProviderTemplate | null>(null);
@@ -41,18 +48,18 @@ export function ProviderStep({
 	const [error, setError] = useState<string | null>(null);
 
 	const initialOptions = [
-		{label: '[1] Yes - Choose from common templates', value: 'templates'},
-		{label: '[2] No - Add custom provider manually', value: 'custom'},
-		{label: '[3] Skip - Configure later', value: 'skip'},
+		{label: 'Yes - Choose from common templates', value: 'templates'},
+		{label: 'No - Add custom provider manually', value: 'custom'},
+		{label: 'Skip - Configure later', value: 'skip'},
 	];
 
 	const templateOptions: TemplateOption[] = [
 		...PROVIDER_TEMPLATES.map((template, index) => ({
-			label: `[${index + 1}] ${template.name} - ${template.description}`,
+			label: `${index + 1}. ${template.name}`,
 			value: template.id,
 		})),
 		{
-			label: `[${PROVIDER_TEMPLATES.length + 1}] Done adding providers`,
+			label: `Done adding providers`,
 			value: 'done',
 		},
 	];
@@ -146,7 +153,7 @@ export function ProviderStep({
 		}
 	};
 
-	useInput((input, key) => {
+	useInput((_input, key) => {
 		if (mode === 'field-input') {
 			if (key.return) {
 				handleFieldSubmit();
@@ -164,15 +171,15 @@ export function ProviderStep({
 
 	if (mode === 'select-template-or-custom') {
 		return (
-			<Box flexDirection="column" paddingX={1} paddingY={1}>
+			<Box flexDirection="column">
 				<Box marginBottom={1}>
-					<Text bold>
-						Let&apos;s add AI providers. Would you like to use a template?
+					<Text bold color={colors.primary}>
+						Let's add AI providers. Would you like to use a template?
 					</Text>
 				</Box>
 				{providers.length > 0 && (
 					<Box marginBottom={1}>
-						<Text color="green">
+						<Text color={colors.success}>
 							{providers.length} provider(s) already added
 						</Text>
 					</Box>
@@ -187,13 +194,15 @@ export function ProviderStep({
 
 	if (mode === 'template-selection') {
 		return (
-			<Box flexDirection="column" paddingX={1} paddingY={1}>
+			<Box flexDirection="column">
 				<Box marginBottom={1}>
-					<Text bold>Choose a provider template:</Text>
+					<Text bold color={colors.primary}>
+						Choose a provider template:
+					</Text>
 				</Box>
 				{providers.length > 0 && (
 					<Box marginBottom={1}>
-						<Text color="green">
+						<Text color={colors.success}>
 							Added: {providers.map(p => p.name).join(', ')}
 						</Text>
 					</Box>
@@ -211,28 +220,32 @@ export function ProviderStep({
 		if (!currentField) return null;
 
 		return (
-			<Box flexDirection="column" paddingX={1} paddingY={1}>
+			<Box flexDirection="column">
 				<Box marginBottom={1}>
-					<Text bold>{selectedTemplate.name} Configuration</Text>
+					<Text bold color={colors.primary}>
+						{selectedTemplate.name} Configuration
+					</Text>
 					<Text dimColor>
 						{' '}
 						(Field {currentFieldIndex + 1}/{selectedTemplate.fields.length})
 					</Text>
 				</Box>
 
-				<Box marginBottom={1}>
+				<Box>
 					<Text>
 						{currentField.prompt}
-						{currentField.required && <Text color="red"> *</Text>}
-						{currentField.default && (
-							<Text dimColor> [{currentField.default}]</Text>
-						)}
-						: {currentField.sensitive && '****'}
+						{currentField.required && (
+							<Text color={colors.error}> *</Text>
+						)}: {currentField.sensitive && '****'}
 					</Text>
 				</Box>
 
 				{!currentField.sensitive && (
-					<Box marginBottom={1}>
+					<Box
+						marginBottom={1}
+						borderStyle="round"
+						borderColor={colors.secondary}
+					>
 						<TextInput
 							value={currentValue}
 							onChange={setCurrentValue}
@@ -242,7 +255,11 @@ export function ProviderStep({
 				)}
 
 				{currentField.sensitive && (
-					<Box marginBottom={1}>
+					<Box
+						marginBottom={1}
+						borderStyle="round"
+						borderColor={colors.secondary}
+					>
 						<TextInput
 							value={currentValue}
 							onChange={setCurrentValue}
@@ -259,7 +276,7 @@ export function ProviderStep({
 				)}
 
 				<Box>
-					<Text dimColor>Press Enter to continue | Esc to cancel</Text>
+					<Text color={colors.secondary}>Press Enter to continue</Text>
 				</Box>
 			</Box>
 		);
