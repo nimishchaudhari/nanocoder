@@ -18,6 +18,8 @@ interface ProviderStepProps {
 type Mode =
 	| 'select-template-or-custom'
 	| 'template-selection'
+	| 'edit-selection'
+	| 'edit-or-delete'
 	| 'field-input'
 	| 'done';
 
@@ -48,10 +50,14 @@ export function ProviderStep({
 	const [error, setError] = useState<string | null>(null);
 	const [inputKey, setInputKey] = useState(0);
 	const [cameFromCustom, setCameFromCustom] = useState(false);
+	const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
 	const initialOptions = [
 		{label: 'Yes - Choose from common templates', value: 'templates'},
 		{label: 'No - Add custom provider manually', value: 'custom'},
+		...(providers.length > 0
+			? [{label: 'Edit existing providers', value: 'edit'}]
+			: []),
 		{label: 'Skip - Configure later', value: 'skip'},
 	];
 
@@ -64,6 +70,13 @@ export function ProviderStep({
 			label: `Done adding providers`,
 			value: 'done',
 		},
+	];
+
+	const editOptions: TemplateOption[] = [
+		...providers.map((provider, index) => ({
+			label: `${index + 1}. ${provider.name}`,
+			value: `edit-${index}`,
+		})),
 	];
 
 	const handleInitialSelect = (item: {value: string}) => {
@@ -81,6 +94,8 @@ export function ProviderStep({
 				setMode('field-input');
 				setCameFromCustom(true);
 			}
+		} else if (item.value === 'edit') {
+			setMode('edit-selection');
 		} else {
 			// Skip
 			onComplete(providers);
@@ -93,8 +108,10 @@ export function ProviderStep({
 			return;
 		}
 
+		// Adding new provider
 		const template = PROVIDER_TEMPLATES.find(t => t.id === item.value);
 		if (template) {
+			setEditingIndex(null); // Not editing
 			setSelectedTemplate(template);
 			setCurrentFieldIndex(0);
 			setFieldAnswers({});
@@ -102,6 +119,57 @@ export function ProviderStep({
 			setError(null);
 			setMode('field-input');
 			setCameFromCustom(false);
+		}
+	};
+
+	const handleEditSelect = (item: TemplateOption) => {
+		// Store the index and show edit/delete options
+		if (item.value.startsWith('edit-')) {
+			const index = Number.parseInt(item.value.replace('edit-', ''), 10);
+			setEditingIndex(index);
+			setMode('edit-or-delete');
+		}
+	};
+
+	const handleEditOrDeleteChoice = (item: {value: string}) => {
+		if (item.value === 'delete' && editingIndex !== null) {
+			// Delete the provider
+			const newProviders = providers.filter((_, i) => i !== editingIndex);
+			setProviders(newProviders);
+			setEditingIndex(null);
+			// Always go back to initial menu after deleting
+			setMode('select-template-or-custom');
+			return;
+		}
+
+		if (item.value === 'edit' && editingIndex !== null) {
+			const provider = providers[editingIndex];
+			if (provider) {
+				// Find matching template (or use custom)
+				const template =
+					PROVIDER_TEMPLATES.find(t => t.id === provider.name) ||
+					PROVIDER_TEMPLATES.find(t => t.id === 'custom');
+
+				if (template) {
+					setSelectedTemplate(template);
+					setCurrentFieldIndex(0);
+
+					// Pre-populate field answers from existing provider
+					const answers: Record<string, string> = {};
+					if (provider.name) answers.providerName = provider.name;
+					if (provider.baseUrl) answers.baseUrl = provider.baseUrl;
+					if (provider.apiKey) answers.apiKey = provider.apiKey;
+					if (provider.models) answers.model = provider.models.join(', ');
+
+					setFieldAnswers(answers);
+					setCurrentValue(
+						answers[template.fields[0]?.name] || template.fields[0]?.default || '',
+					);
+					setError(null);
+					setMode('field-input');
+					setCameFromCustom(false);
+				}
+			}
 		}
 	};
 
@@ -138,17 +206,30 @@ export function ProviderStep({
 		if (currentFieldIndex < selectedTemplate.fields.length - 1) {
 			setCurrentFieldIndex(currentFieldIndex + 1);
 			const nextField = selectedTemplate.fields[currentFieldIndex + 1];
-			setCurrentValue(nextField?.default || '');
+			setCurrentValue(
+				newAnswers[nextField?.name] || nextField?.default || '',
+			);
 		} else {
-			// Build config and add provider
+			// Build config and add/update provider
 			try {
 				const providerConfig = selectedTemplate.buildConfig(newAnswers);
-				setProviders([...providers, providerConfig]);
+
+				if (editingIndex !== null) {
+					// Replace existing provider
+					const newProviders = [...providers];
+					newProviders[editingIndex] = providerConfig;
+					setProviders(newProviders);
+				} else {
+					// Add new provider
+					setProviders([...providers, providerConfig]);
+				}
+
 				// Reset for next provider
 				setSelectedTemplate(null);
 				setCurrentFieldIndex(0);
 				setFieldAnswers({});
 				setCurrentValue('');
+				setEditingIndex(null);
 				setMode('template-selection');
 			} catch (err) {
 				setError(
@@ -174,7 +255,10 @@ export function ProviderStep({
 					setError(null);
 				} else {
 					// At first field, go back based on where we came from
-					if (cameFromCustom) {
+					if (editingIndex !== null) {
+						// Was editing, go back to edit-or-delete choice
+						setMode('edit-or-delete');
+					} else if (cameFromCustom) {
 						// Came from custom selection, go back to initial choice
 						setMode('select-template-or-custom');
 					} else {
@@ -189,6 +273,13 @@ export function ProviderStep({
 				}
 			} else if (mode === 'template-selection') {
 				// In template selection, go back to initial choice
+				setMode('select-template-or-custom');
+			} else if (mode === 'edit-or-delete') {
+				// In edit-or-delete, go back to edit selection
+				setEditingIndex(null);
+				setMode('edit-selection');
+			} else if (mode === 'edit-selection') {
+				// In edit selection, go back to initial choice
 				setMode('select-template-or-custom');
 			} else if (mode === 'select-template-or-custom') {
 				// At root level, call parent's onBack
@@ -255,6 +346,41 @@ export function ProviderStep({
 				<SelectInput
 					items={templateOptions}
 					onSelect={handleTemplateSelect as any}
+				/>
+			</Box>
+		);
+	}
+
+	if (mode === 'edit-selection') {
+		return (
+			<Box flexDirection="column">
+				<Box marginBottom={1}>
+					<Text bold color={colors.primary}>
+						Select a provider to edit:
+					</Text>
+				</Box>
+				<SelectInput items={editOptions} onSelect={handleEditSelect as any} />
+			</Box>
+		);
+	}
+
+	if (mode === 'edit-or-delete') {
+		const provider = editingIndex !== null ? providers[editingIndex] : null;
+		const editOrDeleteOptions = [
+			{label: 'Edit this provider', value: 'edit'},
+			{label: 'Delete this provider', value: 'delete'},
+		];
+
+		return (
+			<Box flexDirection="column">
+				<Box marginBottom={1}>
+					<Text bold color={colors.primary}>
+						{provider?.name} - What would you like to do?
+					</Text>
+				</Box>
+				<SelectInput
+					items={editOrDeleteOptions}
+					onSelect={handleEditOrDeleteChoice as any}
 				/>
 			</Box>
 		);

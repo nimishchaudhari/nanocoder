@@ -32,6 +32,12 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		name: 'Ollama',
 		fields: [
 			{
+				name: 'providerName',
+				prompt: 'Provider name',
+				default: 'ollama',
+				required: true,
+			},
+			{
 				name: 'baseUrl',
 				prompt: 'Base URL',
 				default: 'http://localhost:11434/v1',
@@ -45,7 +51,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 		],
 		buildConfig: answers => ({
-			name: 'ollama',
+			name: answers.providerName || 'ollama',
 			baseUrl: answers.baseUrl || 'http://localhost:11434/v1',
 			models: [answers.model],
 		}),
@@ -54,6 +60,12 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		id: 'llama-cpp',
 		name: 'llama.cpp server',
 		fields: [
+			{
+				name: 'providerName',
+				prompt: 'Provider name',
+				default: 'llama-cpp',
+				required: true,
+			},
 			{
 				name: 'baseUrl',
 				prompt: 'Base URL',
@@ -68,7 +80,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 		],
 		buildConfig: answers => ({
-			name: 'llama-cpp',
+			name: answers.providerName || 'llama-cpp',
 			baseUrl: answers.baseUrl || 'http://localhost:8080/v1',
 			models: [answers.model],
 		}),
@@ -77,6 +89,12 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		id: 'lmstudio',
 		name: 'LM Studio',
 		fields: [
+			{
+				name: 'providerName',
+				prompt: 'Provider name',
+				default: 'lmstudio',
+				required: true,
+			},
 			{
 				name: 'baseUrl',
 				prompt: 'Base URL',
@@ -91,7 +109,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 		],
 		buildConfig: answers => ({
-			name: 'lmstudio',
+			name: answers.providerName || 'lmstudio',
 			baseUrl: answers.baseUrl || 'http://localhost:1234/v1',
 			models: [answers.model],
 		}),
@@ -199,6 +217,12 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		name: 'Z.ai',
 		fields: [
 			{
+				name: 'providerName',
+				prompt: 'Provider name',
+				default: 'Z.ai',
+				required: true,
+			},
+			{
 				name: 'apiKey',
 				prompt: 'API Key',
 				required: true,
@@ -212,7 +236,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 		],
 		buildConfig: answers => ({
-			name: 'Z.ai',
+			name: answers.providerName || 'Z.ai',
 			baseUrl: 'https://api.z.ai/api/paas/v4/',
 			apiKey: answers.apiKey,
 			models: [answers.model],
@@ -223,6 +247,12 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		name: 'Z.ai Coding Subscription',
 		fields: [
 			{
+				name: 'providerName',
+				prompt: 'Provider name',
+				default: 'Z.ai Coding Subscription',
+				required: true,
+			},
+			{
 				name: 'apiKey',
 				prompt: 'API Key',
 				required: true,
@@ -236,7 +266,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 		],
 		buildConfig: answers => ({
-			name: 'Z.ai Coding Subscription',
+			name: answers.providerName || 'Z.ai Coding Subscription',
 			baseUrl: 'https://api.z.ai/api/coding/paas/v4/',
 			apiKey: answers.apiKey,
 			models: [answers.model],
