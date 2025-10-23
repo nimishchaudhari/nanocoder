@@ -4,6 +4,8 @@ import {PasteDetector} from './paste-detection';
 // Tests for PasteDetector class
 // Validates CLI paste detection logic
 
+console.log(`\npaste-detection.spec.ts`);
+
 test('PasteDetector detects rapid input as paste', t => {
 	const detector = new PasteDetector();
 

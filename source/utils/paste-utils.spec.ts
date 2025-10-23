@@ -6,6 +6,8 @@ import {PlaceholderType} from '@/types/hooks';
 // Tests for handlePaste utility function
 // Validates paste handling logic and placeholder creation
 
+console.log(`\npaste-utils.spec.ts`);
+
 test('handlePaste returns null for small pastes', t => {
 	const pastedText = 'small text';
 	const currentDisplayValue = 'existing content';

@@ -7,6 +7,8 @@ import {ConfigWizard} from './config-wizard.js';
 // Tests for ConfigWizard Component Rendering
 // ============================================================================
 
+console.log(`\nconfig-wizard.spec.tsx – ${React.version}`);
+
 test('ConfigWizard renders with title', t => {
 	const {lastFrame} = render(
 		<ConfigWizard projectDir="/tmp/test-project" onComplete={() => {}} />,

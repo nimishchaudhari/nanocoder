@@ -2,6 +2,8 @@ import test from 'ava';
 import type {InputState, PastePlaceholderContent} from '../types/hooks';
 import {PlaceholderType} from '../types/hooks';
 
+console.log(`\nprompt-assembly.spec.ts`);
+
 // Minimal implementation for testing - avoids complex dependencies
 function assemblePrompt(inputState: InputState): string {
 	let assembledPrompt = inputState.displayValue;

@@ -6,6 +6,8 @@ import type {
 } from '../types/hooks';
 import {PlaceholderType} from '../types/hooks';
 
+console.log(`\npaste-roundtrip.spec.ts`);
+
 // Self-contained implementations for integration testing
 class PasteDetector {
 	private lastInput = '';

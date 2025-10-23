@@ -7,6 +7,8 @@ import {
 import type {InputState, PastePlaceholderContent} from '../types/hooks';
 import {PlaceholderType} from '../types/hooks';
 
+console.log(`\natomic-deletion.spec.ts`);
+
 // Tests for atomic placeholder deletion
 test('handleAtomicDeletion removes placeholder when backspaced', t => {
 	const previousState: InputState = {
