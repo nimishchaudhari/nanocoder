@@ -82,7 +82,7 @@
 		"eslint-config-xo-react": "^0.27.0",
 		"eslint-plugin-react": "^7.32.2",
 		"eslint-plugin-react-hooks": "^4.6.0",
-		"ink-testing-library": "^3.0.0",
+		"ink-testing-library": "^4.0.0",
 		"prettier": "^2.8.7",
 		"ts-node": "^10.9.1",
 		"tsc-alias": "^1.8.16",
@@ -91,20 +91,25 @@
 		"xo": "^0.53.1"
 	},
 	"ava": {
-		"typescript": {
-			"rewritePaths": {
-				"source/": "dist/"
-			},
-			"compile": false
+		"extensions": {
+			"ts": "module",
+			"tsx": "module"
 		},
 		"nodeArguments": [
-			"--import=tsx"
+			"--import=tsx",
+			"--no-warnings"
 		],
 		"files": [
 			"source/**/*.spec.ts",
+			"source/**/*.spec.tsx",
 			"!source/**/*-helpers.ts",
 			"!source/**/test-helpers.ts"
-		]
+		],
+		"workerThreads": false,
+		"serial": true,
+		"environmentVariables": {
+			"NODE_ENV": "test"
+		}
 	},
 	"xo": {
 		"extends": "xo-react",

@@ -123,7 +123,9 @@ export function LocationStep({
 			{globalExists && !projectExists && (
 				<Box marginBottom={1} flexDirection="column">
 					<Text color="yellow">
-						{isNarrow ? 'Note: Global config exists' : 'Note: Global config exists at'}
+						{isNarrow
+							? 'Note: Global config exists'
+							: 'Note: Global config exists at'}
 					</Text>
 					{!isNarrow && <Text color={colors.secondary}>{globalPath}</Text>}
 				</Box>
@@ -135,8 +137,8 @@ export function LocationStep({
 			{!isNarrow && (
 				<Box marginTop={1}>
 					<Text color={colors.secondary}>
-						Tip: Project configs are useful for team settings. Global configs work
-						across all projects.
+						Tip: Project configs are useful for team settings. Global configs
+						work across all projects.
 					</Text>
 				</Box>
 			)}

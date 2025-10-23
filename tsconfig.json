@@ -22,7 +22,12 @@
 		}
 	},
 	"include": ["source/**/*"],
-	"exclude": ["dist", "node_modules"],
+	"exclude": [
+		"dist",
+		"node_modules",
+		"source/**/__tests__/**/*",
+		"source/**/*.spec.tsx"
+	],
 	"ts-node": {
 		"esm": true,
 		"experimentalSpecifierResolution": "node",

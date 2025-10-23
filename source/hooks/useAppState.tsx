@@ -66,8 +66,7 @@ export function useAppState() {
 		useState<boolean>(false);
 	const [isRecommendationsMode, setIsRecommendationsMode] =
 		useState<boolean>(false);
-	const [isConfigWizardMode, setIsConfigWizardMode] =
-		useState<boolean>(false);
+	const [isConfigWizardMode, setIsConfigWizardMode] = useState<boolean>(false);
 	const [isToolConfirmationMode, setIsToolConfirmationMode] =
 		useState<boolean>(false);
 	const [isToolExecuting, setIsToolExecuting] = useState<boolean>(false);
