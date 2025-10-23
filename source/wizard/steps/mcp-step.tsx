@@ -7,6 +7,7 @@ import {
 	type McpTemplate,
 	type McpServerConfig,
 } from '../templates/mcp-templates';
+import {colors} from '@/config/index';
 
 interface McpStepProps {
 	onComplete: (mcpServers: Record<string, McpServerConfig>) => void;
@@ -14,7 +15,7 @@ interface McpStepProps {
 	existingServers?: Record<string, McpServerConfig>;
 }
 
-type Mode = 'ask-if-want-mcp' | 'template-selection' | 'field-input' | 'done';
+type Mode = 'template-selection' | 'field-input' | 'done';
 
 interface TemplateOption {
 	label: string;
@@ -28,7 +29,7 @@ export function McpStep({
 }: McpStepProps) {
 	const [servers, setServers] =
 		useState<Record<string, McpServerConfig>>(existingServers);
-	const [mode, setMode] = useState<Mode>('ask-if-want-mcp');
+	const [mode, setMode] = useState<Mode>('template-selection');
 	const [selectedTemplate, setSelectedTemplate] = useState<McpTemplate | null>(
 		null,
 	);
@@ -39,30 +40,16 @@ export function McpStep({
 	const [error, setError] = useState<string | null>(null);
 	const [inputKey, setInputKey] = useState(0);
 
-	const initialOptions = [
-		{label: '[1] Yes - Choose from common MCP servers', value: 'yes'},
-		{label: '[2] No - Skip MCP configuration', value: 'no'},
-	];
-
 	const templateOptions: TemplateOption[] = [
 		...MCP_TEMPLATES.map((template, index) => ({
-			label: `[${index + 1}] ${template.name} - ${template.description}`,
+			label: `${index + 1}. ${template.name} - ${template.description}`,
 			value: template.id,
 		})),
 		{
-			label: `[${MCP_TEMPLATES.length + 1}] Done adding MCP servers`,
+			label: `Done adding MCP servers`,
 			value: 'done',
 		},
 	];
-
-	const handleInitialSelect = (item: {value: string}) => {
-		if (item.value === 'yes') {
-			setMode('template-selection');
-		} else {
-			// Skip MCP
-			onComplete(servers);
-		}
-	};
 
 	const handleTemplateSelect = (item: TemplateOption) => {
 		if (item.value === 'done') {
@@ -167,9 +154,6 @@ export function McpStep({
 					setError(null);
 				}
 			} else if (mode === 'template-selection') {
-				// In template selection, go back to initial question
-				setMode('ask-if-want-mcp');
-			} else if (mode === 'ask-if-want-mcp') {
 				// At root level, call parent's onBack
 				if (onBack) {
 					onBack();
@@ -210,48 +194,25 @@ export function McpStep({
 		}
 	});
 
-	if (mode === 'ask-if-want-mcp') {
+	if (mode === 'template-selection') {
 		return (
-			<Box flexDirection="column" paddingX={2} paddingY={1}>
+			<Box flexDirection="column">
 				<Box marginBottom={1}>
-					<Text bold>
-						Would you like to add MCP servers? MCP servers extend Nanocoder with
-						additional tools.
+					<Text bold color={colors.primary}>
+						Add MCP servers to extend Nanocoder with additional tools:
 					</Text>
 				</Box>
 				{Object.keys(servers).length > 0 && (
 					<Box marginBottom={1}>
-						<Text color="green">
-							{Object.keys(servers).length} server(s) already added
+						<Text color={colors.success}>
+							Added: {Object.keys(servers).join(', ')}
 						</Text>
-					</Box>
-				)}
-				<SelectInput
-					items={initialOptions}
-					onSelect={handleInitialSelect as any}
-				/>
-			</Box>
-		);
-	}
-
-	if (mode === 'template-selection') {
-		return (
-			<Box flexDirection="column" paddingX={2} paddingY={1}>
-				<Box marginBottom={1}>
-					<Text bold>Choose MCP servers to add:</Text>
-				</Box>
-				{Object.keys(servers).length > 0 && (
-					<Box marginBottom={1}>
-						<Text color="green">Added: {Object.keys(servers).join(', ')}</Text>
 					</Box>
 				)}
 				<SelectInput
 					items={templateOptions}
 					onSelect={handleTemplateSelect as any}
 				/>
-				<Box marginTop={1}>
-					<Text dimColor>Press Esc to go back</Text>
-				</Box>
 			</Box>
 		);
 	}
@@ -263,39 +224,49 @@ export function McpStep({
 		const isMultiline = currentField.name === 'envVars';
 
 		return (
-			<Box flexDirection="column" paddingX={2} paddingY={1}>
+			<Box flexDirection="column">
 				<Box marginBottom={1}>
-					<Text bold>{selectedTemplate.name} MCP Configuration</Text>
+					<Text bold color={colors.primary}>
+						{selectedTemplate.name} Configuration
+					</Text>
 					<Text dimColor>
 						{' '}
 						(Field {currentFieldIndex + 1}/{selectedTemplate.fields.length})
 					</Text>
 				</Box>
 
-				<Box marginBottom={1}>
+				<Box>
 					<Text>
 						{currentField.prompt}
-						{currentField.required && <Text color="red"> *</Text>}
+						{currentField.required && <Text color={colors.error}> *</Text>}
 						{currentField.default && (
 							<Text dimColor> [{currentField.default}]</Text>
 						)}
-						:
+						: {currentField.sensitive && '****'}
 					</Text>
 				</Box>
 
 				{isMultiline ? (
 					<Box flexDirection="column" marginBottom={1}>
-						<Box borderStyle="single" borderColor="gray" paddingX={1}>
+						<Box
+							borderStyle="round"
+							borderColor={colors.secondary}
+							paddingX={1}
+						>
 							<Text>{multilineBuffer || <Text dimColor>(empty)</Text>}</Text>
 						</Box>
 						<Box marginTop={1}>
-							<Text dimColor>
+							<Text color={colors.secondary}>
 								Type to add lines. Press Esc when done to submit.
 							</Text>
 						</Box>
 					</Box>
 				) : currentField.sensitive ? (
-					<Box marginBottom={1}>
+					<Box
+						marginBottom={1}
+						borderStyle="round"
+						borderColor={colors.secondary}
+					>
 						<TextInput
 							key={inputKey}
 							value={currentValue}
@@ -305,7 +276,11 @@ export function McpStep({
 						/>
 					</Box>
 				) : (
-					<Box marginBottom={1}>
+					<Box
+						marginBottom={1}
+						borderStyle="round"
+						borderColor={colors.secondary}
+					>
 						<TextInput
 							key={inputKey}
 							value={currentValue}
@@ -317,15 +292,15 @@ export function McpStep({
 
 				{error && (
 					<Box marginBottom={1}>
-						<Text color="red">Error: {error}</Text>
+						<Text color="red">{error}</Text>
 					</Box>
 				)}
 
 				<Box>
-					<Text dimColor>
+					<Text color={colors.secondary}>
 						{isMultiline
-							? 'Press Esc to submit | Ctrl+C to cancel'
-							: 'Press Enter to continue | Esc to cancel'}
+							? 'Press Esc to submit | Shift+Tab to go back'
+							: 'Press Enter to continue | Shift+Tab to go back'}
 					</Text>
 				</Box>
 			</Box>

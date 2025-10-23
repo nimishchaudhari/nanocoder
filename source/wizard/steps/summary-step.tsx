@@ -3,6 +3,7 @@ import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import type {ProviderConfig} from '../../types/config';
 import type {McpServerConfig} from '../templates/mcp-templates';
+import {colors} from '@/config/index';
 
 interface SummaryStepProps {
 	configPath: string;
@@ -26,10 +27,10 @@ export function SummaryStep({
 	onBack,
 }: SummaryStepProps) {
 	const options = [
-		{label: '[1] Save configuration', value: 'save'},
-		{label: '[2] Add more providers', value: 'add-providers'},
-		{label: '[3] Add more MCP servers', value: 'add-mcp'},
-		{label: '[4] Cancel (discard changes)', value: 'cancel'},
+		{label: '1. Save configuration', value: 'save'},
+		{label: '2. Add more providers', value: 'add-providers'},
+		{label: '3. Add more MCP servers', value: 'add-mcp'},
+		{label: '4. Cancel (discard changes)', value: 'cancel'},
 	];
 
 	const handleSelect = (item: {value: string}) => {
@@ -65,29 +66,33 @@ export function SummaryStep({
 	const serverNames = Object.keys(mcpServers);
 
 	return (
-		<Box flexDirection="column" paddingX={2} paddingY={1}>
+		<Box flexDirection="column">
 			<Box marginBottom={1}>
-				<Text bold>Configuration Summary</Text>
+				<Text bold color={colors.primary}>
+					Configuration Summary
+				</Text>
 			</Box>
 
 			<Box marginBottom={1}>
-				<Text>{'─'.repeat(60)}</Text>
+				<Text color={colors.secondary}>{'─'.repeat(60)}</Text>
 			</Box>
 
 			<Box marginBottom={1}>
-				<Text bold>Location: </Text>
-				<Text color="cyan">{configPath}</Text>
+				<Text bold color={colors.primary}>Location: </Text>
+				<Text color={colors.success}>{configPath}</Text>
 			</Box>
 
 			<Box marginBottom={1} flexDirection="column">
-				<Text bold>Providers ({providers.length}):</Text>
+				<Text bold color={colors.primary}>
+					Providers ({providers.length}):
+				</Text>
 				{providers.length === 0 ? (
-					<Text color="yellow"> No providers configured</Text>
+					<Text color={colors.warning}> No providers configured</Text>
 				) : (
 					providers.map((provider, index) => (
 						<Box key={index} flexDirection="column" marginLeft={2}>
 							<Text>
-								• <Text color="green">{provider.name}</Text>
+								• <Text color={colors.success}>{provider.name}</Text>
 								{provider.baseUrl && (
 									<Text dimColor> ({provider.baseUrl})</Text>
 								)}
@@ -101,16 +106,18 @@ export function SummaryStep({
 			</Box>
 
 			<Box marginBottom={1} flexDirection="column">
-				<Text bold>MCP Servers ({serverNames.length}):</Text>
+				<Text bold color={colors.primary}>
+					MCP Servers ({serverNames.length}):
+				</Text>
 				{serverNames.length === 0 ? (
-					<Text color="yellow"> No MCP servers configured</Text>
+					<Text color={colors.warning}> No MCP servers configured</Text>
 				) : (
 					serverNames.map(name => {
 						const server = mcpServers[name];
 						return (
 							<Box key={name} flexDirection="column" marginLeft={2}>
 								<Text>
-									• <Text color="green">{server.name}</Text>
+									• <Text color={colors.success}>{server.name}</Text>
 								</Text>
 								<Text dimColor>
 									- Command: {server.command} {server.args.join(' ')}
@@ -127,12 +134,12 @@ export function SummaryStep({
 			</Box>
 
 			<Box marginBottom={1}>
-				<Text>{'─'.repeat(60)}</Text>
+				<Text color={colors.secondary}>{'─'.repeat(60)}</Text>
 			</Box>
 
 			{providers.length === 0 && (
 				<Box marginBottom={1}>
-					<Text color="yellow">
+					<Text color={colors.warning}>
 						⚠️ Warning: No providers configured. Nanocoder requires at least one
 						provider to function.
 					</Text>
@@ -142,7 +149,7 @@ export function SummaryStep({
 			<SelectInput items={options} onSelect={handleSelect as any} />
 
 			<Box marginTop={1}>
-				<Text dimColor>
+				<Text color={colors.secondary}>
 					Press Ctrl+E to open in editor for manual configuration
 				</Text>
 			</Box>
