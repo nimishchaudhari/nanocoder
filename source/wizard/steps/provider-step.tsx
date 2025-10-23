@@ -8,6 +8,7 @@ import {
 	type ProviderTemplate,
 } from '../templates/provider-templates';
 import {colors} from '@/config/index';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
 interface ProviderStepProps {
 	onComplete: (providers: ProviderConfig[]) => void;
@@ -33,6 +34,7 @@ export function ProviderStep({
 	onBack,
 	existingProviders = [],
 }: ProviderStepProps) {
+	const {isNarrow} = useResponsiveTerminal();
 	const [providers, setProviders] =
 		useState<ProviderConfig[]>(existingProviders);
 
@@ -53,17 +55,17 @@ export function ProviderStep({
 	const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
 	const initialOptions = [
-		{label: 'Yes - Choose from common templates', value: 'templates'},
-		{label: 'No - Add custom provider manually', value: 'custom'},
+		{label: 'Choose from common templates', value: 'templates'},
+		{label: 'Add custom provider manually', value: 'custom'},
 		...(providers.length > 0
 			? [{label: 'Edit existing providers', value: 'edit'}]
 			: []),
-		{label: 'Skip - Configure later', value: 'skip'},
+		{label: 'Skip providers', value: 'skip'},
 	];
 
 	const templateOptions: TemplateOption[] = [
-		...PROVIDER_TEMPLATES.map((template, index) => ({
-			label: `${index + 1}. ${template.name}`,
+		...PROVIDER_TEMPLATES.map(template => ({
+			label: template.name,
 			value: template.id,
 		})),
 		{
@@ -163,7 +165,9 @@ export function ProviderStep({
 
 					setFieldAnswers(answers);
 					setCurrentValue(
-						answers[template.fields[0]?.name] || template.fields[0]?.default || '',
+						answers[template.fields[0]?.name] ||
+							template.fields[0]?.default ||
+							'',
 					);
 					setError(null);
 					setMode('field-input');
@@ -206,9 +210,7 @@ export function ProviderStep({
 		if (currentFieldIndex < selectedTemplate.fields.length - 1) {
 			setCurrentFieldIndex(currentFieldIndex + 1);
 			const nextField = selectedTemplate.fields[currentFieldIndex + 1];
-			setCurrentValue(
-				newAnswers[nextField?.name] || nextField?.default || '',
-			);
+			setCurrentValue(newAnswers[nextField?.name] || nextField?.default || '');
 		} else {
 			// Build config and add/update provider
 			try {
@@ -448,11 +450,18 @@ export function ProviderStep({
 					</Box>
 				)}
 
-				<Box>
-					<Text color={colors.secondary}>
-						Press Enter to continue | Shift+Tab to go back
-					</Text>
-				</Box>
+				{isNarrow ? (
+					<Box flexDirection="column">
+						<Text color={colors.secondary}>Enter: continue</Text>
+						<Text color={colors.secondary}>Shift+Tab: go back</Text>
+					</Box>
+				) : (
+					<Box>
+						<Text color={colors.secondary}>
+							Press Enter to continue | Shift+Tab to go back
+						</Text>
+					</Box>
+				)}
 			</Box>
 		);
 	}

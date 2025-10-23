@@ -5,6 +5,7 @@ import {
 	savePreferences,
 	loadPreferences,
 } from '@/config/preferences';
+import {reloadAppConfig} from '@/config/index';
 import SuccessMessage from '@/components/success-message';
 import ErrorMessage from '@/components/error-message';
 import React from 'react';
@@ -207,6 +208,9 @@ export function useModeHandlers({
 					hideBox={true}
 				/>,
 			);
+
+			// Reload the app configuration to pick up the newly saved config
+			reloadAppConfig();
 
 			// Reinitialize client with new configuration
 			try {

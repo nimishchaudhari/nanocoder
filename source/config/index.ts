@@ -111,7 +111,12 @@ function loadAppConfig(): AppConfig {
 	return {};
 }
 
-export const appConfig = loadAppConfig();
+export let appConfig = loadAppConfig();
+
+// Function to reload the app configuration (useful after config file changes)
+export function reloadAppConfig(): void {
+	appConfig = loadAppConfig();
+}
 
 // Legacy config for backwards compatibility (no longer specific to any provider)
 export const legacyConfig = {

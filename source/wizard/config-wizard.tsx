@@ -42,7 +42,7 @@ export function ConfigWizard({
 		{},
 	);
 	const [error, setError] = useState<string | null>(null);
-	const {boxWidth} = useResponsiveTerminal();
+	const {boxWidth, isNarrow} = useResponsiveTerminal();
 
 	// Capture focus to ensure keyboard handling works properly
 	useFocus({autoFocus: true, id: 'config-wizard'});
@@ -346,14 +346,23 @@ export function ConfigWizard({
 			{(step === 'location' ||
 				step === 'providers' ||
 				step === 'mcp' ||
-				step === 'summary') && (
-				<Box marginTop={1}>
-					<Text color={colors.secondary}>
-						Esc: Exit wizard | Shift+Tab: Go back
-						{configPath && ' | Ctrl+E: Edit manually'}
-					</Text>
-				</Box>
-			)}
+				step === 'summary') &&
+				(isNarrow ? (
+					<Box marginTop={1} flexDirection="column">
+						<Text color={colors.secondary}>Esc: Exit wizard</Text>
+						<Text color={colors.secondary}>Shift+Tab: Go back</Text>
+						{configPath && (
+							<Text color={colors.secondary}>Ctrl+E: Edit manually</Text>
+						)}
+					</Box>
+				) : (
+					<Box marginTop={1}>
+						<Text color={colors.secondary}>
+							Esc: Exit wizard | Shift+Tab: Go back
+							{configPath && ' | Ctrl+E: Edit manually'}
+						</Text>
+					</Box>
+				))}
 		</TitledBox>
 	);
 }

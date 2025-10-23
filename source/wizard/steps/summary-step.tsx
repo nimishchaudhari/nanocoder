@@ -4,6 +4,7 @@ import SelectInput from 'ink-select-input';
 import type {ProviderConfig} from '../../types/config';
 import type {McpServerConfig} from '../templates/mcp-templates';
 import {colors} from '@/config/index';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
 interface SummaryStepProps {
 	configPath: string;
@@ -26,11 +27,13 @@ export function SummaryStep({
 	onCancel,
 	onBack,
 }: SummaryStepProps) {
+	const {isNarrow, truncatePath} = useResponsiveTerminal();
+
 	const options = [
-		{label: '1. Save configuration', value: 'save'},
-		{label: '2. Add more providers', value: 'add-providers'},
-		{label: '3. Add more MCP servers', value: 'add-mcp'},
-		{label: '4. Cancel (discard changes)', value: 'cancel'},
+		{label: 'Save configuration', value: 'save'},
+		{label: 'Add more providers', value: 'add-providers'},
+		{label: 'Add more MCP servers', value: 'add-mcp'},
+		{label: 'Cancel (discard changes)', value: 'cancel'},
 	];
 
 	const handleSelect = (item: {value: string}) => {
@@ -74,12 +77,16 @@ export function SummaryStep({
 			</Box>
 
 			<Box marginBottom={1}>
-				<Text color={colors.secondary}>{'─'.repeat(60)}</Text>
+				<Text color={colors.secondary}>{'─'.repeat(isNarrow ? 30 : 60)}</Text>
 			</Box>
 
-			<Box marginBottom={1}>
-				<Text bold color={colors.primary}>Location: </Text>
-				<Text color={colors.success}>{configPath}</Text>
+			<Box marginBottom={1} flexDirection="column">
+				<Text bold color={colors.primary}>
+					Location:
+				</Text>
+				<Text color={colors.success}>
+					{isNarrow ? truncatePath(configPath, 40) : configPath}
+				</Text>
 			</Box>
 
 			<Box marginBottom={1} flexDirection="column">
@@ -87,19 +94,21 @@ export function SummaryStep({
 					Providers ({providers.length}):
 				</Text>
 				{providers.length === 0 ? (
-					<Text color={colors.warning}> No providers configured</Text>
+					<Text color={colors.warning}> None</Text>
 				) : (
 					providers.map((provider, index) => (
 						<Box key={index} flexDirection="column" marginLeft={2}>
 							<Text>
 								• <Text color={colors.success}>{provider.name}</Text>
-								{provider.baseUrl && (
-									<Text dimColor> ({provider.baseUrl})</Text>
-								)}
 							</Text>
-							<Text dimColor>
-								- Models: {provider.models?.join(', ') || 'none'}
-							</Text>
+							{!isNarrow && provider.baseUrl && (
+								<Text dimColor> URL: {provider.baseUrl}</Text>
+							)}
+							{!isNarrow && (
+								<Text dimColor>
+									Models: {provider.models?.join(', ') || 'none'}
+								</Text>
+							)}
 						</Box>
 					))
 				)}
@@ -110,7 +119,7 @@ export function SummaryStep({
 					MCP Servers ({serverNames.length}):
 				</Text>
 				{serverNames.length === 0 ? (
-					<Text color={colors.warning}> No MCP servers configured</Text>
+					<Text color={colors.warning}> None</Text>
 				) : (
 					serverNames.map(name => {
 						const server = mcpServers[name];
@@ -119,13 +128,17 @@ export function SummaryStep({
 								<Text>
 									• <Text color={colors.success}>{server.name}</Text>
 								</Text>
-								<Text dimColor>
-									- Command: {server.command} {server.args.join(' ')}
-								</Text>
-								{server.env && Object.keys(server.env).length > 0 && (
-									<Text dimColor>
-										- Env vars: {Object.keys(server.env).join(', ')}
-									</Text>
+								{!isNarrow && (
+									<>
+										<Text dimColor>
+											Cmd: {server.command} {server.args.join(' ')}
+										</Text>
+										{server.env && Object.keys(server.env).length > 0 && (
+											<Text dimColor>
+												Env: {Object.keys(server.env).join(', ')}
+											</Text>
+										)}
+									</>
 								)}
 							</Box>
 						);
@@ -134,14 +147,14 @@ export function SummaryStep({
 			</Box>
 
 			<Box marginBottom={1}>
-				<Text color={colors.secondary}>{'─'.repeat(60)}</Text>
+				<Text color={colors.secondary}>{'─'.repeat(isNarrow ? 30 : 60)}</Text>
 			</Box>
 
 			{providers.length === 0 && (
 				<Box marginBottom={1}>
 					<Text color={colors.warning}>
-						⚠️ Warning: No providers configured. Nanocoder requires at least one
-						provider to function.
+						⚠️{' '}
+						{isNarrow ? 'No providers!' : 'Warning: No providers configured.'}
 					</Text>
 				</Box>
 			)}

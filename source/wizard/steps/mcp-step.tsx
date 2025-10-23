@@ -8,6 +8,7 @@ import {
 	type McpServerConfig,
 } from '../templates/mcp-templates';
 import {colors} from '@/config/index';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
 interface McpStepProps {
 	onComplete: (mcpServers: Record<string, McpServerConfig>) => void;
@@ -32,6 +33,7 @@ export function McpStep({
 	onBack,
 	existingServers = {},
 }: McpStepProps) {
+	const {isNarrow} = useResponsiveTerminal();
 	const [servers, setServers] =
 		useState<Record<string, McpServerConfig>>(existingServers);
 	const [mode, setMode] = useState<Mode>('template-selection');
@@ -55,7 +57,10 @@ export function McpStep({
 			? [{label: 'Edit existing MCP servers', value: 'edit'}]
 			: []),
 		...MCP_TEMPLATES.map(template => ({
-			label: `${template.name} - ${template.description}`,
+			// Hide descriptions on narrow terminals
+			label: isNarrow
+				? template.name
+				: `${template.name} - ${template.description}`,
 			value: template.id,
 		})),
 		{
@@ -441,13 +446,22 @@ export function McpStep({
 					</Box>
 				)}
 
-				<Box>
-					<Text color={colors.secondary}>
-						{isMultiline
-							? 'Press Esc to submit | Shift+Tab to go back'
-							: 'Press Enter to continue | Shift+Tab to go back'}
-					</Text>
-				</Box>
+				{isNarrow ? (
+					<Box flexDirection="column">
+						<Text color={colors.secondary}>
+							{isMultiline ? 'Esc: submit' : 'Enter: continue'}
+						</Text>
+						<Text color={colors.secondary}>Shift+Tab: go back</Text>
+					</Box>
+				) : (
+					<Box>
+						<Text color={colors.secondary}>
+							{isMultiline
+								? 'Press Esc to submit | Shift+Tab to go back'
+								: 'Press Enter to continue | Shift+Tab to go back'}
+						</Text>
+					</Box>
+				)}
 			</Box>
 		);
 	}

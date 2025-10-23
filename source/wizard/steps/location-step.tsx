@@ -5,6 +5,7 @@ import {join} from 'node:path';
 import {existsSync} from 'node:fs';
 import {colors} from '@/config';
 import {getAppDataPath} from '@/config/paths';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
 export type ConfigLocation = 'project' | 'global';
 
@@ -24,6 +25,7 @@ export function LocationStep({
 	onBack,
 	projectDir,
 }: LocationStepProps) {
+	const {isNarrow, truncatePath} = useResponsiveTerminal();
 	const projectPath = join(projectDir, 'agents.config.json');
 	const globalPath = join(getAppDataPath(), 'agents.config.json');
 
@@ -97,7 +99,9 @@ export function LocationStep({
 					<Text bold color={colors.primary}>
 						Configuration found at:{' '}
 					</Text>
-					<Text color={colors.secondary}>{existingPath}</Text>
+					<Text color={colors.secondary}>
+						{isNarrow ? truncatePath(existingPath, 40) : existingPath}
+					</Text>
 				</Box>
 				<SelectInput
 					items={existingConfigOptions}
@@ -111,25 +115,31 @@ export function LocationStep({
 		<Box flexDirection="column">
 			<Box marginBottom={1}>
 				<Text bold color={colors.primary}>
-					Where would you like to create your configuration?
+					{isNarrow
+						? 'Where to create config?'
+						: 'Where would you like to create your configuration?'}
 				</Text>
 			</Box>
 			{globalExists && !projectExists && (
 				<Box marginBottom={1} flexDirection="column">
-					<Text color="yellow">Note: Global config exists at</Text>
-					<Text color={colors.secondary}>{globalPath}</Text>
+					<Text color="yellow">
+						{isNarrow ? 'Note: Global config exists' : 'Note: Global config exists at'}
+					</Text>
+					{!isNarrow && <Text color={colors.secondary}>{globalPath}</Text>}
 				</Box>
 			)}
 			<SelectInput
 				items={locationOptions}
 				onSelect={handleLocationSelect as any}
 			/>
-			<Box marginTop={1}>
-				<Text color={colors.secondary}>
-					Tip: Project configs are useful for team settings. Global configs work
-					across all projects.
-				</Text>
-			</Box>
+			{!isNarrow && (
+				<Box marginTop={1}>
+					<Text color={colors.secondary}>
+						Tip: Project configs are useful for team settings. Global configs work
+						across all projects.
+					</Text>
+				</Box>
+			)}
 		</Box>
 	);
 }
