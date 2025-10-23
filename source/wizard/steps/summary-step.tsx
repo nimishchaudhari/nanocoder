@@ -147,12 +147,6 @@ export function SummaryStep({
 			)}
 
 			<SelectInput items={options} onSelect={handleSelect as any} />
-
-			<Box marginTop={1}>
-				<Text color={colors.secondary}>
-					Press Ctrl+E to open in editor for manual configuration
-				</Text>
-			</Box>
 		</Box>
 	);
 }

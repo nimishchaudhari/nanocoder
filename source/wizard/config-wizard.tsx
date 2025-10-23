@@ -164,8 +164,13 @@ export function ConfigWizard({
 			return;
 		}
 
-		// Ctrl+E to open editor (future enhancement)
-		if (key.ctrl && input === 'e' && step === 'summary') {
+		// Ctrl+E to open editor (available after location is chosen)
+		if (
+			key.ctrl &&
+			input === 'e' &&
+			configPath &&
+			(step === 'providers' || step === 'mcp' || step === 'summary')
+		) {
 			// Future: open editor
 			// For now, just show a message
 			setError('Manual editor integration coming soon!');
@@ -317,7 +322,7 @@ export function ConfigWizard({
 				<Box marginTop={1}>
 					<Text color={colors.secondary}>
 						Esc: Exit wizard | Shift+Tab: Go back
-						{step === 'summary' && ' | Ctrl+E: Edit manually'}
+						{configPath && ' | Ctrl+E: Edit manually'}
 					</Text>
 				</Box>
 			)}
