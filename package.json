@@ -34,8 +34,10 @@
 		"build": "tsc && tsc-alias && chmod +x dist/cli.js",
 		"dev": "tsc --watch",
 		"start": "node dist/cli.js",
-		"test:all": "prettier --check . && ava",
+		"test:all": "pnpm format && pnpm test:format && pnpm test:ava && pnpm test:lint",
 		"test:ava": "ava",
+		"test:lint": "xo",
+		"test:format": "prettier --check .",
 		"format": "prettier --write .",
 		"prepublishOnly": "npm run build"
 	},
