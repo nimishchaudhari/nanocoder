@@ -203,7 +203,7 @@ export function useModeHandlers({
 			addToChatQueue(
 				<SuccessMessage
 					key={`config-wizard-complete-${componentKeyCounter}`}
-					message={`Configuration saved to: ${configPath}. Initializing...`}
+					message={`Configuration saved to: ${configPath}.`}
 					hideBox={true}
 				/>,
 			);

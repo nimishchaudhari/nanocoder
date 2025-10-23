@@ -3,18 +3,14 @@ import {Box, Text, useInput, useFocus} from 'ink';
 import Spinner from 'ink-spinner';
 import {writeFileSync, mkdirSync, existsSync, readFileSync} from 'node:fs';
 import {dirname} from 'node:path';
+import {spawnSync} from 'node:child_process';
 import type {ProviderConfig} from '../types/config';
 import type {McpServerConfig} from './templates/mcp-templates';
 import {LocationStep, type ConfigLocation} from './steps/location-step';
 import {ProviderStep} from './steps/provider-step';
 import {McpStep} from './steps/mcp-step';
 import {SummaryStep} from './steps/summary-step';
-import {
-	validateConfig,
-	testAllProviders,
-	buildConfigObject,
-	type ProviderTestResult,
-} from './validation';
+import {buildConfigObject} from './validation';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {colors} from '@/config/index';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
@@ -30,8 +26,8 @@ type WizardStep =
 	| 'providers'
 	| 'mcp'
 	| 'summary'
+	| 'editing'
 	| 'saving'
-	| 'validating'
 	| 'complete';
 
 export function ConfigWizard({
@@ -40,18 +36,13 @@ export function ConfigWizard({
 	onCancel,
 }: ConfigWizardProps) {
 	const [step, setStep] = useState<WizardStep>('location');
-	const [configLocation, setConfigLocation] =
-		useState<ConfigLocation>('project');
 	const [configPath, setConfigPath] = useState('');
 	const [providers, setProviders] = useState<ProviderConfig[]>([]);
 	const [mcpServers, setMcpServers] = useState<Record<string, McpServerConfig>>(
 		{},
 	);
-	const [validationResults, setValidationResults] = useState<
-		ProviderTestResult[]
-	>([]);
 	const [error, setError] = useState<string | null>(null);
-	const {boxWidth, isNarrow, isNormal} = useResponsiveTerminal();
+	const {boxWidth} = useResponsiveTerminal();
 
 	// Capture focus to ensure keyboard handling works properly
 	useFocus({autoFocus: true, id: 'config-wizard'});
@@ -76,8 +67,7 @@ export function ConfigWizard({
 		}
 	}, [configPath]);
 
-	const handleLocationComplete = (location: ConfigLocation, path: string) => {
-		setConfigLocation(location);
+	const handleLocationComplete = (_location: ConfigLocation, path: string) => {
 		setConfigPath(path);
 		setStep('providers');
 	};
@@ -94,21 +84,11 @@ export function ConfigWizard({
 		setStep('summary');
 	};
 
-	const handleSave = async () => {
+	const handleSave = () => {
 		setStep('saving');
 		setError(null);
 
 		try {
-			// Validate configuration
-			const validation = validateConfig(providers, mcpServers);
-			if (!validation.valid) {
-				setError(
-					`Configuration validation failed: ${validation.errors.join(', ')}`,
-				);
-				setStep('summary');
-				return;
-			}
-
 			// Build config object
 			const config = buildConfigObject(providers, mcpServers);
 
@@ -121,17 +101,8 @@ export function ConfigWizard({
 			// Write config file
 			writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
 
-			// Test provider connections
-			setStep('validating');
-			const testResults = await testAllProviders(providers);
-			setValidationResults(testResults);
-
 			setStep('complete');
-
-			// Wait a moment to show results, then complete
-			setTimeout(() => {
-				onComplete(configPath);
-			}, 2000);
+			// Don't auto-complete - wait for user to press Enter
 		} catch (err) {
 			setError(
 				err instanceof Error ? err.message : 'Failed to save configuration',
@@ -154,8 +125,90 @@ export function ConfigWizard({
 		}
 	};
 
+	const openInEditor = () => {
+		try {
+			// Save current progress to file
+			const config = buildConfigObject(providers, mcpServers);
+
+			// Ensure directory exists
+			const dir = dirname(configPath);
+			if (!existsSync(dir)) {
+				mkdirSync(dir, {recursive: true});
+			}
+
+			// Write config file
+			writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
+
+			// Detect editor (respect $EDITOR or $VISUAL environment variables)
+			// Fall back to nano on Unix/Mac (much friendlier than vi!)
+			// On Windows, use notepad
+			const editor =
+				process.env.EDITOR ||
+				process.env.VISUAL ||
+				(process.platform === 'win32' ? 'notepad' : 'nano');
+
+			// Show cursor and restore terminal for editor
+			process.stdout.write('\x1B[?25h'); // Show cursor
+			process.stdin.setRawMode?.(false); // Disable raw mode
+
+			// Open editor and wait for it to close
+			const result = spawnSync(editor, [configPath], {
+				stdio: 'inherit', // Give editor full control of terminal
+			});
+
+			// Restore terminal state after editor closes
+			process.stdin.setRawMode?.(true); // Re-enable raw mode
+			process.stdout.write('\x1B[?25l'); // Hide cursor (Ink will manage it)
+
+			if (result.status === 0) {
+				// Reload the edited config
+				try {
+					const editedContent = readFileSync(configPath, 'utf-8');
+					const editedConfig = JSON.parse(editedContent);
+
+					// Update state with edited values
+					if (editedConfig.nanocoder) {
+						setProviders(editedConfig.nanocoder.providers || []);
+						setMcpServers(editedConfig.nanocoder.mcpServers || {});
+					}
+
+					// Return to summary to review changes
+					setStep('summary');
+					setError(null);
+				} catch (parseErr) {
+					setError(
+						parseErr instanceof Error
+							? `Invalid JSON: ${parseErr.message}`
+							: 'Failed to parse edited configuration',
+					);
+					setStep('summary');
+				}
+			} else {
+				setError('Editor exited with an error. Changes may not be saved.');
+				setStep('summary');
+			}
+		} catch (err) {
+			// Restore terminal state on error
+			process.stdin.setRawMode?.(true);
+			process.stdout.write('\x1B[?25l');
+
+			setError(
+				err instanceof Error
+					? `Failed to open editor: ${err.message}`
+					: 'Failed to open editor',
+			);
+			setStep('summary');
+		}
+	};
+
 	// Handle global keyboard shortcuts
 	useInput((input, key) => {
+		// In complete step, wait for Enter to finish
+		if (step === 'complete' && key.return) {
+			onComplete(configPath);
+			return;
+		}
+
 		// Escape - cancel/exit wizard completely
 		if (key.escape) {
 			if (onCancel) {
@@ -171,9 +224,7 @@ export function ConfigWizard({
 			configPath &&
 			(step === 'providers' || step === 'mcp' || step === 'summary')
 		) {
-			// Future: open editor
-			// For now, just show a message
-			setError('Manual editor integration coming soon!');
+			openInEditor();
 		}
 	});
 
@@ -220,31 +271,29 @@ export function ConfigWizard({
 					/>
 				);
 			}
-			case 'saving': {
+			case 'editing': {
 				return (
-					<Box flexDirection="column" paddingX={2} paddingY={1}>
+					<Box flexDirection="column">
+						<Box marginBottom={1}>
+							<Text color={colors.primary}>Opening editor...</Text>
+						</Box>
+						<Box marginBottom={1}>
+							<Text dimColor>Configuration saved to: {configPath}</Text>
+						</Box>
 						<Box>
-							<Text color="green">
-								<Spinner type="dots" /> Saving configuration to {configPath}...
+							<Text color={colors.secondary}>
+								Save and close your editor to return to the wizard.
 							</Text>
 						</Box>
 					</Box>
 				);
 			}
-			case 'validating': {
+			case 'saving': {
 				return (
-					<Box flexDirection="column" paddingX={2} paddingY={1}>
-						<Box marginBottom={1}>
-							<Text color="green">✓ Configuration saved to {configPath}</Text>
-						</Box>
+					<Box flexDirection="column">
 						<Box>
-							<Text>
-								<Spinner type="dots" /> Validating configuration...
-							</Text>
-						</Box>
-						<Box>
-							<Text>
-								<Spinner type="dots" /> Testing provider connections...
+							<Text color={colors.success}>
+								<Spinner type="dots" /> Saving configuration...
 							</Text>
 						</Box>
 					</Box>
@@ -252,38 +301,17 @@ export function ConfigWizard({
 			}
 			case 'complete': {
 				return (
-					<Box flexDirection="column" paddingX={2} paddingY={1}>
+					<Box flexDirection="column">
 						<Box marginBottom={1}>
-							<Text color="green">✓ Configuration saved to {configPath}</Text>
-						</Box>
-						<Box marginBottom={1}>
-							<Text color="green">✓ Validating configuration...</Text>
-						</Box>
-						<Box marginBottom={1} flexDirection="column">
-							<Text color="green">✓ Testing provider connections...</Text>
-							{validationResults.map(result => (
-								<Box key={result.providerName} marginLeft={2}>
-									<Text>
-										• {result.providerName}:{' '}
-										{result.connected ? (
-											<Text color="green">Connected ✓</Text>
-										) : (
-											<Text color="yellow">Not reachable (may still work)</Text>
-										)}
-									</Text>
-								</Box>
-							))}
-						</Box>
-						<Box marginBottom={1}>
-							<Text color="green" bold>
-								✓ Configuration complete!
+							<Text color={colors.success} bold>
+								✓ Configuration saved!
 							</Text>
+						</Box>
+						<Box marginBottom={1}>
+							<Text dimColor>Saved to: {configPath}</Text>
 						</Box>
 						<Box>
-							<Text>
-								Nanocoder is ready to use. Type your first message to start
-								chatting.
-							</Text>
+							<Text color={colors.secondary}>Press Enter to continue</Text>
 						</Box>
 					</Box>
 				);
