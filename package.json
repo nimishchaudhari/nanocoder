@@ -34,12 +34,12 @@
 		"build": "tsc && tsc-alias && chmod +x dist/cli.js",
 		"dev": "tsc --watch",
 		"start": "node dist/cli.js",
-		"test:all": "pnpm format && pnpm test:format && pnpm test:ava && pnpm test:lint",
+		"test:all": "pnpm format && pnpm test:format && pnpm test:ava && pnpm test:knip",
 		"test:ava": "ava",
-		"test:lint": "xo",
 		"test:format": "prettier --check .",
 		"format": "prettier --write .",
-		"prepublishOnly": "npm run build"
+		"prepublishOnly": "npm run build",
+		"test:knip": "knip"
 	},
 	"files": [
 		"dist",
@@ -62,7 +62,6 @@
 		"ink-spinner": "^5.0.0",
 		"ink-tab": "^5.2.0",
 		"ink-text-input": "^6.0.0",
-		"knip": "^5.66.2",
 		"marked": "^15.0.12",
 		"marked-terminal": "^7.3.0",
 		"meow": "^11.0.0",
@@ -78,19 +77,22 @@
 		"@types/marked-terminal": "^6.1.1",
 		"@types/node": "^24.3.0",
 		"@types/react": "^19.0.0",
+		"@typescript-eslint/eslint-plugin": "^6.21.0",
+		"@typescript-eslint/parser": "^6.21.0",
 		"@vdemedes/prettier-config": "^2.0.1",
 		"ava": "^6.4.1",
 		"chalk": "^5.2.0",
 		"eslint-config-xo-react": "^0.27.0",
+		"eslint-config-xo-typescript": "1.0.1",
 		"eslint-plugin-react": "^7.32.2",
-		"eslint-plugin-react-hooks": "^4.6.0",
+		"eslint-plugin-react-hooks": "^4.6.2",
 		"ink-testing-library": "^4.0.0",
+		"knip": "^5.66.2",
 		"prettier": "^2.8.7",
 		"ts-node": "^10.9.1",
 		"tsc-alias": "^1.8.16",
 		"tsx": "^4.20.6",
-		"typescript": "^5.0.3",
-		"xo": "^0.53.1"
+		"typescript": "^5.0.3"
 	},
 	"ava": {
 		"extensions": {
@@ -111,13 +113,6 @@
 		"serial": true,
 		"environmentVariables": {
 			"NODE_ENV": "test"
-		}
-	},
-	"xo": {
-		"extends": "xo-react",
-		"prettier": true,
-		"rules": {
-			"react/prop-types": "off"
 		}
 	},
 	"prettier": "@vdemedes/prettier-config"
