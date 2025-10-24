@@ -18,9 +18,19 @@ const handler: ToolHandler = async (args: {
 	return 'File written successfully';
 };
 
+interface CreateFileArgs {
+	path?: string;
+	file_path?: string;
+	content?: string;
+}
+
 // Create a component that will re-render when theme changes
-const CreateFileFormatter = React.memo(({args}: {args: any}) => {
-	const {colors} = React.useContext(ThemeContext)!;
+const CreateFileFormatter = React.memo(({args}: {args: CreateFileArgs}) => {
+	const themeContext = React.useContext(ThemeContext);
+	if (!themeContext) {
+		throw new Error('ThemeContext is required');
+	}
+	const {colors} = themeContext;
 	const path = args.path || args.file_path || 'unknown';
 	const newContent = args.content || '';
 	const lineCount = newContent.split('\n').length;
@@ -49,7 +59,7 @@ const CreateFileFormatter = React.memo(({args}: {args: any}) => {
 					<Text color={colors.white}>File content:</Text>
 					{newContent.split('\n').map((line: string, i: number) => {
 						const lineNumStr = String(i + 1).padStart(4, ' ');
-						const ext = path.split('.').pop()?.toLowerCase();
+						const ext = path.split('.').pop()?.toLowerCase() ?? '';
 						const language = getLanguageFromExtension(ext);
 
 						try {
@@ -81,7 +91,7 @@ const CreateFileFormatter = React.memo(({args}: {args: any}) => {
 	return <ToolMessage message={messageContent} hideBox={true} />;
 });
 
-const formatter = async (args: any): Promise<React.ReactElement> => {
+const formatter = (args: CreateFileArgs): React.ReactElement => {
 	return <CreateFileFormatter args={args} />;
 };
 
@@ -98,13 +108,16 @@ const validator = async (args: {
 			valid: false,
 			error: `⚒ File "${args.path}" already exists. Use a file editing tool instead.`,
 		};
-	} catch (error: any) {
+	} catch (error) {
 		// ENOENT is good - file doesn't exist
-		if (error.code !== 'ENOENT') {
-			return {
-				valid: false,
-				error: `⚒ Cannot access path "${args.path}": ${error.message}`,
-			};
+		if (error && typeof error === 'object' && 'code' in error) {
+			if (error.code !== 'ENOENT') {
+				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+				return {
+					valid: false,
+					error: `⚒ Cannot access path "${args.path}": ${errorMessage}`,
+				};
+			}
 		}
 	}
 
@@ -112,16 +125,19 @@ const validator = async (args: {
 	const parentDir = dirname(absPath);
 	try {
 		await access(parentDir, constants.F_OK);
-	} catch (error: any) {
-		if (error.code === 'ENOENT') {
-			return {
-				valid: false,
-				error: `⚒ Parent directory does not exist: "${parentDir}"`,
-			};
+	} catch (error) {
+		if (error && typeof error === 'object' && 'code' in error) {
+			if (error.code === 'ENOENT') {
+				return {
+					valid: false,
+					error: `⚒ Parent directory does not exist: "${parentDir}"`,
+				};
+			}
 		}
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		return {
 			valid: false,
-			error: `⚒ Cannot access parent directory "${parentDir}": ${error.message}`,
+			error: `⚒ Cannot access parent directory "${parentDir}": ${errorMessage}`,
 		};
 	}
 
