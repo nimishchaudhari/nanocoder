@@ -22,7 +22,7 @@ function getNextKey(): string {
 }
 
 // Add message to chat queue
-export function addMessageToQueue(
+function addMessageToQueue(
 	type: MessageType,
 	message: string,
 	hideBox: boolean = true,
@@ -63,8 +63,4 @@ export function logInfo(message: string, hideBox: boolean = true) {
 
 export function logError(message: string, hideBox: boolean = true) {
 	addMessageToQueue('error', message, hideBox);
-}
-
-export function logSuccess(message: string, hideBox: boolean = true) {
-	addMessageToQueue('success', message, hideBox);
 }

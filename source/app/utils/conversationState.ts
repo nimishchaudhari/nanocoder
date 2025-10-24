@@ -1,6 +1,6 @@
 import type {Message, ToolCall} from '@/types/core';
 
-export interface ConversationProgress {
+interface ConversationProgress {
 	originalTask: string;
 	currentStep: number;
 	totalEstimatedSteps: number;
@@ -12,7 +12,7 @@ export interface ConversationProgress {
 	contextSummary?: string;
 }
 
-export interface ConversationState {
+interface ConversationState {
 	progress: ConversationProgress;
 	lastAssistantMessage?: Message;
 	conversationStartTime: number;

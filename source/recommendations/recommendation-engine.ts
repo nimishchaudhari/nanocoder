@@ -5,7 +5,7 @@ export interface ModelRecommendationEnhanced extends ModelRecommendation {
 	recommendedProvider: string; // Best provider to use for this model
 }
 
-export interface RecommendationResult {
+interface RecommendationResult {
 	quickStart: ModelRecommendationEnhanced | null;
 	allModels: ModelRecommendationEnhanced[];
 }

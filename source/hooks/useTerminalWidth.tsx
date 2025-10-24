@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
 
-export type TerminalSize = 'narrow' | 'normal' | 'wide';
+type TerminalSize = 'narrow' | 'normal' | 'wide';
 
 export const useTerminalWidth = () => {
 	// Calculate box width (leave some padding and ensure minimum width)

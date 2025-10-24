@@ -1,13 +1,13 @@
 import type {ProviderConfig} from '../types/config';
 import type {McpServerConfig} from './templates/mcp-templates';
 
-export interface ValidationResult {
+interface ValidationResult {
 	valid: boolean;
 	errors: string[];
 	warnings: string[];
 }
 
-export interface ProviderTestResult {
+interface ProviderTestResult {
 	providerName: string;
 	connected: boolean;
 	error?: string;
@@ -125,17 +125,6 @@ export async function testProviderConnection(
 					: 'Unknown error testing connection',
 		};
 	}
-}
-
-/**
- * Tests connectivity to all providers
- */
-export async function testAllProviders(
-	providers: ProviderConfig[],
-): Promise<ProviderTestResult[]> {
-	return Promise.all(
-		providers.map(provider => testProviderConnection(provider)),
-	);
 }
 
 /**

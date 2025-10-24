@@ -1,7 +1,7 @@
 import {readFileSync, readdirSync, statSync, existsSync} from 'fs';
 import {join, relative, basename} from 'path';
 
-export interface ScanResult {
+interface ScanResult {
 	files: string[];
 	directories: string[];
 	totalFiles: number;

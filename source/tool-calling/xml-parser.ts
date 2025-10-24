@@ -1,6 +1,6 @@
 import type {ToolCall} from '@/types/index';
 
-export interface ParsedToolCall {
+interface ParsedToolCall {
 	toolName: string;
 	parameters: Record<string, any>;
 }

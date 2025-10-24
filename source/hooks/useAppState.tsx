@@ -9,13 +9,6 @@ import type {ThemePreset} from '@/types/ui';
 import type {UpdateInfo} from '@/types/index';
 import React from 'react';
 
-export interface ThinkingStats {
-	tokenCount: number;
-	contextSize: number;
-	totalTokensUsed: number;
-	tokensPerSecond?: number;
-}
-
 export interface ConversationContext {
 	updatedMessages: Message[];
 	assistantMsg: Message;

@@ -1,7 +1,7 @@
 // CLI Paste Detection Utilities
 // Since CLI applications don't receive direct paste events, we use heuristics
 
-export interface PasteDetectionOptions {
+interface PasteDetectionOptions {
 	// Time threshold for rapid input (milliseconds)
 	timeThreshold: number;
 	// Character count threshold for single input change
@@ -10,7 +10,7 @@ export interface PasteDetectionOptions {
 	lineThreshold: number;
 }
 
-export const DEFAULT_PASTE_OPTIONS: PasteDetectionOptions = {
+const DEFAULT_PASTE_OPTIONS: PasteDetectionOptions = {
 	timeThreshold: 16, // ~1 frame at 60fps
 	charThreshold: 50, // Characters added in single change
 	lineThreshold: 2, // Multiple lines added instantly

@@ -252,19 +252,3 @@ export function assemblePrompt(inputState: InputState): string {
 
 	return assembledPrompt;
 }
-
-/**
- * Extract all placeholder IDs from a display value
- * Useful for atomic deletion and validation
- */
-export function extractPlaceholderIds(displayValue: string): string[] {
-	const placeholderRegex = /\[Paste #(\d+): \d+ chars\]/g;
-	const matches = [];
-	let match;
-
-	while ((match = placeholderRegex.exec(displayValue)) !== null) {
-		matches.push(match[1]); // The captured paste ID
-	}
-
-	return matches;
-}

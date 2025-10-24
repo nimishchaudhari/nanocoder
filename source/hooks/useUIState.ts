@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import {Completion} from '@/types/index';
 
-export type UIState = {
+type UIState = {
 	showClearMessage: boolean;
 	showCompletions: boolean;
 	completions: Completion[];
@@ -20,7 +20,7 @@ export type UIState = {
 const UIStateContext = createContext<UIState | undefined>(undefined);
 
 // Existing hook that builds the UI state (kept to separate creation from context)
-export function useUIState(): UIState {
+function useUIState(): UIState {
 	const [showClearMessage, setShowClearMessage] = useState(false);
 	const [showCompletions, setShowCompletions] = useState(false);
 	const [completions, setCompletions] = useState<Completion[]>([]);

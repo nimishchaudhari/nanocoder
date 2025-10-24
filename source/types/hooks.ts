@@ -1,5 +1,3 @@
-import React from 'react';
-
 // Enum for all supported placeholder types - ensures type safety
 export enum PlaceholderType {
 	PASTE = 'paste',
@@ -11,7 +9,7 @@ export enum PlaceholderType {
 }
 
 // Base placeholder content structure
-export interface BasePlaceholderContent {
+interface BasePlaceholderContent {
 	type: PlaceholderType;
 	displayText: string; // What shows in the placeholder (e.g., "[Paste #123: 567 chars]")
 }
@@ -25,7 +23,7 @@ export interface PastePlaceholderContent extends BasePlaceholderContent {
 	timestamp?: number; // When the paste occurred
 }
 
-export interface FilePlaceholderContent extends BasePlaceholderContent {
+interface FilePlaceholderContent extends BasePlaceholderContent {
 	type: PlaceholderType.FILE;
 	filePath: string; // Absolute or relative path
 	content: string; // File contents at time of inclusion
@@ -49,29 +47,4 @@ export interface InputState {
 	// A dictionary holding the full content and metadata for each placeholder.
 	// The key is the ID from the placeholder.
 	placeholderContent: Record<string, PlaceholderContent>;
-}
-
-export interface UseModeHandlersProps {
-	onEnterModelSelectionMode: () => void;
-	onEnterProviderSelectionMode: () => void;
-	onExitSelectionMode: () => void;
-}
-
-export interface UseToolHandlerProps {
-	client: any;
-	setIsThinking: (thinking: boolean) => void;
-	onAddToChatQueue: (component: React.ReactNode) => void;
-	componentKeyCounter: number;
-	messages: any[];
-	setMessages: (messages: any[]) => void;
-}
-
-export interface UseChatHandlerProps {
-	client: any;
-	setIsThinking: (thinking: boolean) => void;
-	onAddToChatQueue: (component: React.ReactNode) => void;
-	componentKeyCounter: number;
-	messages: any[];
-	setMessages: (messages: any[]) => void;
-	setConversationContext: (context: any) => void;
 }

@@ -19,12 +19,7 @@ export interface SystemCapabilities {
 	};
 }
 
-export type ProviderCategory = 'local-server' | 'hosted-api';
-
-export interface ProviderInfo {
-	name: string;
-	category: ProviderCategory;
-}
+type ProviderCategory = 'local-server' | 'hosted-api';
 
 export interface ModelEntry {
 	name: string;
@@ -42,17 +37,6 @@ export interface ModelEntry {
 	// Cost info
 	costType: 'free' | 'paid';
 	costDetails?: string; // e.g., "$0.15/1M tokens" or "Free via Ollama"
-}
-
-export interface ProviderRecommendation {
-	provider: string;
-	providerCategory: ProviderCategory;
-	priority: 'high' | 'medium' | 'low';
-	reasoning: string[];
-	setupInstructions: string;
-	models: ModelRecommendation[];
-	isConfigured?: boolean; // Whether this provider is in agents.config.json
-	isRunning?: boolean; // For local servers
 }
 
 export interface ModelRecommendation {

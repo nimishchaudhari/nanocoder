@@ -288,10 +288,6 @@ export const themes: Record<ThemePreset, Theme> = {
 	},
 };
 
-export function getTheme(themePreset: ThemePreset): Theme {
-	return themes[themePreset];
-}
-
 export function getThemeColors(themePreset: ThemePreset) {
 	return themes[themePreset].colors;
 }

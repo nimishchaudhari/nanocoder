@@ -183,7 +183,3 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 		},
 	},
 ];
-
-export function getMcpTemplate(id: string): McpTemplate | undefined {
-	return MCP_TEMPLATES.find(template => template.id === id);
-}

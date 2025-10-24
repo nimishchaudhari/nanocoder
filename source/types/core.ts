@@ -64,11 +64,6 @@ export interface LLMClient {
 	clearContext(): Promise<void>;
 }
 
-export interface ToolExecutionResult {
-	executed: boolean;
-	results: ToolResult[];
-}
-
 export type DevelopmentMode = 'normal' | 'auto-accept' | 'plan';
 
 export const DEVELOPMENT_MODE_LABELS: Record<DevelopmentMode, string> = {

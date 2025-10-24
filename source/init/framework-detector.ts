@@ -1,7 +1,7 @@
 import {readFileSync, existsSync} from 'fs';
 import {join} from 'path';
 
-export interface FrameworkInfo {
+interface FrameworkInfo {
 	name: string;
 	version?: string;
 	category:
@@ -15,7 +15,7 @@ export interface FrameworkInfo {
 	confidence: 'high' | 'medium' | 'low';
 }
 
-export interface BuildInfo {
+interface BuildInfo {
 	scripts?: {[script: string]: string};
 	buildCommand?: string;
 	testCommand?: string;
@@ -23,7 +23,7 @@ export interface BuildInfo {
 	startCommand?: string;
 }
 
-export interface ProjectDependencies {
+interface ProjectDependencies {
 	frameworks: FrameworkInfo[];
 	buildTools: string[];
 	testingFrameworks: string[];

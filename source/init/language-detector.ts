@@ -1,6 +1,6 @@
 import {basename, extname} from 'path';
 
-export interface LanguageInfo {
+interface LanguageInfo {
 	name: string;
 	extensions: string[];
 	percentage: number;

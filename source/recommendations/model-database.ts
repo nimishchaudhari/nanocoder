@@ -1,6 +1,6 @@
 import {ModelEntry} from '@/types/index';
 
-export const MODEL_DATABASE: ModelEntry[] = [
+const MODEL_DATABASE: ModelEntry[] = [
 	{
 		name: 'qwen2.5-coder:0.5b',
 		author: 'Alibaba',

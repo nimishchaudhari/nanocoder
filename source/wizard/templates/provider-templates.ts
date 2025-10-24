@@ -328,7 +328,3 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		},
 	},
 ];
-
-export function getProviderTemplate(id: string): ProviderTemplate | undefined {
-	return PROVIDER_TEMPLATES.find(template => template.id === id);
-}

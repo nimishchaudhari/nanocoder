@@ -3,7 +3,7 @@ import path from 'path';
 import {loadPreferences, savePreferences} from '@/config/preferences';
 import {logError} from '@/utils/message-queue';
 
-export interface UseDirectoryTrustReturn {
+interface UseDirectoryTrustReturn {
 	isTrusted: boolean;
 	handleConfirmTrust: () => void;
 	isTrustLoading: boolean;
