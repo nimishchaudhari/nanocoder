@@ -5,7 +5,7 @@ import {toolRegistry} from '@/tools/index';
 import InfoMessage from '@/components/info-message';
 import ToolMessage from '@/components/tool-message';
 import ErrorMessage from '@/components/error-message';
-import type {MessageSubmissionOptions} from '@/types/index';
+import type {MessageSubmissionOptions, Message} from '@/types/index';
 
 export async function handleMessageSubmission(
 	message: string,
@@ -79,7 +79,7 @@ ${result.fullOutput || '(No output)'}`;
 
 			// Add the truncated output to the LLM context for future interactions
 			if (result.llmContext) {
-				const userMessage = {
+				const userMessage: Message = {
 					role: 'user',
 					content: `Bash command output:\n\`\`\`\n$ ${bashCommand}\n${result.llmContext}\n\`\`\``,
 				};

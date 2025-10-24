@@ -1,9 +1,12 @@
 import React from 'react';
 import {CustomCommandLoader} from '@/custom-commands/loader';
 import {CustomCommandExecutor} from '@/custom-commands/executor';
+import type {Message} from './core';
+import type {UpdateInfo} from './utils';
+import type {CustomCommand} from './commands';
 
 export interface MessageSubmissionOptions {
-	customCommandCache: Map<string, any>;
+	customCommandCache: Map<string, CustomCommand>;
 	customCommandLoader: CustomCommandLoader | null;
 	customCommandExecutor: CustomCommandExecutor | null;
 	onClearMessages: () => Promise<void>;
@@ -16,13 +19,13 @@ export interface MessageSubmissionOptions {
 	onHandleChatMessage: (message: string) => Promise<void>;
 	onAddToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
-	setMessages: (messages: any[]) => void;
-	messages: any[];
+	setMessages: (messages: Message[]) => void;
+	messages: Message[];
 	setIsBashExecuting: (executing: boolean) => void;
 	setCurrentBashCommand: (command: string) => void;
 	provider: string;
 	model: string;
 	theme: string;
-	updateInfo: any;
-	getMessageTokens: (message: any) => number;
+	updateInfo: UpdateInfo | null;
+	getMessageTokens: (message: Message) => number;
 }

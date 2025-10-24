@@ -53,27 +53,25 @@ export function ConfigWizard({
 			return;
 		}
 
-		void (async () => {
-			try {
-				const configContent = readFileSync(configPath, 'utf-8');
-				const config = JSON.parse(configContent) as {
-					nanocoder?: {
-						providers?: ProviderConfig[];
-						mcpServers?: Record<string, McpServerConfig>;
-					};
+		try {
+			const configContent = readFileSync(configPath, 'utf-8');
+			const config = JSON.parse(configContent) as {
+				nanocoder?: {
+					providers?: ProviderConfig[];
+					mcpServers?: Record<string, McpServerConfig>;
 				};
+			};
 
-				if (config.nanocoder?.providers) {
-					setProviders(config.nanocoder.providers);
-				}
-
-				if (config.nanocoder?.mcpServers) {
-					setMcpServers(config.nanocoder.mcpServers);
-				}
-			} catch (err) {
-				console.error('Failed to load existing config:', err);
+			if (config.nanocoder?.providers) {
+				setProviders(config.nanocoder.providers);
 			}
-		})();
+
+			if (config.nanocoder?.mcpServers) {
+				setMcpServers(config.nanocoder.mcpServers);
+			}
+		} catch (err) {
+			console.error('Failed to load existing config:', err);
+		}
 	}, [configPath]);
 
 	const handleLocationComplete = (_location: ConfigLocation, path: string) => {

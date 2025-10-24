@@ -12,7 +12,7 @@ export interface ToolCall {
 	id: string;
 	function: {
 		name: string;
-		arguments: {[key: string]: any};
+		arguments: Record<string, unknown>;
 	};
 }
 
@@ -23,6 +23,12 @@ export interface ToolResult {
 	content: string;
 }
 
+export interface ToolParameterSchema {
+	type?: string;
+	description?: string;
+	[key: string]: unknown;
+}
+
 export interface Tool {
 	type: 'function';
 	function: {
@@ -30,17 +36,19 @@ export interface Tool {
 		description: string;
 		parameters: {
 			type: 'object';
-			properties: Record<string, any>;
+			properties: Record<string, ToolParameterSchema>;
 			required: string[];
 		};
 	};
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ToolHandler = (input: any) => Promise<string>;
 
 export interface ToolDefinition {
 	handler: ToolHandler;
 	config: Tool;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	formatter?: (
 		args: any,
 		result?: string,
@@ -50,9 +58,22 @@ export interface ToolDefinition {
 		| React.ReactElement
 		| Promise<React.ReactElement>;
 	requiresConfirmation?: boolean;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	validator?: (
 		args: any,
 	) => Promise<{valid: true} | {valid: false; error: string}>;
+}
+
+export interface LLMMessage {
+	role: 'assistant';
+	content: string;
+	tool_calls?: ToolCall[];
+}
+
+export interface LLMChatResponse {
+	choices: Array<{
+		message: LLMMessage;
+	}>;
 }
 
 export interface LLMClient {
@@ -60,7 +81,11 @@ export interface LLMClient {
 	setModel(model: string): void;
 	getContextSize(): number;
 	getAvailableModels(): Promise<string[]>;
-	chat(messages: Message[], tools: Tool[], signal?: AbortSignal): Promise<any>;
+	chat(
+		messages: Message[],
+		tools: Tool[],
+		signal?: AbortSignal,
+	): Promise<LLMChatResponse>;
 	clearContext(): Promise<void>;
 }
 

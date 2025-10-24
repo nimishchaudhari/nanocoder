@@ -83,7 +83,11 @@ export function processPromptTemplate(tools: Tool[]): string {
 		try {
 			systemPrompt = readFileSync(promptPath, 'utf-8');
 		} catch (error) {
-			console.warn(`Failed to load system prompt from ${promptPath}: ${error}`);
+			const errorMessage =
+				error instanceof Error ? error.message : String(error);
+			console.warn(
+				`Failed to load system prompt from ${promptPath}: ${errorMessage}`,
+			);
 		}
 	}
 
@@ -100,7 +104,11 @@ export function processPromptTemplate(tools: Tool[]): string {
 			const agentsContent = readFileSync(agentsPath, 'utf-8');
 			systemPrompt += `\n\nAdditional Context...\n\n${agentsContent}`;
 		} catch (error) {
-			console.warn(`Failed to load AGENTS.md from ${agentsPath}: ${error}`);
+			const errorMessage =
+				error instanceof Error ? error.message : String(error);
+			console.warn(
+				`Failed to load AGENTS.md from ${agentsPath}: ${errorMessage}`,
+			);
 		}
 	}
 
@@ -178,6 +186,12 @@ function generateToolDocumentation(tools: Tool[]): string {
 /**
  * Format documentation for a single tool
  */
+interface ParameterSchema {
+	description?: string;
+	type?: string;
+	[key: string]: unknown;
+}
+
 function formatToolDocumentation(tool: Tool): string {
 	const {name, description, parameters} = tool.function;
 
@@ -186,13 +200,13 @@ function formatToolDocumentation(tool: Tool): string {
 	if (parameters.properties && Object.keys(parameters.properties).length > 0) {
 		doc += 'Parameters:\n';
 		Object.entries(parameters.properties).forEach(
-			([paramName, schema]: [string, any]) => {
+			([paramName, schema]: [string, ParameterSchema]) => {
 				const required = parameters.required?.includes(paramName)
 					? ' (required)'
 					: ' (optional)';
-				const description =
+				const paramDescription =
 					schema.description || schema.type || 'No description';
-				doc += `- ${paramName}${required}: ${description}\n`;
+				doc += `- ${paramName}${required}: ${paramDescription}\n`;
 			},
 		);
 		doc += '\n';
@@ -216,22 +230,24 @@ export function assemblePrompt(inputState: InputState): string {
 
 			// Type-specific content assembly (extensible for future types)
 			switch (placeholderContent.type) {
-				case PlaceholderType.PASTE:
+				case PlaceholderType.PASTE: {
 					// For paste, use content directly
 					replacementContent = placeholderContent.content;
 					break;
-				case PlaceholderType.FILE:
+				}
+				case PlaceholderType.FILE: {
 					// For file, could add file headers or other formatting
 					replacementContent = placeholderContent.content;
 					break;
-				default:
+				}
+				default: {
 					// TypeScript will ensure this is unreachable with proper enum usage
-					const _exhaustive: never = placeholderContent;
+					// Exhaustiveness check to ensure all enum cases are handled
+					placeholderContent satisfies never;
 					// Fallback for safety, though this should never be reached
-					replacementContent =
-						(placeholderContent as any).displayText ||
-						(placeholderContent as any).content ||
-						'';
+					replacementContent = '';
+					break;
+				}
 			}
 
 			// Use the displayText to find and replace the placeholder

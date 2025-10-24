@@ -206,10 +206,13 @@ export class ConversationStateManager {
 				return `Created/wrote file: ${args.filename || args.path || 'unknown'}`;
 			case 'edit_file':
 				return `Edited file: ${args.filename || args.path || 'unknown'}`;
-			case 'execute_bash':
-				return `Executed command: ${(args.command || '').substring(0, 50)}${
-					args.command?.length > 50 ? '...' : ''
+			case 'execute_bash': {
+				const command = args.command;
+				const commandStr = typeof command === 'string' ? command : '';
+				return `Executed command: ${commandStr.substring(0, 50)}${
+					commandStr.length > 50 ? '...' : ''
 				}`;
+			}
 			default:
 				return `Used ${toolName}`;
 		}

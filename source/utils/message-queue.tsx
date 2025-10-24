@@ -2,7 +2,7 @@ import React from 'react';
 import ErrorMessage from '@/components/error-message';
 import InfoMessage from '@/components/info-message';
 import SuccessMessage from '@/components/success-message';
-import type {MessageType, MessageQueueItem} from '@/types/index';
+import type {MessageType} from '@/types/index';
 
 // Global message queue function - will be set by App component
 let globalAddToChatQueue: ((component: React.ReactNode) => void) | null = null;

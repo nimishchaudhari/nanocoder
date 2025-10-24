@@ -8,6 +8,8 @@ export interface MCPServer {
 export interface MCPTool {
 	name: string;
 	description?: string;
+	// JSON Schema for tool input - intentionally flexible
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	inputSchema?: any;
 	serverName: string;
 }

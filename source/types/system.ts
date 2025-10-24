@@ -19,7 +19,7 @@ export interface SystemCapabilities {
 	};
 }
 
-type ProviderCategory = 'local-server' | 'hosted-api';
+export type ProviderCategory = 'local-server' | 'hosted-api';
 
 export interface ModelEntry {
 	name: string;
