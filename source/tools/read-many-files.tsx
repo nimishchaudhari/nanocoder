@@ -74,10 +74,16 @@ const ReadManyFilesFormatter = React.memo(
 		args,
 		fileInfo,
 	}: {
-		args: any;
+		args: {paths?: unknown};
 		fileInfo: {totalFiles: number; totalSize: number; totalTokens: number};
 	}) => {
-		const {colors} = React.useContext(ThemeContext)!;
+		const themeContext = React.useContext(ThemeContext);
+		if (!themeContext) {
+			throw new Error(
+				'ReadManyFilesFormatter must be used within a ThemeProvider',
+			);
+		}
+		const {colors} = themeContext;
 		const paths = args.paths || [];
 
 		if (!Array.isArray(paths)) {
@@ -123,7 +129,7 @@ const ReadManyFilesFormatter = React.memo(
 );
 
 const formatter = async (
-	args: any,
+	args: {paths?: unknown},
 	result?: string,
 ): Promise<React.ReactElement> => {
 	// If result is an error message, don't try to read the files
@@ -142,11 +148,13 @@ const formatter = async (
 	if (Array.isArray(paths)) {
 		let totalSize = 0;
 		for (const path of paths) {
-			try {
-				const content = await readFile(resolve(path), 'utf-8');
-				totalSize += content.length;
-			} catch (error) {
-				// Skip files that can't be read
+			if (typeof path === 'string') {
+				try {
+					const content = await readFile(resolve(path), 'utf-8');
+					totalSize += content.length;
+				} catch {
+					// Skip files that can't be read
+				}
 			}
 		}
 		const estimatedTokens = Math.ceil(totalSize / 4);
@@ -176,13 +184,20 @@ const validator = async (args: {
 		const absPath = resolve(path);
 		try {
 			await access(absPath, constants.F_OK);
-		} catch (error: any) {
-			if (error.code === 'ENOENT') {
+		} catch (error: unknown) {
+			if (
+				error &&
+				typeof error === 'object' &&
+				'code' in error &&
+				error.code === 'ENOENT'
+			) {
 				missingFiles.push(path);
 			} else {
+				const errorMessage =
+					error instanceof Error ? error.message : 'Unknown error';
 				return {
 					valid: false,
-					error: `⚒ Cannot access file "${path}": ${error.message}`,
+					error: `⚒ Cannot access file "${path}": ${errorMessage}`,
 				};
 			}
 		}

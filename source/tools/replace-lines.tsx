@@ -84,12 +84,25 @@ const ReplaceLinesFormatter = React.memo(
 	},
 );
 
+interface ThemeColors {
+	tool: string;
+	secondary: string;
+	primary: string;
+	white: string;
+	success: string;
+	error: string;
+	diffAdded: string;
+	diffAddedText: string;
+	diffRemoved: string;
+	diffRemovedText: string;
+}
+
 async function formatReplaceLinesPreview(
-	args: any,
+	args: ReplaceLinesArgs,
 	result?: string,
-	colors?: any,
+	colors?: ThemeColors,
 ): Promise<React.ReactElement> {
-	const themeColors = colors || getColors();
+	const themeColors = colors || (getColors() as ThemeColors);
 	const {path, line_number, end_line, content} = args;
 	const lineNumber = Number(line_number);
 	const endLine = Number(end_line) || lineNumber;
@@ -112,12 +125,12 @@ async function formatReplaceLinesPreview(
 	try {
 		const fileContent = await readFile(resolve(path), 'utf-8');
 		const lines = fileContent.split('\n');
-		const ext = path.split('.').pop()?.toLowerCase();
-		const language = getLanguageFromExtension(ext);
+		const ext = String(path).split('.').pop()?.toLowerCase();
+		const language = getLanguageFromExtension(ext ?? '');
 
 		// For results, show the actual file state after replacement
 		if (isResult) {
-			const replaceLines = content.split('\n');
+			const replaceLines = String(content).split('\n');
 			const contextLines = 5;
 			const showStart = Math.max(0, lineNumber - 1 - contextLines);
 			const showEnd = Math.min(
@@ -204,7 +217,7 @@ async function formatReplaceLinesPreview(
 			);
 		}
 
-		const replaceLines = content.split('\n');
+		const replaceLines = String(content).split('\n');
 		const linesToRemove = endLine - lineNumber + 1;
 		const contextLines = 3;
 		const showStart = Math.max(0, lineNumber - 1 - contextLines);
@@ -259,7 +272,7 @@ async function formatReplaceLinesPreview(
 		// Show added lines
 		for (let i = 0; i < replaceLines.length; i++) {
 			const lineNumStr = String(lineNumber + i).padStart(4, ' ');
-			const line = replaceLines[i] || '';
+			const line = String(replaceLines[i] ?? '');
 			let displayLine: string;
 			try {
 				displayLine = highlight(line, {language, theme: 'default'});
@@ -357,10 +370,10 @@ async function formatReplaceLinesPreview(
 }
 
 const formatter = async (
-	args: any,
+	args: ReplaceLinesArgs,
 	result?: string,
 ): Promise<React.ReactElement> => {
-	const colors = getColors();
+	const colors = getColors() as ThemeColors;
 	const preview = await formatReplaceLinesPreview(args, result, colors);
 	return <ReplaceLinesFormatter preview={preview} />;
 };
@@ -374,8 +387,9 @@ const validator = async (
 	const absPath = resolve(path);
 	try {
 		await access(absPath, constants.F_OK);
-	} catch (error: any) {
-		if (error.code === 'ENOENT') {
+	} catch (error: unknown) {
+		const nodeError = error as NodeJS.ErrnoException;
+		if (nodeError.code === 'ENOENT') {
 			return {
 				valid: false,
 				error: `⚒ File "${path}" does not exist`,
@@ -383,7 +397,9 @@ const validator = async (
 		}
 		return {
 			valid: false,
-			error: `⚒ Cannot access file "${path}": ${error.message}`,
+			error: `⚒ Cannot access file "${path}": ${
+				nodeError.message ?? String(error)
+			}`,
 		};
 	}
 
@@ -421,10 +437,11 @@ const validator = async (
 				error: `⚒ End line ${endLine} is out of range (file has ${lines.length} lines)`,
 			};
 		}
-	} catch (error: any) {
+	} catch (error: unknown) {
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		return {
 			valid: false,
-			error: `⚒ Error reading file: ${error.message}`,
+			error: `⚒ Error reading file: ${errorMessage}`,
 		};
 	}
 

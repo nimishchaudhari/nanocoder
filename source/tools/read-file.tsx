@@ -28,9 +28,14 @@ const handler: ToolHandler = async (args: {path: string}): Promise<string> => {
 		}
 
 		return result.slice(0, -1); // Remove trailing newline
-	} catch (error: any) {
+	} catch (error: unknown) {
 		// Handle file not found and other filesystem errors
-		if (error.code === 'ENOENT') {
+		if (
+			error &&
+			typeof error === 'object' &&
+			'code' in error &&
+			error.code === 'ENOENT'
+		) {
 			throw new Error(`File "${args.path}" does not exist`);
 		}
 
@@ -41,8 +46,18 @@ const handler: ToolHandler = async (args: {path: string}): Promise<string> => {
 
 // Create a component that will re-render when theme changes
 const ReadFileFormatter = React.memo(
-	({args, fileInfo}: {args: any; fileInfo: {size: number; tokens: number}}) => {
-		const {colors} = React.useContext(ThemeContext)!;
+	({
+		args,
+		fileInfo,
+	}: {
+		args: {path?: string; file_path?: string; offset?: number; limit?: number};
+		fileInfo: {size: number; tokens: number};
+	}) => {
+		const themeContext = React.useContext(ThemeContext);
+		if (!themeContext) {
+			throw new Error('ReadFileFormatter must be used within a ThemeProvider');
+		}
+		const {colors} = themeContext;
 		const path = args.path || args.file_path || 'unknown';
 
 		const messageContent = (
@@ -78,7 +93,7 @@ const ReadFileFormatter = React.memo(
 );
 
 const formatter = async (
-	args: any,
+	args: {path?: string; file_path?: string; offset?: number; limit?: number},
 	result?: string,
 ): Promise<React.ReactElement> => {
 	// If result is an error message, don't try to read the file
@@ -90,14 +105,14 @@ const formatter = async (
 	let fileInfo = {size: 0, tokens: 0};
 	try {
 		const path = args.path || args.file_path;
-		if (path) {
+		if (path && typeof path === 'string') {
 			await access(resolve(path), constants.F_OK);
 			const content = await readFile(resolve(path), 'utf-8');
 			const fileSize = content.length;
 			const estimatedTokens = Math.ceil(fileSize / 4);
 			fileInfo = {size: fileSize, tokens: estimatedTokens};
 		}
-	} catch (error) {
+	} catch {
 		// File doesn't exist or can't be read - keep fileInfo as {size: 0, tokens: 0}
 	}
 
@@ -112,16 +127,23 @@ const validator = async (args: {
 	try {
 		await access(absPath, constants.F_OK);
 		return {valid: true};
-	} catch (error: any) {
-		if (error.code === 'ENOENT') {
+	} catch (error: unknown) {
+		if (
+			error &&
+			typeof error === 'object' &&
+			'code' in error &&
+			error.code === 'ENOENT'
+		) {
 			return {
 				valid: false,
 				error: `⚒ File "${args.path}" does not exist`,
 			};
 		}
+		const errorMessage =
+			error instanceof Error ? error.message : 'Unknown error';
 		return {
 			valid: false,
-			error: `⚒ Cannot access file "${args.path}": ${error.message}`,
+			error: `⚒ Cannot access file "${args.path}": ${errorMessage}`,
 		};
 	}
 };
