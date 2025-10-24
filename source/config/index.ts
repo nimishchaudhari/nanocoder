@@ -64,10 +64,7 @@ export function getClosestConfigFile(fileName: string): string {
 	return fileName;
 }
 
-export function createDefaultConfFile(
-	filePath: string,
-	fileName: string,
-): void {
+function createDefaultConfFile(filePath: string, fileName: string): void {
 	try {
 		// If we cant find any, lets assume this is the first user run, create the
 		// correct file and direct the user to configure them correctly,
@@ -117,12 +114,6 @@ export let appConfig = loadAppConfig();
 export function reloadAppConfig(): void {
 	appConfig = loadAppConfig();
 }
-
-// Legacy config for backwards compatibility (no longer specific to any provider)
-export const legacyConfig = {
-	maxTokens: 4096,
-	contextSize: 4000,
-};
 
 export function getColors(): Colors {
 	const preferences = loadPreferences();

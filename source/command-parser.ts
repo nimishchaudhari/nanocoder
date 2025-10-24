@@ -34,11 +34,3 @@ export function parseInput(input: string): ParsedCommand {
 		fullCommand: commandText,
 	};
 }
-
-export function isCommandInput(input: string): boolean {
-	return input.trim().startsWith('/');
-}
-
-export function isBashCommandInput(input: string): boolean {
-	return input.trim().startsWith('!');
-}

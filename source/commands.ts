@@ -2,7 +2,7 @@ import {Command} from '@/types/index';
 import React from 'react';
 import ErrorMessage from '@/components/error-message';
 
-export class CommandRegistry {
+class CommandRegistry {
 	private commands = new Map<string, Command>();
 
 	register(command: Command | Command[]): void {

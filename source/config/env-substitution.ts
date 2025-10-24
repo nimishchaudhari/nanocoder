@@ -1,17 +1,8 @@
 import {shouldLog} from '@/config/logging';
 import {logError} from '@/utils/message-queue';
 
-// Check if a string contains environment variable references
-export function isEnvVarReference(str: string): boolean {
-	if (typeof str !== 'string') {
-		return false;
-	}
-
-	return /\$\{[A-Z_][A-Z0-9_]*(?::-[^}]*)?\}|\$[A-Z_][A-Z0-9_]*/g.test(str);
-}
-
 // Expand environment variable references in a string
-export function expandEnvVar(str: string): string {
+function expandEnvVar(str: string): string {
 	if (typeof str !== 'string') {
 		return str;
 	}

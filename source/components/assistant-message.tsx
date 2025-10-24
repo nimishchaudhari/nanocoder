@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import {highlight} from 'cli-highlight';
 
 // Basic markdown parser for terminal
-export function parseMarkdown(text: string, themeColors: any): string {
+function parseMarkdown(text: string, themeColors: any): string {
 	let result = text;
 
 	// Code blocks (```language\ncode\n```)
