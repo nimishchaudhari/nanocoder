@@ -15,8 +15,9 @@ import {
 import {MCPClient} from '@/mcp/mcp-client';
 import {MCPToolAdapter} from '@/mcp/mcp-tool-adapter';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Tool formatters accept dynamic args from LLM, so any is appropriate here
 type ToolFormatter = (
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
 	args: any,
 	result?: string,
 ) =>
@@ -25,8 +26,8 @@ type ToolFormatter = (
 	| React.ReactElement
 	| Promise<React.ReactElement>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ToolValidator = (
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
 	args: any,
 ) => Promise<{valid: true} | {valid: false; error: string}>;
 

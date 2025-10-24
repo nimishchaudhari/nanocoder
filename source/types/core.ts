@@ -42,14 +42,15 @@ export interface Tool {
 	};
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Tool handlers accept dynamic args from LLM, so any is appropriate here
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
 export type ToolHandler = (input: any) => Promise<string>;
 
 export interface ToolDefinition {
 	handler: ToolHandler;
 	config: Tool;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	formatter?: (
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
 		args: any,
 		result?: string,
 	) =>
@@ -58,8 +59,8 @@ export interface ToolDefinition {
 		| React.ReactElement
 		| Promise<React.ReactElement>;
 	requiresConfirmation?: boolean;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	validator?: (
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
 		args: any,
 	) => Promise<{valid: true} | {valid: false; error: string}>;
 }
