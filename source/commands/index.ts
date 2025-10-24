@@ -4,7 +4,6 @@ export * from '@/commands/clear';
 export * from '@/commands/model';
 export * from '@/commands/provider';
 export * from '@/commands/mcp';
-export * from '@/commands/debug';
 export * from '@/commands/custom-commands';
 export * from '@/commands/init';
 export * from '@/commands/theme';

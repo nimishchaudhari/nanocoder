@@ -1,5 +1,4 @@
 import {readFileSync, writeFileSync} from 'fs';
-import {shouldLog} from '@/config/logging';
 import {logError} from '@/utils/message-queue';
 import {getClosestConfigFile} from '@/config/index';
 
@@ -19,9 +18,7 @@ export function loadPreferences(): UserPreferences {
 		const data = readFileSync(getPreferencesPath(), 'utf-8');
 		return JSON.parse(data);
 	} catch (error) {
-		if (shouldLog('warn')) {
-			logError(`Failed to load preferences: ${error}`);
-		}
+		logError(`Failed to load preferences: ${error}`);
 	}
 	return {};
 }
@@ -30,9 +27,7 @@ export function savePreferences(preferences: UserPreferences): void {
 	try {
 		writeFileSync(getPreferencesPath(), JSON.stringify(preferences, null, 2));
 	} catch (error) {
-		if (shouldLog('warn')) {
-			logError(`Failed to save preferences: ${error}`);
-		}
+		logError(`Failed to save preferences: ${error}`);
 	}
 }
 

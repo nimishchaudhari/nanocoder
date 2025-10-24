@@ -2,7 +2,6 @@ import {readFileSync} from 'fs';
 import {join, dirname} from 'path';
 import {fileURLToPath} from 'url';
 import {loadPreferences, savePreferences} from '@/config/preferences';
-import {shouldLog} from '@/config/logging';
 import {logError} from '@/utils/message-queue';
 import type {NpmRegistryResponse, UpdateInfo} from '@/types/index';
 
@@ -47,9 +46,7 @@ function getCurrentVersion(): string {
 		const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
 		return packageJson.version;
 	} catch (error) {
-		if (shouldLog('warn')) {
-			logError(`Failed to read current version: ${error}`);
-		}
+		logError(`Failed to read current version: ${error}`);
 		return '0.0.0';
 	}
 }
@@ -79,9 +76,7 @@ async function fetchLatestVersion(): Promise<string | null> {
 		const data = (await response.json()) as NpmRegistryResponse;
 		return data.version;
 	} catch (error) {
-		if (shouldLog('warn')) {
-			logError(`Failed to fetch latest version: ${error}`);
-		}
+		logError(`Failed to fetch latest version: ${error}`);
 		return null;
 	}
 }
@@ -123,9 +118,7 @@ export async function checkForUpdates(): Promise<UpdateInfo> {
 				: undefined,
 		};
 	} catch (error) {
-		if (shouldLog('warn')) {
-			logError(`Update check failed: ${error}`);
-		}
+		logError(`Update check failed: ${error}`);
 
 		// Still update the timestamp to prevent hammering the API on repeated failures
 		updateLastCheckTime();

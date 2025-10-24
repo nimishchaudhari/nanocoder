@@ -12,12 +12,10 @@ import {
 import type {MCPInitResult, UserPreferences} from '@/types/index';
 import {setToolManagerGetter, setToolRegistryGetter} from '@/message-handler';
 import {commandRegistry} from '@/commands';
-import {shouldLog} from '@/config/logging';
 import {appConfig} from '@/config/index';
 import {
 	clearCommand,
 	commandsCommand,
-	debugCommand,
 	exitCommand,
 	exportCommand,
 	helpCommand,
@@ -115,7 +113,7 @@ export function useAppInitialization({
 			}
 		}
 
-		if (customCommands.length > 0 && shouldLog('info')) {
+		if (customCommands.length > 0) {
 			addToChatQueue(
 				<InfoMessage
 					key={`custom-commands-loaded-${componentKeyCounter}`}
@@ -265,7 +263,6 @@ export function useAppInitialization({
 				modelCommand,
 				providerCommand,
 				commandsCommand,
-				debugCommand,
 				mcpCommand,
 				initCommand,
 				themeCommand,

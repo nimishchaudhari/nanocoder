@@ -65,5 +65,3 @@ export interface UserPreferences {
 	selectedTheme?: ThemePreset;
 	trustedDirectories?: string[];
 }
-
-export type LogLevel = 'silent' | 'normal' | 'verbose';

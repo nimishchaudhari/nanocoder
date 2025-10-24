@@ -1,4 +1,3 @@
-import {shouldLog} from '@/config/logging';
 import {logError} from '@/utils/message-queue';
 
 // Expand environment variable references in a string
@@ -23,11 +22,9 @@ function expandEnvVar(str: string): string {
 				return defaultValue;
 			}
 
-			if (shouldLog('warn')) {
-				logError(
-					`Environment variable ${varName} not found in config, using empty string`,
-				);
-			}
+			logError(
+				`Environment variable ${varName} not found in config, using empty string`,
+			);
 
 			return '';
 		},
