@@ -37,7 +37,10 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 		}
 
 		try {
-			const parsed = JSON.parse(trimmedContent);
+			const parsed = JSON.parse(trimmedContent) as {
+				name?: string;
+				arguments?: Record<string, unknown>;
+			};
 
 			if (parsed.name && parsed.arguments !== undefined) {
 				const toolCall = {
@@ -50,7 +53,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 				extractedCalls.push(toolCall);
 				return extractedCalls;
 			}
-		} catch (e) {
+		} catch {
 			logError('Tool call failed to parse from JSON code block.');
 		}
 	}
@@ -61,7 +64,10 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 	let jsonMatch;
 	while ((jsonMatch = jsonBlockRegex.exec(content)) !== null) {
 		try {
-			const parsed = JSON.parse(jsonMatch[0]);
+			const parsed = JSON.parse(jsonMatch[0]) as {
+				name?: string;
+				arguments?: Record<string, unknown>;
+			};
 			if (parsed.name && parsed.arguments !== undefined) {
 				const toolCall = {
 					id: `call_${Date.now()}_${extractedCalls.length}`,
@@ -72,7 +78,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 				};
 				extractedCalls.push(toolCall);
 			}
-		} catch (e) {
+		} catch {
 			logError('Tool call failed to parse from JSON block.');
 		}
 	}
@@ -93,9 +99,9 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 		while ((match = pattern.exec(content)) !== null) {
 			const [, name, argsStr] = match;
 			try {
-				let args;
+				let args: Record<string, unknown> | string;
 				if (argsStr && argsStr.startsWith('{')) {
-					args = JSON.parse(argsStr || '{}');
+					args = JSON.parse(argsStr || '{}') as Record<string, unknown>;
 				} else {
 					args = argsStr || '';
 				}
@@ -103,10 +109,10 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 					id: `call_${Date.now()}_${extractedCalls.length}`,
 					function: {
 						name: name || '',
-						arguments: args as {[key: string]: any},
+						arguments: args as Record<string, unknown>,
 					},
 				});
-			} catch (e) {
+			} catch {
 				logError('Tool call failed to parse from content.');
 			}
 		}
@@ -131,8 +137,8 @@ function deduplicateToolCalls(toolCalls: ToolCall[]): ToolCall[] {
 		if (!seen.has(hash)) {
 			seen.add(hash);
 			unique.push(call);
-		} else {
 		}
+		// Else: duplicate, skip it
 	}
 
 	return unique;
@@ -161,17 +167,20 @@ export function cleanContentFromToolCalls(
 	const codeBlockRegex = /```(?:json)?\s*\n?([\s\S]*?)\n?```/g;
 	cleanedContent = cleanedContent.replace(
 		codeBlockRegex,
-		(match, blockContent) => {
+		(match, blockContent: string) => {
 			const trimmedBlock = blockContent.trim();
 
 			// Check if this block contains a tool call that we parsed
 			try {
-				const parsed = JSON.parse(trimmedBlock);
+				const parsed = JSON.parse(trimmedBlock) as {
+					name?: string;
+					arguments?: unknown;
+				};
 				if (parsed.name && parsed.arguments !== undefined) {
 					// This code block contains only a tool call, remove the entire block
 					return '';
 				}
-			} catch (e) {
+			} catch {
 				// Not valid JSON, keep the code block
 			}
 

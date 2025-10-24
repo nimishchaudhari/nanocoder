@@ -2,7 +2,7 @@ import type {ToolCall} from '@/types/index';
 
 interface ParsedToolCall {
 	toolName: string;
-	parameters: Record<string, any>;
+	parameters: Record<string, unknown>;
 }
 
 /**
@@ -54,8 +54,8 @@ export class XMLToolCallParser {
 	/**
 	 * Parses parameters from inner XML content
 	 */
-	private static parseParameters(innerXml: string): Record<string, any> {
-		const parameters: Record<string, any> = {};
+	private static parseParameters(innerXml: string): Record<string, unknown> {
+		const parameters: Record<string, unknown> = {};
 		let match;
 
 		// Reset regex state
@@ -66,7 +66,7 @@ export class XMLToolCallParser {
 
 			// Try to parse as JSON for complex objects/arrays
 			try {
-				parameters[paramName] = JSON.parse(paramValue);
+				parameters[paramName] = JSON.parse(paramValue) as unknown;
 			} catch {
 				// If not valid JSON, use as string
 				parameters[paramName] = paramValue;
@@ -98,7 +98,7 @@ export class XMLToolCallParser {
 		// Remove all markdown code blocks that contain XML tool calls (using global flag)
 		cleanedContent = cleanedContent.replace(
 			/```(?:\w+)?\s*\n?([\s\S]*?)\n?```/g,
-			(match, blockContent) => {
+			(match, blockContent: string) => {
 				if (blockContent) {
 					// Reset regex and check if this block contains XML tool calls
 					this.TOOL_CALL_REGEX.lastIndex = 0;
