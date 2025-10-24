@@ -1,6 +1,6 @@
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
-import type {Tool} from '@/types/index';
+import type {Tool, ToolParameterSchema} from '@/types/index';
 import {logInfo, logError} from '@/utils/message-queue';
 
 import type {MCPServer, MCPTool, MCPInitResult} from '@/types/index';
@@ -14,49 +14,44 @@ export class MCPClient {
 	constructor() {}
 
 	async connectToServer(server: MCPServer): Promise<void> {
-		try {
-			// Create transport for the server
-			const transport = new StdioClientTransport({
-				command: server.command,
-				args: server.args || [],
-				env: {
-					...server.env,
-					// Set log level environment variables that many servers respect
-					LOG_LEVEL: 'ERROR',
-					DEBUG: '0',
-					VERBOSE: '0',
-				},
-				stderr: 'ignore',
-			});
+		// Create transport for the server
+		const transport = new StdioClientTransport({
+			command: server.command,
+			args: server.args || [],
+			env: {
+				...server.env,
+				// Set log level environment variables that many servers respect
+				LOG_LEVEL: 'ERROR',
+				DEBUG: '0',
+				VERBOSE: '0',
+			},
+			stderr: 'ignore',
+		});
 
-			// Create and connect client
-			const client = new Client({
-				name: 'nanocoder-mcp-client',
-				version: '1.0.0',
-			});
+		// Create and connect client
+		const client = new Client({
+			name: 'nanocoder-mcp-client',
+			version: '1.0.0',
+		});
 
-			await client.connect(transport);
+		await client.connect(transport);
 
-			// Store client and transport
-			this.clients.set(server.name, client);
-			this.transports.set(server.name, transport);
+		// Store client and transport
+		this.clients.set(server.name, client);
+		this.transports.set(server.name, transport);
 
-			// List available tools from this server
-			const toolsResult = await client.listTools();
-			const tools: MCPTool[] = toolsResult.tools.map(tool => ({
-				name: tool.name,
-				description: tool.description || undefined,
-				inputSchema: tool.inputSchema,
-				serverName: server.name,
-			}));
+		// List available tools from this server
+		const toolsResult = await client.listTools();
+		const tools: MCPTool[] = toolsResult.tools.map(tool => ({
+			name: tool.name,
+			description: tool.description || undefined,
+			inputSchema: tool.inputSchema,
+			serverName: server.name,
+		}));
 
-			this.serverTools.set(server.name, tools);
+		this.serverTools.set(server.name, tools);
 
-			// Success - no console logging here, will be handled by app
-		} catch (error) {
-			// Error - no console logging here, will be handled by app
-			throw error;
-		}
+		// Success - no console logging here, will be handled by app
 	}
 
 	async connectToServers(
@@ -104,6 +99,14 @@ export class MCPClient {
 			for (const mcpTool of serverTools) {
 				// Convert MCP tool to nanocoder Tool format
 				// Use the original tool name for better model compatibility
+				const schema = mcpTool.inputSchema as
+					| {
+							type?: string;
+							properties?: Record<string, unknown>;
+							required?: string[];
+					}
+					| undefined;
+
 				const tool: Tool = {
 					type: 'function',
 					function: {
@@ -111,10 +114,13 @@ export class MCPClient {
 						description: mcpTool.description
 							? `[MCP:${serverName}] ${mcpTool.description}`
 							: `MCP tool from ${serverName}`,
-						parameters: mcpTool.inputSchema || {
+						parameters: {
 							type: 'object',
-							properties: {},
-							required: [],
+							properties: (schema?.properties || {}) as Record<
+								string,
+								ToolParameterSchema
+							>,
+							required: schema?.required || [],
 						},
 					},
 				};
@@ -143,7 +149,10 @@ export class MCPClient {
 		return mapping;
 	}
 
-	async callTool(toolName: string, args: Record<string, any>): Promise<string> {
+	async callTool(
+		toolName: string,
+		args: Record<string, unknown>,
+	): Promise<string> {
 		// First, try to find which server has this tool
 		const toolMapping = this.getToolMapping();
 		const mapping = toolMapping.get(toolName);
@@ -175,7 +184,7 @@ export class MCPClient {
 	private async executeToolCall(
 		client: Client,
 		toolName: string,
-		args: Record<string, any>,
+		args: Record<string, unknown>,
 	): Promise<string> {
 		try {
 			const result = await client.callTool({
@@ -189,17 +198,20 @@ export class MCPClient {
 				Array.isArray(result.content) &&
 				result.content.length > 0
 			) {
-				const content = result.content[0];
-				if (content.type === 'text') {
-					return content.text || '';
-				} else {
-					return JSON.stringify(content);
+				const content = result.content[0] as
+					| {type: 'text'; text?: string}
+					| Record<string, unknown>;
+				if ('type' in content && content.type === 'text') {
+					const textContent = content as {type: 'text'; text?: string};
+					return textContent.text || '';
 				}
+				return JSON.stringify(content);
 			}
 
 			return 'Tool executed successfully (no output)';
 		} catch (error) {
-			throw new Error(`MCP tool execution failed: ${error}`);
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			throw new Error(`MCP tool execution failed: ${errorMessage}`);
 		}
 	}
 
@@ -209,7 +221,8 @@ export class MCPClient {
 				await client.close();
 				logInfo(`Disconnected from MCP server: ${serverName}`);
 			} catch (error) {
-				logError(`Error disconnecting from ${serverName}: ${error}`);
+				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+				logError(`Error disconnecting from ${serverName}: ${errorMessage}`);
 			}
 		}
 

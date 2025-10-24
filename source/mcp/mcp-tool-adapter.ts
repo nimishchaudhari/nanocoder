@@ -16,12 +16,13 @@ export class MCPToolAdapter {
 	 * Creates a tool handler function for an MCP tool
 	 */
 	createToolHandler(toolName: string): ToolHandler {
-		return async (args: any) => {
+		return async (args: Record<string, unknown>) => {
 			try {
 				const result = await this.mcpClient.callTool(toolName, args);
 				return result;
 			} catch (error) {
-				return `Error executing MCP tool: ${error}`;
+				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+				return `Error executing MCP tool: ${errorMessage}`;
 			}
 		};
 	}

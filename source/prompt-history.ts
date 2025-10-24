@@ -19,7 +19,7 @@ class PromptHistory {
 			if (content.startsWith(JSON_FORMAT_MARKER)) {
 				// New JSON format with InputState objects
 				const jsonContent = content.slice(JSON_FORMAT_MARKER.length);
-				this.history = JSON.parse(jsonContent);
+				this.history = JSON.parse(jsonContent) as InputState[];
 			} else if (content.includes(ENTRY_SEPARATOR)) {
 				// Legacy format with separator - migrate to InputState
 				const stringEntries = content
@@ -60,7 +60,8 @@ class PromptHistory {
 			);
 		} catch (error) {
 			// Silently fail to avoid disrupting the user experience
-			logError(`Failed to save prompt history: ${error}`);
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			logError(`Failed to save prompt history: ${errorMessage}`);
 		}
 	}
 
@@ -98,7 +99,7 @@ class PromptHistory {
 		}
 
 		this.currentIndex = -1;
-		this.saveHistory(); // Fire and forget
+		void this.saveHistory(); // Fire and forget
 	}
 
 	getPrevious(): InputState | null {
