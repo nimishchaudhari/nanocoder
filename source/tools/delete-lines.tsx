@@ -4,7 +4,7 @@ import {readFile, writeFile, access} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {highlight} from 'cli-highlight';
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition} from '@/types/index';
+import type {ToolHandler, ToolDefinition, Colors} from '@/types/index';
 import {getColors} from '@/config/index';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import ToolMessage from '@/components/tool-message';
@@ -86,9 +86,9 @@ const DeleteLinesFormatter = React.memo(
 );
 
 async function formatDeleteLinesPreview(
-	args: any,
+	args: DeleteLinesArgs,
 	result?: string,
-	colors?: any,
+	colors?: Colors,
 ): Promise<React.ReactElement> {
 	const themeColors = colors || getColors();
 	const {path, line_number, end_line} = args;
@@ -111,9 +111,10 @@ async function formatDeleteLinesPreview(
 	const displayTitle = isResult ? '✓' : '⚒';
 
 	try {
-		const fileContent = await readFile(resolve(path), 'utf-8');
+		const absPath = resolve(path);
+		const fileContent = await readFile(absPath, 'utf-8');
 		const lines = fileContent.split('\n');
-		const ext = path.split('.').pop()?.toLowerCase();
+		const ext = path.split('.').pop()?.toLowerCase() ?? '';
 		const language = getLanguageFromExtension(ext);
 
 		// For results mode, show the same diff format as preview mode
@@ -351,7 +352,7 @@ async function formatDeleteLinesPreview(
 }
 
 const formatter = async (
-	args: any,
+	args: DeleteLinesArgs,
 	result?: string,
 ): Promise<React.ReactElement> => {
 	const colors = getColors();
@@ -368,16 +369,20 @@ const validator = async (
 	const absPath = resolve(path);
 	try {
 		await access(absPath, constants.F_OK);
-	} catch (error: any) {
-		if (error.code === 'ENOENT') {
-			return {
-				valid: false,
-				error: `⚒ File "${path}" does not exist`,
-			};
+	} catch (error) {
+		if (error && typeof error === 'object' && 'code' in error) {
+			if (error.code === 'ENOENT') {
+				return {
+					valid: false,
+					error: `⚒ File "${path}" does not exist`,
+				};
+			}
 		}
+		const errorMessage =
+			error instanceof Error ? error.message : String(error);
 		return {
 			valid: false,
-			error: `⚒ Cannot access file "${path}": ${error.message}`,
+			error: `⚒ Cannot access file "${path}": ${errorMessage}`,
 		};
 	}
 
@@ -415,10 +420,12 @@ const validator = async (
 				error: `⚒ End line ${endLine} is out of range (file has ${lines.length} lines)`,
 			};
 		}
-	} catch (error: any) {
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : String(error);
 		return {
 			valid: false,
-			error: `⚒ Error reading file: ${error.message}`,
+			error: `⚒ Error reading file: ${errorMessage}`,
 		};
 	}
 
