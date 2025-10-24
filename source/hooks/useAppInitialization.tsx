@@ -115,9 +115,9 @@ export function useAppInitialization({
 
 		if (customCommands.length > 0) {
 			addToChatQueue(
-				<InfoMessage
+				<SuccessMessage
 					key={`custom-commands-loaded-${componentKeyCounter}`}
-					message={`Loaded ${customCommands.length} custom commands from .nanocoder/commands`}
+					message={`Loaded ${customCommands.length} custom commands from .nanocoder/commands...`}
 					hideBox={true}
 				/>,
 			);

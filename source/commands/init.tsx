@@ -300,7 +300,9 @@ export const initCommand: Command = {
 			const analysisSummary = {
 				projectType: analysis.projectType,
 				primaryLanguage: analysis.languages.primary?.name || 'Unknown',
-				frameworks: analysis.dependencies.frameworks.map(f => f.name),
+				frameworks: analysis.dependencies.frameworks.map(
+					(f: {name: string}) => f.name,
+				),
 				totalFiles: analysis.structure.scannedFiles,
 			};
 

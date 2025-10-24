@@ -298,7 +298,9 @@ export class AgentsTemplateGenerator {
 					conventions.push('Prefer const/let over var');
 					conventions.push('Use async/await over callbacks when possible');
 					if (
-						analysis.dependencies.frameworks.some(f => f.name.includes('React'))
+						analysis.dependencies.frameworks.some((f: {name: string}) =>
+							f.name.includes('React'),
+						)
 					) {
 						conventions.push('Use functional components with hooks');
 						conventions.push('Follow React naming conventions for components');

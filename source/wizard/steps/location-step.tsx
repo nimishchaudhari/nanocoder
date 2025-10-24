@@ -122,7 +122,7 @@ export function LocationStep({
 			</Box>
 			{globalExists && !projectExists && (
 				<Box marginBottom={1} flexDirection="column">
-					<Text color="yellow">
+					<Text color={colors.warning}>
 						{isNarrow
 							? 'Note: Global config exists'
 							: 'Note: Global config exists at'}

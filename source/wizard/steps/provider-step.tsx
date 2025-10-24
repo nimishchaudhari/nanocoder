@@ -446,7 +446,7 @@ export function ProviderStep({
 
 				{error && (
 					<Box marginBottom={1}>
-						<Text color="red">{error}</Text>
+						<Text color={colors.error}>{error}</Text>
 					</Box>
 				)}
 

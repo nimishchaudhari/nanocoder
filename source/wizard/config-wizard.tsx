@@ -337,7 +337,7 @@ export function ConfigWizard({
 		>
 			{error && (
 				<Box marginBottom={1}>
-					<Text color="red">Error: {error}</Text>
+					<Text color={colors.error}>Error: {error}</Text>
 				</Box>
 			)}
 

@@ -23,7 +23,7 @@ interface BuildInfo {
 	startCommand?: string;
 }
 
-interface ProjectDependencies {
+export interface ProjectDependencies {
 	frameworks: FrameworkInfo[];
 	buildTools: string[];
 	testingFrameworks: string[];

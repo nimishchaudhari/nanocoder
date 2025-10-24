@@ -341,16 +341,16 @@ export class ProjectAnalyzer {
 	): string {
 		// Use framework-based detection first
 		const webFrameworks = dependencies.frameworks.filter(
-			f => f.category === 'web',
+			(f: {category: string}) => f.category === 'web',
 		);
 		const backendFrameworks = dependencies.frameworks.filter(
-			f => f.category === 'backend',
+			(f: {category: string}) => f.category === 'backend',
 		);
 		const mobileFrameworks = dependencies.frameworks.filter(
-			f => f.category === 'mobile',
+			(f: {category: string}) => f.category === 'mobile',
 		);
 		const desktopFrameworks = dependencies.frameworks.filter(
-			f => f.category === 'desktop',
+			(f: {category: string}) => f.category === 'desktop',
 		);
 
 		if (mobileFrameworks.length > 0) {
@@ -395,7 +395,9 @@ export class ProjectAnalyzer {
 					conventions.push('Use PascalCase for classes and components');
 					conventions.push('Use const/let instead of var');
 					if (
-						analysis.dependencies.frameworks.some(f => f.name.includes('React'))
+						analysis.dependencies.frameworks.some((f: {name: string}) =>
+							f.name.includes('React'),
+						)
 					) {
 						conventions.push('Use functional components with hooks');
 						conventions.push('Follow React naming conventions');
