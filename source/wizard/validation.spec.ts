@@ -103,12 +103,12 @@ test('validateConfig: errors when MCP server missing command', t => {
 		},
 	];
 
-	const mcpServers: Record<string, any> = {
+	const mcpServers = {
 		filesystem: {
 			name: 'filesystem',
 			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
 		},
-	};
+	} as unknown as Record<string, McpServerConfig>;
 
 	const result = validateConfig(providers, mcpServers);
 
@@ -126,9 +126,9 @@ test('validateConfig: errors when MCP server missing args', t => {
 		},
 	];
 
-	const mcpServers: Record<string, any> = {
+	const mcpServers = {
 		filesystem: {name: 'filesystem', command: 'npx'},
-	};
+	} as unknown as Record<string, McpServerConfig>;
 
 	const result = validateConfig(providers, mcpServers);
 
@@ -200,8 +200,8 @@ test('buildConfigObject: includes MCP servers when provided', t => {
 	const config = buildConfigObject(providers, mcpServers);
 
 	t.truthy(config.nanocoder.mcpServers);
-	t.truthy(config.nanocoder.mcpServers.filesystem);
-	t.is(config.nanocoder.mcpServers.filesystem.command, 'npx');
+	t.truthy(config.nanocoder.mcpServers?.filesystem);
+	t.is(config.nanocoder.mcpServers?.filesystem.command, 'npx');
 });
 
 test('buildConfigObject: includes apiKey when present', t => {
@@ -309,9 +309,9 @@ test('buildConfigObject: handles multiple MCP servers', t => {
 
 	const config = buildConfigObject(providers, mcpServers);
 
-	t.is(Object.keys(config.nanocoder.mcpServers).length, 2);
-	t.truthy(config.nanocoder.mcpServers.filesystem);
-	t.truthy(config.nanocoder.mcpServers.github);
+	t.is(Object.keys(config.nanocoder.mcpServers ?? {}).length, 2);
+	t.truthy(config.nanocoder.mcpServers?.filesystem);
+	t.truthy(config.nanocoder.mcpServers?.github);
 });
 
 // ============================================================================

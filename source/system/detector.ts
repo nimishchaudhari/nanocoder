@@ -132,9 +132,7 @@ export class SystemDetector {
 				}),
 			);
 
-			const successful = results.filter(
-				r => r.status === 'fulfilled',
-			) as PromiseFulfilledResult<number>[];
+			const successful = results.filter(r => r.status === 'fulfilled');
 
 			if (successful.length === 0) {
 				return {connected: false};

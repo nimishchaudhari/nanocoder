@@ -310,7 +310,7 @@ export class LangGraphClient implements LLMClient {
 					convertedMessage.tool_calls.length === 0) &&
 				convertedMessage.content
 			) {
-				const content = convertedMessage.content as string;
+				const content = convertedMessage.content;
 
 				if (XMLToolCallParser.hasToolCalls(content)) {
 					const parsedToolCalls = XMLToolCallParser.parseToolCalls(content);

@@ -127,17 +127,38 @@ export async function testProviderConnection(
 	}
 }
 
+interface ConfigObject {
+	nanocoder: {
+		providers: Array<{
+			name: string;
+			models: string[];
+			baseUrl?: string;
+			apiKey?: string;
+			organizationId?: string;
+			timeout?: number;
+		}>;
+		mcpServers?: Record<string, McpServerConfig>;
+	};
+}
+
 /**
  * Builds the final configuration object
  */
 export function buildConfigObject(
 	providers: ProviderConfig[],
 	mcpServers: Record<string, McpServerConfig>,
-): Record<string, any> {
-	const config: Record<string, any> = {
+): ConfigObject {
+	const config: ConfigObject = {
 		nanocoder: {
 			providers: providers.map(p => {
-				const providerConfig: Record<string, any> = {
+				const providerConfig: {
+					name: string;
+					models: string[];
+					baseUrl?: string;
+					apiKey?: string;
+					organizationId?: string;
+					timeout?: number;
+				} = {
 					name: p.name,
 					models: p.models,
 				};

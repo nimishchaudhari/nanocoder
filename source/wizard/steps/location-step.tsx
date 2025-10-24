@@ -105,7 +105,7 @@ export function LocationStep({
 				</Box>
 				<SelectInput
 					items={existingConfigOptions}
-					onSelect={handleExistingConfigSelect as any}
+					onSelect={(item: {value: string}) => handleExistingConfigSelect(item)}
 				/>
 			</Box>
 		);
@@ -132,7 +132,7 @@ export function LocationStep({
 			)}
 			<SelectInput
 				items={locationOptions}
-				onSelect={handleLocationSelect as any}
+				onSelect={(item: LocationOption) => handleLocationSelect(item)}
 			/>
 			{!isNarrow && (
 				<Box marginTop={1}>

@@ -326,7 +326,7 @@ export function McpStep({
 				)}
 				<SelectInput
 					items={templateOptions}
-					onSelect={handleTemplateSelect as any}
+					onSelect={(item: TemplateOption) => handleTemplateSelect(item)}
 				/>
 			</Box>
 		);
@@ -340,7 +340,10 @@ export function McpStep({
 						Select an MCP server to edit:
 					</Text>
 				</Box>
-				<SelectInput items={editOptions} onSelect={handleEditSelect as any} />
+				<SelectInput
+					items={editOptions}
+					onSelect={(item: TemplateOption) => handleEditSelect(item)}
+				/>
 			</Box>
 		);
 	}
@@ -362,7 +365,7 @@ export function McpStep({
 				</Box>
 				<SelectInput
 					items={editOrDeleteOptions}
-					onSelect={handleEditOrDeleteChoice as any}
+					onSelect={(item: {value: string}) => handleEditOrDeleteChoice(item)}
 				/>
 			</Box>
 		);

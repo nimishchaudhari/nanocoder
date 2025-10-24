@@ -70,7 +70,7 @@ function createDefaultConfFile(filePath: string, fileName: string): void {
 		// correct file and direct the user to configure them correctly,
 		if (!existsSync(join(filePath, fileName))) {
 			// Maybe add a better sample config?
-			let sampleConfig = {};
+			const sampleConfig = {};
 
 			mkdirSync(filePath, {recursive: true});
 			writeFileSync(

@@ -11,6 +11,7 @@ export default tseslint.config(
 	// TypeScript configuration with type-checking
 	{
 		files: ['source/**/*.ts', 'source/**/*.tsx'],
+		ignores: ['source/**/*.spec.ts', 'source/**/*.spec.tsx'],
 		extends: [...tseslint.configs.recommendedTypeChecked],
 		languageOptions: {
 			parser: tseslint.parser,
@@ -76,6 +77,6 @@ export default tseslint.config(
 
 	// Ignore patterns
 	{
-		ignores: ['dist/**', 'node_modules/**', '*.spec.ts', '*.spec.tsx'],
+		ignores: ['dist/**', 'node_modules/**'],
 	},
 );

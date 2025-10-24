@@ -324,7 +324,7 @@ export function ProviderStep({
 				)}
 				<SelectInput
 					items={initialOptions}
-					onSelect={handleInitialSelect as any}
+					onSelect={(item: {value: string}) => handleInitialSelect(item)}
 				/>
 			</Box>
 		);
@@ -347,7 +347,7 @@ export function ProviderStep({
 				)}
 				<SelectInput
 					items={templateOptions}
-					onSelect={handleTemplateSelect as any}
+					onSelect={(item: TemplateOption) => handleTemplateSelect(item)}
 				/>
 			</Box>
 		);
@@ -361,7 +361,10 @@ export function ProviderStep({
 						Select a provider to edit:
 					</Text>
 				</Box>
-				<SelectInput items={editOptions} onSelect={handleEditSelect as any} />
+				<SelectInput
+					items={editOptions}
+					onSelect={(item: TemplateOption) => handleEditSelect(item)}
+				/>
 			</Box>
 		);
 	}
@@ -382,7 +385,7 @@ export function ProviderStep({
 				</Box>
 				<SelectInput
 					items={editOrDeleteOptions}
-					onSelect={handleEditOrDeleteChoice as any}
+					onSelect={(item: {value: string}) => handleEditOrDeleteChoice(item)}
 				/>
 			</Box>
 		);
