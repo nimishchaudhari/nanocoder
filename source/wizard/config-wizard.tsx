@@ -49,10 +49,19 @@ export function ConfigWizard({
 
 	// Load existing config if editing
 	useEffect(() => {
-		if (configPath && existsSync(configPath)) {
+		if (!configPath || !existsSync(configPath)) {
+			return;
+		}
+
+		void (async () => {
 			try {
 				const configContent = readFileSync(configPath, 'utf-8');
-				const config = JSON.parse(configContent);
+				const config = JSON.parse(configContent) as {
+					nanocoder?: {
+						providers?: ProviderConfig[];
+						mcpServers?: Record<string, McpServerConfig>;
+					};
+				};
 
 				if (config.nanocoder?.providers) {
 					setProviders(config.nanocoder.providers);
@@ -64,7 +73,7 @@ export function ConfigWizard({
 			} catch (err) {
 				console.error('Failed to load existing config:', err);
 			}
-		}
+		})();
 	}, [configPath]);
 
 	const handleLocationComplete = (_location: ConfigLocation, path: string) => {
@@ -164,7 +173,12 @@ export function ConfigWizard({
 				// Reload the edited config
 				try {
 					const editedContent = readFileSync(configPath, 'utf-8');
-					const editedConfig = JSON.parse(editedContent);
+					const editedConfig = JSON.parse(editedContent) as {
+						nanocoder?: {
+							providers?: ProviderConfig[];
+							mcpServers?: Record<string, McpServerConfig>;
+						};
+					};
 
 					// Update state with edited values
 					if (editedConfig.nanocoder) {
