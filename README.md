@@ -296,7 +296,6 @@ Nanocoder automatically saves your preferences to remember your choices across s
 - `/status` - Display current status (CWD, provider, model, theme, available updates, AGENTS setup)
 - `/recommendations` - Get AI model recommendations based on your system capabilities (RAM, GPU, network)
 - `/mcp` - Show connected MCP servers and their tools
-- `/debug` - Toggle logging levels (silent/normal/verbose)
 - `/custom-commands` - List all custom commands
 - `/exit` - Exit the application
 - `/export` - Export current session to markdown file
@@ -347,7 +346,7 @@ Generate comprehensive unit tests for {{component}}. Include:
 
 ## Features
 
-### 🔌 Multi-Provider Support
+### Multi-Provider Support
 
 - **Universal OpenAI compatibility**: Works with any OpenAI-compatible API
 - **Local providers**: Ollama, LM Studio, vLLM, LocalAI, llama.cpp
@@ -356,14 +355,14 @@ Generate comprehensive unit tests for {{component}}. Include:
 - **Per-provider preferences**: Remembers your preferred model for each provider
 - **Dynamic configuration**: Add any provider with just a name and endpoint
 
-### 🛠️ Advanced Tool System
+### Advanced Tool System
 
 - **Built-in tools**: File operations, bash command execution
 - **MCP (Model Context Protocol) servers**: Extend capabilities with any MCP-compatible tool
 - **Dynamic tool loading**: Tools are loaded on-demand from configured MCP servers
 - **Tool approval**: Optional confirmation before executing potentially destructive operations
 
-### 📝 Custom Command System
+### Custom Command System
 
 - **Markdown-based commands**: Define reusable prompts in `.nanocoder/commands/`
 - **Template variables**: Use `{{parameter}}` syntax for dynamic content
@@ -371,10 +370,9 @@ Generate comprehensive unit tests for {{component}}. Include:
 - **Autocomplete support**: Tab completion for command discovery
 - **Rich metadata**: YAML frontmatter for descriptions, aliases, and parameters
 
-### 🎯 Enhanced User Experience
+### Enhanced User Experience
 
 - **Smart autocomplete**: Tab completion for commands with real-time suggestions
-- **Configurable logging**: Silent, normal, or verbose output levels
 - **Colorized output**: Syntax highlighting and structured display
 - **Session persistence**: Maintains context and preferences across sessions
 - **Real-time indicators**: Shows token usage, timing, and processing status
@@ -384,12 +382,11 @@ Generate comprehensive unit tests for {{component}}. Include:
   - **Auto-accept mode**: Automatically accepts all tool calls without confirmation for faster workflows
   - **Plan mode**: AI suggests actions but doesn't execute tools - useful for planning and exploration
 
-### ⚙️ Developer Features
+### Developer Features
 
 - **TypeScript-first**: Full type safety and IntelliSense support
 - **Extensible architecture**: Plugin-style system for adding new capabilities
 - **Project-specific config**: Different settings per project via `agents.config.json`
-- **Debug tools**: Built-in debugging commands and verbose logging
 - **Error resilience**: Graceful handling of provider failures and network issues
 
 ## Community
