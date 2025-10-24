@@ -34,12 +34,12 @@
 		"build": "tsc && tsc-alias && chmod +x dist/cli.js",
 		"dev": "tsc --watch",
 		"start": "node dist/cli.js",
-		"test:all": "pnpm format && pnpm test:format && pnpm test:ava && pnpm test:knip",
+		"test:all": "pnpm test:format && pnpm test:ava && pnpm test:knip",
 		"test:ava": "ava",
 		"test:format": "prettier --check .",
+		"test:knip": "knip",
 		"format": "prettier --write .",
-		"prepublishOnly": "npm run build",
-		"test:knip": "knip"
+		"prepublishOnly": "npm run build"
 	},
 	"files": [
 		"dist",
