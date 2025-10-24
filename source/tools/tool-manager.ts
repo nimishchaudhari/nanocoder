@@ -1,5 +1,11 @@
 import React from 'react';
-import type {Tool, ToolHandler, MCPInitResult} from '@/types/index';
+import type {
+	Tool,
+	ToolHandler,
+	MCPInitResult,
+	MCPServer,
+	MCPTool,
+} from '@/types/index';
 import {
 	tools as staticTools,
 	toolRegistry as staticToolRegistry,
@@ -9,6 +15,21 @@ import {
 import {MCPClient} from '@/mcp/mcp-client';
 import {MCPToolAdapter} from '@/mcp/mcp-tool-adapter';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ToolFormatter = (
+	args: any,
+	result?: string,
+) =>
+	| string
+	| Promise<string>
+	| React.ReactElement
+	| Promise<React.ReactElement>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ToolValidator = (
+	args: any,
+) => Promise<{valid: true} | {valid: false; error: string}>;
+
 /**
  * Manages both static tools and dynamic MCP tools
  */
@@ -16,20 +37,8 @@ export class ToolManager {
 	private mcpClient: MCPClient | null = null;
 	private mcpAdapter: MCPToolAdapter | null = null;
 	private toolRegistry: Record<string, ToolHandler> = {};
-	private toolFormatters: Record<
-		string,
-		(
-			args: any,
-		) =>
-			| string
-			| Promise<string>
-			| React.ReactElement
-			| Promise<React.ReactElement>
-	> = {};
-	private toolValidators: Record<
-		string,
-		(args: any) => Promise<{valid: true} | {valid: false; error: string}>
-	> = {};
+	private toolFormatters: Record<string, ToolFormatter> = {};
+	private toolValidators: Record<string, ToolValidator> = {};
 	private allTools: Tool[] = [];
 
 	constructor() {
@@ -41,7 +50,7 @@ export class ToolManager {
 	}
 
 	async initializeMCP(
-		servers: any[],
+		servers: MCPServer[],
 		onProgress?: (result: MCPInitResult) => void,
 	): Promise<MCPInitResult[]> {
 		if (servers && servers.length > 0) {
@@ -89,29 +98,14 @@ export class ToolManager {
 	/**
 	 * Get a specific tool formatter
 	 */
-	getToolFormatter(
-		toolName: string,
-	):
-		| ((
-				args: any,
-				result?: string,
-		  ) =>
-				| string
-				| Promise<string>
-				| React.ReactElement
-				| Promise<React.ReactElement>)
-		| undefined {
+	getToolFormatter(toolName: string): ToolFormatter | undefined {
 		return this.toolFormatters[toolName];
 	}
 
 	/**
 	 * Get a specific tool validator
 	 */
-	getToolValidator(
-		toolName: string,
-	):
-		| ((args: any) => Promise<{valid: true} | {valid: false; error: string}>)
-		| undefined {
+	getToolValidator(toolName: string): ToolValidator | undefined {
 		return this.toolValidators[toolName];
 	}
 
@@ -171,7 +165,7 @@ export class ToolManager {
 	/**
 	 * Get tools for a specific MCP server
 	 */
-	getServerTools(serverName: string): any[] {
+	getServerTools(serverName: string): MCPTool[] {
 		return this.mcpClient?.getServerTools(serverName) || [];
 	}
 }

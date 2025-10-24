@@ -1,4 +1,3 @@
-import {relative} from 'node:path';
 import {exec} from 'node:child_process';
 import {promisify} from 'node:util';
 import React from 'react';
@@ -29,7 +28,7 @@ async function searchFiles(
 	query: string,
 	cwd: string,
 	maxResults: number,
-	contextLines: number,
+	_contextLines: number,
 ): Promise<SearchResult> {
 	try {
 		// Use grep for content search
@@ -60,9 +59,9 @@ async function searchFiles(
 			truncated: lines.length >= maxResults,
 			totalMatches: matches.length,
 		};
-	} catch (error: any) {
+	} catch (error: unknown) {
 		// grep returns exit code 1 when no matches found
-		if (error.code === 1) {
+		if (error instanceof Error && 'code' in error && error.code === 1) {
 			return {matches: [], truncated: false, totalMatches: 0};
 		}
 		throw error;
@@ -113,8 +112,8 @@ async function listFiles(
 			truncated: matches.length >= maxResults,
 			totalMatches: matches.length,
 		};
-	} catch (error: any) {
-		if (error.code === 1) {
+	} catch (error: unknown) {
+		if (error instanceof Error && 'code' in error && error.code === 1) {
 			return {matches: [], truncated: false, totalMatches: 0};
 		}
 		throw error;
@@ -179,14 +178,29 @@ const handler: ToolHandler = async (args: {
 		} else {
 			throw new Error('Either "query" or "pattern" must be provided');
 		}
-	} catch (error: any) {
-		throw new Error(`Search failed: ${error.message}`);
+	} catch (error: unknown) {
+		const errorMessage =
+			error instanceof Error ? error.message : 'Unknown error';
+		throw new Error(`Search failed: ${errorMessage}`);
 	}
 };
 
+interface SearchFilesFormatterProps {
+	args: {
+		query?: string;
+		pattern?: string;
+		maxResults?: number;
+	};
+	result?: string;
+}
+
 const SearchFilesFormatter = React.memo(
-	({args, result}: {args: any; result?: string}) => {
-		const {colors} = React.useContext(ThemeContext)!;
+	({args, result}: SearchFilesFormatterProps) => {
+		const themeContext = React.useContext(ThemeContext);
+		if (!themeContext) {
+			throw new Error('ThemeContext not found');
+		}
+		const {colors} = themeContext;
 
 		// Parse result to get match count
 		let matchCount = 0;
@@ -227,10 +241,10 @@ const SearchFilesFormatter = React.memo(
 	},
 );
 
-const formatter = async (
-	args: any,
+const formatter = (
+	args: SearchFilesFormatterProps['args'],
 	result?: string,
-): Promise<React.ReactElement> => {
+): React.ReactElement => {
 	if (result && result.startsWith('Error:')) {
 		return <></>;
 	}

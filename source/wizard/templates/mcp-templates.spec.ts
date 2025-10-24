@@ -166,7 +166,14 @@ test('custom template: multiple space-separated args', t => {
 
 	t.is(config.name, 'my-server');
 	t.is(config.command, 'python');
-	t.deepEqual(config.args, ['-m', 'server', '--port', '8000', '--host', 'localhost']);
+	t.deepEqual(config.args, [
+		'-m',
+		'server',
+		'--port',
+		'8000',
+		'--host',
+		'localhost',
+	]);
 });
 
 test('custom template: handles extra whitespace in args', t => {

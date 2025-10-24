@@ -155,28 +155,28 @@ const formatter = (args: SearchArgs, result?: string): React.ReactElement => {
 	return <WebSearchFormatter args={args} result={result} />;
 };
 
-const validator = async (
+const validator = (
 	args: SearchArgs,
 ): Promise<{valid: true} | {valid: false; error: string}> => {
 	const query = args.query?.trim();
 
 	// Check if query is empty
 	if (!query) {
-		return {
+		return Promise.resolve({
 			valid: false,
 			error: '⚒ Search query cannot be empty',
-		};
+		});
 	}
 
 	// Check query length (reasonable limit)
 	if (query.length > 500) {
-		return {
+		return Promise.resolve({
 			valid: false,
 			error: `⚒ Search query is too long (${query.length} characters). Maximum length is 500 characters.`,
-		};
+		});
 	}
 
-	return {valid: true};
+	return Promise.resolve({valid: true});
 };
 
 export const webSearchTool: ToolDefinition = {

@@ -144,7 +144,7 @@ export function McpStep({
 						// Args format: ['-y', '@modelcontextprotocol/server-filesystem', '/path1', '/path2', ...]
 						// Extract everything after the package name
 						const packageIndex = server.args.findIndex(arg =>
-							arg.includes('@modelcontextprotocol/server-filesystem')
+							arg.includes('@modelcontextprotocol/server-filesystem'),
 						);
 						if (packageIndex !== -1) {
 							const dirs = server.args.slice(packageIndex + 1);
