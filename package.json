@@ -39,10 +39,9 @@
 		"test:format": "prettier --check .",
 		"test:types": "tsc --noEmit",
 		"test:lint": "eslint .",
+		"test:lint:fix": "eslint . --fix",
 		"test:knip": "knip",
 		"format": "prettier --write .",
-		"lint": "eslint .",
-		"lint:fix": "eslint . --fix",
 		"prepublishOnly": "npm run build"
 	},
 	"files": [
