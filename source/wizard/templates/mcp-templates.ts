@@ -35,7 +35,10 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			args: [
 				'-y',
 				'@modelcontextprotocol/server-filesystem',
-				...answers.allowedDirs.split(',').map(d => d.trim()),
+				...answers.allowedDirs
+					.split(',')
+					.map(d => d.trim())
+					.filter(Boolean),
 			],
 		}),
 	},
@@ -162,7 +165,10 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 				name: answers.serverName,
 				command: answers.command,
 				args: answers.args
-					? answers.args.split(' ').map(arg => arg.trim())
+					? answers.args
+							.split(' ')
+							.map(arg => arg.trim())
+							.filter(Boolean)
 					: [],
 			};
 

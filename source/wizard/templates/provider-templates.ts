@@ -45,7 +45,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 			{
 				name: 'model',
-				prompt: 'Model name',
+				prompt: 'Model name(s) (comma-separated)',
 				default: '',
 				required: true,
 			},
@@ -53,7 +53,10 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		buildConfig: answers => ({
 			name: answers.providerName || 'ollama',
 			baseUrl: answers.baseUrl || 'http://localhost:11434/v1',
-			models: [answers.model],
+			models: answers.model
+				.split(',')
+				.map(m => m.trim())
+				.filter(Boolean),
 		}),
 	},
 	{
@@ -74,7 +77,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 			{
 				name: 'model',
-				prompt: 'Model name',
+				prompt: 'Model name(s) (comma-separated)',
 				default: '',
 				required: true,
 			},
@@ -82,7 +85,10 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		buildConfig: answers => ({
 			name: answers.providerName || 'llama-cpp',
 			baseUrl: answers.baseUrl || 'http://localhost:8080/v1',
-			models: [answers.model],
+			models: answers.model
+				.split(',')
+				.map(m => m.trim())
+				.filter(Boolean),
 		}),
 	},
 	{
@@ -103,7 +109,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 			{
 				name: 'model',
-				prompt: 'Model name',
+				prompt: 'Model name(s) (comma-separated)',
 				default: '',
 				required: true,
 			},
@@ -111,7 +117,10 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		buildConfig: answers => ({
 			name: answers.providerName || 'lmstudio',
 			baseUrl: answers.baseUrl || 'http://localhost:1234/v1',
-			models: [answers.model],
+			models: answers.model
+				.split(',')
+				.map(m => m.trim())
+				.filter(Boolean),
 		}),
 	},
 	{
@@ -126,7 +135,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 			{
 				name: 'model',
-				prompt: 'Model name',
+				prompt: 'Model name(s) (comma-separated)',
 				default: 'z-ai/glm-4.6',
 				required: true,
 			},
@@ -140,7 +149,10 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			name: answers.providerName || 'openrouter',
 			baseUrl: 'https://openrouter.ai/api/v1',
 			apiKey: answers.apiKey,
-			models: [answers.model],
+			models: answers.model
+				.split(',')
+				.map(m => m.trim())
+				.filter(Boolean),
 		}),
 	},
 	{
@@ -155,7 +167,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 			{
 				name: 'model',
-				prompt: 'Model name',
+				prompt: 'Model name(s) (comma-separated)',
 				default: 'gpt-5-codex',
 				required: true,
 			},
@@ -175,7 +187,10 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 				name: answers.providerName || 'openai',
 				baseUrl: 'https://api.openai.com/v1',
 				apiKey: answers.apiKey,
-				models: [answers.model],
+				models: answers.model
+					.split(',')
+					.map(m => m.trim())
+					.filter(Boolean),
 			};
 			if (answers.organizationId) {
 				config.organizationId = answers.organizationId;
@@ -195,7 +210,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 			{
 				name: 'model',
-				prompt: 'Model name',
+				prompt: 'Model name(s) (comma-separated)',
 				default: 'claude-4-sonnet',
 				required: true,
 			},
@@ -209,7 +224,10 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			name: answers.providerName || 'anthropic',
 			baseUrl: 'https://api.anthropic.com/v1',
 			apiKey: answers.apiKey,
-			models: [answers.model],
+			models: answers.model
+				.split(',')
+				.map(m => m.trim())
+				.filter(Boolean),
 		}),
 	},
 	{
@@ -230,7 +248,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 			{
 				name: 'model',
-				prompt: 'Model name',
+				prompt: 'Model name(s) (comma-separated)',
 				default: 'glm-4.6',
 				required: true,
 			},
@@ -239,7 +257,10 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			name: answers.providerName || 'Z.ai',
 			baseUrl: 'https://api.z.ai/api/paas/v4/',
 			apiKey: answers.apiKey,
-			models: [answers.model],
+			models: answers.model
+				.split(',')
+				.map(m => m.trim())
+				.filter(Boolean),
 		}),
 	},
 	{
@@ -260,7 +281,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 			{
 				name: 'model',
-				prompt: 'Model name',
+				prompt: 'Model name(s) (comma-separated)',
 				default: 'glm-4.6',
 				required: true,
 			},
@@ -269,7 +290,10 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			name: answers.providerName || 'Z.ai Coding Subscription',
 			baseUrl: 'https://api.z.ai/api/coding/paas/v4/',
 			apiKey: answers.apiKey,
-			models: [answers.model],
+			models: answers.model
+				.split(',')
+				.map(m => m.trim())
+				.filter(Boolean),
 		}),
 	},
 	{
@@ -295,7 +319,7 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			},
 			{
 				name: 'model',
-				prompt: 'Model name',
+				prompt: 'Model name(s) (comma-separated)',
 				required: true,
 			},
 			{
@@ -316,7 +340,10 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			const config: ProviderConfig = {
 				name: answers.providerName,
 				baseUrl: answers.baseUrl,
-				models: [answers.model],
+				models: answers.model
+					.split(',')
+					.map(m => m.trim())
+					.filter(Boolean),
 			};
 			if (answers.apiKey) {
 				config.apiKey = answers.apiKey;

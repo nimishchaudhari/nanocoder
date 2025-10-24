@@ -138,7 +138,23 @@ export function McpStep({
 					const answers: Record<string, string> = {};
 					if (server.name) answers.name = server.name;
 					if (server.command) answers.command = server.command;
-					if (server.args) answers.args = server.args.join(' ');
+
+					// Special handling for filesystem server - extract allowed directories
+					if (template.id === 'filesystem' && server.args) {
+						// Args format: ['-y', '@modelcontextprotocol/server-filesystem', '/path1', '/path2', ...]
+						// Extract everything after the package name
+						const packageIndex = server.args.findIndex(arg =>
+							arg.includes('@modelcontextprotocol/server-filesystem')
+						);
+						if (packageIndex !== -1) {
+							const dirs = server.args.slice(packageIndex + 1);
+							answers.allowedDirs = dirs.join(', ');
+						}
+					} else if (server.args) {
+						// For other templates, join with space
+						answers.args = server.args.join(' ');
+					}
+
 					if (server.env) {
 						answers.envVars = Object.entries(server.env)
 							.map(([key, value]) => `${key}=${value}`)
