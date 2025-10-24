@@ -47,18 +47,23 @@ const handler: ToolHandler = async (args: FetchArgs): Promise<string> => {
 		}
 
 		return content;
-	} catch (error: any) {
-		if (error.name === 'AbortError') {
+	} catch (error: unknown) {
+		if (error instanceof Error && error.name === 'AbortError') {
 			throw new Error(`Request timeout: URL took too long to fetch (>15s)`);
 		}
-		throw new Error(`Failed to fetch URL: ${error.message}`);
+		const message = error instanceof Error ? error.message : 'Unknown error';
+		throw new Error(`Failed to fetch URL: ${message}`);
 	}
 };
 
 // Create a component that will re-render when theme changes
 const FetchUrlFormatter = React.memo(
-	({args, result}: {args: any; result?: string}) => {
-		const {colors} = React.useContext(ThemeContext)!;
+	({args, result}: {args: FetchArgs; result?: string}) => {
+		const theme = React.useContext(ThemeContext);
+		if (!theme) {
+			throw new Error('ThemeContext not found');
+		}
+		const {colors} = theme;
 		const url = args.url || 'unknown';
 
 		// Calculate content stats from result
@@ -107,14 +112,14 @@ const FetchUrlFormatter = React.memo(
 	},
 );
 
-const formatter = async (
-	args: any,
+const formatter = (
+	args: FetchArgs,
 	result?: string,
 ): Promise<React.ReactElement> => {
-	return <FetchUrlFormatter args={args} result={result} />;
+	return Promise.resolve(<FetchUrlFormatter args={args} result={result} />);
 };
 
-const validator = async (
+const validator = (
 	args: FetchArgs,
 ): Promise<{valid: true} | {valid: false; error: string}> => {
 	// Validate URL format
@@ -123,10 +128,10 @@ const validator = async (
 
 		// Check for valid protocol
 		if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-			return {
+			return Promise.resolve({
 				valid: false,
 				error: `Invalid URL protocol "${parsedUrl.protocol}". Only http: and https: are supported.`,
-			};
+			});
 		}
 
 		// Check for localhost/internal IPs (security consideration)
@@ -139,18 +144,18 @@ const validator = async (
 			hostname.startsWith('10.') ||
 			hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)
 		) {
-			return {
+			return Promise.resolve({
 				valid: false,
 				error: `⚒ Cannot fetch from internal/private network address: ${hostname}`,
-			};
+			});
 		}
 
-		return {valid: true};
-	} catch (error: any) {
-		return {
+		return Promise.resolve({valid: true});
+	} catch {
+		return Promise.resolve({
 			valid: false,
 			error: `⚒ Invalid URL format: ${args.url}`,
-		};
+		});
 	}
 };
 

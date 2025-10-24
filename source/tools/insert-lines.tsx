@@ -332,8 +332,7 @@ const validator = async (
 				error: `⚒ File "${path}" does not exist`,
 			};
 		}
-		const errorMessage =
-			error instanceof Error ? error.message : String(error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		return {
 			valid: false,
 			error: `⚒ Cannot access file "${path}": ${errorMessage}`,
@@ -362,8 +361,7 @@ const validator = async (
 			};
 		}
 	} catch (error: unknown) {
-		const errorMessage =
-			error instanceof Error ? error.message : String(error);
+		const errorMessage = error instanceof Error ? error.message : String(error);
 		return {
 			valid: false,
 			error: `⚒ Error reading file: ${errorMessage}`,
