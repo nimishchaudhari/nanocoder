@@ -14,11 +14,11 @@ const handler: ToolHandler = async (args: {
 		let stdout = '';
 		let stderr = '';
 
-		proc.stdout.on('data', data => {
+		proc.stdout.on('data', (data: Buffer) => {
 			stdout += data.toString();
 		});
 
-		proc.stderr.on('data', data => {
+		proc.stderr.on('data', (data: Buffer) => {
 			stderr += data.toString();
 		});
 
@@ -54,26 +54,32 @@ ${stdout}`;
 
 // Create a component that will re-render when theme changes
 const ExecuteBashFormatter = React.memo(
-	({args, result}: {args: any; result?: string}) => {
-		const {colors} = React.useContext(ThemeContext)!;
+	({args, result}: {args: {command: string}; result?: string}) => {
+		const themeContext = React.useContext(ThemeContext);
+		if (!themeContext) {
+			throw new Error('ThemeContext is required');
+		}
+		const {colors} = themeContext;
 		const command = args.command || 'unknown';
 
-		let highlightedCommand;
 		try {
-			highlightedCommand = highlight(command, {
+			highlight(command, {
 				language: 'bash',
 				theme: 'default',
 			});
 		} catch {
-			highlightedCommand = command;
+			// Syntax highlighting failed, will use plain command
 		}
 
 		// Parse the result if it's a JSON string
 		let parsedResult: {fullOutput: string; llmContext: string} | null = null;
 		if (result) {
 			try {
-				parsedResult = JSON.parse(result);
-			} catch (e) {
+				parsedResult = JSON.parse(result) as {
+					fullOutput: string;
+					llmContext: string;
+				};
+			} catch {
 				// If parsing fails, treat as plain string
 				parsedResult = {
 					fullOutput: result,
@@ -117,24 +123,24 @@ const ExecuteBashFormatter = React.memo(
 	},
 );
 
-const formatter = async (
-	args: any,
+const formatter = (
+	args: {command: string},
 	result?: string,
-): Promise<React.ReactElement> => {
+): React.ReactElement => {
 	return <ExecuteBashFormatter args={args} result={result} />;
 };
 
-const validator = async (args: {
+const validator = (args: {
 	command: string;
 }): Promise<{valid: true} | {valid: false; error: string}> => {
 	const command = args.command?.trim();
 
 	// Check if command is empty
 	if (!command) {
-		return {
+		return Promise.resolve({
 			valid: false,
 			error: '⚒ Command cannot be empty',
-		};
+		});
 	}
 
 	// Check for extremely dangerous commands
@@ -149,14 +155,14 @@ const validator = async (args: {
 
 	for (const pattern of dangerousPatterns) {
 		if (pattern.test(command)) {
-			return {
+			return Promise.resolve({
 				valid: false,
 				error: `⚒ Command contains potentially destructive operation: "${command}". This command is blocked for safety.`,
-			};
+			});
 		}
 	}
 
-	return {valid: true};
+	return Promise.resolve({valid: true});
 };
 
 export const executeBashTool: ToolDefinition = {
