@@ -12,7 +12,7 @@ function createEmptyInputState(): InputState {
 	};
 }
 
-function createInputStateFromString(text: string): InputState {
+function _createInputStateFromString(text: string): InputState {
 	// Convert old string-based history to new InputState format
 	return {
 		displayValue: text,

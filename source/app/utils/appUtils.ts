@@ -52,7 +52,7 @@ export async function handleMessageSubmission(
 			let result: {fullOutput: string; llmContext: string};
 			try {
 				result = JSON.parse(resultString);
-			} catch (e) {
+			} catch (_e) {
 				// If parsing fails, treat as plain string
 				result = {
 					fullOutput: resultString,

@@ -8,9 +8,9 @@ import {Text} from 'ink';
 export const setupConfigCommand: Command = {
 	name: 'setup-config',
 	description: 'Launch interactive configuration wizard',
-	handler: async () => {
+	handler: () => {
 		// This handler is never called - the command is intercepted in appUtils.ts
 		// and handled via the mode system (onEnterConfigWizardMode)
-		return React.createElement(Text, {}, '');
+		return Promise.resolve(React.createElement(Text, {}, ''));
 	},
 };

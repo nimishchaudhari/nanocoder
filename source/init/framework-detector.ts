@@ -156,7 +156,7 @@ export class FrameworkDetector {
 					}
 				}
 			}
-		} catch (error) {
+		} catch (_error) {
 			// Ignore parsing errors
 		}
 	}
@@ -184,7 +184,7 @@ export class FrameworkDetector {
 					result.frameworks.push(framework);
 				}
 			}
-		} catch (error) {
+		} catch (_error) {
 			// Ignore parsing errors
 		}
 	}
@@ -244,7 +244,7 @@ export class FrameworkDetector {
 					confidence: 'high',
 				});
 			}
-		} catch (error) {
+		} catch (_error) {
 			// Ignore parsing errors
 		}
 	}
@@ -284,7 +284,7 @@ export class FrameworkDetector {
 					confidence: 'high',
 				});
 			}
-		} catch (error) {
+		} catch (_error) {
 			// Ignore parsing errors
 		}
 	}

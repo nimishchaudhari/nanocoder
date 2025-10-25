@@ -46,8 +46,8 @@ export function useToolHandler({
 	componentKeyCounter,
 	resetToolConfirmationState,
 	onProcessAssistantResponse,
-	client,
-	currentProvider,
+	client: _client,
+	currentProvider: _currentProvider,
 	setDevelopmentMode,
 }: UseToolHandlerProps) {
 	// Display tool result with proper formatting

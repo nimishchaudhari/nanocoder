@@ -59,7 +59,7 @@ export function useAppInitialization({
 	setToolManager,
 	setCustomCommandLoader,
 	setCustomCommandExecutor,
-	setCustomCommandCache,
+	setCustomCommandCache: _setCustomCommandCache,
 	setStartChat,
 	setMcpInitialized,
 	setUpdateInfo,

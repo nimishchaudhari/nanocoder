@@ -1,7 +1,7 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
+import {TitledBox as _TitledBox, titleStyles as _titleStyles} from '@mishieck/ink-titled-box';
 import {useTheme} from '@/hooks/useTheme';
 import type {ToolCall} from '@/types/core';
 import {toolFormatters} from '@/tools/index';
@@ -91,7 +91,7 @@ export default function ToolConfirmation({
 					if (typeof parsedArgs === 'string') {
 						try {
 							parsedArgs = JSON.parse(parsedArgs);
-						} catch (e) {
+						} catch (_e) {
 							// If parsing fails, use as-is
 						}
 					}

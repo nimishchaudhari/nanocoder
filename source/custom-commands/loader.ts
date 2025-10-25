@@ -18,7 +18,7 @@ export class CustomCommandLoader {
 	/**
 	 * Load all custom commands from the .nanocoder/commands directory
 	 */
-	async loadCommands(): Promise<void> {
+	loadCommands(): void {
 		this.commands.clear();
 		this.aliases.clear();
 

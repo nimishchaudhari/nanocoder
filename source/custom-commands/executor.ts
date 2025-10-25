@@ -5,7 +5,7 @@ export class CustomCommandExecutor {
 	/**
 	 * Execute a custom command with given arguments
 	 */
-	async execute(command: CustomCommand, args: string[]): Promise<string> {
+	execute(command: CustomCommand, args: string[]): string {
 		// Build template variables from parameters and arguments
 		const variables: Record<string, string> = {};
 

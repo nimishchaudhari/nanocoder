@@ -213,7 +213,7 @@ export const initCommand: Command = {
 	name: 'init',
 	description:
 		'Initialize nanocoder configuration and analyze project structure',
-	handler: async (_args: string[], _messages, _metadata) => {
+	handler: (_args: string[], _messages, _metadata) => {
 		const cwd = process.cwd();
 		const created: string[] = [];
 
@@ -229,11 +229,11 @@ export const initCommand: Command = {
 			const hasNanocoder = existsSync(nanocoderDir);
 
 			if (hasConfig && hasAgents && hasNanocoder) {
-				return React.createElement(InitError, {
+				return Promise.resolve(React.createElement(InitError, {
 					key: `init-error-${Date.now()}`,
 					message:
 						'Project already fully initialized. Found agents.config.json, AGENTS.md, and .nanocoder/ directory.',
-				});
+				}));
 			}
 
 			// Show progress indicator for analysis
@@ -306,16 +306,16 @@ export const initCommand: Command = {
 				totalFiles: analysis.structure.scannedFiles,
 			};
 
-			return React.createElement(InitSuccess, {
+			return Promise.resolve(React.createElement(InitSuccess, {
 				key: `init-success-${Date.now()}`,
 				created,
 				analysis: analysisSummary,
-			});
+			}));
 		} catch (error: any) {
-			return React.createElement(InitError, {
+			return Promise.resolve(React.createElement(InitError, {
 				key: `init-error-${Date.now()}`,
 				message: `Failed to initialize project: ${error.message}`,
-			});
+			}));
 		}
 	},
 };

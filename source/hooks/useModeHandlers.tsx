@@ -34,7 +34,7 @@ export function useModeHandlers({
 	client,
 	currentModel,
 	currentProvider,
-	currentTheme,
+	currentTheme: _currentTheme,
 	setClient,
 	setCurrentModel,
 	setCurrentProvider,

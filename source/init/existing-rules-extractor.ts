@@ -55,7 +55,7 @@ export class ExistingRulesExtractor {
 							type: this.determineFileType(configFile),
 						});
 					}
-				} catch (error) {
+				} catch (_error) {
 					// Skip files we can't read
 					continue;
 				}
@@ -133,7 +133,7 @@ export class ExistingRulesExtractor {
 			const trimmed = line.trim().toLowerCase();
 
 			// Check if this is a header
-			if (line.match(/^#+\s/) || line.match(/^[=\-]{3,}$/)) {
+			if (line.match(/^#+\s/) || line.match(/^[=-]{3,}$/)) {
 				// Save previous section if it was relevant
 				if (inRelevantSection && currentSection.trim()) {
 					relevantSections.push(sectionHeader + '\n' + currentSection.trim());

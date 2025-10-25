@@ -11,10 +11,10 @@ function Clear() {
 export const clearCommand: Command = {
 	name: 'clear',
 	description: 'Clear the chat history and model context',
-	handler: async (_args: string[]) => {
+	handler: (_args: string[]) => {
 		// Return info message saying chat was cleared
-		return React.createElement(Clear, {
+		return Promise.resolve(React.createElement(Clear, {
 			key: `clear-${Date.now()}`,
-		});
+		}));
 	},
 };

@@ -286,7 +286,7 @@ export class LangGraphClient implements LLMClient {
 						langchainMessages,
 						invokeOptions,
 					)) as AIMessage;
-				} catch (bindError) {
+				} catch {
 					// Tool binding failed, fall back to base model
 					result = (await this.chatModel.invoke(
 						langchainMessages,
