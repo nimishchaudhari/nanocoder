@@ -40,7 +40,7 @@ export class FileScanner {
 						.replace(/\?/g, '.') // ? -> .
 						.replace(/\/$/, ''); // Remove trailing slash
 				});
-		} catch (_error) {
+		} catch {
 			// Ignore gitignore parsing errors
 		}
 	}
@@ -141,12 +141,12 @@ export class FileScanner {
 					}
 
 					result.totalFiles++;
-				} catch (_error) {
+				} catch {
 					// Skip files we can't stat (permission issues, etc.)
 					continue;
 				}
 			}
-		} catch (_error) {
+		} catch {
 			// Skip directories we can't read
 			return;
 		}

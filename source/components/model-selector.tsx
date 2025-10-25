@@ -67,7 +67,7 @@ export default function ModelSelector({
 			}
 		};
 
-		loadModels();
+		void loadModels();
 	}, [client, currentModel]);
 
 	const handleSelect = (item: ModelOption) => {

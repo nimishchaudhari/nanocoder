@@ -92,13 +92,13 @@ function Help({
 export const helpCommand: Command = {
 	name: 'help',
 	description: 'Show available commands',
-	handler: async (_args: string[], _messages, _metadata) => {
+	handler: (_args: string[], _messages, _metadata) => {
 		const commands = commandRegistry.getAll();
 
-		return React.createElement(Help, {
+		return Promise.resolve(React.createElement(Help, {
 			key: `help-${Date.now()}`,
 			version: packageJson.version,
 			commands: commands,
-		});
+		}));
 	},
 };

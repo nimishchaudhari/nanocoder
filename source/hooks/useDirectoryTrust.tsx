@@ -26,7 +26,7 @@ export function useDirectoryTrust(
 
 	// Check if directory is trusted on mount and when directory changes
 	useEffect(() => {
-		const checkTrustStatus = async () => {
+		const checkTrustStatus = () => {
 			try {
 				setIsLoading(true);
 				setError(null);

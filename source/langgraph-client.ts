@@ -173,11 +173,11 @@ export class LangGraphClient implements LLMClient {
 		this.chatModel = this.createChatModel();
 	}
 
-	static async create(
+	static create(
 		providerConfig: LangChainProviderConfig,
 	): Promise<LangGraphClient> {
 		const client = new LangGraphClient(providerConfig);
-		return client;
+		return Promise.resolve(client);
 	}
 
 	private createChatModel(): ChatOpenAI {
@@ -246,8 +246,8 @@ export class LangGraphClient implements LLMClient {
 		return 0;
 	}
 
-	async getAvailableModels(): Promise<string[]> {
-		return this.availableModels;
+	getAvailableModels(): Promise<string[]> {
+		return Promise.resolve(this.availableModels);
 	}
 
 	async chat(

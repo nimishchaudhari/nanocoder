@@ -32,7 +32,7 @@ export default function ToolConfirmation({
 	const [isLoadingPreview, setIsLoadingPreview] = React.useState(false);
 	const [hasFormatterError, setHasFormatterError] = React.useState(false);
 	const [hasValidationError, setHasValidationError] = React.useState(false);
-	const [validationError, setValidationError] = React.useState<string | null>(
+	const [_validationError, setValidationError] = React.useState<string | null>(
 		null,
 	);
 
@@ -91,7 +91,7 @@ export default function ToolConfirmation({
 					if (typeof parsedArgs === 'string') {
 						try {
 							parsedArgs = JSON.parse(parsedArgs);
-						} catch (_e) {
+						} catch {
 							// If parsing fails, use as-is
 						}
 					}

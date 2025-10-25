@@ -74,7 +74,7 @@ export default function UserInput({
 
 	// Load history on mount
 	useEffect(() => {
-		promptHistory.loadHistory();
+		void promptHistory.loadHistory();
 	}, []);
 
 	// Helper functions

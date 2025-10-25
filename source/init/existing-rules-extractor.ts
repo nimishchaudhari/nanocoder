@@ -55,7 +55,7 @@ export class ExistingRulesExtractor {
 							type: this.determineFileType(configFile),
 						});
 					}
-				} catch (_error) {
+				} catch {
 					// Skip files we can't read
 					continue;
 				}

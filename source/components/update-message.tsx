@@ -26,7 +26,7 @@ export default function UpdateMessage() {
 				if (isMounted) {
 					if (updateInfo.hasUpdate) {
 						setStatus(Status.Updating);
-						update();
+						void update();
 					} else {
 						setStatus(Status.NoUpdate);
 					}
@@ -55,7 +55,7 @@ export default function UpdateMessage() {
 			}
 		};
 
-		check();
+		void check();
 
 		return () => {
 			isMounted = false;

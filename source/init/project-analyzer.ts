@@ -278,7 +278,7 @@ export class ProjectAnalyzer {
 						repository = pkg.repository.url;
 					}
 				}
-			} catch (_error) {
+			} catch {
 				// Ignore parsing errors
 			}
 		}
@@ -294,7 +294,7 @@ export class ProjectAnalyzer {
 
 					if (nameMatch) projectName = nameMatch[1];
 					if (descMatch) description = descMatch[1];
-				} catch (_error) {
+				} catch {
 					// Ignore parsing errors
 				}
 			}
@@ -322,7 +322,7 @@ export class ProjectAnalyzer {
 							}
 						}
 						break;
-					} catch (_error) {
+					} catch {
 						// Ignore parsing errors
 					}
 				}
