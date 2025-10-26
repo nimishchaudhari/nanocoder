@@ -152,7 +152,7 @@ export function useToolHandler({
 	};
 
 	// Handle tool confirmation
-	const handleToolConfirmation = async (confirmed: boolean) => {
+	const handleToolConfirmation = (confirmed: boolean) => {
 		if (!confirmed) {
 			// User cancelled - show message
 			addToChatQueue(
@@ -208,7 +208,7 @@ export function useToolHandler({
 
 		// Execute tools asynchronously
 		setImmediate(() => {
-			executeCurrentTool();
+			void executeCurrentTool();
 		});
 	};
 

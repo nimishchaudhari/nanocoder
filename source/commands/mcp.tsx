@@ -97,12 +97,12 @@ function MCP({toolManager}: MCPProps) {
 export const mcpCommand: Command = {
 	name: 'mcp',
 	description: 'Show connected MCP servers and their tools',
-	handler: async (_args: string[], _messages, _metadata) => {
+	handler: (_args: string[], _messages, _metadata) => {
 		const toolManager = getToolManager();
 
-		return React.createElement(MCP, {
+		return Promise.resolve(React.createElement(MCP, {
 			key: `mcp-${Date.now()}`,
 			toolManager: toolManager,
-		});
+		}));
 	},
 };

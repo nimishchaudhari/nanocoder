@@ -97,8 +97,8 @@ export function useAppInitialization({
 	};
 
 	// Load and cache custom commands
-	const loadCustomCommands = async (loader: CustomCommandLoader) => {
-		await loader.loadCommands();
+	const loadCustomCommands = (loader: CustomCommandLoader) => {
+		loader.loadCommands();
 		const customCommands = loader.getAllCommands() || [];
 
 		// Populate command cache for better performance
@@ -291,7 +291,7 @@ export function useAppInitialization({
 			await initializeMCPServers(newToolManager);
 		};
 
-		initializeApp();
+		void initializeApp();
 	}, []);
 
 	return {

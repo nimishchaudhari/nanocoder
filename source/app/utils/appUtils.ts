@@ -124,7 +124,7 @@ ${result.fullOutput || '(No output)'}`;
 				.trim()
 				.split(/\s+/)
 				.filter(arg => arg);
-			const processedPrompt = await customCommandExecutor?.execute(
+			const processedPrompt = customCommandExecutor?.execute(
 				customCommand,
 				args,
 			);

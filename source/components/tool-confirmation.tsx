@@ -109,7 +109,7 @@ export default function ToolConfirmation({
 			}
 		};
 
-		loadPreview();
+		void loadPreview();
 	}, [toolCall, toolManager]);
 
 	// Handle escape key to cancel

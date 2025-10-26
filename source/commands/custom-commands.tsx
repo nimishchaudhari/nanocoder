@@ -108,15 +108,15 @@ function CustomCommands({commands}: CustomCommandsProps) {
 export const commandsCommand: Command = {
 	name: 'custom-commands',
 	description: 'List all custom commands from .nanocoder/commands',
-	handler: async (_args: string[]) => {
+	handler: (_args: string[]) => {
 		// Create a custom command loader to get the commands
 		const loader = new CustomCommandLoader();
-		await loader.loadCommands();
+		loader.loadCommands();
 		const commands = loader.getAllCommands() || [];
 
-		return React.createElement(CustomCommands, {
+		return Promise.resolve(React.createElement(CustomCommands, {
 			key: `custom-commands-${Date.now()}`,
 			commands: commands,
-		});
+		}));
 	},
 };

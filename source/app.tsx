@@ -316,13 +316,13 @@ export default function App() {
 								<ModelSelector
 									client={appState.client}
 									currentModel={appState.currentModel}
-									onModelSelect={modeHandlers.handleModelSelect}
+									onModelSelect={(model) => void modeHandlers.handleModelSelect(model)}
 									onCancel={modeHandlers.handleModelSelectionCancel}
 								/>
 							) : appState.isProviderSelectionMode ? (
 								<ProviderSelector
 									currentProvider={appState.currentProvider}
-									onProviderSelect={modeHandlers.handleProviderSelect}
+									onProviderSelect={(provider) => void modeHandlers.handleProviderSelect(provider)}
 									onCancel={modeHandlers.handleProviderSelectionCancel}
 								/>
 							) : appState.isThemeSelectionMode ? (
@@ -337,7 +337,7 @@ export default function App() {
 							) : appState.isConfigWizardMode ? (
 								<ConfigWizard
 									projectDir={process.cwd()}
-									onComplete={modeHandlers.handleConfigWizardComplete}
+									onComplete={(configPath) => void modeHandlers.handleConfigWizardComplete(configPath)}
 									onCancel={modeHandlers.handleConfigWizardCancel}
 								/>
 							) : appState.isToolConfirmationMode &&
@@ -366,7 +366,7 @@ export default function App() {
 									customCommands={Array.from(
 										appState.customCommandCache.keys(),
 									)}
-									onSubmit={handleMessageSubmit}
+									onSubmit={(msg) => void handleMessageSubmit(msg)}
 									disabled={
 										appState.isThinking ||
 										appState.isToolExecuting ||
