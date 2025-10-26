@@ -213,7 +213,7 @@ export function useAppInitialization({
 		}
 
 		try {
-			await loadCustomCommands(newCustomCommandLoader);
+			loadCustomCommands(newCustomCommandLoader);
 		} catch (error) {
 			addToChatQueue(
 				<ErrorMessage
