@@ -55,7 +55,7 @@ export default function ToolConfirmation({
 						if (typeof parsedArgs === 'string') {
 							try {
 								parsedArgs = JSON.parse(parsedArgs);
-							} catch (e) {
+							} catch {
 								// If parsing fails, use as-is
 							}
 						}

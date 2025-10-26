@@ -31,7 +31,7 @@ export function useInputState() {
 
 	// Legacy compatibility - these are derived from currentState
 	const [historyIndex, setHistoryIndex] = useState(-1);
-	const [hasLargeContent, setHasLargeContent] = useState(false);
+	const [_hasLargeContent, setHasLargeContent] = useState(false);
 	const [originalInput, setOriginalInput] = useState('');
 
 	// Paste detection

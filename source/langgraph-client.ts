@@ -113,7 +113,7 @@ function convertToLangChainMessage(message: Message): BaseMessage {
 				name: message.name || '',
 			});
 		default:
-			throw new Error(`Unsupported message role: ${message.role}`);
+			throw new Error(`Unsupported message role: ${(message as any).role as string}`);
 	}
 }
 

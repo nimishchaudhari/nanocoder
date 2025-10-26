@@ -62,7 +62,7 @@ export default function ModelSelector({
 				setModels(modelOptions);
 				setLoading(false);
 			} catch (err) {
-				setError(`Error accessing models: ${err}`);
+				setError(`Error accessing models: ${String(err)}`);
 				setLoading(false);
 			}
 		};

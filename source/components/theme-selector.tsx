@@ -26,7 +26,7 @@ export default function ThemeSelector({
 	const boxWidth = useTerminalWidth();
 	const {colors, currentTheme, setCurrentTheme} = useTheme();
 	const [originalTheme] = useState(currentTheme); // Store original theme for restore on cancel
-	const [currentIndex, setCurrentIndex] = useState(0);
+	const [_currentIndex, setCurrentIndex] = useState(0);
 
 	// Handle escape key to cancel
 	useInput((_, key) => {

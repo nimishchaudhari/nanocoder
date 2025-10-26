@@ -54,7 +54,7 @@ export default function UserInput({
 		// New paste handling functions
 		undo,
 		redo,
-		deletePlaceholder,
+		deletePlaceholder: _deletePlaceholder,
 		currentState,
 		setInputState,
 	} = inputState;

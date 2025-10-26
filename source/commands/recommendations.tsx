@@ -583,7 +583,7 @@ function ModelItem({
 	const getWeaknesses = (): string[] => {
 		const weaknesses: string[] = [];
 		const activeScoreInfo = isLocalTab ? localScoreInfo : apiScoreInfo;
-		const activeScore = isLocalTab ? localScore : apiScore;
+		const _activeScore = isLocalTab ? localScore : apiScore;
 
 		// Only show weaknesses if score is Poor or Decent
 		if (!activeScoreInfo || activeScoreInfo.score >= 6.5) return weaknesses;
