@@ -112,8 +112,10 @@ function convertToLangChainMessage(message: Message): BaseMessage {
 				tool_call_id: message.tool_call_id || '',
 				name: message.name || '',
 			});
-		default:
-			throw new Error(`Unsupported message role: ${(message as any).role as string}`);
+		default: {
+			const unknownMessage = message as {role: string};
+			throw new Error(`Unsupported message role: ${unknownMessage.role}`);
+		}
 	}
 }
 
@@ -139,12 +141,29 @@ function convertFromLangChainMessage(message: AIMessage): Message {
 	return result;
 }
 
+interface ModelInfo {
+	context_length?: number;
+	[key: string]: unknown;
+}
+
+interface ChatConfig {
+	modelName: string;
+	openAIApiKey: string;
+	configuration: {
+		baseURL: string;
+		fetch: (url: RequestInfo, options?: RequestInit) => Promise<Response>;
+	};
+	timeout?: number;
+	maxTokens?: number;
+	[key: string]: unknown;
+}
+
 export class LangGraphClient implements LLMClient {
 	private chatModel: ChatOpenAI;
 	private currentModel: string;
 	private availableModels: string[];
 	private providerConfig: LangChainProviderConfig;
-	private modelInfoCache: Map<string, any> = new Map();
+	private modelInfoCache: Map<string, ModelInfo> = new Map();
 	private undiciAgent: Agent;
 
 	constructor(providerConfig: LangChainProviderConfig) {
@@ -192,7 +211,7 @@ export class LangGraphClient implements LLMClient {
 			});
 		};
 
-		const chatConfig: any = {
+		const chatConfig: ChatConfig = {
 			modelName: this.currentModel,
 			openAIApiKey: config.apiKey || 'dummy-key',
 			configuration: {
@@ -227,7 +246,7 @@ export class LangGraphClient implements LLMClient {
 		// For OpenRouter, get from cached model info
 		if (this.providerConfig.name === 'openrouter') {
 			const modelData = this.modelInfoCache.get(this.currentModel);
-			if (modelData && modelData.context_length) {
+			if (modelData?.context_length) {
 				return modelData.context_length;
 			}
 			return 0;
@@ -239,8 +258,11 @@ export class LangGraphClient implements LLMClient {
 		}
 
 		// Try to get from LangChain model if available
-		if (this.chatModel && (this.chatModel as any).maxTokens) {
-			return (this.chatModel as any).maxTokens;
+		const chatModelWithMaxTokens = this.chatModel as ChatOpenAI & {
+			maxTokens?: number;
+		};
+		if (chatModelWithMaxTokens.maxTokens) {
+			return chatModelWithMaxTokens.maxTokens;
 		}
 
 		return 0;
@@ -254,7 +276,7 @@ export class LangGraphClient implements LLMClient {
 		messages: Message[],
 		tools: Tool[],
 		signal?: AbortSignal,
-	): Promise<any> {
+	): Promise<{choices: Array<{message: Message}>}> {
 		// Check if already aborted before starting
 		if (signal?.aborted) {
 			throw new Error('Operation was cancelled');

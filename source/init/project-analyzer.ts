@@ -267,7 +267,11 @@ export class ProjectAnalyzer {
 		if (existsSync(packageJsonPath)) {
 			try {
 				const content = readFileSync(packageJsonPath, 'utf-8');
-				const pkg = JSON.parse(content);
+				const pkg = JSON.parse(content) as {
+					name?: string;
+					description?: string;
+					repository?: string | {url?: string};
+				};
 
 				if (pkg.name) projectName = pkg.name;
 				if (pkg.description) description = pkg.description;
