@@ -13,7 +13,7 @@ Brief description of what this PR does
 
 ### Automated Tests
 
-- [ ] New features include passing tests in `.spec.ts` files
+- [ ] New features include passing tests in `.spec.ts/tsx` files
 - [ ] All existing tests pass (`pnpm test:all` completes successfully)
 - [ ] Tests cover both success and error scenarios
 
