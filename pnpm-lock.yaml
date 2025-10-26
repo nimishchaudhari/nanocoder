@@ -75,12 +75,6 @@ importers:
       '@types/react':
         specifier: ^19.0.0
         version: 19.1.12
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^8.46.2
-        version: 8.46.2(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.2))(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.2)
-      '@typescript-eslint/parser':
-        specifier: ^8.46.2
-        version: 8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.2)
       '@vdemedes/prettier-config':
         specifier: ^2.0.1
         version: 2.0.1

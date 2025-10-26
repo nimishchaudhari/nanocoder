@@ -19,8 +19,6 @@ export interface SystemCapabilities {
 	};
 }
 
-export type ProviderCategory = 'local-server' | 'hosted-api';
-
 export interface ModelEntry {
 	name: string;
 	author: string; // Model creator/organization (e.g., "Meta", "Anthropic", "Qwen")

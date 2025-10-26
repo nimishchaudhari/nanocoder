@@ -65,7 +65,7 @@ export interface ToolDefinition {
 	) => Promise<{valid: true} | {valid: false; error: string}>;
 }
 
-export interface LLMMessage {
+interface LLMMessage {
 	role: 'assistant';
 	content: string;
 	tool_calls?: ToolCall[];
