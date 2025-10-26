@@ -125,10 +125,10 @@ All new features and bug fixes should include appropriate tests:
    pnpm test:all
    ```
 
-   This runs both Prettier formatting checks and AVA tests.
+   This command runs: formatting with Prettier, type checks, Eslint checks, AVA tests and Knip.
 
 4. **Test Requirements for PRs**:
-   - New features **must** include passing tests in `.spec.ts` files
+   - New features **must** include passing tests in `.spec.ts/tsx` files
    - Bug fixes should include regression tests when possible
    - All tests must pass before merging (`pnpm test:all` should complete successfully)
    - Tests should cover both success cases and error scenarios
