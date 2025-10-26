@@ -108,7 +108,7 @@ export function useChatHandler({
 					if (typeof parsedArgs === 'string') {
 						try {
 							parsedArgs = JSON.parse(parsedArgs);
-						} catch (e) {
+						} catch {
 							// If parsing fails, use as-is
 						}
 					}
@@ -134,7 +134,7 @@ export function useChatHandler({
 							/>,
 						);
 					}
-				} catch (formatterError) {
+				} catch {
 					// If formatter fails, show raw result
 					addToChatQueue(
 						<ToolMessage
@@ -306,7 +306,7 @@ export function useChatHandler({
 								if (typeof parsedArgs === 'string') {
 									try {
 										parsedArgs = JSON.parse(parsedArgs);
-									} catch (e) {
+									} catch {
 										// If parsing fails, use as-is
 									}
 								}
@@ -315,7 +315,7 @@ export function useChatHandler({
 								if (!validationResult.valid) {
 									validationFailed = true;
 								}
-							} catch (error) {
+							} catch {
 								// Validation threw an error - treat as validation failure
 								validationFailed = true;
 							}
@@ -354,7 +354,7 @@ export function useChatHandler({
 								if (typeof parsedArgs === 'string') {
 									try {
 										parsedArgs = JSON.parse(parsedArgs);
-									} catch (e) {
+									} catch {
 										// If parsing fails, use as-is
 									}
 								}

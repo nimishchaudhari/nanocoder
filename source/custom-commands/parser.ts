@@ -157,7 +157,7 @@ export function parseCommandFile(filePath: string): ParsedCustomCommand {
 			metadata = parseEnhancedFrontmatter(frontmatter);
 		} catch (error) {
 			// If parsing fails, treat entire file as content
-			logError(`Failed to parse frontmatter in ${filePath}: ${error}`);
+			logError(`Failed to parse frontmatter in ${filePath}: ${String(error)}`);
 			return {
 				metadata: {},
 				content: fileContent,

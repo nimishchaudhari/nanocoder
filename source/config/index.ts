@@ -57,7 +57,7 @@ export function getClosestConfigFile(fileName: string): string {
 
 		return join(appDataPath, fileName);
 	} catch (error) {
-		logError(`Failed to load ${fileName}: ${error}`);
+		logError(`Failed to load ${fileName}: ${String(error)}`);
 	}
 
 	// The code should never hit this, but it makes the TS compiler happy.
@@ -80,7 +80,7 @@ function createDefaultConfFile(filePath: string, fileName: string): void {
 			);
 		}
 	} catch (error) {
-		logError(`Failed to write ${filePath}: ${error}`);
+		logError(`Failed to write ${filePath}: ${String(error)}`);
 	}
 }
 
@@ -101,7 +101,7 @@ function loadAppConfig(): AppConfig {
 				mcpServers: processedData.nanocoder.mcpServers,
 			};
 		}
-	} catch (error) {
+	} catch {
 		//
 	}
 

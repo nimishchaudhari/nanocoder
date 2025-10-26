@@ -200,12 +200,12 @@ export class ConversationStateManager {
 
 		switch (toolName) {
 			case 'read_file':
-				return `Read file: ${args.filename || args.path || 'unknown'}`;
+				return `Read file: ${(args as any).filename || (args as any).path || 'unknown'}`;
 			case 'write_file':
 			case 'create_file':
-				return `Created/wrote file: ${args.filename || args.path || 'unknown'}`;
+				return `Created/wrote file: ${(args as any).filename || (args as any).path || 'unknown'}`;
 			case 'edit_file':
-				return `Edited file: ${args.filename || args.path || 'unknown'}`;
+				return `Edited file: ${(args as any).filename || (args as any).path || 'unknown'}`;
 			case 'execute_bash': {
 				const command = args.command;
 				const commandStr = typeof command === 'string' ? command : '';

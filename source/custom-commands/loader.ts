@@ -79,7 +79,7 @@ export class CustomCommandLoader {
 				}
 			}
 		} catch (error) {
-			logError(`Failed to load custom command from ${filePath}: ${error}`);
+			logError(`Failed to load custom command from ${filePath}: ${String(error)}`);
 		}
 	}
 

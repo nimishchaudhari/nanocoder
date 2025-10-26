@@ -165,7 +165,7 @@ export function useAppInitialization({
 				addToChatQueue(
 					<ErrorMessage
 						key={`mcp-fatal-error-${componentKeyCounter}`}
-						message={`Failed to initialize MCP servers: ${error}`}
+						message={`Failed to initialize MCP servers: ${String(error)}`}
 						hideBox={true}
 					/>,
 				);
@@ -204,7 +204,7 @@ export function useAppInitialization({
 				addToChatQueue(
 					<ErrorMessage
 						key={`init-error-${componentKeyCounter}`}
-						message={`No providers available: ${error}`}
+						message={`No providers available: ${String(error)}`}
 						hideBox={true}
 					/>,
 				);
@@ -218,7 +218,7 @@ export function useAppInitialization({
 			addToChatQueue(
 				<ErrorMessage
 					key={`commands-error-${componentKeyCounter}`}
-					message={`Failed to load custom commands: ${error}`}
+					message={`Failed to load custom commands: ${String(error)}`}
 					hideBox={true}
 				/>,
 			);
@@ -280,7 +280,7 @@ export function useAppInitialization({
 			try {
 				const info = await checkForUpdates();
 				setUpdateInfo(info);
-			} catch (error) {
+			} catch {
 				// Silent failure - don't show errors for update checks
 				setUpdateInfo(null);
 			}

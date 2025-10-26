@@ -62,7 +62,7 @@ export function useToolHandler({
 					if (typeof parsedArgs === 'string') {
 						try {
 							parsedArgs = JSON.parse(parsedArgs);
-						} catch (e) {
+						} catch {
 							// If parsing fails, use as-is
 						}
 					}
@@ -88,7 +88,7 @@ export function useToolHandler({
 							/>,
 						);
 					}
-				} catch (formatterError) {
+				} catch {
 					// If formatter fails, show raw result
 					addToChatQueue(
 						<ToolMessage
@@ -239,7 +239,7 @@ export function useToolHandler({
 					if (typeof parsedArgs === 'string') {
 						try {
 							parsedArgs = JSON.parse(parsedArgs);
-						} catch (e) {
+						} catch {
 							// If parsing fails, use as-is
 						}
 					}
@@ -298,7 +298,7 @@ export function useToolHandler({
 					addToChatQueue(
 						<ErrorMessage
 							key={`tool-validation-error-${componentKeyCounter}-${Date.now()}`}
-							message={`Validation error: ${validationError}`}
+							message={`Validation error: ${String(validationError)}`}
 							hideBox={true}
 						/>,
 					);
@@ -324,7 +324,7 @@ export function useToolHandler({
 				if (typeof parsedArgs === 'string') {
 					try {
 						parsedArgs = JSON.parse(parsedArgs);
-					} catch (e) {
+					} catch {
 						// If parsing fails, use as-is
 					}
 				}
@@ -366,7 +366,7 @@ export function useToolHandler({
 			addToChatQueue(
 				<ErrorMessage
 					key={`tool-exec-error-${componentKeyCounter}`}
-					message={`Tool execution error: ${error}`}
+					message={`Tool execution error: ${String(error)}`}
 				/>,
 			);
 			resetToolConfirmationState();

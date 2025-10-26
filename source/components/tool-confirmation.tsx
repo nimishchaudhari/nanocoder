@@ -169,7 +169,7 @@ export default function ToolConfirmation({
 											mcpInfo.isMCPTool
 												? `MCP tool "${toolCall.function.name}" from server "${mcpInfo.serverName}"`
 												: `tool "${toolCall.function.name}"`
-									  }?`}
+									}?`}
 							</Text>
 						</Box>
 

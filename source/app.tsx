@@ -341,7 +341,7 @@ export default function App() {
 									onCancel={modeHandlers.handleConfigWizardCancel}
 								/>
 							) : appState.isToolConfirmationMode &&
-							  appState.pendingToolCalls[appState.currentToolIndex] ? (
+							appState.pendingToolCalls[appState.currentToolIndex] ? (
 								<ToolConfirmation
 									toolCall={
 										appState.pendingToolCalls[appState.currentToolIndex]
@@ -350,7 +350,7 @@ export default function App() {
 									onCancel={toolHandler.handleToolConfirmationCancel}
 								/>
 							) : appState.isToolExecuting &&
-							  appState.pendingToolCalls[appState.currentToolIndex] ? (
+							appState.pendingToolCalls[appState.currentToolIndex] ? (
 								<ToolExecutionIndicator
 									toolName={
 										appState.pendingToolCalls[appState.currentToolIndex]

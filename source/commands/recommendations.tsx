@@ -293,13 +293,13 @@ function SystemSummary({
 	const gpuText = systemCaps.gpu.available
 		? `${systemCaps.gpu.type} GPU${
 				systemCaps.gpu.memory ? ` (${systemCaps.gpu.memory}GB)` : ''
-		  }`
+		}`
 		: 'No GPU';
 
 	const networkText = systemCaps.network.connected
 		? `Connected${
 				systemCaps.network.speed ? ` (${systemCaps.network.speed})` : ''
-		  }`
+		}`
 		: 'Offline';
 
 	return (
