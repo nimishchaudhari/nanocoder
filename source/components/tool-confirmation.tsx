@@ -1,7 +1,10 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
-import {TitledBox as _TitledBox, titleStyles as _titleStyles} from '@mishieck/ink-titled-box';
+import {
+	TitledBox as _TitledBox,
+	titleStyles as _titleStyles,
+} from '@mishieck/ink-titled-box';
 import {useTheme} from '@/hooks/useTheme';
 import type {ToolCall} from '@/types/core';
 import {toolFormatters} from '@/tools/index';
@@ -51,10 +54,10 @@ export default function ToolConfirmation({
 				if (validator) {
 					try {
 						// Parse arguments if they're a JSON string
-						let parsedArgs = toolCall.function.arguments;
+						let parsedArgs: unknown = toolCall.function.arguments;
 						if (typeof parsedArgs === 'string') {
 							try {
-								parsedArgs = JSON.parse(parsedArgs);
+								parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
 							} catch {
 								// If parsing fails, use as-is
 							}
@@ -87,10 +90,10 @@ export default function ToolConfirmation({
 				setIsLoadingPreview(true);
 				try {
 					// Parse arguments if they're a JSON string
-					let parsedArgs = toolCall.function.arguments;
+					let parsedArgs: unknown = toolCall.function.arguments;
 					if (typeof parsedArgs === 'string') {
 						try {
-							parsedArgs = JSON.parse(parsedArgs);
+							parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
 						} catch {
 							// If parsing fails, use as-is
 						}
@@ -169,7 +172,7 @@ export default function ToolConfirmation({
 											mcpInfo.isMCPTool
 												? `MCP tool "${toolCall.function.name}" from server "${mcpInfo.serverName}"`
 												: `tool "${toolCall.function.name}"`
-									}?`}
+									  }?`}
 							</Text>
 						</Box>
 

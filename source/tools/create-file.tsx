@@ -112,7 +112,8 @@ const validator = async (args: {
 		// ENOENT is good - file doesn't exist
 		if (error && typeof error === 'object' && 'code' in error) {
 			if (error.code !== 'ENOENT') {
-				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+				const errorMessage =
+					error instanceof Error ? error.message : 'Unknown error';
 				return {
 					valid: false,
 					error: `⚒ Cannot access path "${args.path}": ${errorMessage}`,
@@ -134,7 +135,8 @@ const validator = async (args: {
 				};
 			}
 		}
-		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		const errorMessage =
+			error instanceof Error ? error.message : 'Unknown error';
 		return {
 			valid: false,
 			error: `⚒ Cannot access parent directory "${parentDir}": ${errorMessage}`,

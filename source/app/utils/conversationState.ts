@@ -180,9 +180,10 @@ export class ConversationStateManager {
 	 * Detect if the current tool call is repetitive
 	 */
 	private detectRepetition(toolCall: ToolCall): boolean {
-		if (this.state!.recentToolCalls.length < 2) return false;
+		if (!this.state || this.state.recentToolCalls.length < 2) return false;
 
-		const recent = this.state!.recentToolCalls.slice(-2);
+		const recentToolCalls = this.state.recentToolCalls;
+		const recent = recentToolCalls.slice(-2);
 		return recent.some(
 			prevCall =>
 				prevCall.function.name === toolCall.function.name &&
@@ -198,14 +199,22 @@ export class ConversationStateManager {
 		const toolName = toolCall.function.name;
 		const args = toolCall.function.arguments;
 
+		const getFilename = () => {
+			const filename = args.filename;
+			const path = args.path;
+			if (typeof filename === 'string') return filename;
+			if (typeof path === 'string') return path;
+			return 'unknown';
+		};
+
 		switch (toolName) {
 			case 'read_file':
-				return `Read file: ${(args as any).filename || (args as any).path || 'unknown'}`;
+				return `Read file: ${getFilename()}`;
 			case 'write_file':
 			case 'create_file':
-				return `Created/wrote file: ${(args as any).filename || (args as any).path || 'unknown'}`;
+				return `Created/wrote file: ${getFilename()}`;
 			case 'edit_file':
-				return `Edited file: ${(args as any).filename || (args as any).path || 'unknown'}`;
+				return `Edited file: ${getFilename()}`;
 			case 'execute_bash': {
 				const command = args.command;
 				const commandStr = typeof command === 'string' ? command : '';

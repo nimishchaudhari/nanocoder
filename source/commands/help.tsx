@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const packageJson = JSON.parse(
 	fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'),
-);
+) as {version: string};
 
 function Help({
 	version,
@@ -95,10 +95,12 @@ export const helpCommand: Command = {
 	handler: (_args: string[], _messages, _metadata) => {
 		const commands = commandRegistry.getAll();
 
-		return Promise.resolve(React.createElement(Help, {
-			key: `help-${Date.now()}`,
-			version: packageJson.version,
-			commands: commands,
-		}));
+		return Promise.resolve(
+			React.createElement(Help, {
+				key: `help-${Date.now()}`,
+				version: packageJson.version,
+				commands: commands,
+			}),
+		);
 	},
 };

@@ -91,8 +91,10 @@ async function createLangGraphClient(
 			const client = await LangGraphClient.create(providerConfig);
 
 			return {client, actualProvider: providerType};
-		} catch (error: any) {
-			errors.push(`${providerType}: ${error.message}`);
+		} catch (error: unknown) {
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error';
+			errors.push(`${providerType}: ${errorMessage}`);
 		}
 	}
 

@@ -11,9 +11,11 @@ export const exitCommand: Command = {
 			process.exit(0);
 		}, 500); // 500ms delay to allow message to render
 
-		return Promise.resolve(React.createElement(InfoMessage, {
-			message: 'Goodbye! 👋',
-			hideTitle: true,
-		}));
+		return Promise.resolve(
+			React.createElement(InfoMessage, {
+				message: 'Goodbye! 👋',
+				hideTitle: true,
+			}),
+		);
 	},
 };

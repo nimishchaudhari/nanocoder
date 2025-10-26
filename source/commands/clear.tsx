@@ -13,8 +13,10 @@ export const clearCommand: Command = {
 	description: 'Clear the chat history and model context',
 	handler: (_args: string[]) => {
 		// Return info message saying chat was cleared
-		return Promise.resolve(React.createElement(Clear, {
-			key: `clear-${Date.now()}`,
-		}));
+		return Promise.resolve(
+			React.createElement(Clear, {
+				key: `clear-${Date.now()}`,
+			}),
+		);
 	},
 };

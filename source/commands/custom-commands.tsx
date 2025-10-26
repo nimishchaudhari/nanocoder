@@ -114,9 +114,11 @@ export const commandsCommand: Command = {
 		loader.loadCommands();
 		const commands = loader.getAllCommands() || [];
 
-		return Promise.resolve(React.createElement(CustomCommands, {
-			key: `custom-commands-${Date.now()}`,
-			commands: commands,
-		}));
+		return Promise.resolve(
+			React.createElement(CustomCommands, {
+				key: `custom-commands-${Date.now()}`,
+				commands: commands,
+			}),
+		);
 	},
 };

@@ -1,4 +1,10 @@
-import {Message, LLMClient, DevelopmentMode} from '@/types/core';
+import {
+	Message,
+	LLMClient,
+	DevelopmentMode,
+	ToolCall,
+	ToolResult,
+} from '@/types/core';
 import {processToolUse, getToolManager} from '@/message-handler';
 import {ConversationContext} from '@/hooks/useAppState';
 import InfoMessage from '@/components/info-message';
@@ -7,13 +13,13 @@ import ToolMessage from '@/components/tool-message';
 import React from 'react';
 
 interface UseToolHandlerProps {
-	pendingToolCalls: any[];
+	pendingToolCalls: ToolCall[];
 	currentToolIndex: number;
-	completedToolResults: any[];
+	completedToolResults: ToolResult[];
 	currentConversationContext: ConversationContext | null;
-	setPendingToolCalls: (calls: any[]) => void;
+	setPendingToolCalls: (calls: ToolCall[]) => void;
 	setCurrentToolIndex: (index: number) => void;
-	setCompletedToolResults: (results: any[]) => void;
+	setCompletedToolResults: (results: ToolResult[]) => void;
 	setCurrentConversationContext: (context: ConversationContext | null) => void;
 	setIsToolConfirmationMode: (mode: boolean) => void;
 	setIsToolExecuting: (executing: boolean) => void;
@@ -51,17 +57,17 @@ export function useToolHandler({
 	setDevelopmentMode,
 }: UseToolHandlerProps) {
 	// Display tool result with proper formatting
-	const displayToolResult = async (toolCall: any, result: any) => {
+	const displayToolResult = async (toolCall: ToolCall, result: ToolResult) => {
 		const toolManager = getToolManager();
 		if (toolManager) {
 			const formatter = toolManager.getToolFormatter(result.name);
 			if (formatter) {
 				try {
 					// Parse arguments if they're a JSON string
-					let parsedArgs = toolCall.function.arguments;
+					let parsedArgs: unknown = toolCall.function.arguments;
 					if (typeof parsedArgs === 'string') {
 						try {
-							parsedArgs = JSON.parse(parsedArgs);
+							parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
 						} catch {
 							// If parsing fails, use as-is
 						}
@@ -114,7 +120,9 @@ export function useToolHandler({
 	};
 
 	// Continue conversation with tool results - maintains the proper loop
-	const continueConversationWithToolResults = async (toolResults?: any[]) => {
+	const continueConversationWithToolResults = async (
+		toolResults?: ToolResult[],
+	) => {
 		if (!currentConversationContext) {
 			resetToolConfirmationState();
 			return;
@@ -235,10 +243,10 @@ export function useToolHandler({
 			if (validator) {
 				try {
 					// Parse arguments if they're a JSON string
-					let parsedArgs = currentTool.function.arguments;
+					let parsedArgs: unknown = currentTool.function.arguments;
 					if (typeof parsedArgs === 'string') {
 						try {
-							parsedArgs = JSON.parse(parsedArgs);
+							parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
 						} catch {
 							// If parsing fails, use as-is
 						}
@@ -320,17 +328,18 @@ export function useToolHandler({
 		try {
 			// Special handling for switch_mode tool
 			if (currentTool.function.name === 'switch_mode' && setDevelopmentMode) {
-				let parsedArgs = currentTool.function.arguments;
+				let parsedArgs: unknown = currentTool.function.arguments;
 				if (typeof parsedArgs === 'string') {
 					try {
-						parsedArgs = JSON.parse(parsedArgs);
+						parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
 					} catch {
 						// If parsing fails, use as-is
 					}
 				}
 
 				// Actually switch the mode
-				const requestedMode = parsedArgs.mode as DevelopmentMode;
+				const requestedMode = (parsedArgs as Record<string, unknown>)
+					.mode as DevelopmentMode;
 				setDevelopmentMode(requestedMode);
 
 				addToChatQueue(
@@ -423,7 +432,7 @@ export function useToolHandler({
 
 	// Start tool confirmation flow
 	const startToolConfirmationFlow = (
-		toolCalls: any[],
+		toolCalls: ToolCall[],
 		updatedMessages: Message[],
 		assistantMsg: Message,
 		systemMessage: Message,

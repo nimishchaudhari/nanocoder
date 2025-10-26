@@ -13,7 +13,7 @@ export function getAppDataPath(): string {
 		(process.platform === 'darwin'
 			? `${process.env.HOME}/Library/Preferences`
 			: // For all other unix-like systems, we use the $HOME/.config
-			`${process.env.HOME}/.config`);
+			  `${process.env.HOME}/.config`);
 
 	// There doesn't seem to be a place to pull an "app name"
 	const appName = 'nanocoder';

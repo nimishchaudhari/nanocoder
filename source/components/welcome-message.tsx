@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 // Read package.json once at module load time to avoid repeated file reads
 const packageJson = JSON.parse(
 	fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'),
-);
+) as {version: string};
 
 export default memo(function WelcomeMessage() {
 	const {boxWidth, isNarrow, isNormal} = useResponsiveTerminal();

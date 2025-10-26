@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Box, Text, useInput, useFocus} from 'ink';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Tabs, Tab} from 'ink-tab';
-import {Command, SystemCapabilities} from '@/types/index';
+import {Command, SystemCapabilities, Colors} from '@/types/index';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {systemDetector} from '@/system/detector';
@@ -289,18 +289,18 @@ function SystemSummary({
 	colors,
 }: {
 	systemCaps: SystemCapabilities;
-	colors: any;
+	colors: Colors;
 }) {
 	const gpuText = systemCaps.gpu.available
 		? `${systemCaps.gpu.type} GPU${
 				systemCaps.gpu.memory ? ` (${systemCaps.gpu.memory}GB)` : ''
-		}`
+		  }`
 		: 'No GPU';
 
 	const networkText = systemCaps.network.connected
 		? `Connected${
 				systemCaps.network.speed ? ` (${systemCaps.network.speed})` : ''
-		}`
+		  }`
 		: 'Offline';
 
 	return (
@@ -332,7 +332,7 @@ function QuickStartSection({
 }: {
 	topLocalModel: ModelRecommendationEnhanced | null;
 	topApiModel: ModelRecommendationEnhanced | null;
-	colors: any;
+	colors: Colors;
 }) {
 	return (
 		<Box
@@ -385,7 +385,7 @@ function ModelsTabView({
 	currentTabModels,
 }: {
 	models: ModelRecommendationEnhanced[];
-	colors: any;
+	colors: Colors;
 	currentModelIndex: number;
 	activeTab: 'local' | 'api';
 	onTabChange: (tab: 'local' | 'api') => void;
@@ -529,7 +529,7 @@ function ModelItem({
 	searchMode,
 }: {
 	model: ModelRecommendationEnhanced;
-	colors: any;
+	colors: Colors;
 	showScore?: boolean;
 	localScore?: number;
 	apiScore?: number;
@@ -668,22 +668,25 @@ function ModelItem({
 							)}
 						</>
 					) : showScore && (localScoreInfo || apiScoreInfo) ? (
-						<Text color={colors.white}>
-							<Text bold>
-								Quality For You{' '}
-								{isLocalTab || (model.model.local && !model.model.api)
-									? 'Locally'
-									: 'via API'}
-								:{' '}
-							</Text>
-							<Text color={(localScoreInfo || apiScoreInfo)!.color} bold>
-								{(localScoreInfo || apiScoreInfo)!.label}
-							</Text>
-							<Text dimColor>
-								{' '}
-								({(localScoreInfo || apiScoreInfo)!.score.toFixed(1)}/10)
-							</Text>
-						</Text>
+						(() => {
+							const scoreInfo = localScoreInfo || apiScoreInfo;
+							if (!scoreInfo) return null;
+							return (
+								<Text color={colors.white}>
+									<Text bold>
+										Quality For You{' '}
+										{isLocalTab || (model.model.local && !model.model.api)
+											? 'Locally'
+											: 'via API'}
+										:{' '}
+									</Text>
+									<Text color={scoreInfo.color} bold>
+										{scoreInfo.label}
+									</Text>
+									<Text dimColor> ({scoreInfo.score.toFixed(1)}/10)</Text>
+								</Text>
+							);
+						})()
 					) : null}
 				</Box>
 				<Box flexDirection="column">

@@ -229,11 +229,13 @@ export const initCommand: Command = {
 			const hasNanocoder = existsSync(nanocoderDir);
 
 			if (hasConfig && hasAgents && hasNanocoder) {
-				return Promise.resolve(React.createElement(InitError, {
-					key: `init-error-${Date.now()}`,
-					message:
-						'Project already fully initialized. Found agents.config.json, AGENTS.md, and .nanocoder/ directory.',
-				}));
+				return Promise.resolve(
+					React.createElement(InitError, {
+						key: `init-error-${Date.now()}`,
+						message:
+							'Project already fully initialized. Found agents.config.json, AGENTS.md, and .nanocoder/ directory.',
+					}),
+				);
 			}
 
 			// Show progress indicator for analysis
@@ -306,16 +308,22 @@ export const initCommand: Command = {
 				totalFiles: analysis.structure.scannedFiles,
 			};
 
-			return Promise.resolve(React.createElement(InitSuccess, {
-				key: `init-success-${Date.now()}`,
-				created,
-				analysis: analysisSummary,
-			}));
-		} catch (error: any) {
-			return Promise.resolve(React.createElement(InitError, {
-				key: `init-error-${Date.now()}`,
-				message: `Failed to initialize project: ${error.message}`,
-			}));
+			return Promise.resolve(
+				React.createElement(InitSuccess, {
+					key: `init-success-${Date.now()}`,
+					created,
+					analysis: analysisSummary,
+				}),
+			);
+		} catch (error: unknown) {
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error';
+			return Promise.resolve(
+				React.createElement(InitError, {
+					key: `init-error-${Date.now()}`,
+					message: `Failed to initialize project: ${errorMessage}`,
+				}),
+			);
 		}
 	},
 };

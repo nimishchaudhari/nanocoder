@@ -81,7 +81,10 @@ function MCP({toolManager}: MCPProps) {
 									</Text>
 									{serverTools.length > 0 && (
 										<Text color={colors.secondary}>
-											Tools: {serverTools.map((t: any) => t.name).join(', ')}
+											Tools:{' '}
+											{serverTools
+												.map((t: {name: string}) => t.name)
+												.join(', ')}
 										</Text>
 									)}
 								</Box>
@@ -100,9 +103,11 @@ export const mcpCommand: Command = {
 	handler: (_args: string[], _messages, _metadata) => {
 		const toolManager = getToolManager();
 
-		return Promise.resolve(React.createElement(MCP, {
-			key: `mcp-${Date.now()}`,
-			toolManager: toolManager,
-		}));
+		return Promise.resolve(
+			React.createElement(MCP, {
+				key: `mcp-${Date.now()}`,
+				toolManager: toolManager,
+			}),
+		);
 	},
 };

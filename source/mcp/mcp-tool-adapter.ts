@@ -21,7 +21,8 @@ export class MCPToolAdapter {
 				const result = await this.mcpClient.callTool(toolName, args);
 				return result;
 			} catch (error) {
-				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+				const errorMessage =
+					error instanceof Error ? error.message : 'Unknown error';
 				return `Error executing MCP tool: ${errorMessage}`;
 			}
 		};

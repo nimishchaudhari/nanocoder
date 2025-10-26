@@ -60,7 +60,8 @@ class PromptHistory {
 			);
 		} catch (error) {
 			// Silently fail to avoid disrupting the user experience
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error';
 			logError(`Failed to save prompt history: ${errorMessage}`);
 		}
 	}

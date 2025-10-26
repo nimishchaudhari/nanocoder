@@ -204,7 +204,10 @@ export class LangGraphClient implements LLMClient {
 	private createChatModel(): ChatOpenAI {
 		const {config, requestTimeout} = this.providerConfig;
 
-		const customFetch = (url: string | URL | Request, options: RequestInit = {}) => {
+		const customFetch = (
+			url: string | URL | Request,
+			options: RequestInit = {},
+		) => {
 			// Ensure the abort signal is preserved from options
 			return fetch(url as RequestInfo, {
 				...options,

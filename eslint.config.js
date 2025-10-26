@@ -55,7 +55,7 @@ export default tseslint.config(
 
 			// General rules
 			'no-console': 'off', // CLI app needs console
-			'no-mixed-spaces-and-tabs': 'error',
+			'no-mixed-spaces-and-tabs': 'off', // Handled by Prettier
 		},
 		settings: {
 			react: {
@@ -77,6 +77,6 @@ export default tseslint.config(
 
 	// Ignore patterns
 	{
-		ignores: ['dist/**', 'node_modules/**'],
+		ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
 	},
 );

@@ -90,15 +90,15 @@ function loadAppConfig(): AppConfig {
 
 	try {
 		const rawData = readFileSync(agentsJsonPath, 'utf-8');
-		const agentsData = JSON.parse(rawData);
+		const agentsData = JSON.parse(rawData) as {nanocoder?: AppConfig};
 
 		// Apply environment variable substitution
 		const processedData = substituteEnvVars(agentsData);
 
 		if (processedData.nanocoder) {
 			return {
-				providers: processedData.nanocoder.providers,
-				mcpServers: processedData.nanocoder.mcpServers,
+				providers: processedData.nanocoder.providers ?? [],
+				mcpServers: processedData.nanocoder.mcpServers ?? [],
 			};
 		}
 	} catch {

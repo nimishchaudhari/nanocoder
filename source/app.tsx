@@ -317,13 +317,17 @@ export default function App() {
 								<ModelSelector
 									client={appState.client}
 									currentModel={appState.currentModel}
-									onModelSelect={(model) => void modeHandlers.handleModelSelect(model)}
+									onModelSelect={model =>
+										void modeHandlers.handleModelSelect(model)
+									}
 									onCancel={modeHandlers.handleModelSelectionCancel}
 								/>
 							) : appState.isProviderSelectionMode ? (
 								<ProviderSelector
 									currentProvider={appState.currentProvider}
-									onProviderSelect={(provider) => void modeHandlers.handleProviderSelect(provider)}
+									onProviderSelect={provider =>
+										void modeHandlers.handleProviderSelect(provider)
+									}
 									onCancel={modeHandlers.handleProviderSelectionCancel}
 								/>
 							) : appState.isThemeSelectionMode ? (
@@ -338,11 +342,13 @@ export default function App() {
 							) : appState.isConfigWizardMode ? (
 								<ConfigWizard
 									projectDir={process.cwd()}
-									onComplete={(configPath) => void modeHandlers.handleConfigWizardComplete(configPath)}
+									onComplete={configPath =>
+										void modeHandlers.handleConfigWizardComplete(configPath)
+									}
 									onCancel={modeHandlers.handleConfigWizardCancel}
 								/>
 							) : appState.isToolConfirmationMode &&
-							appState.pendingToolCalls[appState.currentToolIndex] ? (
+							  appState.pendingToolCalls[appState.currentToolIndex] ? (
 								<ToolConfirmation
 									toolCall={
 										appState.pendingToolCalls[appState.currentToolIndex]
@@ -351,7 +357,7 @@ export default function App() {
 									onCancel={toolHandler.handleToolConfirmationCancel}
 								/>
 							) : appState.isToolExecuting &&
-							appState.pendingToolCalls[appState.currentToolIndex] ? (
+							  appState.pendingToolCalls[appState.currentToolIndex] ? (
 								<ToolExecutionIndicator
 									toolName={
 										appState.pendingToolCalls[appState.currentToolIndex]
@@ -367,7 +373,7 @@ export default function App() {
 									customCommands={Array.from(
 										appState.customCommandCache.keys(),
 									)}
-									onSubmit={(msg) => void handleMessageSubmit(msg)}
+									onSubmit={msg => void handleMessageSubmit(msg)}
 									disabled={
 										appState.isThinking ||
 										appState.isToolExecuting ||

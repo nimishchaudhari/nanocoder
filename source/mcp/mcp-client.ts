@@ -104,7 +104,7 @@ export class MCPClient {
 							type?: string;
 							properties?: Record<string, unknown>;
 							required?: string[];
-					}
+					  }
 					| undefined;
 
 				const tool: Tool = {
@@ -210,7 +210,8 @@ export class MCPClient {
 
 			return 'Tool executed successfully (no output)';
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error';
 			throw new Error(`MCP tool execution failed: ${errorMessage}`);
 		}
 	}
@@ -221,7 +222,8 @@ export class MCPClient {
 				await client.close();
 				logInfo(`Disconnected from MCP server: ${serverName}`);
 			} catch (error) {
-				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+				const errorMessage =
+					error instanceof Error ? error.message : 'Unknown error';
 				logError(`Error disconnecting from ${serverName}: ${errorMessage}`);
 			}
 		}

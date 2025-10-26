@@ -10,6 +10,7 @@ import {
 	updateLastUsed,
 } from '@/config/preferences';
 import type {MCPInitResult, UserPreferences} from '@/types/index';
+import type {CustomCommand} from '@/types/commands';
 import {setToolManagerGetter, setToolRegistryGetter} from '@/message-handler';
 import {commandRegistry} from '@/commands';
 import {appConfig} from '@/config/index';
@@ -42,13 +43,13 @@ interface UseAppInitializationProps {
 	setToolManager: (manager: ToolManager | null) => void;
 	setCustomCommandLoader: (loader: CustomCommandLoader | null) => void;
 	setCustomCommandExecutor: (executor: CustomCommandExecutor | null) => void;
-	setCustomCommandCache: (cache: Map<string, any>) => void;
+	setCustomCommandCache: (cache: Map<string, CustomCommand>) => void;
 	setStartChat: (start: boolean) => void;
 	setMcpInitialized: (initialized: boolean) => void;
 	setUpdateInfo: (info: UpdateInfo | null) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
-	customCommandCache: Map<string, any>;
+	customCommandCache: Map<string, CustomCommand>;
 	setIsConfigWizardMode: (mode: boolean) => void;
 }
 

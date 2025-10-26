@@ -1,32 +1,36 @@
 import {Text, Box} from 'ink';
 import {memo, useMemo} from 'react';
 import {useTheme} from '@/hooks/useTheme';
-import type {AssistantMessageProps} from '@/types/index';
+import type {AssistantMessageProps, Colors} from '@/types/index';
 import chalk from 'chalk';
 import {highlight} from 'cli-highlight';
 
 // Basic markdown parser for terminal
-function parseMarkdown(text: string, themeColors: any): string {
+function parseMarkdown(text: string, themeColors: Colors): string {
 	let result = text;
 
 	// Code blocks (```language\ncode\n```)
-	result = result.replace(/```(\w+)?\n([\s\S]*?)```/g, (_match, lang, code) => {
-		try {
-			// Apply syntax highlighting with detected language
-			const highlighted = highlight(code.trim(), {
-				language: lang || 'plaintext',
-				theme: 'default',
-			});
-			return highlighted;
-		} catch {
-			// Fallback to plain colored text if highlighting fails
-			return chalk.hex(themeColors.tool)(code.trim());
-		}
-	});
+	result = result.replace(
+		/```(\w+)?\n([\s\S]*?)```/g,
+		(_match, lang: string | undefined, code: string) => {
+			try {
+				const codeStr = String(code).trim();
+				// Apply syntax highlighting with detected language
+				const highlighted = highlight(codeStr, {
+					language: lang || 'plaintext',
+					theme: 'default',
+				});
+				return highlighted;
+			} catch {
+				// Fallback to plain colored text if highlighting fails
+				return chalk.hex(themeColors.tool)(String(code).trim());
+			}
+		},
+	);
 
 	// Inline code (`code`)
-	result = result.replace(/`([^`]+)`/g, (_match, code) => {
-		return chalk.hex(themeColors.tool)(code);
+	result = result.replace(/`([^`]+)`/g, (_match, code: string) => {
+		return chalk.hex(themeColors.tool)(String(code).trim());
 	});
 
 	// Bold (**text** or __text__)

@@ -15,7 +15,7 @@ import ToolMessage from '@/components/tool-message';
 import React from 'react';
 
 // Helper function to filter out invalid tool calls and deduplicate by ID and function
-const filterValidToolCalls = (toolCalls: any[]): any[] => {
+const filterValidToolCalls = (toolCalls: ToolCall[]): ToolCall[] => {
 	const seenIds = new Set<string>();
 	const seenFunctionCalls = new Set<string>();
 
@@ -66,7 +66,7 @@ interface UseChatHandlerProps {
 	setAbortController: (controller: AbortController | null) => void;
 	developmentMode?: 'normal' | 'auto-accept' | 'plan';
 	onStartToolConfirmationFlow: (
-		toolCalls: any[],
+		toolCalls: ToolCall[],
 		updatedMessages: Message[],
 		assistantMsg: Message,
 		systemMessage: Message,
@@ -98,16 +98,16 @@ export function useChatHandler({
 		}
 	}, [messages.length]);
 	// Display tool result with proper formatting (similar to useToolHandler)
-	const displayToolResult = async (toolCall: any, result: any) => {
+	const displayToolResult = async (toolCall: ToolCall, result: ToolResult) => {
 		if (toolManager) {
 			const formatter = toolManager.getToolFormatter(result.name);
 			if (formatter) {
 				try {
 					// Parse arguments if they're a JSON string
-					let parsedArgs = toolCall.function.arguments;
+					let parsedArgs: unknown = toolCall.function.arguments;
 					if (typeof parsedArgs === 'string') {
 						try {
-							parsedArgs = JSON.parse(parsedArgs);
+							parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
 						} catch {
 							// If parsing fails, use as-is
 						}
@@ -302,10 +302,13 @@ export function useChatHandler({
 						if (validator) {
 							try {
 								// Parse arguments if they're a JSON string
-								let parsedArgs = toolCall.function.arguments;
+								let parsedArgs: unknown = toolCall.function.arguments;
 								if (typeof parsedArgs === 'string') {
 									try {
-										parsedArgs = JSON.parse(parsedArgs);
+										parsedArgs = JSON.parse(parsedArgs) as Record<
+											string,
+											unknown
+										>;
 									} catch {
 										// If parsing fails, use as-is
 									}
@@ -350,10 +353,13 @@ export function useChatHandler({
 							);
 							if (validator) {
 								// Parse arguments if they're a JSON string
-								let parsedArgs = toolCall.function.arguments;
+								let parsedArgs: unknown = toolCall.function.arguments;
 								if (typeof parsedArgs === 'string') {
 									try {
-										parsedArgs = JSON.parse(parsedArgs);
+										parsedArgs = JSON.parse(parsedArgs) as Record<
+											string,
+											unknown
+										>;
 									} catch {
 										// If parsing fails, use as-is
 									}
