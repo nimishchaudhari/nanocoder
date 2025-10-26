@@ -182,6 +182,7 @@ export default function UserInput({
 			setHistoryIndex,
 			setOriginalInput,
 			setInputState,
+			updateInput,
 		],
 	);
 

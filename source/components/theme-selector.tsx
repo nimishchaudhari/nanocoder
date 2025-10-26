@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useMemo} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
@@ -26,7 +26,6 @@ export default function ThemeSelector({
 	const boxWidth = useTerminalWidth();
 	const {colors, currentTheme, setCurrentTheme} = useTheme();
 	const [originalTheme] = useState(currentTheme); // Store original theme for restore on cancel
-	const [_currentIndex, setCurrentIndex] = useState(0);
 
 	// Handle escape key to cancel
 	useInput((_, key) => {
@@ -45,12 +44,14 @@ export default function ThemeSelector({
 	}));
 
 	// Find index of current theme for initial selection
-	useEffect(() => {
+	const initialIndex = useMemo(() => {
 		const index = themeOptions.findIndex(
 			option => option.value === originalTheme,
 		);
-		setCurrentIndex(index >= 0 ? index : 0);
-	}, []);
+		return index >= 0 ? index : 0;
+	}, [originalTheme, themeOptions]);
+
+	const [_currentIndex, _setCurrentIndex] = useState(initialIndex);
 
 	const handleSelect = (item: ThemeOption) => {
 		onThemeSelect(item.value);

@@ -12,6 +12,7 @@ import type {
 	Tool,
 	LLMClient,
 	LangChainProviderConfig,
+	LLMChatResponse,
 } from '@/types/index';
 import {XMLToolCallParser} from '@/tool-calling/xml-parser';
 
@@ -151,7 +152,8 @@ interface ChatConfig {
 	openAIApiKey: string;
 	configuration: {
 		baseURL: string;
-		fetch: (url: RequestInfo, options?: RequestInit) => Promise<Response>;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		fetch: any;
 	};
 	timeout?: number;
 	maxTokens?: number;
@@ -202,9 +204,9 @@ export class LangGraphClient implements LLMClient {
 	private createChatModel(): ChatOpenAI {
 		const {config, requestTimeout} = this.providerConfig;
 
-		const customFetch = (url: RequestInfo, options: RequestInit = {}) => {
+		const customFetch = (url: string | URL | Request, options: RequestInit = {}) => {
 			// Ensure the abort signal is preserved from options
-			return fetch(url, {
+			return fetch(url as RequestInfo, {
 				...options,
 				signal: options.signal, // Explicitly preserve the signal
 				dispatcher: this.undiciAgent,
@@ -213,9 +215,9 @@ export class LangGraphClient implements LLMClient {
 
 		const chatConfig: ChatConfig = {
 			modelName: this.currentModel,
-			openAIApiKey: config.apiKey || 'dummy-key',
+			openAIApiKey: config.apiKey ?? 'dummy-key',
 			configuration: {
-				baseURL: config.baseURL,
+				baseURL: config.baseURL ?? '',
 				fetch: customFetch,
 			},
 			...config,
@@ -276,7 +278,7 @@ export class LangGraphClient implements LLMClient {
 		messages: Message[],
 		tools: Tool[],
 		signal?: AbortSignal,
-	): Promise<{choices: Array<{message: Message}>}> {
+	): Promise<LLMChatResponse> {
 		// Check if already aborted before starting
 		if (signal?.aborted) {
 			throw new Error('Operation was cancelled');
@@ -352,7 +354,11 @@ export class LangGraphClient implements LLMClient {
 			return {
 				choices: [
 					{
-						message: convertedMessage,
+						message: {
+							role: 'assistant' as const,
+							content: convertedMessage.content,
+							tool_calls: convertedMessage.tool_calls,
+						},
 					},
 				],
 			};

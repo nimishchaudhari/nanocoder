@@ -56,7 +56,7 @@ export default function App() {
 	// Initialize global message queue on component mount
 	React.useEffect(() => {
 		setGlobalMessageQueue(appState.addToChatQueue);
-	}, []);
+	}, [appState.addToChatQueue]);
 
 	// Setup chat handler
 	const chatHandler = useChatHandler({
@@ -161,7 +161,7 @@ export default function App() {
 			appState.setIsCancelling(true);
 			appState.abortController.abort();
 		}
-	}, [appState.abortController, appState.setIsCancelling]);
+	}, [appState]);
 
 	const handleToggleDevelopmentMode = React.useCallback(() => {
 		appState.setDevelopmentMode(currentMode => {
@@ -174,7 +174,7 @@ export default function App() {
 			const nextIndex = (currentIndex + 1) % modes.length;
 			return modes[nextIndex];
 		});
-	}, [appState.setDevelopmentMode]);
+	}, [appState]);
 
 	const handleShowStatus = React.useCallback(() => {
 		appState.addToChatQueue(
@@ -186,14 +186,7 @@ export default function App() {
 				updateInfo={appState.updateInfo}
 			/>,
 		);
-	}, [
-		appState.addToChatQueue,
-		appState.componentKeyCounter,
-		appState.currentProvider,
-		appState.currentModel,
-		appState.currentTheme,
-		appState.updateInfo,
-	]);
+	}, [appState]);
 
 	const handleMessageSubmit = React.useCallback(
 		async (message: string) => {
@@ -229,6 +222,9 @@ export default function App() {
 			clearMessages,
 			modeHandlers.enterModelSelectionMode,
 			modeHandlers.enterProviderSelectionMode,
+			modeHandlers.enterThemeSelectionMode,
+			modeHandlers.enterRecommendationsMode,
+			modeHandlers.enterConfigWizardMode,
 			handleShowStatus,
 			chatHandler.handleChatMessage,
 			appState.addToChatQueue,
@@ -237,6 +233,11 @@ export default function App() {
 			appState.messages,
 			appState.setIsBashExecuting,
 			appState.setCurrentBashCommand,
+			appState.currentProvider,
+			appState.currentModel,
+			appState.currentTheme,
+			appState.updateInfo,
+			appState.getMessageTokens,
 		],
 	);
 

@@ -343,18 +343,31 @@ export class ProjectAnalyzer {
 		languages: DetectedLanguages,
 		dependencies: ProjectDependencies,
 	): string {
+		interface Framework {
+			category:
+				| 'web'
+				| 'mobile'
+				| 'desktop'
+				| 'backend'
+				| 'testing'
+				| 'build'
+				| 'other';
+			name: string;
+			confidence: 'high' | 'medium' | 'low';
+		}
+
 		// Use framework-based detection first
 		const webFrameworks = dependencies.frameworks.filter(
-			(f: {category: string}) => f.category === 'web',
+			(f): f is Framework => (f as Framework).category === 'web',
 		);
 		const backendFrameworks = dependencies.frameworks.filter(
-			(f: {category: string}) => f.category === 'backend',
+			(f): f is Framework => (f as Framework).category === 'backend',
 		);
 		const mobileFrameworks = dependencies.frameworks.filter(
-			(f: {category: string}) => f.category === 'mobile',
+			(f): f is Framework => (f as Framework).category === 'mobile',
 		);
 		const desktopFrameworks = dependencies.frameworks.filter(
-			(f: {category: string}) => f.category === 'desktop',
+			(f): f is Framework => (f as Framework).category === 'desktop',
 		);
 
 		if (mobileFrameworks.length > 0) {
@@ -399,8 +412,8 @@ export class ProjectAnalyzer {
 					conventions.push('Use PascalCase for classes and components');
 					conventions.push('Use const/let instead of var');
 					if (
-						analysis.dependencies.frameworks.some((f: {name: string}) =>
-							f.name.includes('React'),
+						analysis.dependencies.frameworks.some((f: unknown) =>
+							(f as {name: string}).name.includes('React'),
 						)
 					) {
 						conventions.push('Use functional components with hooks');

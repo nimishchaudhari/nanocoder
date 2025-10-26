@@ -14,7 +14,7 @@ import {getAppDataPath} from '@/config/paths';
 // Suppress dotenv console output by temporarily redirecting stdout
 const envPath = join(process.cwd(), '.env');
 if (existsSync(envPath)) {
-	const originalWrite = process.stdout.write;
+	const originalWrite = process.stdout.write.bind(process.stdout);
 	process.stdout.write = () => true;
 	try {
 		loadEnv({path: envPath});

@@ -109,6 +109,7 @@ function RecommendationsDisplay({onCancel}: RecommendationsDisplayProps) {
 
 	// Reset index when switching tabs
 	useEffect(() => {
+		// eslint-disable-next-line
 		setCurrentModelIndex(0);
 	}, [activeTab]);
 

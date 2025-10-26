@@ -39,10 +39,11 @@ export default memo(function ThinkingIndicator() {
 	const {colors} = useTheme();
 	const [elapsedSeconds, setElapsedSeconds] = useState(0);
 	const [wordIndex, setWordIndex] = useState(0);
-	const startTimeRef = useRef<number>(Date.now());
+	const startTimeRef = useRef<number>(0);
 
 	useEffect(() => {
 		startTimeRef.current = Date.now();
+		// eslint-disable-next-line
 		setElapsedSeconds(0);
 	}, []);
 

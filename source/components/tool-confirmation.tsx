@@ -110,7 +110,7 @@ export default function ToolConfirmation({
 		};
 
 		void loadPreview();
-	}, [toolCall, toolManager]);
+	}, [toolCall, toolManager, colors.error]);
 
 	// Handle escape key to cancel
 	useInput((inputChar, key) => {
