@@ -57,6 +57,7 @@
 		"cheerio": "^1.1.2",
 		"cli-highlight": "^2.1.11",
 		"dotenv": "^17.2.3",
+		"ignore": "^7.0.5",
 		"ink": "^6.3.1",
 		"ink-big-text": "^2.0.0",
 		"ink-gradient": "^3.0.0",

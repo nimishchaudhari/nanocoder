@@ -1,6 +1,9 @@
 import {exec} from 'node:child_process';
 import {promisify} from 'node:util';
+import {readFileSync, existsSync} from 'node:fs';
+import {join} from 'node:path';
 import React from 'react';
+import ignore from 'ignore';
 
 const execAsync = promisify(exec);
 import {Text, Box} from 'ink';
@@ -22,6 +25,40 @@ interface SearchResult {
 }
 
 /**
+ * Load and parse .gitignore file, returns an ignore instance
+ */
+function loadGitignore(cwd: string): ReturnType<typeof ignore> {
+	const ig = ignore();
+	const gitignorePath = join(cwd, '.gitignore');
+
+	// Always ignore common directories
+	ig.add([
+		'node_modules',
+		'.git',
+		'dist',
+		'build',
+		'coverage',
+		'.next',
+		'.nuxt',
+		'out',
+		'.cache',
+	]);
+
+	// Load .gitignore if it exists
+	if (existsSync(gitignorePath)) {
+		try {
+			const gitignoreContent = readFileSync(gitignorePath, 'utf-8');
+			ig.add(gitignoreContent);
+		} catch (error) {
+			// Silently fail if we can't read .gitignore
+			// The hardcoded ignores above will still apply
+		}
+	}
+
+	return ig;
+}
+
+/**
  * Search file contents using grep
  */
 async function searchFiles(
@@ -31,12 +68,12 @@ async function searchFiles(
 	_contextLines: number,
 ): Promise<SearchResult> {
 	try {
-		// Use grep for content search
+		const ig = loadGitignore(cwd);
+
+		// Use grep with basic exclusions for performance, then filter with gitignore
+		// We still exclude the most common large directories to avoid performance issues
 		const {stdout} = await execAsync(
-			`grep -rn -i --include="*" --exclude-dir={node_modules,dist,.git,build,coverage} "${query.replace(
-				/"/g,
-				'\\"',
-			)}" . | head -n ${maxResults}`,
+			`grep -rn -i --include="*" --exclude-dir={node_modules,.git,dist,build,coverage,.next,.nuxt,out,.cache} "${query.replace(/"/g, '\\"')}" . | head -n ${maxResults * 3}`,
 			{cwd, maxBuffer: 1024 * 1024},
 		);
 
@@ -46,17 +83,29 @@ async function searchFiles(
 		for (const line of lines) {
 			const match = line.match(/^\.\/(.+?):(\d+):(.*)$/);
 			if (match) {
+				const filePath = match[1];
+
+				// Skip files ignored by gitignore
+				if (ig.ignores(filePath)) {
+					continue;
+				}
+
 				matches.push({
-					file: match[1],
+					file: filePath,
 					line: parseInt(match[2], 10),
 					content: match[3].trim(),
 				});
+
+				// Stop once we have enough matches
+				if (matches.length >= maxResults) {
+					break;
+				}
 			}
 		}
 
 		return {
 			matches,
-			truncated: lines.length >= maxResults,
+			truncated: lines.length >= maxResults * 3 || matches.length >= maxResults,
 			totalMatches: matches.length,
 		};
 	} catch (error: unknown) {
@@ -77,6 +126,8 @@ async function listFiles(
 	maxResults: number,
 ): Promise<SearchResult> {
 	try {
+		const ig = loadGitignore(cwd);
+
 		// Convert glob pattern to find-compatible pattern
 		// **/*.ts -> -name "*.ts"
 		// **/*.{ts,tsx} -> \( -name "*.ts" -o -name "*.tsx" \)
@@ -96,20 +147,34 @@ async function listFiles(
 			findPattern = `-name "*${ext}"`;
 		}
 
+		// Find files with basic exclusions for performance, filter afterward with gitignore
 		const {stdout} = await execAsync(
-			`find . -type f ${findPattern} -not -path "*/node_modules/*" -not -path "*/dist/*" -not -path "*/.git/*" | head -n ${maxResults}`,
+			`find . -type f ${findPattern} -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/coverage/*" -not -path "*/.next/*" -not -path "*/.nuxt/*" -not -path "*/out/*" -not -path "*/.cache/*" | head -n ${maxResults * 3}`,
 			{cwd, maxBuffer: 1024 * 1024},
 		);
 
-		const matches: SearchMatch[] = stdout
+		const allFiles = stdout
 			.trim()
 			.split('\n')
 			.filter(Boolean)
-			.map(line => ({file: line.replace(/^\.\//, '')}));
+			.map(line => line.replace(/^\.\//, ''));
+
+		// Filter using gitignore
+		const matches: SearchMatch[] = [];
+		for (const file of allFiles) {
+			if (!ig.ignores(file)) {
+				matches.push({file});
+
+				// Stop once we have enough matches
+				if (matches.length >= maxResults) {
+					break;
+				}
+			}
+		}
 
 		return {
 			matches,
-			truncated: matches.length >= maxResults,
+			truncated: allFiles.length >= maxResults * 3 || matches.length >= maxResults,
 			totalMatches: matches.length,
 		};
 	} catch (error: unknown) {
