@@ -73,7 +73,7 @@ test('ProviderStep shows provider count when providers exist', t => {
 			models: ['llama2'],
 		},
 		{
-			name: 'openrouter',
+			name: 'OpenRouter',
 			baseUrl: 'https://openrouter.ai/api/v1',
 			apiKey: 'test-key',
 			models: ['model1'],
@@ -323,7 +323,7 @@ test('ProviderStep renders multiple provider names when added', t => {
 			models: ['llama2'],
 		},
 		{
-			name: 'openrouter',
+			name: 'OpenRouter',
 			baseUrl: 'https://openrouter.ai/api/v1',
 			apiKey: 'test',
 			models: ['model1'],

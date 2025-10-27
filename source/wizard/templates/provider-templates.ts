@@ -142,11 +142,11 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 			{
 				name: 'providerName',
 				prompt: 'Provider name',
-				default: 'openrouter',
+				default: 'OpenRouter',
 			},
 		],
 		buildConfig: answers => ({
-			name: answers.providerName || 'openrouter',
+			name: answers.providerName || 'OpenRouter',
 			baseUrl: 'https://openrouter.ai/api/v1',
 			apiKey: answers.apiKey,
 			models: answers.model
