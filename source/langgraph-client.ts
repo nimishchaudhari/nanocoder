@@ -308,7 +308,9 @@ export class LangGraphClient implements LLMClient {
 					}));
 
 					// Try binding tools to the model
-					const modelWithTools = this.chatModel.bindTools(langchainTools);
+					const modelWithTools = this.chatModel.bindTools(langchainTools, {
+						parallel_tool_calls: false,
+					});
 					result = (await modelWithTools.invoke(
 						langchainMessages,
 						invokeOptions,
