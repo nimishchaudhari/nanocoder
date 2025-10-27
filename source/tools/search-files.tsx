@@ -49,7 +49,7 @@ function loadGitignore(cwd: string): ReturnType<typeof ignore> {
 		try {
 			const gitignoreContent = readFileSync(gitignorePath, 'utf-8');
 			ig.add(gitignoreContent);
-		} catch (error) {
+		} catch {
 			// Silently fail if we can't read .gitignore
 			// The hardcoded ignores above will still apply
 		}
@@ -73,7 +73,10 @@ async function searchFiles(
 		// Use grep with basic exclusions for performance, then filter with gitignore
 		// We still exclude the most common large directories to avoid performance issues
 		const {stdout} = await execAsync(
-			`grep -rn -i --include="*" --exclude-dir={node_modules,.git,dist,build,coverage,.next,.nuxt,out,.cache} "${query.replace(/"/g, '\\"')}" . | head -n ${maxResults * 3}`,
+			`grep -rn -i --include="*" --exclude-dir={node_modules,.git,dist,build,coverage,.next,.nuxt,out,.cache} "${query.replace(
+				/"/g,
+				'\\"',
+			)}" . | head -n ${maxResults * 3}`,
 			{cwd, maxBuffer: 1024 * 1024},
 		);
 
@@ -149,7 +152,9 @@ async function listFiles(
 
 		// Find files with basic exclusions for performance, filter afterward with gitignore
 		const {stdout} = await execAsync(
-			`find . -type f ${findPattern} -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/coverage/*" -not -path "*/.next/*" -not -path "*/.nuxt/*" -not -path "*/out/*" -not -path "*/.cache/*" | head -n ${maxResults * 3}`,
+			`find . -type f ${findPattern} -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/coverage/*" -not -path "*/.next/*" -not -path "*/.nuxt/*" -not -path "*/out/*" -not -path "*/.cache/*" | head -n ${
+				maxResults * 3
+			}`,
 			{cwd, maxBuffer: 1024 * 1024},
 		);
 
@@ -174,7 +179,8 @@ async function listFiles(
 
 		return {
 			matches,
-			truncated: allFiles.length >= maxResults * 3 || matches.length >= maxResults,
+			truncated:
+				allFiles.length >= maxResults * 3 || matches.length >= maxResults,
 			totalMatches: matches.length,
 		};
 	} catch (error: unknown) {
