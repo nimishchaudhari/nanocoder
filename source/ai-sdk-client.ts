@@ -117,10 +117,9 @@ function jsonSchemaToZod(schema: any): z.ZodType {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	const schemaType = schema.type;
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	if (schemaType === 'object') {
 		const shape: Record<string, z.ZodType> = {};
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		const properties = schema.properties || {};
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -137,7 +136,7 @@ function jsonSchemaToZod(schema: any): z.ZodType {
 			}
 
 			// Make optional if not in required array
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			const required = schema.required || [];
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 			if (!required.includes(key)) {
@@ -149,28 +148,23 @@ function jsonSchemaToZod(schema: any): z.ZodType {
 		return z.object(shape);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	if (schemaType === 'string') {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		const enumValues = schema.enum;
 		if (Array.isArray(enumValues) && enumValues.length > 0) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			return z.enum(enumValues as [string, ...string[]]);
 		}
 		return z.string();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	if (schemaType === 'number' || schemaType === 'integer') {
 		return z.number();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	if (schemaType === 'boolean') {
 		return z.boolean();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	if (schemaType === 'array') {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		const items = schema.items;
@@ -184,7 +178,7 @@ function jsonSchemaToZod(schema: any): z.ZodType {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	if (schema.properties) {
 		// Has properties but no type - treat as object
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
 		return jsonSchemaToZod({...schema, type: 'object'});
 	}
 
@@ -194,9 +188,10 @@ function jsonSchemaToZod(schema: any): z.ZodType {
 
 /**
  * Convert our Tool format to AI SDK CoreTool format
+ * TODO Phase 4: Remove this function - will be replaced with direct tool usage
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function convertToAISDKTools(tools: Tool[]): Record<string, any> {
+function _convertToAISDKTools(tools: Tool[]): Record<string, any> {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const aiTools: Record<string, any> = {};
 
@@ -214,7 +209,10 @@ function convertToAISDKTools(tools: Tool[]): Record<string, any> {
 				`Failed to convert tool ${tool.function.name}:`,
 				error instanceof Error ? error.message : error,
 			);
-			console.error('Tool parameters:', JSON.stringify(tool.function.parameters, null, 2));
+			console.error(
+				'Tool parameters:',
+				JSON.stringify(tool.function.parameters, null, 2),
+			);
 		}
 	}
 
@@ -355,7 +353,7 @@ export class AISDKClient implements LLMClient {
 									description: tool.function.description,
 									inputSchema: jsonSchemaToZod(tool.function.parameters),
 									// Dummy execute - we handle execution in our tool handler
-									execute: async () => {
+									execute: () => {
 										throw new Error('Tools should not be executed by AI SDK');
 									},
 								},
@@ -367,7 +365,7 @@ export class AISDKClient implements LLMClient {
 			const aiMessages = convertMessagesToAISDK(messages);
 
 			// Use generateText for non-streaming
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+
 			const result = await generateText({
 				model,
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -381,7 +379,10 @@ export class AISDKClient implements LLMClient {
 			if (result.toolCalls && result.toolCalls.length > 0) {
 				for (const toolCall of result.toolCalls) {
 					// Log the tool call structure for debugging
-					console.log('Tool call structure:', JSON.stringify(toolCall, null, 2));
+					console.log(
+						'Tool call structure:',
+						JSON.stringify(toolCall, null, 2),
+					);
 
 					toolCalls.push({
 						id: toolCall.toolCallId,
@@ -470,7 +471,7 @@ export class AISDKClient implements LLMClient {
 									description: tool.function.description,
 									inputSchema: jsonSchemaToZod(tool.function.parameters),
 									// Dummy execute - we handle execution in our tool handler
-									execute: async () => {
+									execute: () => {
 										throw new Error('Tools should not be executed by AI SDK');
 									},
 								},
@@ -482,7 +483,7 @@ export class AISDKClient implements LLMClient {
 			const aiMessages = convertMessagesToAISDK(messages);
 
 			// Use streamText for streaming
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+
 			const result = streamText({
 				model,
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -506,7 +507,10 @@ export class AISDKClient implements LLMClient {
 			if (toolCallsResult && toolCallsResult.length > 0) {
 				for (const toolCall of toolCallsResult) {
 					// Log the tool call structure for debugging
-					console.log('Stream tool call structure:', JSON.stringify(toolCall, null, 2));
+					console.log(
+						'Stream tool call structure:',
+						JSON.stringify(toolCall, null, 2),
+					);
 
 					const tc: ToolCall = {
 						id: toolCall.toolCallId,

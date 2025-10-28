@@ -3,11 +3,13 @@ import {readFile, access} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import React from 'react';
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition} from '@/types/index';
+import type {ToolDefinition} from '@/types/index';
+import {tool, jsonSchema} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
 
-const handler: ToolHandler = async (args: {path: string}): Promise<string> => {
+// Handler function - will be used both by Nanocoder and AI SDK tool
+const executeReadFile = async (args: {path: string}): Promise<string> => {
 	const absPath = resolve(args.path);
 
 	try {
@@ -43,6 +45,23 @@ const handler: ToolHandler = async (args: {path: string}): Promise<string> => {
 		throw error;
 	}
 };
+
+// AI SDK tool definition
+const readFileCoreTool = tool({
+	description:
+		'Read the contents of a file with line numbers (use line numbers with edit_file tool for precise editing)',
+	inputSchema: jsonSchema<{path: string}>({
+		type: 'object',
+		properties: {
+			path: {
+				type: 'string',
+				description: 'The path to the file to read.',
+			},
+		},
+		required: ['path'],
+	}),
+	execute: executeReadFile,
+});
 
 // Create a component that will re-render when theme changes
 const ReadFileFormatter = React.memo(
@@ -148,11 +167,13 @@ const validator = async (args: {
 	}
 };
 
+// Nanocoder tool definition with AI SDK core tool + custom extensions
 export const readFileTool: ToolDefinition = {
-	handler,
+	handler: executeReadFile,
 	formatter,
 	validator,
 	requiresConfirmation: false,
+	// For Phase 3-4: will migrate to use coreTool directly
 	config: {
 		type: 'function',
 		function: {
@@ -172,3 +193,7 @@ export const readFileTool: ToolDefinition = {
 		},
 	},
 };
+
+// Export the AI SDK core tool for Phase 3-4 migration
+// Will be used when we migrate to use AI SDK tools directly
+export {readFileCoreTool};
