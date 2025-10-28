@@ -6,6 +6,17 @@ import {themes} from '../config/themes';
 
 console.log(`\nfetch-url.spec.tsx – ${React.version}`);
 
+// Polyfill File for undici in Node.js test environment
+if (typeof File === 'undefined') {
+	(global as any).File = class File {
+		constructor(
+			public parts: any[],
+			public name: string,
+			public options?: any,
+		) {}
+	};
+}
+
 // Dynamically import to avoid loading undici in test environment
 let fetchUrlTool: any;
 
