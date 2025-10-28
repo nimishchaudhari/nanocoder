@@ -1,4 +1,4 @@
-# 1.14.0
+## 1.14.0
 
 - Added `/setup-config` command - an interactive wizard for configuring LLM providers and MCP servers with built-in templates for popular services. Includes real-time validation, manual editing support (Ctrl+E), and automatic configuration reload.
 - Revamped testing setup to now:
@@ -11,7 +11,7 @@
 
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
-# 1.13.9
+## 1.13.9
 
 - Added Anthropic Claude Haiku 4.5 to model database.
 - UI updates to welcome message, status and user input placeholder on narrow terminals.

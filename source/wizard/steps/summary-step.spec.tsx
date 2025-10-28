@@ -54,7 +54,7 @@ test('SummaryStep shows provider count', t => {
 			models: ['llama2'],
 		},
 		{
-			name: 'openrouter',
+			name: 'OpenRouter',
 			baseUrl: 'https://openrouter.ai/api/v1',
 			apiKey: 'test-key',
 			models: ['gpt-4'],
@@ -547,7 +547,7 @@ test('SummaryStep handles multiple providers and servers', t => {
 			models: ['llama2'],
 		},
 		{
-			name: 'openrouter',
+			name: 'OpenRouter',
 			baseUrl: 'https://openrouter.ai/api/v1',
 			apiKey: 'test',
 			models: ['gpt-4'],

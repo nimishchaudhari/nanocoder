@@ -154,6 +154,7 @@ interface ChatConfig {
 		baseURL: string;
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		fetch: any;
+		defaultHeaders?: Record<string, string>;
 	};
 	timeout?: number;
 	maxTokens?: number;
@@ -216,12 +217,21 @@ export class LangGraphClient implements LLMClient {
 			});
 		};
 
+		// Add OpenRouter-specific headers for app attribution
+		const defaultHeaders: Record<string, string> = {};
+		if (this.providerConfig.name.toLowerCase() === 'openrouter') {
+			defaultHeaders['HTTP-Referer'] =
+				'https://github.com/Nano-Collective/nanocoder';
+			defaultHeaders['X-Title'] = 'Nanocoder';
+		}
+
 		const chatConfig: ChatConfig = {
 			modelName: this.currentModel,
 			openAIApiKey: config.apiKey ?? 'dummy-key',
 			configuration: {
 				baseURL: config.baseURL ?? '',
 				fetch: customFetch,
+				defaultHeaders,
 			},
 			...config,
 		};
@@ -249,7 +259,7 @@ export class LangGraphClient implements LLMClient {
 
 	getContextSize(): number {
 		// For OpenRouter, get from cached model info
-		if (this.providerConfig.name === 'openrouter') {
+		if (this.providerConfig.name.toLowerCase() === 'openrouter') {
 			const modelData = this.modelInfoCache.get(this.currentModel);
 			if (modelData?.context_length) {
 				return modelData.context_length;

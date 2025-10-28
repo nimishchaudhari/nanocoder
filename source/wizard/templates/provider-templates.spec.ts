@@ -84,7 +84,7 @@ test('openrouter template: single model', t => {
 	t.truthy(template);
 
 	const config = template!.buildConfig({
-		providerName: 'openrouter',
+		providerName: 'OpenRouter',
 		apiKey: 'test-key',
 		model: 'z-ai/glm-4.6',
 	});
@@ -97,7 +97,7 @@ test('openrouter template: multiple comma-separated models', t => {
 	t.truthy(template);
 
 	const config = template!.buildConfig({
-		providerName: 'openrouter',
+		providerName: 'OpenRouter',
 		apiKey: 'test-key',
 		model: 'z-ai/glm-4.6, anthropic/claude-3-opus, openai/gpt-4',
 	});
