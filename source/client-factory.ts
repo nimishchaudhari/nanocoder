@@ -1,4 +1,4 @@
-import {LangGraphClient} from '@/langgraph-client';
+import {AISDKClient} from '@/ai-sdk-client';
 import {appConfig, getClosestConfigFile} from '@/config/index';
 import {loadPreferences} from '@/config/preferences';
 import type {LLMClient, LangChainProviderConfig} from '@/types/index';
@@ -25,11 +25,11 @@ export async function createLLMClient(
 	const agentsJsonPath = getClosestConfigFile('agents.config.json');
 	const hasConfigFile = existsSync(agentsJsonPath);
 
-	// Always use LangGraph - it handles both tool-calling and non-tool-calling models
-	return createLangGraphClient(provider, hasConfigFile);
+	// Use AI SDK - it handles both tool-calling and non-tool-calling models
+	return createAISDKClient(provider, hasConfigFile);
 }
 
-async function createLangGraphClient(
+async function createAISDKClient(
 	requestedProvider?: string,
 	hasConfigFile = true,
 ): Promise<{client: LLMClient; actualProvider: string}> {
@@ -88,7 +88,7 @@ async function createLangGraphClient(
 			// Test provider connection
 			await testProviderConnection(providerConfig);
 
-			const client = await LangGraphClient.create(providerConfig);
+			const client = await AISDKClient.create(providerConfig);
 
 			return {client, actualProvider: providerType};
 		} catch (error: unknown) {

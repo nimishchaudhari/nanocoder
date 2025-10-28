@@ -50,10 +50,10 @@
 		"source/app/prompts/main-prompt.md"
 	],
 	"dependencies": {
-		"@langchain/core": "^0.3.72",
-		"@langchain/openai": "^0.6.15",
+		"@ai-sdk/openai": "^2.0.56",
 		"@mishieck/ink-titled-box": "^0.3.0",
 		"@modelcontextprotocol/sdk": "^1.17.3",
+		"ai": "^5.0.81",
 		"@nanocollective/get-md": "^1.0.0",
 		"cheerio": "^1.1.2",
 		"cli-highlight": "^2.1.11",
@@ -68,7 +68,8 @@
 		"ink-text-input": "^6.0.0",
 		"react": "^19.0.0",
 		"systeminformation": "^5.27.10",
-		"undici": "^7.16.0"
+		"undici": "^7.16.0",
+		"zod": "^4.1.12"
 	},
 	"devDependencies": {
 		"@ava/typescript": "^6.0.0",

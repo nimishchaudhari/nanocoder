@@ -1,0 +1,580 @@
+import {createOpenAI} from '@ai-sdk/openai';
+import {generateText, streamText} from 'ai';
+import {Agent, fetch as undiciFetch} from 'undici';
+import type {
+	Message,
+	Tool,
+	LLMClient,
+	LangChainProviderConfig,
+	LLMChatResponse,
+	ToolCall,
+} from '@/types/index';
+import {XMLToolCallParser} from '@/tool-calling/xml-parser';
+import {z} from 'zod';
+
+/**
+ * Parses API errors into user-friendly messages
+ */
+function parseAPIError(error: unknown): string {
+	if (!(error instanceof Error)) {
+		return 'An unknown error occurred while communicating with the model';
+	}
+
+	const errorMessage = error.message;
+
+	// Extract status code and clean message from common error patterns
+	const statusMatch = errorMessage.match(
+		/(?:Error: )?(\d{3})\s+(?:\d{3}\s+)?(?:Bad Request|[^:]+):\s*(.+)/i,
+	);
+	if (statusMatch) {
+		const [, statusCode, message] = statusMatch;
+		const cleanMessage = message.trim();
+
+		switch (statusCode) {
+			case '400':
+				return `Bad request: ${cleanMessage}`;
+			case '401':
+				return 'Authentication failed: Invalid API key or credentials';
+			case '403':
+				return 'Access forbidden: Check your API permissions';
+			case '404':
+				return 'Model not found: The requested model may not exist or is unavailable';
+			case '429':
+				return 'Rate limit exceeded: Too many requests. Please wait and try again';
+			case '500':
+			case '502':
+			case '503':
+				return `Server error: ${cleanMessage}`;
+			default:
+				return `Request failed (${statusCode}): ${cleanMessage}`;
+		}
+	}
+
+	// Handle timeout errors
+	if (errorMessage.includes('timeout') || errorMessage.includes('ETIMEDOUT')) {
+		return 'Request timed out: The model took too long to respond';
+	}
+
+	// Handle network errors
+	if (
+		errorMessage.includes('ECONNREFUSED') ||
+		errorMessage.includes('connect')
+	) {
+		return 'Connection failed: Unable to reach the model server';
+	}
+
+	// Handle context length errors
+	if (
+		errorMessage.includes('context length') ||
+		errorMessage.includes('too many tokens')
+	) {
+		return 'Context too large: Please reduce the conversation length or message size';
+	}
+
+	// Handle token limit errors
+	if (errorMessage.includes('reduce the number of tokens')) {
+		return 'Too many tokens: Please shorten your message or clear conversation history';
+	}
+
+	// If we can't parse it, return a cleaned up version
+	return errorMessage.replace(/^Error:\s*/i, '').split('\n')[0];
+}
+
+/**
+ * Convert our Message format to AI SDK CoreMessage format
+ *
+ * For tool results, we convert them to user messages since AI SDK's tool message
+ * format is complex and inconsistent with OpenAI's standard format.
+ * The model still gets the tool results, just formatted as user messages.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function convertMessagesToAISDK(messages: Message[]): any[] {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return messages.map((msg): any => {
+		if (msg.role === 'tool') {
+			// Convert tool results to user messages
+			// This is simpler and more reliable than AI SDK's complex tool-result format
+			return {
+				role: 'user',
+				content: `Tool result from ${msg.name}:\n${msg.content}`,
+			};
+		}
+		// Other messages can stay as-is
+		return msg;
+	});
+}
+
+/**
+ * Convert JSON Schema to Zod schema for AI SDK tools
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function jsonSchemaToZod(schema: any): z.ZodType {
+	// Handle missing or invalid schema
+	if (!schema || typeof schema !== 'object') {
+		return z.unknown();
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	const schemaType = schema.type;
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	if (schemaType === 'object') {
+		const shape: Record<string, z.ZodType> = {};
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+		const properties = schema.properties || {};
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		for (const [key, value] of Object.entries(properties)) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+			const propSchema = value as any;
+			let zodSchema = jsonSchemaToZod(propSchema);
+
+			// Add description if available
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			if (propSchema?.description) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+				zodSchema = zodSchema.describe(propSchema.description);
+			}
+
+			// Make optional if not in required array
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+			const required = schema.required || [];
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+			if (!required.includes(key)) {
+				zodSchema = zodSchema.optional();
+			}
+
+			shape[key] = zodSchema;
+		}
+		return z.object(shape);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	if (schemaType === 'string') {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		const enumValues = schema.enum;
+		if (Array.isArray(enumValues) && enumValues.length > 0) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			return z.enum(enumValues as [string, ...string[]]);
+		}
+		return z.string();
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	if (schemaType === 'number' || schemaType === 'integer') {
+		return z.number();
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	if (schemaType === 'boolean') {
+		return z.boolean();
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	if (schemaType === 'array') {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		const items = schema.items;
+		if (items) {
+			return z.array(jsonSchemaToZod(items));
+		}
+		return z.array(z.unknown());
+	}
+
+	// If no type specified, try to infer from properties
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+	if (schema.properties) {
+		// Has properties but no type - treat as object
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		return jsonSchemaToZod({...schema, type: 'object'});
+	}
+
+	// Fallback to unknown for truly ambiguous schemas
+	return z.unknown();
+}
+
+/**
+ * Convert our Tool format to AI SDK CoreTool format
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function convertToAISDKTools(tools: Tool[]): Record<string, any> {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const aiTools: Record<string, any> = {};
+
+	for (const tool of tools) {
+		try {
+			const schema = jsonSchemaToZod(tool.function.parameters);
+
+			aiTools[tool.function.name] = {
+				description: tool.function.description,
+				parameters: schema,
+			};
+		} catch (error) {
+			// Log error and skip problematic tool
+			console.error(
+				`Failed to convert tool ${tool.function.name}:`,
+				error instanceof Error ? error.message : error,
+			);
+			console.error('Tool parameters:', JSON.stringify(tool.function.parameters, null, 2));
+		}
+	}
+
+	return aiTools;
+}
+
+interface ModelInfo {
+	context_length?: number;
+	[key: string]: unknown;
+}
+
+interface StreamCallbacks {
+	onToken?: (token: string) => void;
+	onToolCall?: (toolCall: ToolCall) => void;
+	onFinish?: () => void;
+}
+
+export class AISDKClient implements LLMClient {
+	private provider: ReturnType<typeof createOpenAI>;
+	private currentModel: string;
+	private availableModels: string[];
+	private providerConfig: LangChainProviderConfig;
+	private modelInfoCache: Map<string, ModelInfo> = new Map();
+	private undiciAgent: Agent;
+
+	constructor(providerConfig: LangChainProviderConfig) {
+		this.providerConfig = providerConfig;
+		this.availableModels = providerConfig.models;
+		this.currentModel = providerConfig.models[0] || '';
+
+		const {requestTimeout, socketTimeout, connectionPool} = this.providerConfig;
+		const resolvedSocketTimeout =
+			socketTimeout === -1
+				? 0
+				: socketTimeout || requestTimeout === -1
+				? 0
+				: requestTimeout || 120000;
+
+		this.undiciAgent = new Agent({
+			connect: {
+				timeout: resolvedSocketTimeout,
+			},
+			bodyTimeout: resolvedSocketTimeout,
+			headersTimeout: resolvedSocketTimeout,
+			keepAliveTimeout: connectionPool?.idleTimeout,
+			keepAliveMaxTimeout: connectionPool?.cumulativeMaxIdleTimeout,
+		});
+
+		this.provider = this.createProvider();
+	}
+
+	static create(providerConfig: LangChainProviderConfig): Promise<AISDKClient> {
+		const client = new AISDKClient(providerConfig);
+		return Promise.resolve(client);
+	}
+
+	private createProvider(): ReturnType<typeof createOpenAI> {
+		const {config} = this.providerConfig;
+
+		// Custom fetch using undici
+		const customFetch = (
+			url: string | URL | Request,
+			options?: RequestInit,
+		) => {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+			return undiciFetch(url as any, {
+				...options,
+				dispatcher: this.undiciAgent,
+			}) as Promise<Response>;
+		};
+
+		// Add OpenRouter-specific headers for app attribution
+		const headers: Record<string, string> = {};
+		if (this.providerConfig.name.toLowerCase() === 'openrouter') {
+			headers['HTTP-Referer'] = 'https://github.com/Nano-Collective/nanocoder';
+			headers['X-Title'] = 'Nanocoder';
+		}
+
+		return createOpenAI({
+			baseURL: config.baseURL ?? undefined,
+			apiKey: config.apiKey ?? 'dummy-key',
+			fetch: customFetch,
+			headers,
+		});
+	}
+
+	setModel(model: string): void {
+		this.currentModel = model;
+	}
+
+	getCurrentModel(): string {
+		return this.currentModel;
+	}
+
+	getContextSize(): number {
+		// For OpenRouter, get from cached model info
+		if (this.providerConfig.name.toLowerCase() === 'openrouter') {
+			const modelData = this.modelInfoCache.get(this.currentModel);
+			if (modelData?.context_length) {
+				return modelData.context_length;
+			}
+			return 0;
+		}
+
+		// For OpenAI-compatible (local models), we can't reliably know the context
+		if (this.providerConfig.name === 'openai-compatible') {
+			return 0;
+		}
+
+		return 0;
+	}
+
+	getAvailableModels(): Promise<string[]> {
+		return Promise.resolve(this.availableModels);
+	}
+
+	async chat(
+		messages: Message[],
+		tools: Tool[],
+		signal?: AbortSignal,
+	): Promise<LLMChatResponse> {
+		// Check if already aborted before starting
+		if (signal?.aborted) {
+			throw new Error('Operation was cancelled');
+		}
+
+		try {
+			// Use .chat() to explicitly get chat completions model, not responses model
+			const model = this.provider.chat(this.currentModel);
+
+			// Convert tools to AI SDK format with dummy execute functions
+			const aiTools =
+				tools.length > 0
+					? Object.fromEntries(
+							tools.map(tool => [
+								tool.function.name,
+								{
+									description: tool.function.description,
+									inputSchema: jsonSchemaToZod(tool.function.parameters),
+									// Dummy execute - we handle execution in our tool handler
+									execute: async () => {
+										throw new Error('Tools should not be executed by AI SDK');
+									},
+								},
+							]),
+					  )
+					: undefined;
+
+			// Convert messages to AI SDK format
+			const aiMessages = convertMessagesToAISDK(messages);
+
+			// Use generateText for non-streaming
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+			const result = await generateText({
+				model,
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				messages: aiMessages as any,
+				tools: aiTools,
+				abortSignal: signal,
+			});
+
+			// Extract tool calls from result
+			const toolCalls: ToolCall[] = [];
+			if (result.toolCalls && result.toolCalls.length > 0) {
+				for (const toolCall of result.toolCalls) {
+					// Log the tool call structure for debugging
+					console.log('Tool call structure:', JSON.stringify(toolCall, null, 2));
+
+					toolCalls.push({
+						id: toolCall.toolCallId,
+						function: {
+							name: toolCall.toolName,
+							// AI SDK v5 uses 'input' for tool arguments
+							arguments: toolCall.input as Record<string, unknown>,
+						},
+					});
+				}
+			}
+
+			// If no native tool calls but tools are available, try XML parsing
+			let content = result.text;
+			if (
+				tools.length > 0 &&
+				toolCalls.length === 0 &&
+				content &&
+				XMLToolCallParser.hasToolCalls(content)
+			) {
+				const parsedToolCalls = XMLToolCallParser.parseToolCalls(content);
+				const xmlToolCalls =
+					XMLToolCallParser.convertToToolCalls(parsedToolCalls);
+				const cleanedContent =
+					XMLToolCallParser.removeToolCallsFromContent(content);
+
+				content = cleanedContent;
+				toolCalls.push(...xmlToolCalls);
+			}
+
+			return {
+				choices: [
+					{
+						message: {
+							role: 'assistant',
+							content,
+							tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
+						},
+					},
+				],
+			};
+		} catch (error) {
+			// Check if this was a cancellation
+			if (error instanceof Error && error.name === 'AbortError') {
+				throw new Error('Operation was cancelled');
+			}
+
+			// Log detailed error for debugging
+			console.error('AI SDK Error:', error);
+			if (error instanceof Error) {
+				console.error('Error message:', error.message);
+				console.error('Error stack:', error.stack);
+			}
+
+			// Parse and throw a user-friendly error
+			const userMessage = parseAPIError(error);
+			throw new Error(userMessage);
+		}
+	}
+
+	/**
+	 * Stream chat with real-time token updates
+	 */
+	async chatStream(
+		messages: Message[],
+		tools: Tool[],
+		callbacks: StreamCallbacks,
+		signal?: AbortSignal,
+	): Promise<LLMChatResponse> {
+		// Check if already aborted before starting
+		if (signal?.aborted) {
+			throw new Error('Operation was cancelled');
+		}
+
+		try {
+			// Use .chat() to explicitly get chat completions model, not responses model
+			const model = this.provider.chat(this.currentModel);
+
+			// Convert tools to AI SDK format with dummy execute functions
+			const aiTools =
+				tools.length > 0
+					? Object.fromEntries(
+							tools.map(tool => [
+								tool.function.name,
+								{
+									description: tool.function.description,
+									inputSchema: jsonSchemaToZod(tool.function.parameters),
+									// Dummy execute - we handle execution in our tool handler
+									execute: async () => {
+										throw new Error('Tools should not be executed by AI SDK');
+									},
+								},
+							]),
+					  )
+					: undefined;
+
+			// Convert messages to AI SDK format
+			const aiMessages = convertMessagesToAISDK(messages);
+
+			// Use streamText for streaming
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+			const result = streamText({
+				model,
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				messages: aiMessages as any,
+				tools: aiTools,
+				abortSignal: signal,
+			});
+
+			// Stream tokens
+			let fullText = '';
+			for await (const chunk of result.textStream) {
+				fullText += chunk;
+				callbacks.onToken?.(chunk);
+			}
+
+			// Wait for completion to get tool calls
+			const toolCallsResult = await result.toolCalls;
+
+			// Extract tool calls
+			const toolCalls: ToolCall[] = [];
+			if (toolCallsResult && toolCallsResult.length > 0) {
+				for (const toolCall of toolCallsResult) {
+					// Log the tool call structure for debugging
+					console.log('Stream tool call structure:', JSON.stringify(toolCall, null, 2));
+
+					const tc: ToolCall = {
+						id: toolCall.toolCallId,
+						function: {
+							name: toolCall.toolName,
+							// AI SDK v5 uses 'input' for tool arguments
+							arguments: toolCall.input as Record<string, unknown>,
+						},
+					};
+					toolCalls.push(tc);
+					callbacks.onToolCall?.(tc);
+				}
+			}
+
+			// Check for XML tool calls if no native ones
+			let content = fullText;
+			if (
+				tools.length > 0 &&
+				toolCalls.length === 0 &&
+				content &&
+				XMLToolCallParser.hasToolCalls(content)
+			) {
+				const parsedToolCalls = XMLToolCallParser.parseToolCalls(content);
+				const xmlToolCalls =
+					XMLToolCallParser.convertToToolCalls(parsedToolCalls);
+				const cleanedContent =
+					XMLToolCallParser.removeToolCallsFromContent(content);
+
+				content = cleanedContent;
+				for (const tc of xmlToolCalls) {
+					toolCalls.push(tc);
+					callbacks.onToolCall?.(tc);
+				}
+			}
+
+			callbacks.onFinish?.();
+
+			return {
+				choices: [
+					{
+						message: {
+							role: 'assistant',
+							content,
+							tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
+						},
+					},
+				],
+			};
+		} catch (error) {
+			// Check if this was a cancellation
+			if (error instanceof Error && error.name === 'AbortError') {
+				throw new Error('Operation was cancelled');
+			}
+
+			// Log detailed error for debugging
+			console.error('AI SDK Error:', error);
+			if (error instanceof Error) {
+				console.error('Error message:', error.message);
+				console.error('Error stack:', error.stack);
+			}
+
+			// Parse and throw a user-friendly error
+			const userMessage = parseAPIError(error);
+			throw new Error(userMessage);
+		}
+	}
+
+	async clearContext(): Promise<void> {
+		// No internal state to clear
+	}
+}
