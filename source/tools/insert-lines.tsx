@@ -4,7 +4,8 @@ import {readFile, writeFile, access} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {highlight} from 'cli-highlight';
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition} from '@/types/index';
+import type {ToolDefinition} from '@/types/index';
+import {tool, jsonSchema} from '@/types/core';
 import {getColors} from '@/config/index';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import ToolMessage from '@/components/tool-message';
@@ -15,7 +16,7 @@ interface InsertLinesArgs {
 	content: string;
 }
 
-const handler: ToolHandler = async (args: InsertLinesArgs): Promise<string> => {
+const executeInsertLines = async (args: InsertLinesArgs): Promise<string> => {
 	const {path, line_number, content} = args;
 
 	// Validate line number
@@ -57,6 +58,32 @@ const handler: ToolHandler = async (args: InsertLinesArgs): Promise<string> => {
 		insertLines.length > 1 ? 's' : ''
 	} at line ${line_number}.${fileContext}`;
 };
+
+// AI SDK tool definition
+const insertLinesCoreTool = tool({
+	description: 'Insert new lines at a specific line number in a file',
+	inputSchema: jsonSchema<InsertLinesArgs>({
+		type: 'object',
+		properties: {
+			path: {
+				type: 'string',
+				description: 'The path to the file to edit.',
+			},
+			line_number: {
+				type: 'number',
+				description:
+					'The line number (1-based) where content should be inserted.',
+			},
+			content: {
+				type: 'string',
+				description:
+					'The content to insert. Can contain multiple lines separated by \\n.',
+			},
+		},
+		required: ['path', 'line_number', 'content'],
+	}),
+	execute: executeInsertLines,
+});
 
 const InsertLinesFormatter = React.memo(
 	({preview}: {preview: React.ReactElement}) => {
@@ -371,8 +398,9 @@ const validator = async (
 	return {valid: true};
 };
 
+// Nanocoder tool definition with AI SDK core tool + custom extensions
 export const insertLinesTool: ToolDefinition = {
-	handler,
+	handler: executeInsertLines,
 	formatter,
 	validator,
 	config: {
@@ -403,3 +431,6 @@ export const insertLinesTool: ToolDefinition = {
 		},
 	},
 };
+
+// Export the AI SDK core tool for Phase 3-4 migration
+export {insertLinesCoreTool};

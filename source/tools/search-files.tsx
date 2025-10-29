@@ -7,7 +7,8 @@ import ignore from 'ignore';
 
 const execAsync = promisify(exec);
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition} from '@/types/index';
+import type {ToolDefinition} from '@/types/index';
+import {tool, jsonSchema} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
 
@@ -191,12 +192,14 @@ async function listFiles(
 	}
 }
 
-const handler: ToolHandler = async (args: {
+interface SearchFilesArgs {
 	query?: string;
 	pattern?: string;
 	maxResults?: number;
 	contextLines?: number;
-}): Promise<string> => {
+}
+
+const executeSearchFiles = async (args: SearchFilesArgs): Promise<string> => {
 	const cwd = process.cwd();
 	const maxResults = args.maxResults || 50;
 	const contextLines = args.contextLines || 2;
@@ -255,6 +258,37 @@ const handler: ToolHandler = async (args: {
 		throw new Error(`Search failed: ${errorMessage}`);
 	}
 };
+
+// AI SDK tool definition
+const searchFilesCoreTool = tool({
+	description:
+		'Search for files by pattern or search file contents (ripgrep-based code search)',
+	inputSchema: jsonSchema<SearchFilesArgs>({
+		type: 'object',
+		properties: {
+			query: {
+				type: 'string',
+				description: 'Text to search for in file contents (case-insensitive).',
+			},
+			pattern: {
+				type: 'string',
+				description:
+					'File path pattern to search for (e.g., "*.tsx", "components/**").',
+			},
+			maxResults: {
+				type: 'number',
+				description: 'Maximum number of results to return (default: 50).',
+			},
+			contextLines: {
+				type: 'number',
+				description:
+					'Number of context lines to show around matches (default: 2).',
+			},
+		},
+		required: [],
+	}),
+	execute: executeSearchFiles,
+});
 
 interface SearchFilesFormatterProps {
 	args: {
@@ -322,8 +356,9 @@ const formatter = (
 	return <SearchFilesFormatter args={args} result={result} />;
 };
 
+// Nanocoder tool definition with AI SDK core tool + custom extensions
 export const searchFilesTool: ToolDefinition = {
-	handler,
+	handler: executeSearchFiles,
 	formatter,
 	requiresConfirmation: false,
 	config: {
@@ -360,3 +395,6 @@ export const searchFilesTool: ToolDefinition = {
 		},
 	},
 };
+
+// Export the AI SDK core tool for Phase 3-4 migration
+export {searchFilesCoreTool};

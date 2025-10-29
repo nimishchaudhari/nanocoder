@@ -3,11 +3,12 @@ import {readFile, access} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import React from 'react';
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition} from '@/types/index';
+import type {ToolDefinition} from '@/types/index';
+import {tool, jsonSchema} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
 
-const handler: ToolHandler = async (args: {
+const executeReadManyFiles = async (args: {
 	paths: string[];
 }): Promise<string> => {
 	if (!Array.isArray(args.paths)) {
@@ -67,6 +68,26 @@ const handler: ToolHandler = async (args: {
 
 	return JSON.stringify(summary);
 };
+
+// AI SDK tool definition
+const readManyFilesCoreTool = tool({
+	description:
+		'Read multiple files at once with line numbers for precise editing',
+	inputSchema: jsonSchema<{paths: string[]}>({
+		type: 'object',
+		properties: {
+			paths: {
+				type: 'array',
+				items: {
+					type: 'string',
+				},
+				description: 'Array of file paths to read.',
+			},
+		},
+		required: ['paths'],
+	}),
+	execute: executeReadManyFiles,
+});
 
 // Create a component that will re-render when theme changes
 const ReadManyFilesFormatter = React.memo(
@@ -216,8 +237,9 @@ const validator = async (args: {
 	return {valid: true};
 };
 
+// Nanocoder tool definition with AI SDK core tool + custom extensions
 export const readManyFilesTool: ToolDefinition = {
-	handler,
+	handler: executeReadManyFiles,
 	formatter,
 	validator,
 	config: {
@@ -240,3 +262,6 @@ export const readManyFilesTool: ToolDefinition = {
 		},
 	},
 };
+
+// Export the AI SDK core tool for Phase 3-4 migration
+export {readManyFilesCoreTool};
