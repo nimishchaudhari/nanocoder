@@ -1,5 +1,6 @@
 import {createOpenAICompatible} from '@ai-sdk/openai-compatible';
 import {generateText, streamText} from 'ai';
+import type {ModelMessage} from 'ai';
 import {Agent, fetch as undiciFetch} from 'undici';
 import type {
 	AIProviderConfig,
@@ -81,26 +82,53 @@ function parseAPIError(error: unknown): string {
 }
 
 /**
- * Convert our Message format to AI SDK CoreMessage format
+ * Convert our Message format to AI SDK v5 ModelMessage format
  *
- * For tool results, we convert them to user messages since AI SDK's tool message
- * format is complex and inconsistent with OpenAI's standard format.
- * The model still gets the tool results, just formatted as user messages.
+ * Phase 3 Migration: Now using proper ModelMessage types with AI SDK v5.
+ *
+ * Tool messages: Converted to user messages with [Tool: name] prefix.
+ * This approach is simpler and avoids issues with orphaned tool results
+ * in multi-turn conversations.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function convertMessagesToAISDK(messages: Message[]): any[] {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return messages.map((msg): any => {
+function convertToModelMessages(messages: Message[]): ModelMessage[] {
+	return messages.map((msg): ModelMessage => {
 		if (msg.role === 'tool') {
-			// Convert tool results to user messages
-			// This is simpler and more reliable than AI SDK's complex tool-result format
+			// Convert tool results to user messages with clear labeling
+			const toolName = msg.name || 'unknown_tool';
 			return {
 				role: 'user',
-				content: `Tool result from ${msg.name}:\n${msg.content}`,
+				content: `[Tool: ${toolName}]\n${msg.content}`,
 			};
 		}
-		// Other messages can stay as-is
-		return msg;
+
+		if (msg.role === 'system') {
+			return {
+				role: 'system',
+				content: msg.content,
+			};
+		}
+
+		if (msg.role === 'user') {
+			return {
+				role: 'user',
+				content: msg.content,
+			};
+		}
+
+		if (msg.role === 'assistant') {
+			return {
+				role: 'assistant',
+				content: msg.content,
+				// Note: tool_calls are handled separately by AI SDK
+				// They come from the response, not the input messages
+			};
+		}
+
+		// Fallback - should never happen
+		return {
+			role: 'user',
+			content: msg.content,
+		};
 	});
 }
 
@@ -253,15 +281,13 @@ export class AISDKClient implements LLMClient {
 					  )
 					: undefined;
 
-			// Convert messages to AI SDK format
-			const aiMessages = convertMessagesToAISDK(messages);
+			// Convert messages to AI SDK v5 ModelMessage format (Phase 3)
+			const modelMessages = convertToModelMessages(messages);
 
 			// Use generateText for non-streaming
-
 			const result = await generateText({
 				model,
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				messages: aiMessages as any,
+				messages: modelMessages,
 				tools: aiTools,
 				abortSignal: signal,
 			});
@@ -377,15 +403,13 @@ export class AISDKClient implements LLMClient {
 					  )
 					: undefined;
 
-			// Convert messages to AI SDK format
-			const aiMessages = convertMessagesToAISDK(messages);
+			// Convert messages to AI SDK v5 ModelMessage format (Phase 3)
+			const modelMessages = convertToModelMessages(messages);
 
 			// Use streamText for streaming
-
 			const result = streamText({
 				model,
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				messages: aiMessages as any,
+				messages: modelMessages,
 				tools: aiTools,
 				abortSignal: signal,
 			});

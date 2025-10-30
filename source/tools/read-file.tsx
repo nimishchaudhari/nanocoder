@@ -198,4 +198,5 @@ export const readFileTool: ToolDefinition = {
 
 // Export the AI SDK core tool for Phase 3-4 migration
 // Will be used when we migrate to use AI SDK tools directly
+// NOTE: knip reports this as unused - this is intentional (reserved for Phase 3)
 export {readFileCoreTool};
