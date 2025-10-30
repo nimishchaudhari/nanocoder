@@ -68,8 +68,7 @@
 		"ink-text-input": "^6.0.0",
 		"react": "^19.0.0",
 		"systeminformation": "^5.27.10",
-		"undici": "^7.16.0",
-		"zod": "^4.1.12"
+		"undici": "^7.16.0"
 	},
 	"devDependencies": {
 		"@ava/typescript": "^6.0.0",

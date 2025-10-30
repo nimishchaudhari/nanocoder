@@ -1,5 +1,5 @@
 import {createOpenAICompatible} from '@ai-sdk/openai-compatible';
-import {generateText, streamText} from 'ai';
+import {generateText, streamText, jsonSchema} from 'ai';
 import {Agent, fetch as undiciFetch} from 'undici';
 import type {
 	AIProviderConfig,
@@ -10,7 +10,6 @@ import type {
 	ToolCall,
 } from '@/types/index';
 import {XMLToolCallParser} from '@/tool-calling/xml-parser';
-import {z} from 'zod';
 
 /**
  * Parses API errors into user-friendly messages
@@ -102,121 +101,6 @@ function convertMessagesToAISDK(messages: Message[]): any[] {
 		// Other messages can stay as-is
 		return msg;
 	});
-}
-
-/**
- * Convert JSON Schema to Zod schema for AI SDK tools
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function jsonSchemaToZod(schema: any): z.ZodType {
-	// Handle missing or invalid schema
-	if (!schema || typeof schema !== 'object') {
-		return z.unknown();
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	const schemaType = schema.type;
-
-	if (schemaType === 'object') {
-		const shape: Record<string, z.ZodType> = {};
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const properties = schema.properties || {};
-
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		for (const [key, value] of Object.entries(properties)) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-			const propSchema = value as any;
-			let zodSchema = jsonSchemaToZod(propSchema);
-
-			// Add description if available
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			if (propSchema?.description) {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-				zodSchema = zodSchema.describe(propSchema.description);
-			}
-
-			// Make optional if not in required array
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			const required = schema.required || [];
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-			if (!required.includes(key)) {
-				zodSchema = zodSchema.optional();
-			}
-
-			shape[key] = zodSchema;
-		}
-		return z.object(shape);
-	}
-
-	if (schemaType === 'string') {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const enumValues = schema.enum;
-		if (Array.isArray(enumValues) && enumValues.length > 0) {
-			return z.enum(enumValues as [string, ...string[]]);
-		}
-		return z.string();
-	}
-
-	if (schemaType === 'number' || schemaType === 'integer') {
-		return z.number();
-	}
-
-	if (schemaType === 'boolean') {
-		return z.boolean();
-	}
-
-	if (schemaType === 'array') {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const items = schema.items;
-		if (items) {
-			return z.array(jsonSchemaToZod(items));
-		}
-		return z.array(z.unknown());
-	}
-
-	// If no type specified, try to infer from properties
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	if (schema.properties) {
-		// Has properties but no type - treat as object
-
-		return jsonSchemaToZod({...schema, type: 'object'});
-	}
-
-	// Fallback to unknown for truly ambiguous schemas
-	return z.unknown();
-}
-
-/**
- * Convert our Tool format to AI SDK CoreTool format
- * TODO Phase 4: Remove this function - will be replaced with direct tool usage
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function _convertToAISDKTools(tools: Tool[]): Record<string, any> {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const aiTools: Record<string, any> = {};
-
-	for (const tool of tools) {
-		try {
-			const schema = jsonSchemaToZod(tool.function.parameters);
-
-			aiTools[tool.function.name] = {
-				description: tool.function.description,
-				parameters: schema,
-			};
-		} catch (error) {
-			// Log error and skip problematic tool
-			console.error(
-				`Failed to convert tool ${tool.function.name}:`,
-				error instanceof Error ? error.message : error,
-			);
-			console.error(
-				'Tool parameters:',
-				JSON.stringify(tool.function.parameters, null, 2),
-			);
-		}
-	}
-
-	return aiTools;
 }
 
 interface ModelInfo {
@@ -352,7 +236,10 @@ export class AISDKClient implements LLMClient {
 								tool.function.name,
 								{
 									description: tool.function.description,
-									inputSchema: jsonSchemaToZod(tool.function.parameters),
+									// Use AI SDK's jsonSchema helper to wrap the JSON Schema
+									// Cast to any because our Tool type is more flexible than JSONSchema7
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
+									inputSchema: jsonSchema(tool.function.parameters as any),
 									// Dummy execute - we handle execution in our tool handler
 									execute: () => {
 										throw new Error('Tools should not be executed by AI SDK');
@@ -470,7 +357,10 @@ export class AISDKClient implements LLMClient {
 								tool.function.name,
 								{
 									description: tool.function.description,
-									inputSchema: jsonSchemaToZod(tool.function.parameters),
+									// Use AI SDK's jsonSchema helper to wrap the JSON Schema
+									// Cast to any because our Tool type is more flexible than JSONSchema7
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
+									inputSchema: jsonSchema(tool.function.parameters as any),
 									// Dummy execute - we handle execution in our tool handler
 									execute: () => {
 										throw new Error('Tools should not be executed by AI SDK');

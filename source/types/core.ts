@@ -25,9 +25,8 @@ import type {
 	Tool as AISDKTool,
 } from 'ai';
 
-// Import AI SDK helpers for Phase 2 (tool definitions)
+// Import AI SDK helpers for tool definitions
 export {tool, jsonSchema} from 'ai';
-// zodSchema available but not exported yet (use jsonSchema for now)
 
 // Export AI SDK types for use in Phase 2-3
 export type {
