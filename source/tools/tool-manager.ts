@@ -1,13 +1,12 @@
 import React from 'react';
 import type {
-	Tool,
 	ToolHandler,
 	MCPInitResult,
 	MCPServer,
 	MCPTool,
+	AISDKCoreTool,
 } from '@/types/index';
 import {
-	tools as staticTools,
 	toolRegistry as staticToolRegistry,
 	toolFormatters as staticToolFormatters,
 	toolValidators as staticToolValidators,
@@ -34,6 +33,7 @@ type ToolValidator = (
 
 /**
  * Manages both static tools and dynamic MCP tools
+ * All tools are stored in AI SDK's native CoreTool format
  */
 export class ToolManager {
 	private mcpClient: MCPClient | null = null;
@@ -41,9 +41,7 @@ export class ToolManager {
 	private toolRegistry: Record<string, ToolHandler> = {};
 	private toolFormatters: Record<string, ToolFormatter> = {};
 	private toolValidators: Record<string, ToolValidator> = {};
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private nativeToolsRegistry: Record<string, any> = {};
-	private allTools: Tool[] = [];
+	private nativeToolsRegistry: Record<string, AISDKCoreTool> = {};
 
 	constructor() {
 		// Initialize with static tools
@@ -51,7 +49,6 @@ export class ToolManager {
 		this.toolFormatters = {...staticToolFormatters};
 		this.toolValidators = {...staticToolValidators};
 		this.nativeToolsRegistry = {...staticNativeToolsRegistry};
-		this.allTools = [...staticTools];
 	}
 
 	async initializeMCP(
@@ -67,12 +64,15 @@ export class ToolManager {
 				onProgress,
 			);
 
-			// Register MCP tools
+			// Register MCP tool handlers
 			this.mcpAdapter.registerMCPTools(this.toolRegistry);
 
-			// Add MCP tools to the tool list
-			const mcpTools = this.mcpClient.getAllTools();
-			this.allTools = [...staticTools, ...mcpTools];
+			// Register MCP native tools
+			const mcpNativeTools = this.mcpClient.getNativeToolsRegistry();
+			this.nativeToolsRegistry = {
+				...staticNativeToolsRegistry,
+				...mcpNativeTools,
+			};
 
 			return results;
 		}
@@ -80,10 +80,10 @@ export class ToolManager {
 	}
 
 	/**
-	 * Get all available tools (static + MCP)
+	 * Get all available native AI SDK tools (static + MCP)
 	 */
-	getAllTools(): Tool[] {
-		return this.allTools;
+	getAllTools(): Record<string, AISDKCoreTool> {
+		return this.nativeToolsRegistry;
 	}
 
 	/**
@@ -115,10 +115,10 @@ export class ToolManager {
 	}
 
 	/**
-	 * Get native AI SDK tools registry (for tools that have native versions)
+	 * Get native AI SDK tools registry
+	 * @deprecated Use getAllTools() instead - they now return the same thing
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	getNativeToolsRegistry(): Record<string, any> {
+	getNativeToolsRegistry(): Record<string, AISDKCoreTool> {
 		return this.nativeToolsRegistry;
 	}
 
@@ -162,7 +162,7 @@ export class ToolManager {
 			await this.mcpClient.disconnect();
 
 			// Reset to static tools only
-			this.allTools = [...staticTools];
+			this.nativeToolsRegistry = {...staticNativeToolsRegistry};
 			this.mcpClient = null;
 			this.mcpAdapter = null;
 		}

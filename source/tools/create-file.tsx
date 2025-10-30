@@ -191,32 +191,11 @@ const validator = async (args: {
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const createFileTool: ToolDefinition = {
+	name: 'create_file',
 	tool: createFileCoreTool, // Native AI SDK tool (no execute)
 	handler: executeCreateFile, // Manual execution after confirmation
 	formatter,
 	validator,
-	config: {
-		type: 'function',
-		function: {
-			name: 'create_file',
-			description:
-				'Create a new file with the specified content (overwrites if file exists)',
-			parameters: {
-				type: 'object',
-				properties: {
-					path: {
-						type: 'string',
-						description: 'The path to the file to write.',
-					},
-					content: {
-						type: 'string',
-						description: 'The content to write to the file.',
-					},
-				},
-				required: ['path', 'content'],
-			},
-		},
-	},
 };
 
 // Export the AI SDK core tool for Phase 3-4 migration

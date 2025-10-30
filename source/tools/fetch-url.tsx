@@ -164,29 +164,12 @@ const validator = (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const fetchUrlTool: ToolDefinition = {
+	name: 'fetch_url',
 	tool: fetchUrlCoreTool, // Native AI SDK tool (no execute)
 	handler: executeFetchUrl,
 	formatter,
 	validator,
 	requiresConfirmation: false,
-	config: {
-		type: 'function',
-		function: {
-			name: 'fetch_url',
-			description:
-				'Fetch and convert any URL to clean, LLM-friendly markdown text using @nanocollective/get-md. Automatically extracts main content, removes ads/navigation, and converts to well-structured markdown. Useful for reading documentation, articles, or web content.',
-			parameters: {
-				type: 'object',
-				properties: {
-					url: {
-						type: 'string',
-						description: 'The URL to fetch and convert to markdown.',
-					},
-				},
-				required: ['url'],
-			},
-		},
-	},
 };
 
 // Export the AI SDK core tool for Phase 3-4 migration

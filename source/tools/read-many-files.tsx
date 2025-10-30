@@ -239,29 +239,11 @@ const validator = async (args: {
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const readManyFilesTool: ToolDefinition = {
+	name: 'read_many_files',
 	tool: readManyFilesCoreTool, // Native AI SDK tool (no execute)
 	handler: executeReadManyFiles,
 	formatter,
 	validator,
-	config: {
-		type: 'function',
-		function: {
-			name: 'read_many_files',
-			description:
-				'Read the contents of multiple files with line numbers. Returns a JSON array of { path, content } in the same order as provided.',
-			parameters: {
-				type: 'object',
-				properties: {
-					paths: {
-						type: 'array',
-						items: {type: 'string'},
-						description: 'Array of file paths to read, in order.',
-					},
-				},
-				required: ['paths'],
-			},
-		},
-	},
 };
 
 // Export the AI SDK core tool for Phase 3-4 migration

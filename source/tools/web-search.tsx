@@ -204,34 +204,12 @@ const validator = (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const webSearchTool: ToolDefinition = {
+	name: 'web_search',
 	tool: webSearchCoreTool, // Native AI SDK tool (no execute)
 	handler: executeWebSearch,
 	formatter,
 	validator,
 	requiresConfirmation: false,
-	config: {
-		type: 'function',
-		function: {
-			name: 'web_search',
-			description:
-				'Search the web using Brave Search and return relevant results with URLs, titles, and descriptions. Use this to find up-to-date information, documentation, or answers to questions that require. Use in conjuction with the `fetch_url` tool to get page information on search results.',
-			parameters: {
-				type: 'object',
-				properties: {
-					query: {
-						type: 'string',
-						description: 'The search query to look up on the web.',
-					},
-					max_results: {
-						type: 'number',
-						description:
-							'Maximum number of results to return (default: 10, max: 20).',
-					},
-				},
-				required: ['query'],
-			},
-		},
-	},
 };
 
 // Export the AI SDK core tool for Phase 3-4 migration

@@ -7,11 +7,10 @@ import type {
 	LLMChatResponse,
 	LLMClient,
 	Message,
-	Tool,
 	ToolCall,
+	AISDKCoreTool,
 } from '@/types/index';
 import {XMLToolCallParser} from '@/tool-calling/xml-parser';
-import {nativeToolsRegistry} from '@/tools/index';
 
 /**
  * Parses API errors into user-friendly messages
@@ -189,8 +188,9 @@ export class AISDKClient implements LLMClient {
 		const customFetch = (
 			url: string | URL | Request,
 			options?: RequestInit,
-		) => {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+		): Promise<Response> => {
+			// Type cast needed due to undici's Request type incompatibility with standard fetch
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			return undiciFetch(url as any, {
 				...options,
 				dispatcher: this.undiciAgent,
@@ -245,7 +245,7 @@ export class AISDKClient implements LLMClient {
 
 	async chat(
 		messages: Message[],
-		tools: Tool[],
+		tools: Record<string, AISDKCoreTool>,
 		signal?: AbortSignal,
 	): Promise<LLMChatResponse> {
 		// Check if already aborted before starting
@@ -257,29 +257,8 @@ export class AISDKClient implements LLMClient {
 			// Get the language model instance from the provider
 			const model = this.provider(this.currentModel);
 
-			// Convert tools to AI SDK format
-			// Use native AI SDK tools when available (they already have no execute function)
-			// For MCP tools or tools without native version, they won't be in the registry
-			const aiTools =
-				tools.length > 0
-					? Object.fromEntries(
-							tools
-								.map(tool => {
-									const toolName = tool.function.name;
-									const nativeTool = nativeToolsRegistry[toolName];
-
-									// If native tool exists, use it directly (already has no execute)
-									if (nativeTool) {
-										return [toolName, nativeTool];
-									}
-
-									// Fallback: Tool doesn't have native version (likely MCP tool)
-									// Return undefined to skip this tool
-									return [toolName, undefined];
-								})
-								.filter(([, toolDef]) => toolDef !== undefined),
-					  )
-					: undefined;
+			// Tools are already in AI SDK format - use directly
+			const aiTools = Object.keys(tools).length > 0 ? tools : undefined;
 
 			// Convert messages to AI SDK v5 ModelMessage format (Phase 3)
 			const modelMessages = convertToModelMessages(messages);
@@ -296,12 +275,6 @@ export class AISDKClient implements LLMClient {
 			const toolCalls: ToolCall[] = [];
 			if (result.toolCalls && result.toolCalls.length > 0) {
 				for (const toolCall of result.toolCalls) {
-					// Log the tool call structure for debugging
-					console.log(
-						'Tool call structure:',
-						JSON.stringify(toolCall, null, 2),
-					);
-
 					toolCalls.push({
 						id: toolCall.toolCallId,
 						function: {
@@ -316,7 +289,7 @@ export class AISDKClient implements LLMClient {
 			// If no native tool calls but tools are available, try XML parsing
 			let content = result.text;
 			if (
-				tools.length > 0 &&
+				Object.keys(tools).length > 0 &&
 				toolCalls.length === 0 &&
 				content &&
 				XMLToolCallParser.hasToolCalls(content)
@@ -366,7 +339,7 @@ export class AISDKClient implements LLMClient {
 	 */
 	async chatStream(
 		messages: Message[],
-		tools: Tool[],
+		tools: Record<string, AISDKCoreTool>,
 		callbacks: StreamCallbacks,
 		signal?: AbortSignal,
 	): Promise<LLMChatResponse> {
@@ -379,29 +352,8 @@ export class AISDKClient implements LLMClient {
 			// Get the language model instance from the provider
 			const model = this.provider(this.currentModel);
 
-			// Convert tools to AI SDK format
-			// Use native AI SDK tools when available (they already have no execute function)
-			// For MCP tools or tools without native version, they won't be in the registry
-			const aiTools =
-				tools.length > 0
-					? Object.fromEntries(
-							tools
-								.map(tool => {
-									const toolName = tool.function.name;
-									const nativeTool = nativeToolsRegistry[toolName];
-
-									// If native tool exists, use it directly (already has no execute)
-									if (nativeTool) {
-										return [toolName, nativeTool];
-									}
-
-									// Fallback: Tool doesn't have native version (likely MCP tool)
-									// Return undefined to skip this tool
-									return [toolName, undefined];
-								})
-								.filter(([, toolDef]) => toolDef !== undefined),
-					  )
-					: undefined;
+			// Tools are already in AI SDK format - use directly
+			const aiTools = Object.keys(tools).length > 0 ? tools : undefined;
 
 			// Convert messages to AI SDK v5 ModelMessage format (Phase 3)
 			const modelMessages = convertToModelMessages(messages);
@@ -450,7 +402,7 @@ export class AISDKClient implements LLMClient {
 			// Check for XML tool calls if no native ones
 			let content = fullText;
 			if (
-				tools.length > 0 &&
+				Object.keys(tools).length > 0 &&
 				toolCalls.length === 0 &&
 				content &&
 				XMLToolCallParser.hasToolCalls(content)

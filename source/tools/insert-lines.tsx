@@ -400,37 +400,11 @@ const validator = async (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const insertLinesTool: ToolDefinition = {
+	name: 'insert_lines',
 	tool: insertLinesCoreTool, // Native AI SDK tool (no execute)
 	handler: executeInsertLines,
 	formatter,
 	validator,
-	config: {
-		type: 'function',
-		function: {
-			name: 'insert_lines',
-			description: 'Insert new lines at a specific line number in a file',
-			parameters: {
-				type: 'object',
-				properties: {
-					path: {
-						type: 'string',
-						description: 'The path to the file to edit.',
-					},
-					line_number: {
-						type: 'number',
-						description:
-							'The line number (1-based) where content should be inserted.',
-					},
-					content: {
-						type: 'string',
-						description:
-							'The content to insert. Can contain multiple lines separated by \\n.',
-					},
-				},
-				required: ['path', 'line_number', 'content'],
-			},
-		},
-	},
 };
 
 // Export the AI SDK core tool for Phase 3-4 migration

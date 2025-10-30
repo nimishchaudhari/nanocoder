@@ -458,36 +458,11 @@ const validator = async (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const deleteLinesTool: ToolDefinition = {
+	name: 'delete_lines',
 	tool: deleteLinesCoreTool, // Native AI SDK tool (no execute)
 	handler: executeDeleteLines,
 	formatter,
 	validator,
-	config: {
-		type: 'function',
-		function: {
-			name: 'delete_lines',
-			description: 'Delete a range of lines from a file',
-			parameters: {
-				type: 'object',
-				properties: {
-					path: {
-						type: 'string',
-						description: 'The path to the file to edit.',
-					},
-					line_number: {
-						type: 'number',
-						description: 'The starting line number (1-based) to delete.',
-					},
-					end_line: {
-						type: 'number',
-						description:
-							'The ending line number for range deletion. If not specified, only deletes line_number.',
-					},
-				},
-				required: ['path', 'line_number'],
-			},
-		},
-	},
 };
 
 // Export the AI SDK core tool for Phase 3-4 migration

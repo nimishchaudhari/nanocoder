@@ -170,30 +170,12 @@ const validator = async (args: {
 
 // Nanocoder tool definition with native AI SDK tool + custom extensions
 export const readFileTool: ToolDefinition = {
+	name: 'read_file',
 	tool: readFileCoreTool, // Native AI SDK tool (no execute)
 	handler: executeReadFile, // Manual execution after confirmation
 	formatter,
 	validator,
 	requiresConfirmation: false,
-	// Legacy format kept for backward compatibility
-	config: {
-		type: 'function',
-		function: {
-			name: 'read_file',
-			description:
-				'Read the contents of a file with line numbers (use line numbers with edit_file tool for precise editing)',
-			parameters: {
-				type: 'object',
-				properties: {
-					path: {
-						type: 'string',
-						description: 'The path to the file to read.',
-					},
-				},
-				required: ['path'],
-			},
-		},
-	},
 };
 
 // Export the AI SDK core tool for Phase 3-4 migration

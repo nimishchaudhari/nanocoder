@@ -1,6 +1,7 @@
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
-import type {Tool, ToolParameterSchema} from '@/types/index';
+import type {Tool, ToolParameterSchema, AISDKCoreTool} from '@/types/index';
+import {tool, jsonSchema} from '@/types/index';
 import {logInfo, logError} from '@/utils/message-queue';
 
 import type {MCPServer, MCPTool, MCPInitResult} from '@/types/index';
@@ -129,6 +130,32 @@ export class MCPClient {
 		}
 
 		return tools;
+	}
+
+	/**
+	 * Get all MCP tools as AI SDK native CoreTool format
+	 * Converts MCP tool schemas to AI SDK's tool() format
+	 */
+	getNativeToolsRegistry(): Record<string, AISDKCoreTool> {
+		const nativeTools: Record<string, AISDKCoreTool> = {};
+
+		for (const [serverName, serverTools] of this.serverTools.entries()) {
+			for (const mcpTool of serverTools) {
+				// Convert MCP tool to AI SDK's CoreTool format
+				// Use the input schema directly - it should already be JSON Schema compatible
+				const coreTool = tool({
+					description: mcpTool.description
+						? `[MCP:${serverName}] ${mcpTool.description}`
+						: `MCP tool from ${serverName}`,
+					inputSchema: jsonSchema(mcpTool.inputSchema || {type: 'object'}),
+					// No execute function - human-in-the-loop pattern
+				});
+
+				nativeTools[mcpTool.name] = coreTool;
+			}
+		}
+
+		return nativeTools;
 	}
 
 	getToolMapping(): Map<string, {serverName: string; originalName: string}> {

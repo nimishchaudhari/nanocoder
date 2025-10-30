@@ -36,7 +36,7 @@ import type {
 } from 'ai';
 
 // Import AI SDK helpers for tool definitions
-import {tool, jsonSchema} from 'ai';
+import {tool, jsonSchema, type Tool as AISDKTool} from 'ai';
 
 // Export AI SDK helpers
 export {tool, jsonSchema};
@@ -51,10 +51,10 @@ export type {
 };
 
 // Type for AI SDK tools (return type of tool() function)
-// Using any here because tool() is generic and returns Tool<INPUT, OUTPUT>
-// where INPUT/OUTPUT vary per tool. We don't auto-execute tools anyway.
+// Tool<PARAMETERS, RESULT> is AI SDK's actual tool type
+// We use 'any' for generics since we don't auto-execute tools (human-in-the-loop)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AISDKTool = any;
+export type AISDKCoreTool = AISDKTool<any, any>;
 
 // Current Nanocoder message format (OpenAI-compatible)
 // Note: We maintain this format internally and convert to ModelMessage at AI SDK boundary
@@ -105,23 +105,25 @@ export interface Tool {
 export type ToolHandler = (input: any) => Promise<string>;
 
 /**
- * Nanocoder's extended tool definition (Phase 2 Complete)
+ * Nanocoder's extended tool definition (Phase 4+ Complete)
  *
- * Combines AI SDK's native tool with Nanocoder-specific extensions:
- * - tool: Native AI SDK tool (using tool() and jsonSchema()) WITHOUT execute function
+ * Uses AI SDK's native CoreTool with Nanocoder-specific metadata:
+ * - name: Tool name (metadata for registry and lookup)
+ * - tool: Native AI SDK CoreTool (using tool() and jsonSchema()) WITHOUT execute function
  * - handler: Manual execution function called after user confirmation (human-in-the-loop)
- * - config: Legacy OpenAI format for backward compatibility
  * - formatter: React component for rich UI display in terminal
  * - validator: Optional pre-execution validation
  * - requiresConfirmation: Whether to show confirmation UI (default: true)
+ *
+ * Note: We keep 'name' as metadata since AI SDK's Tool type doesn't expose it.
  */
 export interface ToolDefinition {
+	// Tool name for registry and lookup
+	name: string;
 	// Native AI SDK tool (without execute to prevent auto-execution)
-	tool: AISDKTool;
+	tool: AISDKCoreTool;
 	// Manual execution handler (called after user confirmation)
 	handler: ToolHandler;
-	// Legacy OpenAI format (deprecated - kept for backward compatibility)
-	config: Tool;
 	formatter?: (
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
 		args: any,
@@ -136,6 +138,9 @@ export interface ToolDefinition {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
 		args: any,
 	) => Promise<{valid: true} | {valid: false; error: string}>;
+	// DEPRECATED: Legacy format (will be removed in Phase 4+)
+	// Use def.tool.name instead of def.config.function.name
+	config?: Tool;
 }
 
 interface LLMMessage {
@@ -157,7 +162,7 @@ export interface LLMClient {
 	getAvailableModels(): Promise<string[]>;
 	chat(
 		messages: Message[],
-		tools: Tool[],
+		tools: Record<string, AISDKCoreTool>,
 		signal?: AbortSignal,
 	): Promise<LLMChatResponse>;
 	clearContext(): Promise<void>;

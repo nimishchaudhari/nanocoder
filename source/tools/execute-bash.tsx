@@ -183,27 +183,11 @@ const validator = (args: {
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const executeBashTool: ToolDefinition = {
+	name: 'execute_bash',
 	tool: executeBashCoreTool, // Native AI SDK tool (no execute)
 	handler: executeExecuteBash,
 	formatter,
 	validator,
-	config: {
-		type: 'function',
-		function: {
-			name: 'execute_bash',
-			description: 'Execute a bash command and return its output',
-			parameters: {
-				type: 'object',
-				properties: {
-					command: {
-						type: 'string',
-						description: 'The bash command to execute.',
-					},
-				},
-				required: ['command'],
-			},
-		},
-	},
 };
 
 // Export the AI SDK core tool for Phase 3-4 migration

@@ -480,41 +480,11 @@ const validator = async (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const replaceLinesTool: ToolDefinition = {
+	name: 'replace_lines',
 	tool: replaceLinesCoreTool, // Native AI SDK tool (no execute)
 	handler: executeReplaceLines,
 	formatter,
 	validator,
-	config: {
-		type: 'function',
-		function: {
-			name: 'replace_lines',
-			description: 'Replace a range of lines in a file with new content',
-			parameters: {
-				type: 'object',
-				properties: {
-					path: {
-						type: 'string',
-						description: 'The path to the file to edit.',
-					},
-					line_number: {
-						type: 'number',
-						description: 'The starting line number (1-based) to replace.',
-					},
-					end_line: {
-						type: 'number',
-						description:
-							'The ending line number for range replacement. If not specified, only replaces line_number.',
-					},
-					content: {
-						type: 'string',
-						description:
-							'The replacement content. Can contain multiple lines separated by \\n.',
-					},
-				},
-				required: ['path', 'line_number', 'content'],
-			},
-		},
-	},
 };
 
 // Export the AI SDK core tool for Phase 3-4 migration
