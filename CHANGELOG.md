@@ -1,9 +1,17 @@
+## 1.14.2
+
+- Fix: issue #71. Markdown tables and HTML entities are now rendering properly in model responses.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 ## 1.14.1
 
 - Switched out Jina.ai that fetched LLM optimised markdown from URLs to our own, on-device, private Nano Collective package: [get-md](https://github.com/Nano-Collective/get-md).
 - `search_files` tool now ignores contents of `.gitignore` over just a pre-defined set of common ignores.
 - If you use OpenRouter as a provider, it now logs "Nancoder" as the agent.
 - Fix: Added `parallel_tool_calls` to be equal to `false` in the LangGraph client. This helps bring some stability and flow to models especially when editing files.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
 ## 1.14.0
 
