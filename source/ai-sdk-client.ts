@@ -1,12 +1,12 @@
-import {createOpenAI} from '@ai-sdk/openai';
+import {createOpenAICompatible} from '@ai-sdk/openai-compatible';
 import {generateText, streamText} from 'ai';
 import {Agent, fetch as undiciFetch} from 'undici';
 import type {
+	AIProviderConfig,
+	LLMChatResponse,
+	LLMClient,
 	Message,
 	Tool,
-	LLMClient,
-	LangChainProviderConfig,
-	LLMChatResponse,
 	ToolCall,
 } from '@/types/index';
 import {XMLToolCallParser} from '@/tool-calling/xml-parser';
@@ -231,14 +231,14 @@ interface StreamCallbacks {
 }
 
 export class AISDKClient implements LLMClient {
-	private provider: ReturnType<typeof createOpenAI>;
+	private provider: ReturnType<typeof createOpenAICompatible>;
 	private currentModel: string;
 	private availableModels: string[];
-	private providerConfig: LangChainProviderConfig;
+	private providerConfig: AIProviderConfig;
 	private modelInfoCache: Map<string, ModelInfo> = new Map();
 	private undiciAgent: Agent;
 
-	constructor(providerConfig: LangChainProviderConfig) {
+	constructor(providerConfig: AIProviderConfig) {
 		this.providerConfig = providerConfig;
 		this.availableModels = providerConfig.models;
 		this.currentModel = providerConfig.models[0] || '';
@@ -264,12 +264,12 @@ export class AISDKClient implements LLMClient {
 		this.provider = this.createProvider();
 	}
 
-	static create(providerConfig: LangChainProviderConfig): Promise<AISDKClient> {
+	static create(providerConfig: AIProviderConfig): Promise<AISDKClient> {
 		const client = new AISDKClient(providerConfig);
 		return Promise.resolve(client);
 	}
 
-	private createProvider(): ReturnType<typeof createOpenAI> {
+	private createProvider(): ReturnType<typeof createOpenAICompatible> {
 		const {config} = this.providerConfig;
 
 		// Custom fetch using undici
@@ -291,8 +291,9 @@ export class AISDKClient implements LLMClient {
 			headers['X-Title'] = 'Nanocoder';
 		}
 
-		return createOpenAI({
-			baseURL: config.baseURL ?? undefined,
+		return createOpenAICompatible({
+			name: this.providerConfig.name,
+			baseURL: config.baseURL ?? '',
 			apiKey: config.apiKey ?? 'dummy-key',
 			fetch: customFetch,
 			headers,
@@ -340,8 +341,8 @@ export class AISDKClient implements LLMClient {
 		}
 
 		try {
-			// Use .chat() to explicitly get chat completions model, not responses model
-			const model = this.provider.chat(this.currentModel);
+			// Get the language model instance from the provider
+			const model = this.provider(this.currentModel);
 
 			// Convert tools to AI SDK format with dummy execute functions
 			const aiTools =
@@ -458,8 +459,8 @@ export class AISDKClient implements LLMClient {
 		}
 
 		try {
-			// Use .chat() to explicitly get chat completions model, not responses model
-			const model = this.provider.chat(this.currentModel);
+			// Get the language model instance from the provider
+			const model = this.provider(this.currentModel);
 
 			// Convert tools to AI SDK format with dummy execute functions
 			const aiTools =

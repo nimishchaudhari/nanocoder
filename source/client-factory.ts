@@ -1,7 +1,7 @@
 import {AISDKClient} from '@/ai-sdk-client';
 import {appConfig, getClosestConfigFile} from '@/config/index';
 import {loadPreferences} from '@/config/preferences';
-import type {LLMClient, LangChainProviderConfig} from '@/types/index';
+import type {LLMClient, AIProviderConfig} from '@/types/index';
 import {existsSync} from 'fs';
 import {join} from 'path';
 
@@ -114,8 +114,8 @@ async function createAISDKClient(
 	}
 }
 
-function loadProviderConfigs(): LangChainProviderConfig[] {
-	const providers: LangChainProviderConfig[] = [];
+function loadProviderConfigs(): AIProviderConfig[] {
+	const providers: AIProviderConfig[] = [];
 
 	// Load providers from the new providers array structure
 	if (appConfig.providers) {
@@ -139,7 +139,7 @@ function loadProviderConfigs(): LangChainProviderConfig[] {
 }
 
 async function testProviderConnection(
-	providerConfig: LangChainProviderConfig,
+	providerConfig: AIProviderConfig,
 ): Promise<void> {
 	// Test local servers for connectivity
 	if (
