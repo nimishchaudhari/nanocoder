@@ -102,7 +102,7 @@ const deleteLinesCoreTool = tool({
 		},
 		required: ['path', 'line_number'],
 	}),
-	execute: executeDeleteLines,
+	// NO execute function - prevents AI SDK auto-execution
 });
 
 const DeleteLinesFormatter = React.memo(
@@ -458,6 +458,7 @@ const validator = async (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const deleteLinesTool: ToolDefinition = {
+	tool: deleteLinesCoreTool, // Native AI SDK tool (no execute)
 	handler: executeDeleteLines,
 	formatter,
 	validator,

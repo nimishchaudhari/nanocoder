@@ -46,7 +46,8 @@ const executeReadFile = async (args: {path: string}): Promise<string> => {
 	}
 };
 
-// AI SDK tool definition
+// AI SDK tool definition (WITHOUT execute to prevent auto-execution)
+// Execute will be called manually after user confirmation
 const readFileCoreTool = tool({
 	description:
 		'Read the contents of a file with line numbers (use line numbers with edit_file tool for precise editing)',
@@ -60,7 +61,7 @@ const readFileCoreTool = tool({
 		},
 		required: ['path'],
 	}),
-	execute: executeReadFile,
+	// NO execute function - prevents AI SDK auto-execution
 });
 
 // Create a component that will re-render when theme changes
@@ -167,13 +168,14 @@ const validator = async (args: {
 	}
 };
 
-// Nanocoder tool definition with AI SDK core tool + custom extensions
+// Nanocoder tool definition with native AI SDK tool + custom extensions
 export const readFileTool: ToolDefinition = {
-	handler: executeReadFile,
+	tool: readFileCoreTool, // Native AI SDK tool (no execute)
+	handler: executeReadFile, // Manual execution after confirmation
 	formatter,
 	validator,
 	requiresConfirmation: false,
-	// For Phase 3-4: will migrate to use coreTool directly
+	// Legacy format kept for backward compatibility
 	config: {
 		type: 'function',
 		function: {

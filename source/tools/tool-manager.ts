@@ -11,6 +11,7 @@ import {
 	toolRegistry as staticToolRegistry,
 	toolFormatters as staticToolFormatters,
 	toolValidators as staticToolValidators,
+	nativeToolsRegistry as staticNativeToolsRegistry,
 } from '@/tools/index';
 import {MCPClient} from '@/mcp/mcp-client';
 import {MCPToolAdapter} from '@/mcp/mcp-tool-adapter';
@@ -40,6 +41,8 @@ export class ToolManager {
 	private toolRegistry: Record<string, ToolHandler> = {};
 	private toolFormatters: Record<string, ToolFormatter> = {};
 	private toolValidators: Record<string, ToolValidator> = {};
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	private nativeToolsRegistry: Record<string, any> = {};
 	private allTools: Tool[] = [];
 
 	constructor() {
@@ -47,6 +50,7 @@ export class ToolManager {
 		this.toolRegistry = {...staticToolRegistry};
 		this.toolFormatters = {...staticToolFormatters};
 		this.toolValidators = {...staticToolValidators};
+		this.nativeToolsRegistry = {...staticNativeToolsRegistry};
 		this.allTools = [...staticTools];
 	}
 
@@ -108,6 +112,14 @@ export class ToolManager {
 	 */
 	getToolValidator(toolName: string): ToolValidator | undefined {
 		return this.toolValidators[toolName];
+	}
+
+	/**
+	 * Get native AI SDK tools registry (for tools that have native versions)
+	 */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	getNativeToolsRegistry(): Record<string, any> {
+		return this.nativeToolsRegistry;
 	}
 
 	/**

@@ -17,6 +17,7 @@ Successfully migrated all 10 Nanocoder tool definitions to use Vercel AI SDK v5'
 ## Tools Migrated
 
 ### File Operations (6 tools)
+
 1. ✅ `read-file.tsx` - File reading with line numbers
 2. ✅ `create-file.tsx` - File creation
 3. ✅ `insert-lines.tsx` - Line insertion
@@ -25,6 +26,7 @@ Successfully migrated all 10 Nanocoder tool definitions to use Vercel AI SDK v5'
 6. ✅ `read-many-files.tsx` - Bulk file reading
 
 ### System & Web Operations (4 tools)
+
 7. ✅ `execute-bash.tsx` - Bash command execution
 8. ✅ `web-search.tsx` - Web search via Brave
 9. ✅ `fetch-url.tsx` - URL fetching via Jina AI
@@ -67,22 +69,26 @@ export {toolNameCoreTool};
 ## Benefits Achieved
 
 ### Type Safety
+
 - AI SDK's `jsonSchema<T>()` provides automatic type inference
 - TypeScript ensures parameter types match schema
 - Compile-time errors for type mismatches
 
 ### Code Reuse
+
 - Single `execute` function shared between both definitions
 - No duplication of tool logic
 - Easier to maintain and test
 
 ### Backward Compatibility
+
 - Existing tool confirmation UI continues working
 - Custom formatters and validators preserved
 - No changes to app.tsx or tool-handler.tsx required
 - Zero breaking changes to user experience
 
 ### Future-Ready
+
 - Core tools exported for Phase 3-4 migration
 - Prepared for AI SDK's native message handling
 - Will enable removal of ~175 lines of conversion code
@@ -90,6 +96,7 @@ export {toolNameCoreTool};
 ## Files Modified
 
 ### Tool Files (10)
+
 - `source/tools/read-file.tsx`
 - `source/tools/create-file.tsx`
 - `source/tools/insert-lines.tsx`
@@ -102,11 +109,13 @@ export {toolNameCoreTool};
 - `source/tools/search-files.tsx`
 
 ### Configuration (3)
+
 - `source/types/core.ts` - Exported `tool` and `jsonSchema` helpers
 - `knip.json` - Updated to ignore `.phase-3-tools.ts`
 - `.phase-3-tools.ts` - Created to document Phase 3-4 exports
 
 ### Documentation (1)
+
 - `.nanocoder/PHASE-2-STATUS.md` - Updated with completion status
 
 ## Test Results
@@ -124,6 +133,7 @@ export {toolNameCoreTool};
 ### Knip Warnings Explained
 
 The 10 "unused exports" flagged by knip are the `*CoreTool` exports:
+
 - `readFileCoreTool`
 - `createFileCoreTool`
 - `insertLinesCoreTool`
@@ -140,15 +150,18 @@ These are intentionally exported but not yet used. They will be consumed in Phas
 ## Timeline
 
 - **POC (read-file.tsx)**: 30 minutes
+
   - Established migration pattern
   - Verified backward compatibility
   - Confirmed tests pass
 
 - **Second tool (create-file.tsx)**: 15 minutes
+
   - Validated pattern works for different tool types
   - Identified any pattern adjustments needed
 
 - **Remaining 8 tools**: 2 hours
+
   - Applied established pattern
   - Each tool ~15 minutes
   - Consistent, straightforward conversions
@@ -175,6 +188,7 @@ These are intentionally exported but not yet used. They will be consumed in Phas
 **Goal**: Migrate from custom Message types to AI SDK's native ModelMessage types
 
 **Key Changes**:
+
 - Update `AISDKClient.chat()` to accept and return AI SDK messages
 - Migrate message conversion in `message-handler.ts`
 - Update tool call handling to use AI SDK's native format
@@ -183,6 +197,7 @@ These are intentionally exported but not yet used. They will be consumed in Phas
 **Estimated Effort**: 4-6 hours
 
 **Benefits**:
+
 - Simpler code (less conversion logic)
 - Better type safety
 - Native AI SDK tool calling

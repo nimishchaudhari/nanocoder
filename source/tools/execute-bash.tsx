@@ -65,7 +65,7 @@ const executeBashCoreTool = tool({
 		},
 		required: ['command'],
 	}),
-	execute: executeExecuteBash,
+	// NO execute function - prevents AI SDK auto-execution
 });
 
 // Create a component that will re-render when theme changes
@@ -183,6 +183,7 @@ const validator = (args: {
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const executeBashTool: ToolDefinition = {
+	tool: executeBashCoreTool, // Native AI SDK tool (no execute)
 	handler: executeExecuteBash,
 	formatter,
 	validator,

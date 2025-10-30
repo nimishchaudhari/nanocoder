@@ -38,7 +38,7 @@ const createFileCoreTool = tool({
 		},
 		required: ['path', 'content'],
 	}),
-	execute: executeCreateFile,
+	// NO execute function - prevents AI SDK auto-execution
 });
 
 interface CreateFileArgs {
@@ -191,7 +191,8 @@ const validator = async (args: {
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const createFileTool: ToolDefinition = {
-	handler: executeCreateFile,
+	tool: createFileCoreTool, // Native AI SDK tool (no execute)
+	handler: executeCreateFile, // Manual execution after confirmation
 	formatter,
 	validator,
 	config: {

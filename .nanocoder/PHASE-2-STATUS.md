@@ -87,6 +87,7 @@ See `.nanocoder/AI-SDK-MIGRATION-PROPOSAL.md` for full Phase 3 details.
 ## Files Changed
 
 ### Tool Files (10 files)
+
 - `source/tools/read-file.tsx` - Migrated to AI SDK pattern
 - `source/tools/create-file.tsx` - Migrated to AI SDK pattern
 - `source/tools/insert-lines.tsx` - Migrated to AI SDK pattern
@@ -99,6 +100,7 @@ See `.nanocoder/AI-SDK-MIGRATION-PROPOSAL.md` for full Phase 3 details.
 - `source/tools/search-files.tsx` - Migrated to AI SDK pattern
 
 ### Configuration Files (2 files)
+
 - `source/types/core.ts` - Exported `tool` and `jsonSchema` helpers
 - `knip.json` - Updated to ignore Phase 3-4 exports
 - `.phase-3-tools.ts` - Created to document Phase 3-4 tool exports

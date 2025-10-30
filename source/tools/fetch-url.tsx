@@ -56,7 +56,7 @@ const fetchUrlCoreTool = tool({
 		},
 		required: ['url'],
 	}),
-	execute: executeFetchUrl,
+	// NO execute function - prevents AI SDK auto-execution
 });
 
 // Create a component that will re-render when theme changes
@@ -164,6 +164,7 @@ const validator = (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const fetchUrlTool: ToolDefinition = {
+	tool: fetchUrlCoreTool, // Native AI SDK tool (no execute)
 	handler: executeFetchUrl,
 	formatter,
 	validator,

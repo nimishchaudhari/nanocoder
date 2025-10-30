@@ -30,6 +30,12 @@ export const toolRegistry: Record<string, ToolHandler> = Object.fromEntries(
 
 export const tools: Tool[] = toolDefinitions.map(def => def.config);
 
+// Native AI SDK tools registry (for passing directly to AI SDK)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const nativeToolsRegistry: Record<string, any> = Object.fromEntries(
+	toolDefinitions.map(def => [def.config.function.name, def.tool]),
+);
+
 // Export formatter registry for the UI
 export const toolFormatters: Record<
 	string,

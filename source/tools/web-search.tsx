@@ -115,7 +115,7 @@ const webSearchCoreTool = tool({
 		},
 		required: ['query'],
 	}),
-	execute: executeWebSearch,
+	// NO execute function - prevents AI SDK auto-execution
 });
 
 // Create a component that will re-render when theme changes
@@ -204,6 +204,7 @@ const validator = (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const webSearchTool: ToolDefinition = {
+	tool: webSearchCoreTool, // Native AI SDK tool (no execute)
 	handler: executeWebSearch,
 	formatter,
 	validator,

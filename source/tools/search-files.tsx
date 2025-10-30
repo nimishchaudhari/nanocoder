@@ -287,7 +287,7 @@ const searchFilesCoreTool = tool({
 		},
 		required: [],
 	}),
-	execute: executeSearchFiles,
+	// NO execute function - prevents AI SDK auto-execution
 });
 
 interface SearchFilesFormatterProps {
@@ -358,6 +358,7 @@ const formatter = (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const searchFilesTool: ToolDefinition = {
+	tool: searchFilesCoreTool, // Native AI SDK tool (no execute)
 	handler: executeSearchFiles,
 	formatter,
 	requiresConfirmation: false,

@@ -87,7 +87,11 @@ export interface Tool {
 export type ToolHandler = (input: any) => Promise<string>;
 
 export interface ToolDefinition {
+	// Native AI SDK tool (without execute to prevent auto-execution)
+	tool: AISDKTool;
+	// Manual execution handler (called after user confirmation)
 	handler: ToolHandler;
+	// Legacy OpenAI format (deprecated - kept for backward compatibility)
 	config: Tool;
 	formatter?: (
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed

@@ -82,7 +82,7 @@ const insertLinesCoreTool = tool({
 		},
 		required: ['path', 'line_number', 'content'],
 	}),
-	execute: executeInsertLines,
+	// NO execute function - prevents AI SDK auto-execution
 });
 
 const InsertLinesFormatter = React.memo(
@@ -400,6 +400,7 @@ const validator = async (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const insertLinesTool: ToolDefinition = {
+	tool: insertLinesCoreTool, // Native AI SDK tool (no execute)
 	handler: executeInsertLines,
 	formatter,
 	validator,

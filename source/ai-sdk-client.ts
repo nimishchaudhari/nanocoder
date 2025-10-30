@@ -1,5 +1,5 @@
 import {createOpenAICompatible} from '@ai-sdk/openai-compatible';
-import {generateText, streamText, jsonSchema} from 'ai';
+import {generateText, streamText} from 'ai';
 import {Agent, fetch as undiciFetch} from 'undici';
 import type {
 	AIProviderConfig,
@@ -10,6 +10,7 @@ import type {
 	ToolCall,
 } from '@/types/index';
 import {XMLToolCallParser} from '@/tool-calling/xml-parser';
+import {nativeToolsRegistry} from '@/tools/index';
 
 /**
  * Parses API errors into user-friendly messages
@@ -228,24 +229,27 @@ export class AISDKClient implements LLMClient {
 			// Get the language model instance from the provider
 			const model = this.provider(this.currentModel);
 
-			// Convert tools to AI SDK format with dummy execute functions
+			// Convert tools to AI SDK format
+			// Use native AI SDK tools when available (they already have no execute function)
+			// For MCP tools or tools without native version, they won't be in the registry
 			const aiTools =
 				tools.length > 0
 					? Object.fromEntries(
-							tools.map(tool => [
-								tool.function.name,
-								{
-									description: tool.function.description,
-									// Use AI SDK's jsonSchema helper to wrap the JSON Schema
-									// Cast to any because our Tool type is more flexible than JSONSchema7
-									// eslint-disable-next-line @typescript-eslint/no-explicit-any
-									inputSchema: jsonSchema(tool.function.parameters as any),
-									// Dummy execute - we handle execution in our tool handler
-									execute: () => {
-										throw new Error('Tools should not be executed by AI SDK');
-									},
-								},
-							]),
+							tools
+								.map(tool => {
+									const toolName = tool.function.name;
+									const nativeTool = nativeToolsRegistry[toolName];
+
+									// If native tool exists, use it directly (already has no execute)
+									if (nativeTool) {
+										return [toolName, nativeTool];
+									}
+
+									// Fallback: Tool doesn't have native version (likely MCP tool)
+									// Return undefined to skip this tool
+									return [toolName, undefined];
+								})
+								.filter(([, toolDef]) => toolDef !== undefined),
 					  )
 					: undefined;
 
@@ -349,24 +353,27 @@ export class AISDKClient implements LLMClient {
 			// Get the language model instance from the provider
 			const model = this.provider(this.currentModel);
 
-			// Convert tools to AI SDK format with dummy execute functions
+			// Convert tools to AI SDK format
+			// Use native AI SDK tools when available (they already have no execute function)
+			// For MCP tools or tools without native version, they won't be in the registry
 			const aiTools =
 				tools.length > 0
 					? Object.fromEntries(
-							tools.map(tool => [
-								tool.function.name,
-								{
-									description: tool.function.description,
-									// Use AI SDK's jsonSchema helper to wrap the JSON Schema
-									// Cast to any because our Tool type is more flexible than JSONSchema7
-									// eslint-disable-next-line @typescript-eslint/no-explicit-any
-									inputSchema: jsonSchema(tool.function.parameters as any),
-									// Dummy execute - we handle execution in our tool handler
-									execute: () => {
-										throw new Error('Tools should not be executed by AI SDK');
-									},
-								},
-							]),
+							tools
+								.map(tool => {
+									const toolName = tool.function.name;
+									const nativeTool = nativeToolsRegistry[toolName];
+
+									// If native tool exists, use it directly (already has no execute)
+									if (nativeTool) {
+										return [toolName, nativeTool];
+									}
+
+									// Fallback: Tool doesn't have native version (likely MCP tool)
+									// Return undefined to skip this tool
+									return [toolName, undefined];
+								})
+								.filter(([, toolDef]) => toolDef !== undefined),
 					  )
 					: undefined;
 

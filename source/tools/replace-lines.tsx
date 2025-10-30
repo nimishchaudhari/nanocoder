@@ -105,7 +105,7 @@ const replaceLinesCoreTool = tool({
 		},
 		required: ['path', 'line_number', 'content'],
 	}),
-	execute: executeReplaceLines,
+	// NO execute function - prevents AI SDK auto-execution
 });
 
 const ReplaceLinesFormatter = React.memo(
@@ -480,6 +480,7 @@ const validator = async (
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const replaceLinesTool: ToolDefinition = {
+	tool: replaceLinesCoreTool, // Native AI SDK tool (no execute)
 	handler: executeReplaceLines,
 	formatter,
 	validator,

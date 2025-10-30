@@ -86,7 +86,7 @@ const readManyFilesCoreTool = tool({
 		},
 		required: ['paths'],
 	}),
-	execute: executeReadManyFiles,
+	// NO execute function - prevents AI SDK auto-execution
 });
 
 // Create a component that will re-render when theme changes
@@ -239,6 +239,7 @@ const validator = async (args: {
 
 // Nanocoder tool definition with AI SDK core tool + custom extensions
 export const readManyFilesTool: ToolDefinition = {
+	tool: readManyFilesCoreTool, // Native AI SDK tool (no execute)
 	handler: executeReadManyFiles,
 	formatter,
 	validator,
