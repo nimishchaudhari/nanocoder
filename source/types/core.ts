@@ -105,6 +105,47 @@ export interface Tool {
 export type ToolHandler = (input: any) => Promise<string>;
 
 /**
+ * Tool formatter type for Ink UI
+ * Formats tool arguments and results for display in the CLI
+ */
+export type ToolFormatter = (
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
+	args: any,
+	result?: string,
+) =>
+	| string
+	| Promise<string>
+	| React.ReactElement
+	| Promise<React.ReactElement>;
+
+/**
+ * Tool validator type for pre-execution validation
+ * Returns validation result with optional error message
+ */
+export type ToolValidator = (
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
+	args: any,
+) => Promise<{valid: true} | {valid: false; error: string}>;
+
+/**
+ * Unified tool entry interface for Phase 3 enhancement
+ *
+ * Provides a structured way to manage all tool metadata in one place:
+ * - name: Tool name for registry and lookup
+ * - tool: Native AI SDK CoreTool (without execute for human-in-the-loop)
+ * - handler: Manual execution handler called after user confirmation
+ * - formatter: Optional React component for rich CLI UI display
+ * - validator: Optional pre-execution validation function
+ */
+export interface ToolEntry {
+	name: string;
+	tool: AISDKCoreTool; // For AI SDK
+	handler: ToolHandler; // For execution
+	formatter?: ToolFormatter; // For UI (React component)
+	validator?: ToolValidator; // For validation
+}
+
+/**
  * Nanocoder's extended tool definition (Phase 4+ Complete)
  *
  * Uses AI SDK's native CoreTool with Nanocoder-specific metadata:

@@ -157,7 +157,6 @@ export class MCPClient {
 
 		return nativeTools;
 	}
-
 	getToolMapping(): Map<string, {serverName: string; originalName: string}> {
 		const mapping = new Map<
 			string,
@@ -174,6 +173,55 @@ export class MCPClient {
 		}
 
 		return mapping;
+	}
+
+	/**
+	 * Get all MCP tools as entries with handlers for easy registration
+	 * Each entry contains the native AI SDK tool and its handler function
+	 *
+	 * Phase 3 Enhancement: Provides structured access to MCP tools with both
+	 * the AI SDK tool definition and the corresponding handler function.
+	 * This enables cleaner integration with ToolManager.
+	 *
+	 * @returns Array of tool entries with name, AI SDK tool, and handler function
+	 */
+	getToolEntries(): Array<{
+		name: string;
+		tool: AISDKCoreTool;
+		handler: (args: Record<string, unknown>) => Promise<string>;
+	}> {
+		const entries: Array<{
+			name: string;
+			tool: AISDKCoreTool;
+			handler: (args: Record<string, unknown>) => Promise<string>;
+		}> = [];
+
+		// Get native tools once to avoid redundant calls
+		const nativeTools = this.getNativeToolsRegistry();
+
+		for (const [, serverTools] of this.serverTools.entries()) {
+			for (const mcpTool of serverTools) {
+				const toolName = mcpTool.name;
+
+				// Get the AI SDK native tool
+				const coreTool = nativeTools[toolName];
+
+				if (coreTool) {
+					// Create handler that calls this tool
+					const handler = async (args: Record<string, unknown>) => {
+						return this.callTool(toolName, args);
+					};
+
+					entries.push({
+						name: toolName,
+						tool: coreTool,
+						handler,
+					});
+				}
+			}
+		}
+
+		return entries;
 	}
 
 	async callTool(

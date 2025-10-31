@@ -71,14 +71,11 @@ export class ToolManager {
 				...mcpNativeTools,
 			};
 
-			// Register MCP tool handlers directly (no adapter needed)
-			for (const toolName of Object.keys(mcpNativeTools)) {
-				this.toolRegistry[toolName] = async (args: any) => {
-					if (!this.mcpClient) {
-						throw new Error('MCP client not initialized');
-					}
-					return this.mcpClient.callTool(toolName, args);
-				};
+			// Register MCP tool handlers using structured tool entries
+			// Phase 3: Use getToolEntries() for cleaner tool integration
+			const toolEntries = this.mcpClient.getToolEntries();
+			for (const entry of toolEntries) {
+				this.toolRegistry[entry.name] = entry.handler;
 			}
 
 			return results;
