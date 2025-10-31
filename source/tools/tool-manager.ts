@@ -1,6 +1,7 @@
-import React from 'react';
 import type {
 	ToolHandler,
+	ToolFormatter,
+	ToolValidator,
 	MCPInitResult,
 	MCPServer,
 	MCPTool,
@@ -14,25 +15,13 @@ import {
 } from '@/tools/index';
 import {MCPClient} from '@/mcp/mcp-client';
 
-// Tool formatters accept dynamic args from LLM, so any is appropriate here
-type ToolFormatter = (
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
-	args: any,
-	result?: string,
-) =>
-	| string
-	| Promise<string>
-	| React.ReactElement
-	| Promise<React.ReactElement>;
-
-type ToolValidator = (
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
-	args: any,
-) => Promise<{valid: true} | {valid: false; error: string}>;
-
 /**
  * Manages both static tools and dynamic MCP tools
  * All tools are stored in AI SDK's native CoreTool format
+ *
+ * Phase 5B: Imports ToolFormatter and ToolValidator type aliases from core.ts
+ * These are re-exported type definitions used to ensure consistent tool typing
+ * across the tool system (handlers, formatters, validators, and MCP tools).
  */
 export class ToolManager {
 	private toolRegistry: Record<string, ToolHandler> = {};
