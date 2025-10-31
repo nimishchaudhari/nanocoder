@@ -131,11 +131,6 @@ function convertToModelMessages(messages: Message[]): ModelMessage[] {
 	});
 }
 
-interface ModelInfo {
-	context_length?: number;
-	[key: string]: unknown;
-}
-
 interface StreamCallbacks {
 	onToken?: (token: string) => void;
 	onToolCall?: (toolCall: ToolCall) => void;
@@ -147,7 +142,6 @@ export class AISDKClient implements LLMClient {
 	private currentModel: string;
 	private availableModels: string[];
 	private providerConfig: AIProviderConfig;
-	private modelInfoCache: Map<string, ModelInfo> = new Map();
 	private undiciAgent: Agent;
 
 	constructor(providerConfig: AIProviderConfig) {
@@ -222,20 +216,8 @@ export class AISDKClient implements LLMClient {
 	}
 
 	getContextSize(): number {
-		// For OpenRouter, get from cached model info
-		if (this.providerConfig.name.toLowerCase() === 'openrouter') {
-			const modelData = this.modelInfoCache.get(this.currentModel);
-			if (modelData?.context_length) {
-				return modelData.context_length;
-			}
-			return 0;
-		}
-
-		// For OpenAI-compatible (local models), we can't reliably know the context
-		if (this.providerConfig.name === 'openai-compatible') {
-			return 0;
-		}
-
+		// Context size is not available without external model metadata service
+		// This method is kept for LLMClient interface compatibility but always returns 0
 		return 0;
 	}
 
