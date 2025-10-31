@@ -68,16 +68,17 @@ import {tool, jsonSchema, type Tool as AISDKTool} from 'ai';
 export type AISDKCoreTool = AISDKTool<any, any>;
 
 export interface ToolDefinition {
-  name: string;           // Metadata for lookup (AI SDK Tool is opaque)
-  tool: AISDKCoreTool;    // Native AI SDK tool
-  handler: ToolHandler;   // Manual execution (human-in-the-loop)
-  formatter?: ToolFormatter;
-  validator?: ToolValidator;
-  requiresConfirmation?: boolean;
+	name: string; // Metadata for lookup (AI SDK Tool is opaque)
+	tool: AISDKCoreTool; // Native AI SDK tool
+	handler: ToolHandler; // Manual execution (human-in-the-loop)
+	formatter?: ToolFormatter;
+	validator?: ToolValidator;
+	requiresConfirmation?: boolean;
 }
 ```
 
 **Key Difference from Proposal:**
+
 - Proposal suggested `coreTool` property, we use `tool`
 - Added `name` metadata (not in proposal) because `Tool<>` is opaque
 - NO `execute` function in tools (human-in-the-loop pattern)
@@ -92,33 +93,33 @@ import {tool, jsonSchema} from 'ai';
 
 // 1. Define AI SDK native tool WITHOUT execute function
 export const readFileCoreTool = tool({
-  description: 'Read the contents of a file with line numbers',
-  inputSchema: jsonSchema<{path: string}>({
-    type: 'object',
-    properties: {
-      path: {
-        type: 'string',
-        description: 'The path to the file to read.',
-      },
-    },
-    required: ['path'],
-  }),
-  // NO execute function - human-in-the-loop!
+	description: 'Read the contents of a file with line numbers',
+	inputSchema: jsonSchema<{path: string}>({
+		type: 'object',
+		properties: {
+			path: {
+				type: 'string',
+				description: 'The path to the file to read.',
+			},
+		},
+		required: ['path'],
+	}),
+	// NO execute function - human-in-the-loop!
 });
 
 // 2. Define handler for manual execution
 async function executeReadFile(args: {path: string}): Promise<string> {
-  // Implementation
+	// Implementation
 }
 
 // 3. Export as ToolDefinition with Nanocoder extensions
 export const readFileTool: ToolDefinition = {
-  name: 'read_file',        // Metadata for registry lookup
-  tool: readFileCoreTool,   // Native AI SDK tool
-  handler: executeReadFile, // Manual execution after confirmation
-  formatter,
-  validator,
-  requiresConfirmation: false,
+	name: 'read_file', // Metadata for registry lookup
+	tool: readFileCoreTool, // Native AI SDK tool
+	handler: executeReadFile, // Manual execution after confirmation
+	formatter,
+	validator,
+	requiresConfirmation: false,
 };
 ```
 
@@ -192,6 +193,7 @@ getNativeToolsRegistry(): Record<string, AISDKCoreTool> {
 ```
 
 **Benefits:**
+
 - ✅ MCP tools automatically in AI SDK format
 - ✅ No adapter layer needed
 - ✅ Consistent with static tools
@@ -203,12 +205,12 @@ getNativeToolsRegistry(): Record<string, AISDKCoreTool> {
 ```typescript
 // source/types/core.ts
 export interface LLMClient {
-  chat(
-    messages: Message[],
-    tools: Record<string, AISDKCoreTool>,  // Changed from Tool[]
-    signal?: AbortSignal,
-  ): Promise<LLMChatResponse>;
-  // ...
+	chat(
+		messages: Message[],
+		tools: Record<string, AISDKCoreTool>, // Changed from Tool[]
+		signal?: AbortSignal,
+	): Promise<LLMChatResponse>;
+	// ...
 }
 ```
 
@@ -371,10 +373,12 @@ export interface LLMClient {
 ### Trade-off: Tool Documentation
 
 **What We Lost:**
+
 - AI SDK's `Tool<>` type is opaque - can't extract `description` or `parameters`
 - Can't auto-generate detailed tool docs in system prompt
 
 **What We Gained:**
+
 - LLM still receives full tool schemas through AI SDK's native mechanism
 - Simpler architecture without documentation extraction logic
 - Model learns tool usage from function calling
@@ -386,6 +390,7 @@ export interface LLMClient {
 **Choice:** Define tools WITHOUT `execute` function
 
 **Rationale:**
+
 - Preserves tool confirmation UI (core feature)
 - Maintains security (user approves all tool executions)
 - Compatible with development modes (normal/auto-accept/plan)
@@ -397,6 +402,7 @@ export interface LLMClient {
 **Choice:** Don't migrate to `experimental_createMCPClient()`
 
 **Rationale:**
+
 - Custom client is stable and well-tested
 - Already returns AI SDK native format
 - More control over connection management
@@ -409,6 +415,7 @@ export interface LLMClient {
 **Choice:** Keep tool result → user message conversion for now
 
 **Rationale:**
+
 - Current approach works well
 - Not blocking other improvements
 - Can be done later as optimization
@@ -462,6 +469,7 @@ The migration delivered significant benefits:
 Updated from AI SDK v4 to v5 type names:
 
 **v4 → v5 Mapping:**
+
 - `CoreToolCall` → `ToolCall` ✅
 - `CoreToolResult` → `ToolResult` ✅
 - `CoreToolResultUnion` → `TypedToolResult` ✅
@@ -634,14 +642,14 @@ Understanding how tool schemas reach the LLM after removing `config`:
 
 ```typescript
 const readFileCoreTool = tool({
-  description: 'Read contents of a file',
-  inputSchema: jsonSchema<{path: string}>({
-    type: 'object',
-    properties: {
-      path: {type: 'string', description: 'Path to the file'}
-    },
-    required: ['path']
-  }),
+	description: 'Read contents of a file',
+	inputSchema: jsonSchema<{path: string}>({
+		type: 'object',
+		properties: {
+			path: {type: 'string', description: 'Path to the file'},
+		},
+		required: ['path'],
+	}),
 });
 ```
 
@@ -653,9 +661,9 @@ When we pass tools to `generateText()` or `streamText()`:
 
 ```typescript
 const result = await generateText({
-  model,
-  messages,
-  tools: aiTools,  // Record<string, AISDKCoreTool>
+	model,
+	messages,
+	tools: aiTools, // Record<string, AISDKCoreTool>
 });
 ```
 

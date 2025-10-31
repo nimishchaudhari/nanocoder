@@ -13,7 +13,6 @@ import {
 	nativeToolsRegistry as staticNativeToolsRegistry,
 } from '@/tools/index';
 import {MCPClient} from '@/mcp/mcp-client';
-import {MCPToolAdapter} from '@/mcp/mcp-tool-adapter';
 
 // Tool formatters accept dynamic args from LLM, so any is appropriate here
 type ToolFormatter = (
@@ -36,12 +35,12 @@ type ToolValidator = (
  * All tools are stored in AI SDK's native CoreTool format
  */
 export class ToolManager {
-	private mcpClient: MCPClient | null = null;
-	private mcpAdapter: MCPToolAdapter | null = null;
 	private toolRegistry: Record<string, ToolHandler> = {};
 	private toolFormatters: Record<string, ToolFormatter> = {};
 	private toolValidators: Record<string, ToolValidator> = {};
 	private nativeToolsRegistry: Record<string, AISDKCoreTool> = {};
+
+	private mcpClient: MCPClient | null = null;
 
 	constructor() {
 		// Initialize with static tools
@@ -57,22 +56,30 @@ export class ToolManager {
 	): Promise<MCPInitResult[]> {
 		if (servers && servers.length > 0) {
 			this.mcpClient = new MCPClient();
-			this.mcpAdapter = new MCPToolAdapter(this.mcpClient);
 
 			const results = await this.mcpClient.connectToServers(
 				servers,
 				onProgress,
 			);
 
-			// Register MCP tool handlers
-			this.mcpAdapter.registerMCPTools(this.toolRegistry);
-
-			// Register MCP native tools
+			// Get MCP native tools
 			const mcpNativeTools = this.mcpClient.getNativeToolsRegistry();
+
+			// Merge with static tools
 			this.nativeToolsRegistry = {
 				...staticNativeToolsRegistry,
 				...mcpNativeTools,
 			};
+
+			// Register MCP tool handlers directly (no adapter needed)
+			for (const toolName of Object.keys(mcpNativeTools)) {
+				this.toolRegistry[toolName] = async (args: any) => {
+					if (!this.mcpClient) {
+						throw new Error('MCP client not initialized');
+					}
+					return this.mcpClient.callTool(toolName, args);
+				};
+			}
 
 			return results;
 		}
@@ -154,9 +161,12 @@ export class ToolManager {
 	 * Disconnect MCP servers
 	 */
 	async disconnectMCP(): Promise<void> {
-		if (this.mcpClient && this.mcpAdapter) {
-			// Unregister MCP tools
-			this.mcpAdapter.unregisterMCPTools(this.toolRegistry);
+		if (this.mcpClient) {
+			// Remove MCP tools from registry
+			const mcpTools = this.mcpClient.getNativeToolsRegistry();
+			for (const toolName of Object.keys(mcpTools)) {
+				delete this.toolRegistry[toolName];
+			}
 
 			// Disconnect from servers
 			await this.mcpClient.disconnect();
@@ -164,7 +174,6 @@ export class ToolManager {
 			// Reset to static tools only
 			this.nativeToolsRegistry = {...staticNativeToolsRegistry};
 			this.mcpClient = null;
-			this.mcpAdapter = null;
 		}
 	}
 

@@ -5,6 +5,7 @@
 After analyzing the current codebase, this revised plan addresses the actual architecture and provides targeted improvements. The codebase is already using AI SDK v5 correctly, but has some redundant layers that can be simplified.
 
 **Current State Analysis:**
+
 - ✅ Already using AI SDK v5 with `tool()`, `jsonSchema()`, `generateText()`, `streamText()`
 - ✅ Tools are in `.tsx` files (React components for Ink CLI UI)
 - ✅ Clean separation: Tools don't auto-execute (human-in-the-loop)
@@ -42,11 +43,13 @@ Current Architecture:
 ## Implementation Phases (Revised)
 
 ### 🟢 Phase 1: Remove MCPToolAdapter (Immediate Win)
+
 **Duration:** 30 minutes  
 **Code Reduction:** ~60 lines  
 **Risk:** Very Low
 
 The MCPToolAdapter is completely redundant. It:
+
 1. Creates tool handlers that just call `mcpClient.callTool()`
 2. Registers these in toolRegistry
 3. But MCPClient already provides native AI SDK tools!
@@ -67,25 +70,25 @@ async initializeMCP(servers: MCPServer[], onProgress?: (result: MCPInitResult) =
   if (servers && servers.length > 0) {
     this.mcpClient = new MCPClient();
     const results = await this.mcpClient.connectToServers(servers, onProgress);
-    
+
     // REMOVE these lines:
     - this.mcpAdapter = new MCPToolAdapter(this.mcpClient);
     - this.mcpAdapter.registerMCPTools(this.toolRegistry);
-    
+
     // Keep this - it's already correct:
     const mcpNativeTools = this.mcpClient.getNativeToolsRegistry();
     this.nativeToolsRegistry = {
       ...staticNativeToolsRegistry,
       ...mcpNativeTools,
     };
-    
+
     // ADD: Register MCP tool handlers directly
     for (const toolName of Object.keys(mcpNativeTools)) {
       this.toolRegistry[toolName] = async (args: any) => {
         return this.mcpClient.callTool(toolName, args);
       };
     }
-    
+
     return results;
   }
   return [];
@@ -95,13 +98,13 @@ async initializeMCP(servers: MCPServer[], onProgress?: (result: MCPInitResult) =
 async disconnectMCP(): Promise<void> {
   if (this.mcpClient) {
     // REMOVE: this.mcpAdapter.unregisterMCPTools(this.toolRegistry);
-    
+
     // ADD: Remove MCP tools from registry
     const mcpTools = this.mcpClient.getNativeToolsRegistry();
     for (const toolName of Object.keys(mcpTools)) {
       delete this.toolRegistry[toolName];
     }
-    
+
     await this.mcpClient.disconnect();
     this.nativeToolsRegistry = {...staticNativeToolsRegistry};
     this.mcpClient = null;
@@ -119,11 +122,13 @@ pnpm test:all
 ```
 
 ### 🟡 Phase 2: Optimize Registry Structure (Optional)
+
 **Duration:** 2 hours  
 **Risk:** Medium  
 **Decision:** DEFER - Current structure works well for Ink UI
 
 The current 4 registries actually serve different purposes:
+
 - `toolRegistry`: Execution handlers (needed for human-in-the-loop)
 - `toolFormatters`: React components for CLI UI (essential for Ink)
 - `toolValidators`: Pre-execution validation (improves UX)
@@ -132,6 +137,7 @@ The current 4 registries actually serve different purposes:
 **Recommendation:** Keep as-is. The separation is clean and each serves a purpose.
 
 ### 🟢 Phase 3: Improve MCP Tool Integration
+
 **Duration:** 1 hour  
 **Risk:** Low
 
@@ -143,13 +149,13 @@ Add better MCP tool handling without the adapter:
 // Add a method to get tool entries with handlers
 getToolEntries(): Array<{name: string; tool: AISDKCoreTool; handler: ToolHandler}> {
   const entries = [];
-  
+
   for (const [serverName, serverTools] of this.serverTools.entries()) {
     for (const mcpTool of serverTools) {
       entries.push({
         name: mcpTool.name,
         tool: tool({
-          description: mcpTool.description 
+          description: mcpTool.description
             ? `[MCP:${serverName}] ${mcpTool.description}`
             : `MCP tool from ${serverName}`,
           inputSchema: jsonSchema(mcpTool.inputSchema || {type: 'object'}),
@@ -158,12 +164,13 @@ getToolEntries(): Array<{name: string; tool: AISDKCoreTool; handler: ToolHandler
       });
     }
   }
-  
+
   return entries;
 }
 ```
 
 ### 🟡 Phase 4: Clean Up AI SDK Client (Optional)
+
 **Duration:** 1 hour  
 **Risk:** Low
 
@@ -190,22 +197,28 @@ getContextSize(): number {
 Based on the analysis, these should be kept as-is:
 
 ### 1. **Tool File Structure (.tsx files)**
+
 The tools are React components for the Ink CLI framework. The `.tsx` extension is correct.
 
 ### 2. **Message Conversion**
+
 The `convertToModelMessages()` function is necessary because:
+
 - Internal format uses `role: 'tool'` for tool results
 - AI SDK expects different format
 - Conversion at boundary is the right pattern
 
 ### 3. **Multiple Registries**
+
 While it seems redundant, each registry serves a purpose:
+
 - Handlers for execution
 - Formatters for UI
 - Validators for pre-checks
 - Native tools for AI SDK
 
 ### 4. **XML Tool Call Parsing**
+
 This is a smart fallback for models that don't support native tool calling.
 
 ## Recommended Action Plan
@@ -220,47 +233,50 @@ This is a smart fallback for models that don't support native tool calling.
 ### Future Considerations
 
 2. **Add TypeScript Interface for ToolEntry** (New suggestion)
+
 ```typescript
 // source/types/core.ts
 export interface ToolEntry {
-  name: string;
-  tool: AISDKCoreTool;        // For AI SDK
-  handler: ToolHandler;        // For execution
-  formatter?: ToolFormatter;  // For UI (React component)
-  validator?: ToolValidator;  // For validation
+	name: string;
+	tool: AISDKCoreTool; // For AI SDK
+	handler: ToolHandler; // For execution
+	formatter?: ToolFormatter; // For UI (React component)
+	validator?: ToolValidator; // For validation
 }
 ```
 
 3. **Consider Tool Registry Helper Class**
+
 ```typescript
 class ToolRegistry {
-  private tools: Map<string, ToolEntry> = new Map();
-  
-  register(entry: ToolEntry): void {
-    this.tools.set(entry.name, entry);
-  }
-  
-  getHandler(name: string): ToolHandler | undefined {
-    return this.tools.get(name)?.handler;
-  }
-  
-  getFormatter(name: string): ToolFormatter | undefined {
-    return this.tools.get(name)?.formatter;
-  }
-  
-  getNativeTools(): Record<string, AISDKCoreTool> {
-    const native: Record<string, AISDKCoreTool> = {};
-    for (const [name, entry] of this.tools) {
-      native[name] = entry.tool;
-    }
-    return native;
-  }
+	private tools: Map<string, ToolEntry> = new Map();
+
+	register(entry: ToolEntry): void {
+		this.tools.set(entry.name, entry);
+	}
+
+	getHandler(name: string): ToolHandler | undefined {
+		return this.tools.get(name)?.handler;
+	}
+
+	getFormatter(name: string): ToolFormatter | undefined {
+		return this.tools.get(name)?.formatter;
+	}
+
+	getNativeTools(): Record<string, AISDKCoreTool> {
+		const native: Record<string, AISDKCoreTool> = {};
+		for (const [name, entry] of this.tools) {
+			native[name] = entry.tool;
+		}
+		return native;
+	}
 }
 ```
 
 ## Testing Strategy
 
 After Phase 1:
+
 ```bash
 # Unit tests
 pnpm test:all
@@ -276,12 +292,14 @@ npm run dev
 ## Success Metrics
 
 ### Phase 1 Success:
+
 - [ ] MCPToolAdapter removed
 - [ ] MCP tools still work
 - [ ] All tests pass
 - [ ] 60 lines of code removed
 
 ### Overall Success:
+
 - [ ] Simpler codebase
 - [ ] No functionality lost
 - [ ] Better code organization
@@ -303,12 +321,14 @@ The codebase is already well-architected. The main improvement is removing the r
 ### Phase 1: Remove MCPToolAdapter - Step by Step
 
 #### Step 1: Backup Current State
+
 ```bash
 git add -A
 git commit -m "chore: backup before removing MCPToolAdapter"
 ```
 
 #### Step 2: Modify tool-manager.ts
+
 ```bash
 # Open source/tools/tool-manager.ts
 ```
@@ -316,18 +336,21 @@ git commit -m "chore: backup before removing MCPToolAdapter"
 Make these exact changes:
 
 1. **Line 16**: Remove the import
+
 ```typescript
 // DELETE THIS LINE:
 import {MCPToolAdapter} from '@/mcp/mcp-tool-adapter';
 ```
 
 2. **Line 40**: Remove the property
+
 ```typescript
 // DELETE THIS LINE:
 private mcpAdapter: MCPToolAdapter | null = null;
 ```
 
 3. **Lines 54-80**: Update initializeMCP method
+
 ```typescript
 async initializeMCP(
   servers: MCPServer[],
@@ -342,13 +365,13 @@ async initializeMCP(
 
     // Get MCP native tools
     const mcpNativeTools = this.mcpClient.getNativeToolsRegistry();
-    
+
     // Merge with static tools
     this.nativeToolsRegistry = {
       ...staticNativeToolsRegistry,
       ...mcpNativeTools,
     };
-    
+
     // Register MCP tool handlers directly (no adapter needed)
     for (const toolName of Object.keys(mcpNativeTools)) {
       this.toolRegistry[toolName] = async (args: any) => {
@@ -366,6 +389,7 @@ async initializeMCP(
 ```
 
 4. **Lines 156-169**: Update disconnectMCP method
+
 ```typescript
 async disconnectMCP(): Promise<void> {
   if (this.mcpClient) {
@@ -386,26 +410,31 @@ async disconnectMCP(): Promise<void> {
 ```
 
 #### Step 3: Delete MCPToolAdapter file
+
 ```bash
 rm source/mcp/mcp-tool-adapter.ts
 ```
 
 #### Step 4: Run Tests
+
 ```bash
 pnpm test:all
 ```
 
 #### Step 5: Verify Functionality
+
 ```bash
 npm run dev
 ```
 
 Test commands:
+
 - "Read the package.json file" (tests static tools)
 - "Create a test file" (tests file creation)
 - If MCP configured: "List available tools" (tests MCP integration)
 
 #### Step 6: Commit Changes
+
 ```bash
 git add -A
 git commit -m "refactor: remove redundant MCPToolAdapter
@@ -419,37 +448,41 @@ git commit -m "refactor: remove redundant MCPToolAdapter
 ### Phase 3: Add ToolEntry Interface (Optional Enhancement)
 
 #### Step 1: Update types/core.ts
+
 Add after line 105:
+
 ```typescript
 // Tool formatter type for Ink UI
 export type ToolFormatter = (
-  args: any,
-  result?: string,
+	args: any,
+	result?: string,
 ) =>
-  | string
-  | Promise<string>
-  | React.ReactElement
-  | Promise<React.ReactElement>;
+	| string
+	| Promise<string>
+	| React.ReactElement
+	| Promise<React.ReactElement>;
 
 // Tool validator type
 export type ToolValidator = (
-  args: any,
+	args: any,
 ) => Promise<{valid: true} | {valid: false; error: string}>;
 
 // Unified tool entry interface (future improvement)
 export interface ToolEntry {
-  name: string;
-  tool: AISDKCoreTool;        // For AI SDK
-  handler: ToolHandler;        // For execution
-  formatter?: ToolFormatter;  // For UI (React component)
-  validator?: ToolValidator;  // For validation
+	name: string;
+	tool: AISDKCoreTool; // For AI SDK
+	handler: ToolHandler; // For execution
+	formatter?: ToolFormatter; // For UI (React component)
+	validator?: ToolValidator; // For validation
 }
 ```
 
 ### Common Issues and Solutions
 
 #### Issue 1: TypeScript Errors
+
 If you see TypeScript errors after removing MCPToolAdapter:
+
 ```bash
 # Clear TypeScript cache
 rm -rf node_modules/.cache
@@ -457,7 +490,9 @@ pnpm tsc --noEmit
 ```
 
 #### Issue 2: Test Failures
+
 If tests fail:
+
 ```bash
 # Run specific test
 pnpm test source/tools/tool-manager.spec.ts
@@ -467,7 +502,9 @@ grep -r "MCPToolAdapter" source/
 ```
 
 #### Issue 3: MCP Tools Not Working
+
 Verify MCP client is working:
+
 ```typescript
 // Add debug logging in initializeMCP
 console.log('MCP tools registered:', Object.keys(mcpNativeTools));
