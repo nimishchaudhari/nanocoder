@@ -22,6 +22,12 @@ import {MCPClient} from '@/mcp/mcp-client';
  * Phase 5B: Imports ToolFormatter and ToolValidator type aliases from core.ts
  * These are re-exported type definitions used to ensure consistent tool typing
  * across the tool system (handlers, formatters, validators, and MCP tools).
+ *
+ * Phase 6: Tool Registry Helper Class Integration
+ * - ToolRegistry class now available for structured tool management
+ * - Provides type-safe access patterns and cleaner API surface
+ * - Supports both legacy registry pattern and new ToolEntry pattern
+ * - See source/tools/tool-registry.ts for helper class
  */
 export class ToolManager {
 	private toolRegistry: Record<string, ToolHandler> = {};
