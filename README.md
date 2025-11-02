@@ -100,7 +100,33 @@ npm run dev
 
 ### AI Provider Setup
 
-Nanocoder supports any OpenAI-compatible API through a unified provider configuration. Create `agents.config.json` in your **working directory** (where you run `nanocoder`):
+Nanocoder supports any OpenAI-compatible API through a unified provider configuration.
+
+**Configuration Methods:**
+
+1. **Interactive Setup (Recommended for new users)**: Run `/setup-config` inside Nanocoder for a guided wizard with provider templates
+2. **Manual Configuration**: Create an `agents.config.json` file (see below for locations)
+
+**Configuration File Locations:**
+
+Nanocoder looks for configuration in the following order (first found wins):
+
+1. **Project-level** (highest priority): `agents.config.json` in your current working directory
+   - Use this for project-specific providers, models, or API keys
+   - Perfect for team sharing or repository-specific configurations
+
+2. **User-level (preferred)**: Platform-specific application data directory
+   - **macOS**: `~/Library/Preferences/nanocoder/agents.config.json`
+   - **Linux/Unix**: `~/.config/nanocoder/agents.config.json`
+   - **Windows**: `%APPDATA%\nanocoder\agents.config.json`
+   - Your global default configuration
+   - Used when no project-level config exists
+
+3. **User-level (legacy)**: `~/.agents.config.json`
+   - Supported for backward compatibility
+   - Recommended to migrate to platform-specific location above
+
+**Example Configuration** (`agents.config.json`):
 
 ```json
 {
@@ -277,11 +303,22 @@ Popular MCP servers:
 - **Memory**: Persistent context storage
 - [View more MCP servers](https://github.com/modelcontextprotocol/servers)
 
-> **Note**: The default save place for configuration is `~/config/nanocoder/`. You can also place an `agents.config.json` where you run Nanocoder. This will **override** the default for project-by-project configuration with different models or API keys per repository.
+> **Note**: MCP server configuration follows the same location hierarchy as AI provider setup above. Use `/setup-config` for an interactive configuration wizard, or manually edit `agents.config.json` at the project level (current directory) or user level (platform-specific paths listed above).
 
 ### User Preferences
 
-Nanocoder automatically saves your preferences to remember your choices across sessions. Preferences are stored in `~/config/nanocoder/nanocoder-preferences.json`. You can also place a `nanocoder-preferences.json` where you run Nanocoder. This will **override** the default for project-by-project configuration.
+Nanocoder automatically saves your preferences to remember your choices across sessions.
+
+**Preferences File Locations:**
+
+Preferences follow the same location hierarchy as configuration files:
+
+1. **Project-level**: `nanocoder-preferences.json` in your current working directory (overrides user-level)
+2. **User-level**: Platform-specific application data directory:
+   - **macOS**: `~/Library/Preferences/nanocoder/nanocoder-preferences.json`
+   - **Linux/Unix**: `~/.config/nanocoder/nanocoder-preferences.json`
+   - **Windows**: `%APPDATA%\nanocoder\nanocoder-preferences.json`
+3. **Legacy**: `~/.nanocoder-preferences.json` (backward compatibility)
 
 **What gets saved automatically:**
 
