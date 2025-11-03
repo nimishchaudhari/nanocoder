@@ -8,7 +8,7 @@ A local-first CLI coding agent that brings the power of agentic coding tools lik
 
 - [FAQs](#faqs)
 - [Installation](#installation)
-  - [For Users (Recommended)](#for-users-recommended)
+  - [For Users](#for-users-recommended)
   - [For Development](#for-development)
 - [Configuration](#configuration)
   - [AI Provider Setup](#ai-provider-setup)
@@ -45,7 +45,9 @@ Firstly, we would love for you to be involved. You can get started contributing 
 
 ## Installation
 
-### For Users (Recommended)
+### For Users
+
+#### NPM (Recommended)
 
 Install globally and use anywhere:
 
@@ -57,6 +59,39 @@ Then run in any directory:
 
 ```bash
 nanocoder
+```
+
+#### Nix Flakes
+
+Run Nanocoder directly using:
+
+```bash
+# If you have flakes enabled in your Nix config:
+nix run github:Nano-Collective/nanocoder
+
+# If you don't have flakes enabled:
+nix run --extra-experimental-features 'nix-command flakes' github:Nano-Collective/nanocoder
+```
+
+Or install from `packages` output:
+
+```nix
+# flake.nix
+{
+  inputs = {
+    nanocoder = {
+      url = "github:Nano-Collective/nanocoder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+}
+
+# configuration.nix
+{ pkgs, inputs, system, ... }: {
+  environment.systemPackages = [
+    inputs.nanocoder.packages."${system}".default
+  ];
+}
 ```
 
 ### For Development
@@ -112,10 +147,12 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 Nanocoder looks for configuration in the following order (first found wins):
 
 1. **Project-level** (highest priority): `agents.config.json` in your current working directory
+
    - Use this for project-specific providers, models, or API keys
    - Perfect for team sharing or repository-specific configurations
 
 2. **User-level (preferred)**: Platform-specific application data directory
+
    - **macOS**: `~/Library/Preferences/nanocoder/agents.config.json`
    - **Linux/Unix**: `~/.config/nanocoder/agents.config.json`
    - **Windows**: `%APPDATA%\nanocoder\agents.config.json`
