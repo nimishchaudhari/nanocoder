@@ -63,10 +63,10 @@ stdenv.mkDerivation {
     runHook postInstall
   '';
 
-  # meta = with lib; {
-  #   description = "NanoCoder CLI tool";
-  #   homepage = "https://github.com/nano-collective/nanocoder";
-  #   license = licenses.mit;
-  #   maintainers = with maintainers; [ ];
-  # };
+  meta = with lib; {
+    description = "A beautiful local-first coding agent running in your terminal - built by the community for the community ⚒";
+    homepage = "https://github.com/Nano-Collective/nanocoder";
+    license = licenses.mit;
+    maintainers = with maintainers; [ lalit64 ];
+  };
 }
