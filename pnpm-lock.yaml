@@ -21,8 +21,8 @@ importers:
         specifier: ^1.17.3
         version: 1.17.3
       '@nanocollective/get-md':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       cheerio:
         specifier: ^1.1.2
         version: 1.1.2
@@ -522,8 +522,8 @@ packages:
     resolution: {integrity: sha512-juG5VWh4qAivzTAeMzvY9xs9HY5rAcr2E4I7tiSSCokRFi7XIZCAu92ZkSTsIj1OPceCifL3cpfteP3pDT9/QQ==}
     engines: {node: '>=14.0.0'}
 
-  '@nanocollective/get-md@1.0.0':
-    resolution: {integrity: sha512-LBNfWIuVXzPlGRjz3SCC7YOQh4jN2dW7wqPczQ3jTol/XgOnaa2m8s51YsG7I31MIEvKlSH/190XoGi2obOpVg==}
+  '@nanocollective/get-md@1.0.1':
+    resolution: {integrity: sha512-eDHnCnFrkbmqADGB+wTmn45Hahc9pqU3zC54+GVKGrGl+1PGSgUEUzn6epS2uiTVeOdAxJljXxTl37/WTt7lgg==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -3496,7 +3496,7 @@ snapshots:
 
   '@mozilla/readability@0.6.0': {}
 
-  '@nanocollective/get-md@1.0.0':
+  '@nanocollective/get-md@1.0.1':
     dependencies:
       '@mozilla/readability': 0.6.0
       ajv: 8.17.1
