@@ -8,7 +8,7 @@ A local-first CLI coding agent that brings the power of agentic coding tools lik
 
 - [FAQs](#faqs)
 - [Installation](#installation)
-  - [For Users](#for-users-recommended)
+  - [For Users](#for-users)
   - [For Development](#for-development)
 - [Configuration](#configuration)
   - [AI Provider Setup](#ai-provider-setup)
