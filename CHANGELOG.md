@@ -1,3 +1,10 @@
+# 1.14.3
+
+- Added Nix package installation option. Thanks to @Lalit64 for closing issue #75.
+- Chore: bumped `get-md` package version to the latest.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 ## 1.14.2
 
 - Fix: issue #71. Markdown tables and HTML entities are now rendering properly in model responses.
