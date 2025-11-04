@@ -51,7 +51,8 @@ echo ""
 BUILD_OUTPUT=$(nix build .#default 2>&1 || true)
 
 # Extract the hash from the error message
-REAL_HASH=$(echo "$BUILD_OUTPUT" | grep -oP 'got:\s+\K(sha256-[A-Za-z0-9+/=]+)' || echo "")
+# Use sed instead of grep -P for macOS compatibility
+REAL_HASH=$(echo "$BUILD_OUTPUT" | sed -n 's/.*got:[[:space:]]*\(sha256-[A-Za-z0-9+/=]*\).*/\1/p' | head -1)
 
 if [ -z "$REAL_HASH" ]; then
   echo -e "${RED}Error: Could not extract hash from build output${NC}"
