@@ -34,6 +34,7 @@
 		"build": "tsc && tsc-alias && chmod +x dist/cli.js",
 		"dev": "tsc --watch",
 		"start": "node dist/cli.js",
+		"release:nix": "./scripts/update-nix-version.sh",
 		"test:all": "./scripts/test.sh",
 		"test:ava": "ava",
 		"test:ava:coverage": "c8 ava",
