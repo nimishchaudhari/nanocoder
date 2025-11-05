@@ -1,5 +1,9 @@
 import test from 'ava';
-import type {InputState, PastePlaceholderContent, PlaceholderContent} from '../types/hooks';
+import type {
+	InputState,
+	PastePlaceholderContent,
+	PlaceholderContent,
+} from '../types/hooks';
 import {PlaceholderType} from '../types/hooks';
 
 console.log(`\nprompt-assembly.spec.ts`);
@@ -17,11 +21,15 @@ function assemblePrompt(inputState: InputState): string {
 				assembledPrompt = assembledPrompt.replace(regex, placeholder.content);
 			} else if (placeholder.type === 'file') {
 				// For file placeholders: [@filepath] or [@filepath:10-20]
-				const escapedPath = placeholder.displayText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+				const escapedPath = placeholder.displayText.replace(
+					/[.*+?^${}()|[\]\\]/g,
+					'\\$&',
+				);
 				const regex = new RegExp(escapedPath, 'g');
 
 				// Format file content with header (mimicking prompt-processor.ts)
-				const fileName = placeholder.filePath.split('/').pop() || placeholder.filePath;
+				const fileName =
+					placeholder.filePath.split('/').pop() || placeholder.filePath;
 				const header = `=== File: ${fileName} ===`;
 				const footer = '='.repeat(header.length);
 				const formattedContent = `${header}\n${placeholder.content}\n${footer}`;
@@ -113,7 +121,7 @@ test('extractPlaceholderIds returns empty for no placeholders', t => {
 });
 
 // FILE placeholder tests
-test('assemblePrompt replaces file placeholder with formatted content', (t) => {
+test('assemblePrompt replaces file placeholder with formatted content', t => {
 	const inputState: InputState = {
 		displayValue: 'Check this file: [@src/app.tsx]',
 		placeholderContent: {
@@ -121,7 +129,8 @@ test('assemblePrompt replaces file placeholder with formatted content', (t) => {
 				type: PlaceholderType.FILE,
 				displayText: '[@src/app.tsx]',
 				filePath: '/Users/test/project/src/app.tsx',
-				content: '   1: import React from "react";\n   2: export function App() {}',
+				content:
+					'   1: import React from "react";\n   2: export function App() {}',
 				fileSize: 100,
 			} as PlaceholderContent,
 		},
@@ -135,7 +144,7 @@ test('assemblePrompt replaces file placeholder with formatted content', (t) => {
 	t.true(result.includes('='.repeat('=== File: app.tsx ==='.length)));
 });
 
-test('assemblePrompt handles file placeholder with line range', (t) => {
+test('assemblePrompt handles file placeholder with line range', t => {
 	const inputState: InputState = {
 		displayValue: 'Review [@app.tsx:10-20]',
 		placeholderContent: {
@@ -155,7 +164,7 @@ test('assemblePrompt handles file placeholder with line range', (t) => {
 	t.true(result.includes('function test()'));
 });
 
-test('assemblePrompt handles multiple file placeholders', (t) => {
+test('assemblePrompt handles multiple file placeholders', t => {
 	const inputState: InputState = {
 		displayValue: 'Compare [@a.ts] with [@b.ts]',
 		placeholderContent: {
@@ -184,7 +193,7 @@ test('assemblePrompt handles multiple file placeholders', (t) => {
 	t.true(result.includes('const b = 2'));
 });
 
-test('assemblePrompt handles mixed paste and file placeholders', (t) => {
+test('assemblePrompt handles mixed paste and file placeholders', t => {
 	const inputState: InputState = {
 		displayValue: 'Text [Paste #123: 20 chars] and [@file.ts]',
 		placeholderContent: {

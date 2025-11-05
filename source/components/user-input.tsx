@@ -10,6 +10,11 @@ import {useInputState} from '@/hooks/useInputState';
 import {assemblePrompt} from '@/utils/prompt-processor';
 import {Completion} from '@/types/index';
 import {DevelopmentMode, DEVELOPMENT_MODE_LABELS} from '@/types/core';
+import {
+	getCurrentFileMention,
+	getFileCompletions,
+} from '@/utils/file-autocomplete';
+import {handleFileMention} from '@/utils/file-mention-handler';
 
 interface ChatProps {
 	onSubmit?: (message: string) => void;
@@ -36,6 +41,13 @@ export default function UserInput({
 	const uiState = useUIStateContext();
 	const {boxWidth, isNarrow} = useResponsiveTerminal();
 	const [textInputKey, setTextInputKey] = useState(0);
+
+	// File autocomplete state
+	const [isFileAutocompleteMode, setIsFileAutocompleteMode] = useState(false);
+	const [fileCompletions, setFileCompletions] = useState<
+		Array<{path: string; score: number}>
+	>([]);
+	const [selectedFileIndex, setSelectedFileIndex] = useState(0);
 
 	// Responsive placeholder text
 	const defaultPlaceholder = isNarrow
@@ -77,6 +89,27 @@ export default function UserInput({
 		void promptHistory.loadHistory();
 	}, []);
 
+	// Trigger file autocomplete when input changes
+	useEffect(() => {
+		const runFileAutocomplete = async () => {
+			const mention = getCurrentFileMention(input, input.length);
+
+			if (mention) {
+				setIsFileAutocompleteMode(true);
+				const cwd = process.cwd();
+				const completions = await getFileCompletions(mention.mention, cwd);
+				setFileCompletions(completions);
+				setSelectedFileIndex(0); // Reset selection when completions change
+			} else {
+				setIsFileAutocompleteMode(false);
+				setFileCompletions([]);
+				setSelectedFileIndex(0);
+			}
+		};
+
+		void runFileAutocomplete();
+	}, [input]);
+
 	// Helper functions
 
 	// Command completion logic
@@ -108,6 +141,53 @@ export default function UserInput({
 		},
 		[customCommands, setCompletions, setShowCompletions, updateInput],
 	);
+
+	// Handle file mention selection (Tab key in file autocomplete mode)
+	const handleFileSelection = useCallback(async () => {
+		if (!isFileAutocompleteMode || fileCompletions.length === 0) {
+			return false;
+		}
+
+		const mention = getCurrentFileMention(input, input.length);
+		if (!mention) {
+			return false;
+		}
+
+		// Select the currently highlighted file
+		const selectedPath = fileCompletions[selectedFileIndex]?.path;
+		if (!selectedPath) {
+			return false;
+		}
+
+		// Extract the original mention text (the @... part we're replacing)
+		const mentionText = input.substring(mention.startIndex, mention.endIndex);
+
+		// Handle the file mention to create placeholder
+		const result = await handleFileMention(
+			selectedPath,
+			currentState.displayValue,
+			currentState.placeholderContent,
+			mentionText,
+		);
+
+		if (result) {
+			setInputState(result);
+			setIsFileAutocompleteMode(false);
+			setFileCompletions([]);
+			setSelectedFileIndex(0);
+			setTextInputKey(prev => prev + 1);
+			return true;
+		}
+
+		return false;
+	}, [
+		isFileAutocompleteMode,
+		fileCompletions,
+		selectedFileIndex,
+		input,
+		currentState,
+		setInputState,
+	]);
 
 	// Handle form submission
 	const handleSubmit = useCallback(() => {
@@ -224,10 +304,26 @@ export default function UserInput({
 			return;
 		}
 
-		if (key.tab && input.startsWith('/')) {
-			const commandPrefix = input.slice(1).split(' ')[0];
-			handleCommandCompletion(commandPrefix);
-			return;
+		// Handle Tab key
+		if (key.tab) {
+			// File autocomplete takes priority
+			if (isFileAutocompleteMode) {
+				void handleFileSelection();
+				return;
+			}
+
+			// Then command completion
+			if (input.startsWith('/')) {
+				const commandPrefix = input.slice(1).split(' ')[0];
+				handleCommandCompletion(commandPrefix);
+				return;
+			}
+		}
+
+		// Space exits file autocomplete mode
+		if (inputChar === ' ' && isFileAutocompleteMode) {
+			setIsFileAutocompleteMode(false);
+			setFileCompletions([]);
 		}
 
 		// Clear UI state on other input
@@ -248,11 +344,25 @@ export default function UserInput({
 
 		// Handle navigation
 		if (key.upArrow) {
+			// File autocomplete navigation takes priority
+			if (isFileAutocompleteMode && fileCompletions.length > 0) {
+				setSelectedFileIndex(prev =>
+					prev > 0 ? prev - 1 : fileCompletions.length - 1,
+				);
+				return;
+			}
 			handleHistoryNavigation('up');
 			return;
 		}
 
 		if (key.downArrow) {
+			// File autocomplete navigation takes priority
+			if (isFileAutocompleteMode && fileCompletions.length > 0) {
+				setSelectedFileIndex(prev =>
+					prev < fileCompletions.length - 1 ? prev + 1 : 0,
+				);
+				return;
+			}
 			handleHistoryNavigation('down');
 			return;
 		}
@@ -313,6 +423,25 @@ export default function UserInput({
 								color={completion.isCustom ? colors.info : colors.primary}
 							>
 								/{completion.name}
+							</Text>
+						))}
+					</Box>
+				)}
+				{isFileAutocompleteMode && fileCompletions.length > 0 && (
+					<Box flexDirection="column" marginTop={1}>
+						<Text color={colors.secondary}>
+							File suggestions (↑/↓ to navigate, Tab to select):
+						</Text>
+						{fileCompletions.slice(0, 5).map((file, index) => (
+							<Text
+								key={index}
+								color={
+									index === selectedFileIndex ? colors.info : colors.primary
+								}
+								bold={index === selectedFileIndex}
+							>
+								{index === selectedFileIndex ? '▸ ' : '  '}
+								{file.path}
 							</Text>
 						))}
 					</Box>

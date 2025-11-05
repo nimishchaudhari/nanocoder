@@ -3,7 +3,7 @@ import {
 	PlaceholderContent,
 	PlaceholderType,
 } from '../types/hooks.js';
-import {loadFileContent, formatFileForContext} from './file-content-loader.js';
+import {loadFileContent} from './file-content-loader.js';
 
 /**
  * Handle @file mention by creating a placeholder
@@ -28,13 +28,15 @@ export async function handleFileMention(
 
 	// Generate unique ID for this file placeholder
 	const existingFileCount = Object.values(currentPlaceholderContent).filter(
-		(content) => content.type === PlaceholderType.FILE,
+		content => content.type === PlaceholderType.FILE,
 	).length;
 	const fileId = `file_${existingFileCount + 1}`;
 
 	// Create compact placeholder for display
 	const placeholder = lineRange
-		? `[@${filePath}:${lineRange.start}${lineRange.end ? `-${lineRange.end}` : ''}]`
+		? `[@${filePath}:${lineRange.start}${
+				lineRange.end ? `-${lineRange.end}` : ''
+		  }]`
 		: `[@${filePath}]`;
 
 	// Create file placeholder content
@@ -55,10 +57,7 @@ export async function handleFileMention(
 	};
 
 	// Replace the @mention text with placeholder in display
-	const newDisplayValue = currentDisplayValue.replace(
-		mentionText,
-		placeholder,
-	);
+	const newDisplayValue = currentDisplayValue.replace(mentionText, placeholder);
 
 	return {
 		displayValue: newDisplayValue,

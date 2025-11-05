@@ -6,7 +6,7 @@ import ignore from 'ignore';
 
 const execAsync = promisify(exec);
 
-export interface FileCompletion {
+interface FileCompletion {
 	path: string; // Relative path from cwd
 	displayPath: string; // Shortened for display
 	score: number; // Fuzzy match score (higher = better match)

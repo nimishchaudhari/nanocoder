@@ -38,7 +38,7 @@ test.after.always(async () => {
 });
 
 // Tests for loadFileContent()
-test('loads file content successfully', async (t) => {
+test('loads file content successfully', async t => {
 	const result = await loadFileContent(join(testDir, 'test.txt'));
 
 	t.true(result.success);
@@ -47,7 +47,7 @@ test('loads file content successfully', async (t) => {
 	t.true(result.metadata.size > 0);
 });
 
-test('loads file with line range', async (t) => {
+test('loads file with line range', async t => {
 	const result = await loadFileContent(join(testDir, 'test.txt'), {
 		start: 2,
 		end: 4,
@@ -59,7 +59,7 @@ test('loads file with line range', async (t) => {
 	t.deepEqual(result.metadata.lineRange, {start: 2, end: 4});
 });
 
-test('loads single line', async (t) => {
+test('loads single line', async t => {
 	const result = await loadFileContent(join(testDir, 'test.txt'), {
 		start: 3,
 	});
@@ -69,7 +69,7 @@ test('loads single line', async (t) => {
 	t.deepEqual(result.metadata.lineRange, {start: 3, end: undefined});
 });
 
-test('handles line range beyond file length', async (t) => {
+test('handles line range beyond file length', async t => {
 	const result = await loadFileContent(join(testDir, 'test.txt'), {
 		start: 3,
 		end: 100,
@@ -79,7 +79,7 @@ test('handles line range beyond file length', async (t) => {
 	t.is(result.metadata.lineCount, 3); // Lines 3, 4, 5 (only 3 lines available)
 });
 
-test('handles line start beyond file length', async (t) => {
+test('handles line start beyond file length', async t => {
 	const result = await loadFileContent(join(testDir, 'test.txt'), {
 		start: 100,
 		end: 200,
@@ -89,7 +89,7 @@ test('handles line start beyond file length', async (t) => {
 	t.is(result.metadata.lineCount, 0); // No lines available
 });
 
-test('handles non-existent file', async (t) => {
+test('handles non-existent file', async t => {
 	const result = await loadFileContent(join(testDir, 'nonexistent.txt'));
 
 	t.false(result.success);
@@ -98,7 +98,7 @@ test('handles non-existent file', async (t) => {
 	t.is(result.metadata.lineCount, 0);
 });
 
-test('formats content with line numbers', async (t) => {
+test('formats content with line numbers', async t => {
 	const result = await loadFileContent(join(testDir, 'test.txt'), {
 		start: 2,
 		end: 3,
@@ -111,7 +111,7 @@ test('formats content with line numbers', async (t) => {
 	t.true(result.content!.includes('   3:'));
 });
 
-test('calculates token estimate', async (t) => {
+test('calculates token estimate', async t => {
 	const result = await loadFileContent(join(testDir, 'test.txt'));
 
 	t.true(result.success);
@@ -120,7 +120,7 @@ test('calculates token estimate', async (t) => {
 	t.true(result.metadata.tokens <= result.metadata.size);
 });
 
-test('stores absolute path in metadata', async (t) => {
+test('stores absolute path in metadata', async t => {
 	const relativePath = join(testDir, 'test.txt');
 	const result = await loadFileContent(relativePath);
 
@@ -132,7 +132,7 @@ test('stores absolute path in metadata', async (t) => {
 });
 
 // Tests for formatFileForContext()
-test('formats file for LLM context with header and footer', async (t) => {
+test('formats file for LLM context with header and footer', async t => {
 	const result = await loadFileContent(join(testDir, 'app.tsx'));
 	const formatted = formatFileForContext(result);
 
@@ -143,7 +143,7 @@ test('formats file for LLM context with header and footer', async (t) => {
 	t.true(result.content ? formatted.includes(result.content) : false);
 });
 
-test('formats file with line range info', async (t) => {
+test('formats file with line range info', async t => {
 	const result = await loadFileContent(join(testDir, 'test.txt'), {
 		start: 2,
 		end: 4,
@@ -154,7 +154,7 @@ test('formats file with line range info', async (t) => {
 	t.true(formatted.includes('(3 lines'));
 });
 
-test('formats file with single line info', async (t) => {
+test('formats file with single line info', async t => {
 	const result = await loadFileContent(join(testDir, 'test.txt'), {
 		start: 3,
 	});
@@ -164,14 +164,14 @@ test('formats file with single line info', async (t) => {
 	t.false(formatted.includes('Lines 3-')); // Should not have a range
 });
 
-test('handles error in formatFileForContext', async (t) => {
+test('handles error in formatFileForContext', async t => {
 	const result = await loadFileContent(join(testDir, 'nonexistent.txt'));
 	const formatted = formatFileForContext(result);
 
 	t.true(formatted.includes('Error loading file'));
 });
 
-test('includes token estimate in formatted output', async (t) => {
+test('includes token estimate in formatted output', async t => {
 	const result = await loadFileContent(join(testDir, 'test.txt'));
 	const formatted = formatFileForContext(result);
 

@@ -1,7 +1,7 @@
 import {resolve} from 'node:path';
 import {readFile, stat} from 'node:fs/promises';
 
-export interface FileContentResult {
+interface FileContentResult {
 	success: boolean;
 	content?: string;
 	error?: string;
@@ -49,7 +49,7 @@ export async function loadFileContent(
 		let content: string;
 		try {
 			content = await readFile(absPath, 'utf-8');
-		} catch (error) {
+		} catch {
 			// File might be binary or unreadable
 			return {
 				success: false,
@@ -75,9 +75,7 @@ export async function loadFileContent(
 
 		if (lineRange) {
 			const start = Math.max(1, lineRange.start);
-			const end = lineRange.end
-				? Math.min(totalLines, lineRange.end)
-				: start;
+			const end = lineRange.end ? Math.min(totalLines, lineRange.end) : start;
 
 			// Validate range
 			if (start > totalLines) {
@@ -172,7 +170,9 @@ export function formatFileForContext(result: FileContentResult): string {
 	const footer = '='.repeat(header.length);
 
 	const stats = lineRange
-		? `Lines: ${lineRange.start}${lineRange.end ? `-${lineRange.end}` : ''} (${lineCount} lines, ~${tokens} tokens)`
+		? `Lines: ${lineRange.start}${
+				lineRange.end ? `-${lineRange.end}` : ''
+		  } (${lineCount} lines, ~${tokens} tokens)`
 		: `Lines: ${lineCount}, ~${tokens} tokens`;
 
 	return `${header}\n${stats}\n\n${result.content}\n${footer}`;

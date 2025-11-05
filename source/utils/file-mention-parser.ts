@@ -8,7 +8,7 @@ import path from 'node:path';
  * - @file.ts:10-20 (line ranges)
  * - @file.ts:10 (single line)
  */
-export interface FileMention {
+interface FileMention {
 	rawText: string; // "@src/app.tsx:10-20"
 	filePath: string; // "src/app.tsx"
 	lineRange?: {

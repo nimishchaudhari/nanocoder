@@ -42,7 +42,7 @@ test.after.always(async () => {
 });
 
 // Tests for handleFileMention()
-test('creates placeholder for existing file', async (t) => {
+test('creates placeholder for existing file', async t => {
 	const filePath = join(testDir, 'test.txt');
 	const result = await handleFileMention(
 		filePath,
@@ -61,7 +61,7 @@ test('creates placeholder for existing file', async (t) => {
 	t.true(placeholder.content.includes('Line 1'));
 });
 
-test('creates placeholder with line range', async (t) => {
+test('creates placeholder with line range', async t => {
 	const filePath = join(testDir, 'test.txt');
 	const result = await handleFileMention(
 		filePath,
@@ -80,7 +80,7 @@ test('creates placeholder with line range', async (t) => {
 	t.false(placeholder.content.includes('Line 1'));
 });
 
-test('creates placeholder with single line', async (t) => {
+test('creates placeholder with single line', async t => {
 	const filePath = join(testDir, 'test.txt');
 	const result = await handleFileMention(
 		filePath,
@@ -97,7 +97,7 @@ test('creates placeholder with single line', async (t) => {
 	t.true(placeholder.content.includes('Line 3'));
 });
 
-test('returns null for non-existent file', async (t) => {
+test('returns null for non-existent file', async t => {
 	const result = await handleFileMention(
 		join(testDir, 'nonexistent.txt'),
 		'Check @nonexistent.txt',
@@ -108,7 +108,7 @@ test('returns null for non-existent file', async (t) => {
 	t.is(result, null);
 });
 
-test('generates unique file IDs', async (t) => {
+test('generates unique file IDs', async t => {
 	// First file mention
 	const result1 = await handleFileMention(
 		join(testDir, 'test.txt'),
@@ -133,7 +133,7 @@ test('generates unique file IDs', async (t) => {
 	t.true(Object.keys(result2!.placeholderContent).includes('file_2'));
 });
 
-test('preserves existing placeholders', async (t) => {
+test('preserves existing placeholders', async t => {
 	const existingPlaceholder: Record<string, PlaceholderContent> = {
 		file_1: {
 			type: PlaceholderType.FILE,
@@ -157,7 +157,7 @@ test('preserves existing placeholders', async (t) => {
 	t.truthy(result!.placeholderContent.file_2);
 });
 
-test('replaces mention text in display value', async (t) => {
+test('replaces mention text in display value', async t => {
 	const filePath = join(testDir, 'app.tsx');
 	const result = await handleFileMention(
 		filePath,
@@ -167,10 +167,13 @@ test('replaces mention text in display value', async (t) => {
 	);
 
 	t.truthy(result);
-	t.is(result!.displayValue, `Please review the code in [@${filePath}] carefully`);
+	t.is(
+		result!.displayValue,
+		`Please review the code in [@${filePath}] carefully`,
+	);
 });
 
-test('handles multiple mentions in display value', async (t) => {
+test('handles multiple mentions in display value', async t => {
 	const testPath = join(testDir, 'test.txt');
 	const appPath = join(testDir, 'app.tsx');
 
@@ -196,7 +199,7 @@ test('handles multiple mentions in display value', async (t) => {
 	t.is(result2!.displayValue, `Compare [@${testPath}] and [@${appPath}]`);
 });
 
-test('stores absolute path in placeholder', async (t) => {
+test('stores absolute path in placeholder', async t => {
 	const relativePath = join(testDir, 'test.txt');
 	const result = await handleFileMention(
 		relativePath,
@@ -215,7 +218,7 @@ test('stores absolute path in placeholder', async (t) => {
 	}
 });
 
-test('includes file content in placeholder', async (t) => {
+test('includes file content in placeholder', async t => {
 	const result = await handleFileMention(
 		join(testDir, 'app.tsx'),
 		'Check @app.tsx',
@@ -231,27 +234,27 @@ test('includes file content in placeholder', async (t) => {
 });
 
 // Tests for parseLineRangeFromMention()
-test('parseLineRangeFromMention parses range', (t) => {
+test('parseLineRangeFromMention parses range', t => {
 	const result = parseLineRangeFromMention('@file.ts:10-20');
 	t.deepEqual(result, {start: 10, end: 20});
 });
 
-test('parseLineRangeFromMention parses single line', (t) => {
+test('parseLineRangeFromMention parses single line', t => {
 	const result = parseLineRangeFromMention('@file.ts:10');
 	t.deepEqual(result, {start: 10, end: undefined});
 });
 
-test('parseLineRangeFromMention returns undefined for no range', (t) => {
+test('parseLineRangeFromMention returns undefined for no range', t => {
 	const result = parseLineRangeFromMention('@file.ts');
 	t.is(result, undefined);
 });
 
-test('parseLineRangeFromMention handles invalid range', (t) => {
+test('parseLineRangeFromMention handles invalid range', t => {
 	const result = parseLineRangeFromMention('@file.ts:abc');
 	t.is(result, undefined);
 });
 
-test('parseLineRangeFromMention handles path with colons', (t) => {
+test('parseLineRangeFromMention handles path with colons', t => {
 	// Should only parse the last colon as line range
 	const result = parseLineRangeFromMention('@src/path:to:file.ts:10-20');
 	t.deepEqual(result, {start: 10, end: 20});
