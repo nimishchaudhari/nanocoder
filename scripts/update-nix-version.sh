@@ -29,18 +29,18 @@ echo ""
 echo "Step 1: Updating version number in ${NIX_FILE}..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS requires -i '' for in-place editing
-  sed -i '' "s/version = \".*\";/version = \"${VERSION}\";/" "$NIX_FILE"
+  sed -i '' "s|version = \".*\";|version = \"${VERSION}\";|" "$NIX_FILE"
 else
   # Linux
-  sed -i "s/version = \".*\";/version = \"${VERSION}\";/" "$NIX_FILE"
+  sed -i "s|version = \".*\";|version = \"${VERSION}\";|" "$NIX_FILE"
 fi
 
 # Step 2: Insert fake hash
 echo "Step 2: Using fake hash to trigger hash calculation..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' "s/sha256 = \".*\";/sha256 = \"${FAKE_HASH}\";/" "$NIX_FILE"
+  sed -i '' "s|sha256 = \".*\";|sha256 = \"${FAKE_HASH}\";|" "$NIX_FILE"
 else
-  sed -i "s/sha256 = \".*\";/sha256 = \"${FAKE_HASH}\";/" "$NIX_FILE"
+  sed -i "s|sha256 = \".*\";|sha256 = \"${FAKE_HASH}\";|" "$NIX_FILE"
 fi
 
 # Step 3: Build to get the real hash
@@ -67,9 +67,9 @@ echo ""
 # Step 4: Update with real hash
 echo "Step 4: Updating with correct hash..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' "s/sha256 = \".*\";/sha256 = \"${REAL_HASH}\";/" "$NIX_FILE"
+  sed -i '' "s|sha256 = \".*\";|sha256 = \"${REAL_HASH}\";|" "$NIX_FILE"
 else
-  sed -i "s/sha256 = \".*\";/sha256 = \"${REAL_HASH}\";/" "$NIX_FILE"
+  sed -i "s|sha256 = \".*\";|sha256 = \"${REAL_HASH}\";|" "$NIX_FILE"
 fi
 
 # Step 5: Build again to verify
