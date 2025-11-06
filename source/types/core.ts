@@ -1,32 +1,5 @@
 import React from 'react';
 
-/**
- * AI SDK Migration Status - Phase 1 COMPLETE ✅
- *
- * Phase 1: Type Foundation (DONE)
- * - ✅ AI SDK types imported and exported
- * - ✅ Tool definitions migrated to use AI SDK's tool() and jsonSchema()
- * - ✅ nativeToolsRegistry provides AI SDK tools for direct use
- *
- * Phase 2: Tool Definitions (DONE)
- * - ✅ All 10 tools migrated to native AI SDK format
- * - ✅ Each tool has: coreTool (AI SDK), handler, formatter, validator
- * - ✅ No execute functions (human-in-the-loop pattern maintained)
- *
- * Phase 3: Message Format Migration (COMPLETE ✅)
- * - ✅ Message conversion at AI SDK boundary (ai-sdk-client.ts)
- * - ✅ convertToModelMessages() converts to ModelMessage format
- * - ✅ Tool results use proper ToolModelMessage with ToolResultPart structure
- * - ✅ Proper type safety with ModelMessage[] return type
- *
- * Why Dual Format Approach (Phase 3)?
- * - Internal: Keep OpenAI-compatible Message format (tool_calls, tool_call_id, name)
- * - Boundary: Convert to AI SDK's ModelMessage at api-sdk-client only
- * - Benefits: Minimal disruption, maintains internal architecture, proper AI SDK usage
- * - Tool messages: Use v5 ToolResultPart with type='text' output for string results
- */
-
-// Import AI SDK v5 types for Phase 3 migration
 import type {
 	ModelMessage,
 	SystemModelMessage,
@@ -35,13 +8,10 @@ import type {
 	ToolModelMessage,
 } from 'ai';
 
-// Import AI SDK helpers for tool definitions
 import {tool, jsonSchema, type Tool as AISDKTool} from 'ai';
 
-// Export AI SDK helpers
 export {tool, jsonSchema};
 
-// Export AI SDK v5 types for Phase 3 migration
 export type {
 	ModelMessage,
 	SystemModelMessage,
@@ -128,7 +98,7 @@ export type ToolValidator = (
 ) => Promise<{valid: true} | {valid: false; error: string}>;
 
 /**
- * Unified tool entry interface for Phase 3 enhancement
+ * Unified tool entry interface
  *
  * Provides a structured way to manage all tool metadata in one place:
  * - name: Tool name for registry and lookup
@@ -146,7 +116,7 @@ export interface ToolEntry {
 }
 
 /**
- * Nanocoder's extended tool definition (Phase 4+ Complete)
+ * Nanocoder's extended tool definition
  *
  * Uses AI SDK's native CoreTool with Nanocoder-specific metadata:
  * - name: Tool name (metadata for registry and lookup)
@@ -179,7 +149,6 @@ export interface ToolDefinition {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
 		args: any,
 	) => Promise<{valid: true} | {valid: false; error: string}>;
-	// DEPRECATED: Legacy format (will be removed in Phase 4+)
 	// Use def.tool.name instead of def.config.function.name
 	config?: Tool;
 }

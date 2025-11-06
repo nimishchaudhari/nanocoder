@@ -20,24 +20,10 @@ import {ToolRegistry} from '@/tools/tool-registry';
 /**
  * Manages both static tools and dynamic MCP tools
  * All tools are stored in unified ToolEntry format via ToolRegistry
- *
- * Phase 7: ToolManager Migration to ToolRegistry
- * - ToolManager now uses ToolRegistry internally for unified tool management
- * - Single source of truth for all tool metadata (handlers, formatters, validators, AI SDK tools)
- * - Cleaner API with less manual registry coordination
- * - 100% backward compatible with existing public API
- * - MCP tool integration simplified
- *
- * Previous phases:
- * - Phase 1: Removed MCPToolAdapter
- * - Phase 2-6: Type system and registry enhancements
  */
 export class ToolManager {
 	/**
 	 * Unified tool registry using ToolRegistry helper class
-	 *
-	 * Phase 7: Consolidates 4 separate registries into single ToolRegistry
-	 * Maintains backward compatibility through delegating public methods
 	 */
 	private registry: ToolRegistry;
 
@@ -58,9 +44,6 @@ export class ToolManager {
 
 	/**
 	 * Initialize MCP servers and register their tools
-	 *
-	 * Phase 7: Uses ToolRegistry to register MCP tools cleanly
-	 * without needing to manually manage multiple registries
 	 */
 	async initializeMCP(
 		servers: MCPServer[],
@@ -86,8 +69,6 @@ export class ToolManager {
 
 	/**
 	 * Get all available native AI SDK tools (static + MCP)
-	 *
-	 * Phase 7: Delegates to ToolRegistry for cleaner code
 	 */
 	getAllTools(): Record<string, AISDKCoreTool> {
 		return this.registry.getNativeTools();
@@ -95,8 +76,6 @@ export class ToolManager {
 
 	/**
 	 * Get all tool handlers
-	 *
-	 * Phase 7: Delegates to ToolRegistry for backward compatibility
 	 */
 	getToolRegistry(): Record<string, ToolHandler> {
 		return this.registry.getHandlers();
@@ -104,8 +83,6 @@ export class ToolManager {
 
 	/**
 	 * Get a specific tool handler
-	 *
-	 * Phase 7: Delegates to ToolRegistry
 	 */
 	getToolHandler(toolName: string): ToolHandler | undefined {
 		return this.registry.getHandler(toolName);
@@ -113,8 +90,6 @@ export class ToolManager {
 
 	/**
 	 * Get a specific tool formatter
-	 *
-	 * Phase 7: Delegates to ToolRegistry
 	 */
 	getToolFormatter(toolName: string): ToolFormatter | undefined {
 		return this.registry.getFormatter(toolName);
@@ -122,8 +97,6 @@ export class ToolManager {
 
 	/**
 	 * Get a specific tool validator
-	 *
-	 * Phase 7: Delegates to ToolRegistry
 	 */
 	getToolValidator(toolName: string): ToolValidator | undefined {
 		return this.registry.getValidator(toolName);
@@ -132,8 +105,6 @@ export class ToolManager {
 	/**
 	 * Get native AI SDK tools registry
 	 * @deprecated Use getAllTools() instead - they now return the same thing
-	 *
-	 * Phase 7: Delegates to ToolRegistry for backward compatibility
 	 */
 	getNativeToolsRegistry(): Record<string, AISDKCoreTool> {
 		return this.registry.getNativeTools();
@@ -141,8 +112,6 @@ export class ToolManager {
 
 	/**
 	 * Check if a tool exists
-	 *
-	 * Phase 7: Delegates to ToolRegistry
 	 */
 	hasTool(toolName: string): boolean {
 		return this.registry.hasTool(toolName);
@@ -171,8 +140,6 @@ export class ToolManager {
 
 	/**
 	 * Disconnect from MCP servers and remove their tools
-	 *
-	 * Phase 7: Uses ToolRegistry.unregisterMany() for clean removal
 	 */
 	async disconnectMCP(): Promise<void> {
 		if (this.mcpClient) {
@@ -199,7 +166,7 @@ export class ToolManager {
 	}
 
 	/**
-	 * Phase 7: Get a complete tool entry (all metadata)
+	 * Get a complete tool entry (all metadata)
 	 *
 	 * Returns the full ToolEntry with all components (tool, handler, formatter, validator)
 	 */
@@ -208,14 +175,14 @@ export class ToolManager {
 	}
 
 	/**
-	 * Phase 7: Get all registered tool names
+	 * Get all registered tool names
 	 */
 	getToolNames(): string[] {
 		return this.registry.getToolNames();
 	}
 
 	/**
-	 * Phase 7: Get total number of registered tools
+	 * Get total number of registered tools
 	 */
 	getToolCount(): number {
 		return this.registry.getToolCount();

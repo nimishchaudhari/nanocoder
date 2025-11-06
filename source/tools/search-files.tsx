@@ -364,6 +364,3 @@ export const searchFilesTool: ToolDefinition = {
 	formatter,
 	requiresConfirmation: false,
 };
-
-// Export the AI SDK core tool for Phase 3-4 migration
-export {searchFilesCoreTool};

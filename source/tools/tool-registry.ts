@@ -9,7 +9,6 @@ import type {
 /**
  * Helper class to encapsulate tool registry management
  *
- * Phase 6: Tool Registry Helper Class
  * This class provides structured access to tool metadata and eliminates
  * the need to manage multiple separate registries manually.
  *

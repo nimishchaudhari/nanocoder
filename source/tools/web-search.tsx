@@ -211,6 +211,3 @@ export const webSearchTool: ToolDefinition = {
 	validator,
 	requiresConfirmation: false,
 };
-
-// Export the AI SDK core tool for Phase 3-4 migration
-export {webSearchCoreTool};

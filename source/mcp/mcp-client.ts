@@ -143,11 +143,14 @@ export class MCPClient {
 			for (const mcpTool of serverTools) {
 				// Convert MCP tool to AI SDK's CoreTool format
 				// Use the input schema directly - it should already be JSON Schema compatible
+				// MCP schemas are already in JSON Schema format, cast to unknown first for type safety
 				const coreTool = tool({
 					description: mcpTool.description
 						? `[MCP:${serverName}] ${mcpTool.description}`
 						: `MCP tool from ${serverName}`,
-					inputSchema: jsonSchema(mcpTool.inputSchema || {type: 'object'}),
+					inputSchema: jsonSchema(
+						(mcpTool.inputSchema as unknown) || {type: 'object'},
+					),
 					// No execute function - human-in-the-loop pattern
 				});
 
@@ -179,7 +182,6 @@ export class MCPClient {
 	 * Get all MCP tools as entries with handlers for easy registration
 	 * Each entry contains the native AI SDK tool and its handler function
 	 *
-	 * Phase 3 Enhancement: Provides structured access to MCP tools with both
 	 * the AI SDK tool definition and the corresponding handler function.
 	 * This enables cleaner integration with ToolManager.
 	 *

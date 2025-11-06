@@ -83,8 +83,6 @@ function parseAPIError(error: unknown): string {
 /**
  * Convert our Message format to AI SDK v5 ModelMessage format
  *
- * Phase 3 Migration: Now using proper ModelMessage types with AI SDK v5.
- *
  * Tool messages: Converted to user messages with [Tool: name] prefix.
  * This approach is simpler and avoids issues with orphaned tool results
  * in multi-turn conversations.
@@ -183,9 +181,9 @@ export class AISDKClient implements LLMClient {
 			url: string | URL | Request,
 			options?: RequestInit,
 		): Promise<Response> => {
-			// Type cast needed due to undici's Request type incompatibility with standard fetch
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			return undiciFetch(url as any, {
+			// Type cast to string | URL since undici's fetch accepts these types
+			// Request objects are converted to URL internally by the fetch spec
+			return undiciFetch(url as string | URL, {
 				...options,
 				dispatcher: this.undiciAgent,
 			}) as Promise<Response>;
@@ -242,7 +240,7 @@ export class AISDKClient implements LLMClient {
 			// Tools are already in AI SDK format - use directly
 			const aiTools = Object.keys(tools).length > 0 ? tools : undefined;
 
-			// Convert messages to AI SDK v5 ModelMessage format (Phase 3)
+			// Convert messages to AI SDK v5 ModelMessage format
 			const modelMessages = convertToModelMessages(messages);
 
 			// Use generateText for non-streaming
@@ -337,7 +335,7 @@ export class AISDKClient implements LLMClient {
 			// Tools are already in AI SDK format - use directly
 			const aiTools = Object.keys(tools).length > 0 ? tools : undefined;
 
-			// Convert messages to AI SDK v5 ModelMessage format (Phase 3)
+			// Convert messages to AI SDK v5 ModelMessage format
 			const modelMessages = convertToModelMessages(messages);
 
 			// Use streamText for streaming
