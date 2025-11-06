@@ -167,6 +167,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Install Nix
         uses: cachix/install-nix-action@v26
@@ -198,6 +199,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Update Homebrew formula
         run: |
