@@ -2,10 +2,7 @@ import {LLMClient, Message, ToolCall, ToolResult} from '@/types/core';
 import {ToolManager} from '@/tools/tool-manager';
 import {toolDefinitions} from '@/tools/index';
 import {processPromptTemplate} from '@/utils/prompt-processor';
-import {
-	parseToolCallsFromContent,
-	cleanContentFromToolCalls,
-} from '@/tool-calling/index';
+import {parseToolCalls} from '@/tool-calling/index';
 import {ConversationStateManager} from '@/app/utils/conversationState';
 import {promptHistory} from '@/prompt-history';
 import UserMessage from '@/components/user-message';
@@ -209,11 +206,15 @@ export function useChatHandler({
 			const fullContent = message.content || '';
 
 			// Parse any tool calls from content for non-tool-calling models
-			const parsedToolCalls = parseToolCallsFromContent(fullContent);
-			const cleanedContent = cleanContentFromToolCalls(
-				fullContent,
-				parsedToolCalls,
-			);
+			const parseResult = parseToolCalls(fullContent);
+
+			// Check for malformed tool calls and throw error to let model retry
+			if (!parseResult.success) {
+				throw new Error(`${parseResult.error}\n\n${parseResult.examples}`);
+			}
+
+			const parsedToolCalls = parseResult.toolCalls;
+			const cleanedContent = parseResult.cleanedContent;
 
 			// Display the assistant response (cleaned of any tool calls)
 			if (cleanedContent.trim()) {
