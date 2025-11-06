@@ -39,9 +39,7 @@ test('streaming command toggles streaming state', async t => {
 	});
 
 	// Render the result
-	const {lastFrame} = render(
-		<MockThemeProvider>{result}</MockThemeProvider>,
-	);
+	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
 
 	// Should have toggled
 	const newState = isStreamingEnabled();
@@ -64,9 +62,7 @@ test('streaming command returns message with correct state after toggle', async 
 	});
 
 	// Render the result
-	const {lastFrame} = render(
-		<MockThemeProvider>{result}</MockThemeProvider>,
-	);
+	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
 
 	// Check output shows disabled
 	const output = lastFrame();
@@ -148,9 +144,7 @@ test('streaming command renders without crashing', async t => {
 		fullCommand: '/streaming',
 	});
 
-	const {lastFrame} = render(
-		<MockThemeProvider>{result}</MockThemeProvider>,
-	);
+	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
 
 	t.truthy(lastFrame());
 });

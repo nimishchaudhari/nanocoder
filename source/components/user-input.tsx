@@ -49,6 +49,7 @@ export default function UserInput({
 	>([]);
 	const [selectedFileIndex, setSelectedFileIndex] = useState(0);
 
+
 	// Responsive placeholder text
 	const defaultPlaceholder = isNarrow
 		? '/ for commands, ! for bash, ↑/↓ history'
@@ -84,6 +85,9 @@ export default function UserInput({
 	// Check if we're in bash mode (input starts with !)
 	const isBashMode = input.trim().startsWith('!');
 
+	// Check if we're in command mode (input starts with /)
+	const isCommandMode = input.trim().startsWith('/');
+
 	// Load history on mount
 	useEffect(() => {
 		void promptHistory.loadHistory();
@@ -110,37 +114,47 @@ export default function UserInput({
 		void runFileAutocomplete();
 	}, [input]);
 
-	// Helper functions
 
-	// Command completion logic
-	const handleCommandCompletion = useCallback(
-		(commandPrefix: string) => {
+	// Trigger command autocomplete when input changes
+	useEffect(() => {
+		if (isCommandMode && !isFileAutocompleteMode) {
+			const commandPrefix = input.slice(1).split(' ')[0];
 			const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
-			const customCompletions = customCommands.filter(cmd =>
-				cmd.startsWith(commandPrefix),
-			);
+			const customCompletions = customCommands
+				.filter(cmd => {
+					// Use the same fuzzy scoring as built-in commands
+					return cmd.toLowerCase().includes(commandPrefix.toLowerCase());
+				})
+				.sort((a, b) => a.localeCompare(b));
 
 			const allCompletions: Completion[] = [
 				...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
 				...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
 			];
 
-			if (allCompletions.length === 1) {
-				// Auto-complete when there's exactly one match
-				const completion = allCompletions[0];
-				const completedText = `/${completion.name}`;
-
-				// Force TextInput to remount by changing its key, which resets cursor position
-				updateInput(completedText);
-				setTextInputKey(prev => prev + 1);
-			} else if (allCompletions.length > 1) {
-				// Show completions when there are multiple matches
+			if (allCompletions.length > 0 && commandPrefix.length > 0) {
 				setCompletions(allCompletions);
 				setShowCompletions(true);
+			} else {
+				setCompletions([]);
+				setShowCompletions(false);
 			}
-		},
-		[customCommands, setCompletions, setShowCompletions, updateInput],
-	);
+		} else {
+			// Clear command completions when not in command mode
+			setCompletions([]);
+			setShowCompletions(false);
+		}
+	}, [
+		input,
+		isCommandMode,
+		isFileAutocompleteMode,
+		customCommands,
+		setCompletions,
+		setShowCompletions,
+	]);
+
+	// Helper functions
+
 
 	// Handle file mention selection (Tab key in file autocomplete mode)
 	const handleFileSelection = useCallback(async () => {
@@ -312,10 +326,30 @@ export default function UserInput({
 				return;
 			}
 
-			// Then command completion
+			// Command completion - just show suggestions, no selection
 			if (input.startsWith('/')) {
 				const commandPrefix = input.slice(1).split(' ')[0];
-				handleCommandCompletion(commandPrefix);
+				const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
+				const customCompletions = customCommands.filter(cmd =>
+					cmd.startsWith(commandPrefix),
+				);
+
+				const allCompletions: Completion[] = [
+					...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
+					...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
+				];
+
+				if (allCompletions.length === 1) {
+					// Auto-complete when there's exactly one match
+					const completion = allCompletions[0];
+					const completedText = `/${completion.name}`;
+					updateInput(completedText);
+					setTextInputKey(prev => prev + 1);
+				} else if (allCompletions.length > 1) {
+					// Show completions when there are multiple matches
+					setCompletions(allCompletions);
+					setShowCompletions(true);
+				}
 				return;
 			}
 		}
