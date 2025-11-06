@@ -47,7 +47,7 @@ Firstly, we would love for you to be involved. You can get started contributing 
 
 ### For Users
 
-#### NPM (Recommended)
+#### NPM
 
 Install globally and use anywhere:
 
@@ -59,6 +59,26 @@ Then run in any directory:
 
 ```bash
 nanocoder
+```
+
+#### Homebrew (macOS/Linux)
+
+Install using Homebrew tap:
+
+```bash
+brew install nano-collective/nanocoder/nanocoder
+```
+
+Then run in any directory:
+
+```bash
+nanocoder
+```
+
+To update:
+
+```bash
+brew upgrade nanocoder
 ```
 
 #### Nix Flakes
