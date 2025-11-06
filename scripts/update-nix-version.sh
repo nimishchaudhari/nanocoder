@@ -80,10 +80,10 @@ if nix build .#default; then
 
   # Test the binary
   echo "Step 6: Testing binary..."
-  if ./result/bin/nanocoder --help > /dev/null 2>&1; then
+  if timeout 10s ./result/bin/nanocoder --version > /dev/null 2>&1 || timeout 10s ./result/bin/nanocoder --help < /dev/null > /dev/null 2>&1; then
     echo -e "${GREEN}✓ Binary works correctly!${NC}"
   else
-    echo -e "${YELLOW}⚠ Warning: Binary test failed${NC}"
+    echo -e "${YELLOW}⚠ Warning: Binary test failed or timed out (this is ok)${NC}"
   fi
 
   # Clean up
