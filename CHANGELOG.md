@@ -1,3 +1,19 @@
+# 1.15.0
+
+- Big: Switched backend architecture to use AI SDK over LangGraph. This is a better fit for Nanocoder for many reasons. Thanks to @DenizOkcu for doing this switch.
+
+- Tag files and their contents into messages directly use the `@` symbol. Nanocoder will fuzzy search and allow to choose which files.
+
+- New message streaming to see agent respond in realtime. Toggle stream mode on and off via the `/streaming` command.
+
+- Added Homebrew installation option.
+
+- Improved command auto-complete by adding fuzzy search.
+
+- Improved table rendering in CLI by switching out the custom renderer for the more robust `cli-table3` library.
+
+- Improved non-native tool call parsing by refining the XML/JSON parsing flow.
+
 # 1.14.3
 
 - Added Nix package installation option. Thanks to @Lalit64 for closing issue #75.
