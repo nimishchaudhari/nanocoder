@@ -270,7 +270,8 @@ export class AISDKClient implements LLMClient {
 			let content = result.text;
 			if (Object.keys(tools).length > 0 && toolCalls.length === 0 && content) {
 				// First check for malformed XML tool calls
-				const malformedError = XMLToolCallParser.detectMalformedToolCall(content);
+				const malformedError =
+					XMLToolCallParser.detectMalformedToolCall(content);
 				if (malformedError) {
 					// Return malformed tool call with validation error
 					// This mimics how validators work - returns tool call that will show error
@@ -396,7 +397,8 @@ export class AISDKClient implements LLMClient {
 			let content = fullText;
 			if (Object.keys(tools).length > 0 && toolCalls.length === 0 && content) {
 				// First check for malformed XML tool calls
-				const malformedError = XMLToolCallParser.detectMalformedToolCall(content);
+				const malformedError =
+					XMLToolCallParser.detectMalformedToolCall(content);
 				if (malformedError) {
 					// Return malformed tool call with validation error
 					// This mimics how validators work - returns tool call that will show error

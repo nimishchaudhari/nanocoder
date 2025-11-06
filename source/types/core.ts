@@ -1,24 +1,8 @@
 import React from 'react';
 
-import type {
-	ModelMessage,
-	SystemModelMessage,
-	UserModelMessage,
-	AssistantModelMessage,
-	ToolModelMessage,
-} from 'ai';
-
 import {tool, jsonSchema, type Tool as AISDKTool} from 'ai';
 
 export {tool, jsonSchema};
-
-export type {
-	ModelMessage,
-	SystemModelMessage,
-	UserModelMessage,
-	AssistantModelMessage,
-	ToolModelMessage,
-};
 
 // Type for AI SDK tools (return type of tool() function)
 // Tool<PARAMETERS, RESULT> is AI SDK's actual tool type
