@@ -310,6 +310,15 @@ export class AISDKClient implements LLMClient {
 				throw new Error('Operation was cancelled');
 			}
 
+			// Check for AI SDK's NoOutputGeneratedError (thrown when stream is aborted)
+			if (
+				error instanceof Error &&
+				(error.name === 'AI_NoOutputGeneratedError' ||
+					error.message.includes('No output generated'))
+			) {
+				throw new Error('Operation was cancelled');
+			}
+
 			// Log detailed error for debugging
 			console.error('AI SDK Error:', error);
 			if (error instanceof Error) {
@@ -435,6 +444,15 @@ export class AISDKClient implements LLMClient {
 		} catch (error) {
 			// Check if this was a cancellation
 			if (error instanceof Error && error.name === 'AbortError') {
+				throw new Error('Operation was cancelled');
+			}
+
+			// Check for AI SDK's NoOutputGeneratedError (thrown when stream is aborted)
+			if (
+				error instanceof Error &&
+				(error.name === 'AI_NoOutputGeneratedError' ||
+					error.message.includes('No output generated'))
+			) {
 				throw new Error('Operation was cancelled');
 			}
 
