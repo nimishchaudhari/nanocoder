@@ -149,6 +149,12 @@ export interface LLMChatResponse {
 	}>;
 }
 
+export interface StreamCallbacks {
+	onToken?: (token: string) => void;
+	onToolCall?: (toolCall: ToolCall) => void;
+	onFinish?: () => void;
+}
+
 export interface LLMClient {
 	getCurrentModel(): string;
 	setModel(model: string): void;
@@ -157,6 +163,12 @@ export interface LLMClient {
 	chat(
 		messages: Message[],
 		tools: Record<string, AISDKCoreTool>,
+		signal?: AbortSignal,
+	): Promise<LLMChatResponse>;
+	chatStream?(
+		messages: Message[],
+		tools: Record<string, AISDKCoreTool>,
+		callbacks: StreamCallbacks,
 		signal?: AbortSignal,
 	): Promise<LLMChatResponse>;
 	clearContext(): Promise<void>;

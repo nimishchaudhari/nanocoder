@@ -9,6 +9,7 @@ import type {
 	Message,
 	ToolCall,
 	AISDKCoreTool,
+	StreamCallbacks,
 } from '@/types/index';
 import {XMLToolCallParser} from '@/tool-calling/xml-parser';
 
@@ -127,12 +128,6 @@ function convertToModelMessages(messages: Message[]): ModelMessage[] {
 			content: msg.content,
 		};
 	});
-}
-
-interface StreamCallbacks {
-	onToken?: (token: string) => void;
-	onToolCall?: (toolCall: ToolCall) => void;
-	onFinish?: () => void;
 }
 
 export class AISDKClient implements LLMClient {
@@ -374,12 +369,6 @@ export class AISDKClient implements LLMClient {
 			const toolCalls: ToolCall[] = [];
 			if (toolCallsResult && toolCallsResult.length > 0) {
 				for (const toolCall of toolCallsResult) {
-					// Log the tool call structure for debugging
-					console.log(
-						'Stream tool call structure:',
-						JSON.stringify(toolCall, null, 2),
-					);
-
 					const tc: ToolCall = {
 						id: toolCall.toolCallId,
 						function: {

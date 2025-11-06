@@ -1,4 +1,10 @@
-import {LLMClient, Message, ToolCall, ToolResult} from '@/types/core';
+import {
+	LLMClient,
+	LLMChatResponse,
+	Message,
+	ToolCall,
+	ToolResult,
+} from '@/types/core';
 import {ToolManager} from '@/tools/tool-manager';
 import {toolDefinitions} from '@/tools/index';
 import {processPromptTemplate} from '@/utils/prompt-processor';
@@ -87,6 +93,10 @@ export function useChatHandler({
 }: UseChatHandlerProps) {
 	// Conversation state manager for enhanced context
 	const conversationStateManager = React.useRef(new ConversationStateManager());
+
+	// State for streaming message content
+	const [streamingContent, setStreamingContent] = React.useState<string>('');
+	const [isStreaming, setIsStreaming] = React.useState<boolean>(false);
 
 	// Reset conversation state when messages are cleared
 	React.useEffect(() => {
@@ -191,11 +201,38 @@ export function useChatHandler({
 		try {
 			setIsThinking(true);
 
-			const result = await client.chat(
-				[systemMessage, ...messages],
-				toolManager?.getAllTools() || {},
-				controller.signal,
-			);
+			// Try to use streaming if available, otherwise fallback to non-streaming
+			let result: LLMChatResponse;
+
+			if (client.chatStream) {
+				// Use streaming with callbacks
+				let accumulatedContent = '';
+
+				setIsStreaming(true);
+				setStreamingContent('');
+
+				result = await client.chatStream(
+					[systemMessage, ...messages],
+					toolManager?.getAllTools() || {},
+					{
+						onToken: (token: string) => {
+							accumulatedContent += token;
+							setStreamingContent(accumulatedContent);
+						},
+						onFinish: () => {
+							setIsStreaming(false);
+						},
+					},
+					controller.signal,
+				);
+			} else {
+				// Fallback to non-streaming
+				result = await client.chat(
+					[systemMessage, ...messages],
+					toolManager?.getAllTools() || {},
+					controller.signal,
+				);
+			}
 
 			if (!result || !result.choices || result.choices.length === 0) {
 				throw new Error('No response received from model');
@@ -241,6 +278,10 @@ export function useChatHandler({
 
 			// Update conversation state with assistant message
 			conversationStateManager.current.updateAssistantMessage(assistantMsg);
+
+			// Clear streaming state after response is complete
+			setIsStreaming(false);
+			setStreamingContent('');
 
 			// Handle tool calls if present - this continues the loop
 			if (validToolCalls && validToolCalls.length > 0) {
@@ -516,6 +557,8 @@ export function useChatHandler({
 			setIsThinking(false);
 			setIsCancelling(false);
 			setAbortController(null);
+			setIsStreaming(false);
+			setStreamingContent('');
 		}
 	};
 
@@ -595,11 +638,15 @@ export function useChatHandler({
 			setIsThinking(false);
 			setIsCancelling(false);
 			setAbortController(null);
+			setIsStreaming(false);
+			setStreamingContent('');
 		}
 	};
 
 	return {
 		handleChatMessage,
 		processAssistantResponse,
+		isStreaming,
+		streamingContent,
 	};
 }
