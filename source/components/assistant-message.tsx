@@ -91,7 +91,9 @@ export function parseMarkdownTable(
 
 	// Extract header and data rows - strip markdown for proper width calculation
 	const header = rows[0].map(cell => stripMarkdown(cell));
-	const dataRows = rows.slice(2).map(row => row.map(cell => stripMarkdown(cell)));
+	const dataRows = rows
+		.slice(2)
+		.map(row => row.map(cell => stripMarkdown(cell)));
 
 	// Calculate column widths properly
 	const terminalWidth = process.stdout.columns || 120;
@@ -116,7 +118,7 @@ export function parseMarkdownTable(
 	// Distribute width proportionally
 	const totalContentWidth = contentWidths.reduce((a, b) => a + b, 0);
 	const colWidths = contentWidths.map(width =>
-		Math.max(10, Math.floor((width / totalContentWidth) * availableWidth))
+		Math.max(10, Math.floor((width / totalContentWidth) * availableWidth)),
 	);
 
 	// Create table with cli-table3 - full borders, proper alignment
