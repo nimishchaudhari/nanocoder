@@ -2,13 +2,16 @@ import {Command} from '@/types/index';
 import React from 'react';
 import InfoMessage from '@/components/info-message';
 import {isStreamingEnabled, setStreamingEnabled} from '@/config/preferences';
+import {Box} from 'ink';
 
 function StreamingToggle({enabled}: {enabled: boolean}) {
 	return (
-		<InfoMessage
-			hideBox={true}
-			message={`Response streaming ${enabled ? 'enabled' : 'disabled'}.`}
-		/>
+		<Box marginTop={1} marginBottom={1}>
+			<InfoMessage
+				hideBox={true}
+				message={`Response streaming ${enabled ? 'enabled' : 'disabled'}.`}
+			/>
+		</Box>
 	);
 }
 

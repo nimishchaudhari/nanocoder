@@ -310,7 +310,7 @@ export default function App() {
 						<Box flexDirection="column" marginLeft={-1}>
 							{appState.isCancelling ? (
 								<CancellingIndicator />
-							) : appState.isThinking ? (
+							) : appState.isThinking && !chatHandler.isStreaming ? (
 								<ThinkingIndicator />
 							) : null}
 							{/* Show streaming content while it's being streamed */}
