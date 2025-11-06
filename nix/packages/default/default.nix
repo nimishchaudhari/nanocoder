@@ -6,6 +6,8 @@
   pkgs,
   stdenv,
   fetchFromGitHub,
+  nodejs,
+  pnpm_9,
   ...
 }:
 
@@ -13,7 +15,7 @@ let
   version = "1.14.3";
 in
 
-stdenv.mkDerivation {
+stdenv.mkDerivation (finalAttrs: {
   pname = "nanocoder";
   inherit version;
 
@@ -24,41 +26,52 @@ stdenv.mkDerivation {
     sha256 = "sha256-OuXdv48m9PiWWJvb6hSK1Y1JBpGAu02YIM9XQSziUQI=";
   };
 
-  buildInputs = with pkgs; [
-    nodejs_20
-    cacert
-    makeWrapper
+  nativeBuildInputs = [
+    nodejs
+    pnpm_9.configHook
   ];
 
-  buildPhase = ''
-    export HOME=$PWD
-    runHook preBuild
+  pnpmDeps = pnpm_9.fetchDeps {
+    inherit (finalAttrs) pname version src;
+    hash = "sha256-lIMw8XY5ElJK8JuxecDHv2Byu9gtt36mG54MWvBE8HI=";
 
-    npm install --verbose
-    npm run build --verbose
+    # Fix pnpm workspace error - add packages field to workspace file
+    postPatch = ''
+      echo "packages:" >> pnpm-workspace.yaml
+      echo "  - ." >> pnpm-workspace.yaml
+    '';
+  };
 
-    runHook postBuild
+  # Fix pnpm workspace error in main build too
+  postPatch = ''
+    echo "packages:" >> pnpm-workspace.yaml
+    echo "  - ." >> pnpm-workspace.yaml
   '';
 
-  fixupPhase = ":";
+  buildPhase = ''
+    runHook preBuild
+    pnpm run build
+    runHook postBuild
+  '';
 
   installPhase = ''
     runHook preInstall
 
     mkdir -p $out/bin
-    mkdir -p $out/node_modules
-    mkdir -p $out/dist
+    mkdir -p $out/lib/nanocoder
 
-    cp package.json $out/package.json
-    cp -r dist/* $out/dist/
-    cp -r node_modules/* $out/node_modules/
+    # Copy built files
+    cp -r dist $out/lib/nanocoder/
+    cp -r node_modules $out/lib/nanocoder/
+    cp package.json $out/lib/nanocoder/
 
+    # Create wrapper script
     cat > $out/bin/nanocoder <<EOF
-      #!/usr/bin/env bash
-      NODE_PATH="$out/node_modules" exec ${pkgs.nodejs_20}/bin/node "$out/dist/cli.js" "\$@"
-    EOF
+#!/usr/bin/env bash
+NODE_PATH="$out/lib/nanocoder/node_modules" exec ${nodejs}/bin/node "$out/lib/nanocoder/dist/cli.js" "\$@"
+EOF
 
-    chmod a+x $out/bin/nanocoder
+    chmod +x $out/bin/nanocoder
 
     runHook postInstall
   '';
@@ -69,4 +82,4 @@ stdenv.mkDerivation {
     license = licenses.mit;
     maintainers = with maintainers; [ lalit64 ];
   };
-}
+})
