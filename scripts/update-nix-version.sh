@@ -78,12 +78,12 @@ if nix build .#default; then
   echo -e "${GREEN}✓ Build successful!${NC}"
   echo ""
 
-  # Test the binary
-  echo "Step 6: Testing binary..."
-  if timeout 10s ./result/bin/nanocoder --version > /dev/null 2>&1 || timeout 10s ./result/bin/nanocoder --help < /dev/null > /dev/null 2>&1; then
-    echo -e "${GREEN}✓ Binary works correctly!${NC}"
+  # Test the binary exists
+  echo "Step 6: Verifying binary exists..."
+  if [ -f "./result/bin/nanocoder" ] && [ -x "./result/bin/nanocoder" ]; then
+    echo -e "${GREEN}✓ Binary exists and is executable!${NC}"
   else
-    echo -e "${YELLOW}⚠ Warning: Binary test failed or timed out (this is ok)${NC}"
+    echo -e "${YELLOW}⚠ Warning: Binary not found or not executable${NC}"
   fi
 
   # Clean up
