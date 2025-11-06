@@ -27,6 +27,7 @@ import {
 	recommendationsCommand,
 	setupConfigCommand,
 	statusCommand,
+	streamingCommand,
 	themeCommand,
 	updateCommand,
 } from '@/commands/index';
@@ -272,6 +273,7 @@ export function useAppInitialization({
 				recommendationsCommand,
 				statusCommand,
 				setupConfigCommand,
+				streamingCommand,
 			]);
 
 			// Now start with the properly initialized objects (excluding MCP)

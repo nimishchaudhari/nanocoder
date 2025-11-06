@@ -68,4 +68,5 @@ export interface UserPreferences {
 	lastUpdateCheck?: number;
 	selectedTheme?: ThemePreset;
 	trustedDirectories?: string[];
+	streamingEnabled?: boolean;
 }

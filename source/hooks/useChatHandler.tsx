@@ -11,6 +11,7 @@ import {processPromptTemplate} from '@/utils/prompt-processor';
 import {parseToolCalls} from '@/tool-calling/index';
 import {ConversationStateManager} from '@/app/utils/conversationState';
 import {promptHistory} from '@/prompt-history';
+import {isStreamingEnabled} from '@/config/preferences';
 import UserMessage from '@/components/user-message';
 import AssistantMessage from '@/components/assistant-message';
 import ErrorMessage from '@/components/error-message';
@@ -201,10 +202,10 @@ export function useChatHandler({
 		try {
 			setIsThinking(true);
 
-			// Try to use streaming if available, otherwise fallback to non-streaming
+			// Try to use streaming if available and enabled, otherwise fallback to non-streaming
 			let result: LLMChatResponse;
 
-			if (client.chatStream) {
+			if (client.chatStream && isStreamingEnabled()) {
 				// Use streaming with callbacks
 				let accumulatedContent = '';
 
@@ -226,7 +227,7 @@ export function useChatHandler({
 					controller.signal,
 				);
 			} else {
-				// Fallback to non-streaming
+				// Fallback to non-streaming (either client doesn't support it or user disabled it)
 				result = await client.chat(
 					[systemMessage, ...messages],
 					toolManager?.getAllTools() || {},
