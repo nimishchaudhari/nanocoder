@@ -99,6 +99,22 @@ export function useChatHandler({
 	}, [messages.length]);
 	// Display tool result with proper formatting (similar to useToolHandler)
 	const displayToolResult = async (toolCall: ToolCall, result: ToolResult) => {
+		// Check if this is an error result
+		const isError = result.content.startsWith('Error: ');
+
+		if (isError) {
+			// Display as error message
+			const errorMessage = result.content.replace(/^Error: /, '');
+			addToChatQueue(
+				<ErrorMessage
+					key={`tool-error-${result.tool_call_id}-${componentKeyCounter}-${Date.now()}`}
+					message={errorMessage}
+					hideBox={true}
+				/>,
+			);
+			return;
+		}
+
 		if (toolManager) {
 			const formatter = toolManager.getToolFormatter(result.name);
 			if (formatter) {
@@ -295,7 +311,11 @@ export function useChatHandler({
 
 					// Check if tool has a validator
 					let validationFailed = false;
-					if (toolManager) {
+
+					// XML validation errors are treated as validation failures
+					if (toolCall.function.name === '__xml_validation_error__') {
+						validationFailed = true;
+					} else if (toolManager) {
 						const validator = toolManager.getToolValidator(
 							toolCall.function.name,
 						);

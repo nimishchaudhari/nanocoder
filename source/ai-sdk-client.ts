@@ -268,20 +268,33 @@ export class AISDKClient implements LLMClient {
 
 			// If no native tool calls but tools are available, try XML parsing
 			let content = result.text;
-			if (
-				Object.keys(tools).length > 0 &&
-				toolCalls.length === 0 &&
-				content &&
-				XMLToolCallParser.hasToolCalls(content)
-			) {
-				const parsedToolCalls = XMLToolCallParser.parseToolCalls(content);
-				const xmlToolCalls =
-					XMLToolCallParser.convertToToolCalls(parsedToolCalls);
-				const cleanedContent =
-					XMLToolCallParser.removeToolCallsFromContent(content);
+			if (Object.keys(tools).length > 0 && toolCalls.length === 0 && content) {
+				// First check for malformed XML tool calls
+				const malformedError = XMLToolCallParser.detectMalformedToolCall(content);
+				if (malformedError) {
+					// Return malformed tool call with validation error
+					// This mimics how validators work - returns tool call that will show error
+					toolCalls.push({
+						id: 'malformed_xml_validation',
+						function: {
+							name: '__xml_validation_error__',
+							arguments: {
+								error: malformedError.error,
+							},
+						},
+					});
+					content = ''; // Clear content since it was malformed
+				} else if (XMLToolCallParser.hasToolCalls(content)) {
+					// Try to parse well-formed XML tool calls
+					const parsedToolCalls = XMLToolCallParser.parseToolCalls(content);
+					const xmlToolCalls =
+						XMLToolCallParser.convertToToolCalls(parsedToolCalls);
+					const cleanedContent =
+						XMLToolCallParser.removeToolCallsFromContent(content);
 
-				content = cleanedContent;
-				toolCalls.push(...xmlToolCalls);
+					content = cleanedContent;
+					toolCalls.push(...xmlToolCalls);
+				}
 			}
 
 			return {
@@ -381,22 +394,37 @@ export class AISDKClient implements LLMClient {
 
 			// Check for XML tool calls if no native ones
 			let content = fullText;
-			if (
-				Object.keys(tools).length > 0 &&
-				toolCalls.length === 0 &&
-				content &&
-				XMLToolCallParser.hasToolCalls(content)
-			) {
-				const parsedToolCalls = XMLToolCallParser.parseToolCalls(content);
-				const xmlToolCalls =
-					XMLToolCallParser.convertToToolCalls(parsedToolCalls);
-				const cleanedContent =
-					XMLToolCallParser.removeToolCallsFromContent(content);
+			if (Object.keys(tools).length > 0 && toolCalls.length === 0 && content) {
+				// First check for malformed XML tool calls
+				const malformedError = XMLToolCallParser.detectMalformedToolCall(content);
+				if (malformedError) {
+					// Return malformed tool call with validation error
+					// This mimics how validators work - returns tool call that will show error
+					const malformedCall: ToolCall = {
+						id: 'malformed_xml_validation',
+						function: {
+							name: '__xml_validation_error__',
+							arguments: {
+								error: malformedError.error,
+							},
+						},
+					};
+					toolCalls.push(malformedCall);
+					callbacks.onToolCall?.(malformedCall);
+					content = ''; // Clear content since it was malformed
+				} else if (XMLToolCallParser.hasToolCalls(content)) {
+					// Try to parse well-formed XML tool calls
+					const parsedToolCalls = XMLToolCallParser.parseToolCalls(content);
+					const xmlToolCalls =
+						XMLToolCallParser.convertToToolCalls(parsedToolCalls);
+					const cleanedContent =
+						XMLToolCallParser.removeToolCallsFromContent(content);
 
-				content = cleanedContent;
-				for (const tc of xmlToolCalls) {
-					toolCalls.push(tc);
-					callbacks.onToolCall?.(tc);
+					content = cleanedContent;
+					for (const tc of xmlToolCalls) {
+						toolCalls.push(tc);
+						callbacks.onToolCall?.(tc);
+					}
 				}
 			}
 

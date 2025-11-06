@@ -141,4 +141,73 @@ export class XMLToolCallParser {
 
 		return result;
 	}
+
+	/**
+	 * Detects malformed XML tool call attempts and returns error details
+	 * Returns null if no malformed tool calls detected
+	 */
+	static detectMalformedToolCall(
+		content: string,
+	): {error: string; examples: string} | null {
+		// Common malformed patterns
+		const patterns = [
+			{
+				// <function=name> syntax
+				regex: /<function=(\w+)>/,
+				error: 'Invalid syntax: <function=name> is not supported',
+				hint: (match: string) => {
+					const toolName = match.match(/<function=(\w+)>/)?.[1];
+					return `Use <${toolName}> instead of <function=${toolName}>`;
+				},
+			},
+			{
+				// <parameter=name> syntax
+				regex: /<parameter=(\w+)>/,
+				error: 'Invalid syntax: <parameter=name> is not supported',
+				hint: (match: string) => {
+					const paramName = match.match(/<parameter=(\w+)>/)?.[1];
+					return `Use <${paramName}>value</${paramName}> instead of <parameter=${paramName}>value</parameter>`;
+				},
+			},
+			{
+				// Generic closing </parameter> without proper name
+				regex: /<parameter=\w+>[\s\S]*?<\/parameter>/,
+				error:
+					'Invalid parameter syntax: parameters must use named tags, not generic <parameter> wrapper',
+				hint: () => 'Use <param_name>value</param_name> format',
+			},
+			{
+				// Generic closing </function> when <function=name> was used
+				regex: /<function=\w+>[\s\S]*?<\/function>/,
+				error:
+					'Invalid function syntax: use simple named tags, not <function=name> wrapper',
+				hint: () => 'Use <tool_name><param>value</param></tool_name> format',
+			},
+		];
+
+		for (const pattern of patterns) {
+			const match = content.match(pattern.regex);
+			if (match) {
+				const hint = pattern.hint(match[0]);
+				return {
+					error: pattern.error,
+					examples: this.getCorrectFormatExamples(hint),
+				};
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Generates correct format examples for error messages
+	 */
+	private static getCorrectFormatExamples(specificHint: string): string {
+		return `${specificHint}
+
+Correct format:
+<tool_name>
+  <param>value</param>
+</tool_name>`;
+	}
 }
