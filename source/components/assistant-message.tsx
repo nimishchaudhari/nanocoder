@@ -4,6 +4,7 @@ import {useTheme} from '@/hooks/useTheme';
 import type {AssistantMessageProps, Colors} from '@/types/index';
 import chalk from 'chalk';
 import {highlight} from 'cli-highlight';
+import Table from 'cli-table3';
 
 // Decode HTML entities
 export function decodeHtmlEntities(text: string): string {
@@ -51,33 +52,23 @@ export function decodeHtmlEntities(text: string): string {
 	return result;
 }
 
-// Wrap text to a maximum width
-export function wrapText(text: string, maxWidth: number): string[] {
-	if (text.length <= maxWidth) return [text];
-
-	const words = text.split(' ');
-	const lines: string[] = [];
-	let currentLine = '';
-
-	for (const word of words) {
-		if (currentLine.length === 0) {
-			currentLine = word;
-		} else if (currentLine.length + 1 + word.length <= maxWidth) {
-			currentLine += ' ' + word;
-		} else {
-			lines.push(currentLine);
-			currentLine = word;
-		}
-	}
-
-	if (currentLine.length > 0) {
-		lines.push(currentLine);
-	}
-
-	return lines;
+// Strip markdown formatting from text (for width calculations)
+function stripMarkdown(text: string): string {
+	let result = text;
+	// Remove inline code
+	result = result.replace(/`([^`]+)`/g, '$1');
+	// Remove bold
+	result = result.replace(/\*\*([^*]+)\*\*/g, '$1');
+	result = result.replace(/__([^_]+)__/g, '$1');
+	// Remove italic
+	result = result.replace(/\*([^*]+)\*/g, '$1');
+	result = result.replace(/_([^_]+)_/g, '$1');
+	// Remove links
+	result = result.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+	return result;
 }
 
-// Parse markdown tables
+// Parse markdown tables using cli-table3
 export function parseMarkdownTable(
 	tableText: string,
 	themeColors: Colors,
@@ -98,121 +89,73 @@ export function parseMarkdownTable(
 	const isSeparator = separatorRow?.every(cell => /^:?-+:?$/.test(cell));
 	if (!isSeparator || rows.length < 3) return tableText;
 
-	// Get column count from header
-	const columnCount = rows[0].length;
+	// Extract header and data rows - strip markdown for proper width calculation
+	const header = rows[0].map(cell => stripMarkdown(cell));
+	const dataRows = rows.slice(2).map(row => row.map(cell => stripMarkdown(cell)));
 
-	// Normalize all rows to have same column count
-	const normalizedRows = rows.map(row => {
-		const normalized = [...row];
-		while (normalized.length < columnCount) {
-			normalized.push('');
-		}
-		return normalized.slice(0, columnCount);
-	});
-
-	// Calculate reasonable column widths
-	// Max width per column based on terminal width (assume ~120 chars total)
+	// Calculate column widths properly
 	const terminalWidth = process.stdout.columns || 120;
-	const reservedWidth = columnCount * 3 + 1; // For separators │
-	const availableWidth = terminalWidth - reservedWidth;
-	const maxColWidth = Math.floor(availableWidth / columnCount);
+	const numCols = header.length;
 
-	// Calculate actual column widths (capped at maxColWidth)
-	const columnWidths: number[] = [];
-	for (let col = 0; col < columnCount; col++) {
-		let maxWidth = 0;
-		for (let row = 0; row < normalizedRows.length; row++) {
-			if (row === 1) continue; // Skip separator row
-			const cellText = normalizedRows[row][col] || '';
-			// Strip ANSI codes for width calculation
-			// eslint-disable-next-line no-control-regex
-			const plainText = cellText.replace(/\x1b\[[0-9;]*m/g, '');
-			maxWidth = Math.max(maxWidth, plainText.length);
-		}
-		// Cap at reasonable width to prevent overflow
-		columnWidths.push(Math.min(maxWidth, maxColWidth));
-	}
-
-	// Wrap cell content that exceeds column width
-	const wrappedRows = normalizedRows.map((row, rowIndex) => {
-		if (rowIndex === 1) return row; // Skip separator row
-
-		const cellLines: string[][] = row.map((cell, colIndex) => {
-			// Strip ANSI codes for length check
-			// eslint-disable-next-line no-control-regex
-			const plainText = cell.replace(/\x1b\[[0-9;]*m/g, '');
-			if (plainText.length <= columnWidths[colIndex]) {
-				return [cell];
+	// Get max content width for each column
+	const contentWidths = header.map((_, colIdx) => {
+		let maxWidth = header[colIdx].length;
+		for (const row of dataRows) {
+			if (row[colIdx]) {
+				maxWidth = Math.max(maxWidth, row[colIdx].length);
 			}
-			return wrapText(cell, columnWidths[colIndex]);
-		});
-
-		// Get max line count for this row
-		const maxLines = Math.max(...cellLines.map(lines => lines.length));
-
-		// Create multi-line row
-		const rowLines: string[][] = [];
-		for (let lineIdx = 0; lineIdx < maxLines; lineIdx++) {
-			const lineCells = cellLines.map(
-				lines => lines[lineIdx] || '', // Empty if this cell doesn't have that many lines
-			);
-			rowLines.push(lineCells);
 		}
-
-		return rowLines;
+		return maxWidth;
 	});
 
-	// Build table with proper alignment
-	const result: string[] = [];
-	const headerRow = wrappedRows[0];
-	const dataRows = wrappedRows.slice(2);
+	// Calculate available width (accounting for borders and padding)
+	const borderWidth = numCols + 1; // vertical bars
+	const paddingWidth = numCols * 2; // 1 space on each side of each column
+	const availableWidth = terminalWidth - borderWidth - paddingWidth;
 
-	// Header with bold styling
-	if (Array.isArray(headerRow[0])) {
-		// Multi-line header
-		for (const headerLine of headerRow as string[][]) {
-			const headerCells = headerLine.map((cell, i) => {
-				const paddedCell = cell.padEnd(columnWidths[i], ' ');
-				return chalk.hex(themeColors.primary).bold(paddedCell);
-			});
-			result.push(headerCells.join(' │ '));
-		}
-	} else {
-		// Single-line header
-		const headerCells = (headerRow as string[]).map((cell, i) => {
-			const paddedCell = cell.padEnd(columnWidths[i], ' ');
-			return chalk.hex(themeColors.primary).bold(paddedCell);
-		});
-		result.push(headerCells.join(' │ '));
-	}
+	// Distribute width proportionally
+	const totalContentWidth = contentWidths.reduce((a, b) => a + b, 0);
+	const colWidths = contentWidths.map(width =>
+		Math.max(10, Math.floor((width / totalContentWidth) * availableWidth))
+	);
 
-	// Separator line
-	const separatorParts = columnWidths.map(width => '─'.repeat(width));
-	const separator = separatorParts.join('─┼─');
-	result.push(chalk.hex(themeColors.secondary)(separator));
+	// Create table with cli-table3 - full borders, proper alignment
+	const table = new Table({
+		head: header.map(cell => chalk.hex(themeColors.primary).bold(cell)),
+		colWidths: colWidths,
+		style: {
+			head: [], // Don't apply default styles, we're using chalk
+			border: ['gray'], // Subtle border color
+			'padding-left': 1,
+			'padding-right': 1,
+		},
+		chars: {
+			top: '─',
+			'top-mid': '┬',
+			'top-left': '┌',
+			'top-right': '┐',
+			bottom: '─',
+			'bottom-mid': '┴',
+			'bottom-left': '└',
+			'bottom-right': '┘',
+			left: '│',
+			'left-mid': '├',
+			mid: '─',
+			'mid-mid': '┼',
+			right: '│',
+			'right-mid': '┤',
+			middle: '│',
+		},
+		wordWrap: true,
+		wrapOnWordBoundary: true,
+	});
 
-	// Data rows with proper padding
+	// Add data rows - don't style them, let cli-table3 handle layout
 	for (const row of dataRows) {
-		if (Array.isArray(row[0])) {
-			// Multi-line row
-			for (const rowLine of row as string[][]) {
-				const cells = rowLine.map((cell, i) => {
-					const paddedCell = cell.padEnd(columnWidths[i], ' ');
-					return chalk.hex(themeColors.white)(paddedCell);
-				});
-				result.push(cells.join(' │ '));
-			}
-		} else {
-			// Single-line row
-			const cells = (row as string[]).map((cell, i) => {
-				const paddedCell = cell.padEnd(columnWidths[i], ' ');
-				return chalk.hex(themeColors.white)(paddedCell);
-			});
-			result.push(cells.join(' │ '));
-		}
+		table.push(row);
 	}
 
-	return result.join('\n');
+	return table.toString();
 }
 
 // Basic markdown parser for terminal
