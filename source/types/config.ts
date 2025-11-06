@@ -1,7 +1,7 @@
 import type {ThemePreset} from '@/types/ui';
 
-// LangChain provider configurations
-export interface LangChainProviderConfig {
+// AI provider configurations (OpenAI-compatible)
+export interface AIProviderConfig {
 	name: string;
 	type: string;
 	models: string[];
@@ -68,4 +68,5 @@ export interface UserPreferences {
 	lastUpdateCheck?: number;
 	selectedTheme?: ThemePreset;
 	trustedDirectories?: string[];
+	streamingEnabled?: boolean;
 }

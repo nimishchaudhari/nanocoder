@@ -49,3 +49,15 @@ export function getLastUsedModel(provider: string): string | undefined {
 	const preferences = loadPreferences();
 	return preferences.providerModels?.[provider];
 }
+
+export function isStreamingEnabled(): boolean {
+	const preferences = loadPreferences();
+	// Default to true if not set
+	return preferences.streamingEnabled ?? true;
+}
+
+export function setStreamingEnabled(enabled: boolean): void {
+	const preferences = loadPreferences();
+	preferences.streamingEnabled = enabled;
+	savePreferences(preferences);
+}

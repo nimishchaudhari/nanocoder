@@ -22,6 +22,12 @@ export function getToolManager(): ToolManager | null {
 }
 
 export async function processToolUse(toolCall: ToolCall): Promise<ToolResult> {
+	// Handle XML validation errors by throwing (will be caught and returned as error ToolResult)
+	if (toolCall.function.name === '__xml_validation_error__') {
+		const args = toolCall.function.arguments as {error: string};
+		throw new Error(args.error);
+	}
+
 	if (!toolRegistryGetter) {
 		throw new Error('Tool registry not initialized');
 	}
@@ -29,7 +35,7 @@ export async function processToolUse(toolCall: ToolCall): Promise<ToolResult> {
 	const toolRegistry = toolRegistryGetter();
 	const handler = toolRegistry[toolCall.function.name];
 	if (!handler) {
-		throw new Error(`Unknown tool: ${toolCall.function.name}`);
+		throw new Error(`Error: Unknown tool: ${toolCall.function.name}`);
 	}
 
 	try {
@@ -39,7 +45,9 @@ export async function processToolUse(toolCall: ToolCall): Promise<ToolResult> {
 			try {
 				parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
 			} catch (e) {
-				throw new Error(`Invalid tool arguments: ${(e as Error).message}`);
+				throw new Error(
+					`Error: Invalid tool arguments: ${(e as Error).message}`,
+				);
 			}
 		}
 		const result = await handler(parsedArgs);

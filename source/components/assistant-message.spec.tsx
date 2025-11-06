@@ -3,7 +3,6 @@ import test from 'ava';
 import {render} from 'ink-testing-library';
 import AssistantMessage, {
 	decodeHtmlEntities,
-	wrapText,
 	parseMarkdownTable,
 	parseMarkdown,
 } from './assistant-message';
@@ -333,61 +332,6 @@ test('decodeHtmlEntities handles multiple occurrences of same entity', t => {
 });
 
 // ============================================================================
-// Text Wrapping Tests
-// ============================================================================
-
-test('wrapText returns single line for short text', t => {
-	const text = 'Short text';
-	const result = wrapText(text, 50);
-	t.deepEqual(result, ['Short text']);
-});
-
-test('wrapText wraps at word boundaries', t => {
-	const text = 'This is a long sentence that needs to be wrapped';
-	const result = wrapText(text, 20);
-	t.true(result.length > 1);
-	t.true(result.every(line => line.length <= 20));
-});
-
-test('wrapText handles exact width match', t => {
-	const text = 'Exactly twenty chars';
-	const result = wrapText(text, 20);
-	t.deepEqual(result, ['Exactly twenty chars']);
-});
-
-test('wrapText splits multiple times for very long text', t => {
-	const text =
-		'This is a very long sentence with many words that will require multiple line breaks to fit within the specified width constraint';
-	const result = wrapText(text, 30);
-	t.true(result.length >= 4);
-	t.true(result.every(line => line.length <= 30));
-});
-
-test('wrapText handles single long word', t => {
-	const text = 'verylongwordthatcannotbewrapped';
-	const result = wrapText(text, 10);
-	// Should return the word as-is since it can't be broken
-	t.deepEqual(result, ['verylongwordthatcannotbewrapped']);
-});
-
-test('wrapText preserves word order', t => {
-	const text = 'one two three four five six';
-	const result = wrapText(text, 15);
-	const rejoined = result.join(' ');
-	t.is(rejoined, text);
-});
-
-test('wrapText handles empty string', t => {
-	const result = wrapText('', 50);
-	t.deepEqual(result, ['']);
-});
-
-test('wrapText handles single word', t => {
-	const result = wrapText('word', 10);
-	t.deepEqual(result, ['word']);
-});
-
-// ============================================================================
 // Markdown Table Parsing Tests
 // ============================================================================
 
@@ -456,6 +400,25 @@ test('parseMarkdownTable normalizes column count', t => {
 	t.true(result.includes('B'));
 	t.true(result.includes('1'));
 	t.true(result.includes('3'));
+});
+
+test('parseMarkdownTable handles markdown formatting in cells', t => {
+	const table = `| Command | Description |
+|---------|-------------|
+| \`npm run build\` | Compile TypeScript |
+| **Important** | Do this first |
+| [Link](url) | External reference |
+`;
+	const result = parseMarkdownTable(table, mockColors);
+	// Should strip markdown for proper alignment
+	t.true(result.includes('Command'));
+	t.true(result.includes('Description'));
+	t.true(result.includes('npm run build'));
+	t.true(result.includes('Important'));
+	t.true(result.includes('Link'));
+	// Should have proper table structure
+	t.true(result.includes('│'));
+	t.true(result.includes('─'));
 });
 
 // ============================================================================

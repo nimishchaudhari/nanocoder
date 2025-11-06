@@ -1,13 +1,17 @@
-import {LLMClient, Message, ToolCall, ToolResult} from '@/types/core';
+import {
+	LLMClient,
+	LLMChatResponse,
+	Message,
+	ToolCall,
+	ToolResult,
+} from '@/types/core';
 import {ToolManager} from '@/tools/tool-manager';
 import {toolDefinitions} from '@/tools/index';
 import {processPromptTemplate} from '@/utils/prompt-processor';
-import {
-	parseToolCallsFromContent,
-	cleanContentFromToolCalls,
-} from '@/tool-calling/index';
+import {parseToolCalls} from '@/tool-calling/index';
 import {ConversationStateManager} from '@/app/utils/conversationState';
 import {promptHistory} from '@/prompt-history';
+import {isStreamingEnabled} from '@/config/preferences';
 import UserMessage from '@/components/user-message';
 import AssistantMessage from '@/components/assistant-message';
 import ErrorMessage from '@/components/error-message';
@@ -91,6 +95,10 @@ export function useChatHandler({
 	// Conversation state manager for enhanced context
 	const conversationStateManager = React.useRef(new ConversationStateManager());
 
+	// State for streaming message content
+	const [streamingContent, setStreamingContent] = React.useState<string>('');
+	const [isStreaming, setIsStreaming] = React.useState<boolean>(false);
+
 	// Reset conversation state when messages are cleared
 	React.useEffect(() => {
 		if (messages.length === 0) {
@@ -99,6 +107,24 @@ export function useChatHandler({
 	}, [messages.length]);
 	// Display tool result with proper formatting (similar to useToolHandler)
 	const displayToolResult = async (toolCall: ToolCall, result: ToolResult) => {
+		// Check if this is an error result
+		const isError = result.content.startsWith('Error: ');
+
+		if (isError) {
+			// Display as error message
+			const errorMessage = result.content.replace(/^Error: /, '');
+			addToChatQueue(
+				<ErrorMessage
+					key={`tool-error-${
+						result.tool_call_id
+					}-${componentKeyCounter}-${Date.now()}`}
+					message={errorMessage}
+					hideBox={true}
+				/>,
+			);
+			return;
+		}
+
 		if (toolManager) {
 			const formatter = toolManager.getToolFormatter(result.name);
 			if (formatter) {
@@ -176,11 +202,38 @@ export function useChatHandler({
 		try {
 			setIsThinking(true);
 
-			const result = await client.chat(
-				[systemMessage, ...messages],
-				toolManager?.getAllTools() || [],
-				controller.signal,
-			);
+			// Try to use streaming if available and enabled, otherwise fallback to non-streaming
+			let result: LLMChatResponse;
+
+			if (client.chatStream && isStreamingEnabled()) {
+				// Use streaming with callbacks
+				let accumulatedContent = '';
+
+				setIsStreaming(true);
+				setStreamingContent('');
+
+				result = await client.chatStream(
+					[systemMessage, ...messages],
+					toolManager?.getAllTools() || {},
+					{
+						onToken: (token: string) => {
+							accumulatedContent += token;
+							setStreamingContent(accumulatedContent);
+						},
+						onFinish: () => {
+							setIsStreaming(false);
+						},
+					},
+					controller.signal,
+				);
+			} else {
+				// Fallback to non-streaming (either client doesn't support it or user disabled it)
+				result = await client.chat(
+					[systemMessage, ...messages],
+					toolManager?.getAllTools() || {},
+					controller.signal,
+				);
+			}
 
 			if (!result || !result.choices || result.choices.length === 0) {
 				throw new Error('No response received from model');
@@ -191,11 +244,15 @@ export function useChatHandler({
 			const fullContent = message.content || '';
 
 			// Parse any tool calls from content for non-tool-calling models
-			const parsedToolCalls = parseToolCallsFromContent(fullContent);
-			const cleanedContent = cleanContentFromToolCalls(
-				fullContent,
-				parsedToolCalls,
-			);
+			const parseResult = parseToolCalls(fullContent);
+
+			// Check for malformed tool calls and throw error to let model retry
+			if (!parseResult.success) {
+				throw new Error(`${parseResult.error}\n\n${parseResult.examples}`);
+			}
+
+			const parsedToolCalls = parseResult.toolCalls;
+			const cleanedContent = parseResult.cleanedContent;
 
 			// Display the assistant response (cleaned of any tool calls)
 			if (cleanedContent.trim()) {
@@ -208,7 +265,7 @@ export function useChatHandler({
 				);
 			}
 
-			// Merge structured tool calls from LangGraph with content-parsed tool calls
+			// Merge structured tool calls from AI SDK with content-parsed tool calls
 			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
 			const validToolCalls = filterValidToolCalls(allToolCalls);
 
@@ -222,6 +279,10 @@ export function useChatHandler({
 
 			// Update conversation state with assistant message
 			conversationStateManager.current.updateAssistantMessage(assistantMsg);
+
+			// Clear streaming state after response is complete
+			setIsStreaming(false);
+			setStreamingContent('');
 
 			// Handle tool calls if present - this continues the loop
 			if (validToolCalls && validToolCalls.length > 0) {
@@ -290,12 +351,16 @@ export function useChatHandler({
 
 				for (const toolCall of validToolCalls) {
 					const toolDef = toolDefinitions.find(
-						def => def.config.function.name === toolCall.function.name,
+						def => def.name === toolCall.function.name,
 					);
 
 					// Check if tool has a validator
 					let validationFailed = false;
-					if (toolManager) {
+
+					// XML validation errors are treated as validation failures
+					if (toolCall.function.name === '__xml_validation_error__') {
+						validationFailed = true;
+					} else if (toolManager) {
 						const validator = toolManager.getToolValidator(
 							toolCall.function.name,
 						);
@@ -493,6 +558,8 @@ export function useChatHandler({
 			setIsThinking(false);
 			setIsCancelling(false);
 			setAbortController(null);
+			setIsStreaming(false);
+			setStreamingContent('');
 		}
 	};
 
@@ -533,8 +600,10 @@ export function useChatHandler({
 
 		try {
 			// Load and process system prompt with dynamic tool documentation
-			const availableTools = toolManager ? toolManager.getAllTools() : [];
-			const systemPrompt = processPromptTemplate(availableTools);
+			// Note: We still need tool definitions (not just native tools) for documentation
+			const systemPrompt = processPromptTemplate(
+				toolManager ? toolManager.getAllTools() : {},
+			);
 
 			// Create stream request
 			const systemMessage: Message = {
@@ -570,11 +639,15 @@ export function useChatHandler({
 			setIsThinking(false);
 			setIsCancelling(false);
 			setAbortController(null);
+			setIsStreaming(false);
+			setStreamingContent('');
 		}
 	};
 
 	return {
 		handleChatMessage,
 		processAssistantResponse,
+		isStreaming,
+		streamingContent,
 	};
 }

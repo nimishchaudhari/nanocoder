@@ -310,9 +310,20 @@ export default function App() {
 						<Box flexDirection="column" marginLeft={-1}>
 							{appState.isCancelling ? (
 								<CancellingIndicator />
-							) : appState.isThinking ? (
+							) : appState.isThinking && !chatHandler.isStreaming ? (
 								<ThinkingIndicator />
 							) : null}
+							{/* Show streaming content while it's being streamed */}
+							{chatHandler.isStreaming && chatHandler.streamingContent && (
+								<Box flexDirection="column" marginBottom={1}>
+									<Box marginBottom={1}>
+										<Text color={themeContextValue.colors.primary} bold>
+											{appState.currentModel}:
+										</Text>
+									</Box>
+									<Text>{chatHandler.streamingContent}</Text>
+								</Box>
+							)}
 							{appState.isModelSelectionMode ? (
 								<ModelSelector
 									client={appState.client}

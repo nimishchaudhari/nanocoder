@@ -1,6 +1,6 @@
 import {Box, Text, useFocus, useInput} from 'ink';
 import TextInput from 'ink-text-input';
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useTheme} from '@/hooks/useTheme';
 import {promptHistory} from '@/prompt-history';
 import {commandRegistry} from '@/commands';
@@ -84,6 +84,9 @@ export default function UserInput({
 	// Check if we're in bash mode (input starts with !)
 	const isBashMode = input.trim().startsWith('!');
 
+	// Check if we're in command mode (input starts with /)
+	const isCommandMode = input.trim().startsWith('/');
+
 	// Load history on mount
 	useEffect(() => {
 		void promptHistory.loadHistory();
@@ -110,37 +113,42 @@ export default function UserInput({
 		void runFileAutocomplete();
 	}, [input]);
 
+	// Calculate command completions using useMemo to prevent flashing
+	const commandCompletions = useMemo(() => {
+		if (!isCommandMode || isFileAutocompleteMode) {
+			return [];
+		}
+
+		const commandPrefix = input.slice(1).split(' ')[0];
+		if (commandPrefix.length === 0) {
+			return [];
+		}
+
+		const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
+		const customCompletions = customCommands
+			.filter(cmd => {
+				return cmd.toLowerCase().includes(commandPrefix.toLowerCase());
+			})
+			.sort((a, b) => a.localeCompare(b));
+
+		return [
+			...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
+			...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
+		] as Completion[];
+	}, [input, isCommandMode, isFileAutocompleteMode, customCommands]);
+
+	// Update UI state for command completions
+	useEffect(() => {
+		if (commandCompletions.length > 0) {
+			setCompletions(commandCompletions);
+			setShowCompletions(true);
+		} else if (showCompletions) {
+			setCompletions([]);
+			setShowCompletions(false);
+		}
+	}, [commandCompletions, showCompletions, setCompletions, setShowCompletions]);
+
 	// Helper functions
-
-	// Command completion logic
-	const handleCommandCompletion = useCallback(
-		(commandPrefix: string) => {
-			const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
-			const customCompletions = customCommands.filter(cmd =>
-				cmd.startsWith(commandPrefix),
-			);
-
-			const allCompletions: Completion[] = [
-				...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
-				...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
-			];
-
-			if (allCompletions.length === 1) {
-				// Auto-complete when there's exactly one match
-				const completion = allCompletions[0];
-				const completedText = `/${completion.name}`;
-
-				// Force TextInput to remount by changing its key, which resets cursor position
-				updateInput(completedText);
-				setTextInputKey(prev => prev + 1);
-			} else if (allCompletions.length > 1) {
-				// Show completions when there are multiple matches
-				setCompletions(allCompletions);
-				setShowCompletions(true);
-			}
-		},
-		[customCommands, setCompletions, setShowCompletions, updateInput],
-	);
 
 	// Handle file mention selection (Tab key in file autocomplete mode)
 	const handleFileSelection = useCallback(async () => {
@@ -312,10 +320,31 @@ export default function UserInput({
 				return;
 			}
 
-			// Then command completion
+			// Command completion - just show suggestions, no selection
 			if (input.startsWith('/')) {
 				const commandPrefix = input.slice(1).split(' ')[0];
-				handleCommandCompletion(commandPrefix);
+				const builtInCompletions =
+					commandRegistry.getCompletions(commandPrefix);
+				const customCompletions = customCommands.filter(cmd =>
+					cmd.startsWith(commandPrefix),
+				);
+
+				const allCompletions: Completion[] = [
+					...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
+					...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
+				];
+
+				if (allCompletions.length === 1) {
+					// Auto-complete when there's exactly one match
+					const completion = allCompletions[0];
+					const completedText = `/${completion.name}`;
+					updateInput(completedText);
+					setTextInputKey(prev => prev + 1);
+				} else if (allCompletions.length > 1) {
+					// Show completions when there are multiple matches
+					setCompletions(allCompletions);
+					setShowCompletions(true);
+				}
 				return;
 			}
 		}
@@ -326,11 +355,7 @@ export default function UserInput({
 			setFileCompletions([]);
 		}
 
-		// Clear UI state on other input
-		if (showCompletions) {
-			setShowCompletions(false);
-			setCompletions([]);
-		}
+		// Clear clear message on other input
 		if (showClearMessage) {
 			setShowClearMessage(false);
 			focus('user-input');

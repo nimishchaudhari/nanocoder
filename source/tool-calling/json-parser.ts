@@ -1,25 +1,74 @@
 import type {ToolCall} from '@/types/index';
-import {logError} from '@/utils/message-queue';
-import {XMLToolCallParser} from '@/tool-calling/xml-parser';
 
-// XML validation functions removed - XMLToolCallParser handles XML parsing
+/**
+ * Internal JSON tool call parser
+ * Note: This is now an internal utility. Use tool-parser.ts for public API.
+ */
 
-export function parseToolCallsFromContent(content: string): ToolCall[] {
-	const extractedCalls: ToolCall[] = [];
-	let trimmedContent = content.trim();
+/**
+ * Detects malformed JSON tool call attempts and returns error details
+ * Returns null if no malformed tool calls detected
+ */
+export function detectMalformedJSONToolCall(
+	content: string,
+): {error: string; examples: string} | null {
+	// Check for incomplete JSON structures
+	const patterns = [
+		{
+			// Incomplete JSON with name but missing arguments
+			regex: /\{\s*"name"\s*:\s*"[^"]+"\s*,?\s*\}/,
+			error: 'Incomplete tool call: missing "arguments" field',
+			hint: 'Tool calls must include both "name" and "arguments" fields',
+		},
+		{
+			// Incomplete JSON with arguments but missing name
+			regex: /\{\s*"arguments"\s*:\s*\{[^}]*\}\s*\}/,
+			error: 'Incomplete tool call: missing "name" field',
+			hint: 'Tool calls must include both "name" and "arguments" fields',
+		},
+		{
+			// Malformed arguments (not an object)
+			regex: /\{\s*"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:\s*"[^"]*"\s*\}/,
+			error: 'Invalid tool call: "arguments" must be an object, not a string',
+			hint: 'Use {"name": "tool_name", "arguments": {...}} format',
+		},
+	];
 
-	// First, try the new XML parser for cleaner XML tool call parsing
-	if (XMLToolCallParser.hasToolCalls(content)) {
-		const parsedCalls = XMLToolCallParser.parseToolCalls(content);
-		const convertedCalls = XMLToolCallParser.convertToToolCalls(parsedCalls);
-		extractedCalls.push(...convertedCalls);
-
-		// If XML parser found tool calls, return them (don't continue with legacy parsers)
-		if (convertedCalls.length > 0) {
-			const uniqueCalls = deduplicateToolCalls(extractedCalls);
-			return uniqueCalls;
+	for (const pattern of patterns) {
+		const match = content.match(pattern.regex);
+		if (match) {
+			return {
+				error: pattern.error,
+				examples: getCorrectJSONFormatExamples(pattern.hint),
+			};
 		}
 	}
+
+	return null;
+}
+
+/**
+ * Generates correct format examples for JSON error messages
+ */
+function getCorrectJSONFormatExamples(specificHint: string): string {
+	return `${specificHint}
+
+Correct format:
+{
+  "name": "tool_name",
+  "arguments": {
+    "param": "value"
+  }
+}`;
+}
+
+/**
+ * Parses JSON-formatted tool calls from content
+ * This is an internal function - use tool-parser.ts for public API
+ */
+export function parseJSONToolCalls(content: string): ToolCall[] {
+	const extractedCalls: ToolCall[] = [];
+	let trimmedContent = content.trim();
 
 	// Handle markdown code blocks
 	const codeBlockMatch = trimmedContent.match(
@@ -54,7 +103,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 				return extractedCalls;
 			}
 		} catch {
-			logError('Tool call failed to parse from JSON code block.');
+			// Failed to parse - will be caught by malformed detection
 		}
 	}
 
@@ -79,13 +128,9 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 				extractedCalls.push(toolCall);
 			}
 		} catch {
-			logError('Tool call failed to parse from JSON block.');
+			// Failed to parse - will be caught by malformed detection
 		}
 	}
-
-	// XML parsing is now handled by XMLToolCallParser
-
-	// All XML parsing is now handled by XMLToolCallParser
 
 	// Look for embedded tool calls using regex patterns
 	const toolCallPatterns = [
@@ -113,7 +158,7 @@ export function parseToolCallsFromContent(content: string): ToolCall[] {
 					},
 				});
 			} catch {
-				logError('Tool call failed to parse from content.');
+				// Failed to parse - will be caught by malformed detection
 			}
 		}
 	}
@@ -146,22 +191,15 @@ function deduplicateToolCalls(toolCalls: ToolCall[]): ToolCall[] {
 
 /**
  * Cleans content by removing tool call JSON blocks
+ * This is an internal function - use tool-parser.ts for public API
  */
-export function cleanContentFromToolCalls(
+export function cleanJSONToolCalls(
 	content: string,
 	toolCalls: ToolCall[],
 ): string {
 	if (toolCalls.length === 0) return content;
 
 	let cleanedContent = content;
-
-	// Use the new XML parser to clean XML tool calls
-	if (XMLToolCallParser.hasToolCalls(cleanedContent)) {
-		cleanedContent =
-			XMLToolCallParser.removeToolCallsFromContent(cleanedContent);
-	}
-
-	// XML cleaning is handled by XMLToolCallParser.removeToolCallsFromContent above
 
 	// Handle markdown code blocks that contain only tool calls
 	const codeBlockRegex = /```(?:json)?\s*\n?([\s\S]*?)\n?```/g;
@@ -188,8 +226,6 @@ export function cleanContentFromToolCalls(
 			return match;
 		},
 	);
-
-	// XML tool call cleaning is handled by XMLToolCallParser above
 
 	// Remove JSON blocks that were parsed as tool calls (for non-code-block cases)
 	const toolCallPatterns = [
