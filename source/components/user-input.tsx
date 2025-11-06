@@ -1,6 +1,6 @@
 import {Box, Text, useFocus, useInput} from 'ink';
 import TextInput from 'ink-text-input';
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useTheme} from '@/hooks/useTheme';
 import {promptHistory} from '@/prompt-history';
 import {commandRegistry} from '@/commands';
@@ -48,7 +48,6 @@ export default function UserInput({
 		Array<{path: string; score: number}>
 	>([]);
 	const [selectedFileIndex, setSelectedFileIndex] = useState(0);
-
 
 	// Responsive placeholder text
 	const defaultPlaceholder = isNarrow
@@ -114,47 +113,42 @@ export default function UserInput({
 		void runFileAutocomplete();
 	}, [input]);
 
+	// Calculate command completions using useMemo to prevent flashing
+	const commandCompletions = useMemo(() => {
+		if (!isCommandMode || isFileAutocompleteMode) {
+			return [];
+		}
 
-	// Trigger command autocomplete when input changes
+		const commandPrefix = input.slice(1).split(' ')[0];
+		if (commandPrefix.length === 0) {
+			return [];
+		}
+
+		const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
+		const customCompletions = customCommands
+			.filter(cmd => {
+				return cmd.toLowerCase().includes(commandPrefix.toLowerCase());
+			})
+			.sort((a, b) => a.localeCompare(b));
+
+		return [
+			...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
+			...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
+		] as Completion[];
+	}, [input, isCommandMode, isFileAutocompleteMode, customCommands]);
+
+	// Update UI state for command completions
 	useEffect(() => {
-		if (isCommandMode && !isFileAutocompleteMode) {
-			const commandPrefix = input.slice(1).split(' ')[0];
-			const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
-			const customCompletions = customCommands
-				.filter(cmd => {
-					// Use the same fuzzy scoring as built-in commands
-					return cmd.toLowerCase().includes(commandPrefix.toLowerCase());
-				})
-				.sort((a, b) => a.localeCompare(b));
-
-			const allCompletions: Completion[] = [
-				...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
-				...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
-			];
-
-			if (allCompletions.length > 0 && commandPrefix.length > 0) {
-				setCompletions(allCompletions);
-				setShowCompletions(true);
-			} else {
-				setCompletions([]);
-				setShowCompletions(false);
-			}
-		} else {
-			// Clear command completions when not in command mode
+		if (commandCompletions.length > 0) {
+			setCompletions(commandCompletions);
+			setShowCompletions(true);
+		} else if (showCompletions) {
 			setCompletions([]);
 			setShowCompletions(false);
 		}
-	}, [
-		input,
-		isCommandMode,
-		isFileAutocompleteMode,
-		customCommands,
-		setCompletions,
-		setShowCompletions,
-	]);
+	}, [commandCompletions, showCompletions, setCompletions, setShowCompletions]);
 
 	// Helper functions
-
 
 	// Handle file mention selection (Tab key in file autocomplete mode)
 	const handleFileSelection = useCallback(async () => {
@@ -329,7 +323,8 @@ export default function UserInput({
 			// Command completion - just show suggestions, no selection
 			if (input.startsWith('/')) {
 				const commandPrefix = input.slice(1).split(' ')[0];
-				const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
+				const builtInCompletions =
+					commandRegistry.getCompletions(commandPrefix);
 				const customCompletions = customCommands.filter(cmd =>
 					cmd.startsWith(commandPrefix),
 				);
@@ -360,11 +355,7 @@ export default function UserInput({
 			setFileCompletions([]);
 		}
 
-		// Clear UI state on other input
-		if (showCompletions) {
-			setShowCompletions(false);
-			setCompletions([]);
-		}
+		// Clear clear message on other input
 		if (showClearMessage) {
 			setShowClearMessage(false);
 			focus('user-input');
