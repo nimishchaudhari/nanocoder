@@ -157,8 +157,39 @@ jobs:
             }' \
             ${{ secrets.DISCORD_WEBHOOK_URL }}
 
-  notify:
+  update-nix:
     needs: [check-version, publish]
+    if: needs.check-version.outputs.should-publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v26
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Update Nix package
+        run: |
+          chmod +x scripts/update-nix-version.sh
+          ./scripts/update-nix-version.sh ${{ needs.check-version.outputs.package-version }}
+
+      - name: Commit and push Nix update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add nix/packages/default/default.nix
+          git commit -m "chore: update nix package to v${{ needs.check-version.outputs.package-version }}" || echo "No changes to commit"
+          git push origin main
+
+  notify:
+    needs: [check-version, publish, update-nix]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -167,6 +198,11 @@ jobs:
           if [ "${{ needs.check-version.outputs.should-publish }}" == "true" ]; then
             if [ "${{ needs.publish.result }}" == "success" ]; then
               echo "🎉 Successfully published @nanocollective/nanocoder v${{ needs.check-version.outputs.package-version }} to NPM and created GitHub release!"
+              if [ "${{ needs.update-nix.result }}" == "success" ]; then
+                echo "✅ Nix package updated successfully!"
+              else
+                echo "⚠️ Warning: Nix package update failed"
+              fi
             else
               echo "❌ Failed to publish @nanocollective/nanocoder v${{ needs.check-version.outputs.package-version }}"
               exit 1

@@ -14,7 +14,6 @@ function getDefaultShell(): string {
 	if (shellEnv) {
 		return shellEnv;
 	}
-
 	switch (platform()) {
 		case 'win32':
 			return process.env.COMSPEC || 'cmd.exe';
@@ -206,8 +205,13 @@ export function assemblePrompt(inputState: InputState): string {
 					break;
 				}
 				case PlaceholderType.FILE: {
-					// For file, could add file headers or other formatting
-					replacementContent = placeholderContent.content;
+					// Format file content with header for LLM context
+					const fileName =
+						placeholderContent.filePath.split('/').pop() ||
+						placeholderContent.filePath;
+					const header = `=== File: ${fileName} ===`;
+					const footer = '='.repeat(header.length);
+					replacementContent = `${header}\n${placeholderContent.content}\n${footer}`;
 					break;
 				}
 				default: {

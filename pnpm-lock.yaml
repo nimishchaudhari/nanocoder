@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@ai-sdk/openai-compatible':
         specifier: ^1.0.24
-        version: 1.0.24(zod@4.1.12)
+        version: 1.0.26(zod@3.25.76)
       '@mishieck/ink-titled-box':
         specifier: ^0.3.0
         version: 0.3.0(ink@6.3.1(@types/react@19.1.12)(react@19.1.1))(react@19.1.1)(typescript@5.9.2)
@@ -18,11 +18,11 @@ importers:
         specifier: ^1.17.3
         version: 1.17.3
       '@nanocollective/get-md':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       ai:
         specifier: ^5.0.82
-        version: 5.0.82(zod@4.1.12)
+        version: 5.0.88(zod@3.25.76)
       cheerio:
         specifier: ^1.1.2
         version: 1.1.2
@@ -129,20 +129,20 @@ importers:
 
 packages:
 
-  '@ai-sdk/gateway@2.0.3':
-    resolution: {integrity: sha512-/vCoMKtod+A74/BbkWsaAflWKz1ovhX5lmJpIaXQXtd6gyexZncjotBTbFM8rVJT9LKJ/Kx7iVVo3vh+KT+IJg==}
+  '@ai-sdk/gateway@2.0.7':
+    resolution: {integrity: sha512-/AI5AKi4vOK9SEb8Z1dfXkhsJ5NAfWsoJQc96B/mzn2KIrjw5occOjIwD06scuhV9xWlghCoXJT1sQD9QH/tyg==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/openai-compatible@1.0.24':
-    resolution: {integrity: sha512-dzhh6NjcSEmhvOPTy1PXFUZ6X4J4IHZqtuo/HNTXWo5OPqwcgSMm9NizTbe8NMmeSXgE3Eim6v6Nuj7yHcpbMw==}
+  '@ai-sdk/openai-compatible@1.0.26':
+    resolution: {integrity: sha512-HwhnTN29fxdrvHaS4fnTUKGayhcInVjB5wcC8HDJjA8X8hFEiXsWydvO6MxFjPsnEMKz/ISg87L12RhdzVpP8Q==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@3.0.14':
-    resolution: {integrity: sha512-CYRU6L7IlR7KslSBVxvlqlybQvXJln/PI57O8swhOaDIURZbjRP2AY3igKgUsrmWqqnFFUHP+AwTN8xqJAknnA==}
+  '@ai-sdk/provider-utils@3.0.16':
+    resolution: {integrity: sha512-lsWQY9aDXHitw7C1QRYIbVGmgwyT98TF3MfM8alNIXKpdJdi+W782Rzd9f1RyOfgRmZ08gJ2EYNDhWNK7RqpEA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -531,8 +531,8 @@ packages:
     resolution: {integrity: sha512-juG5VWh4qAivzTAeMzvY9xs9HY5rAcr2E4I7tiSSCokRFi7XIZCAu92ZkSTsIj1OPceCifL3cpfteP3pDT9/QQ==}
     engines: {node: '>=14.0.0'}
 
-  '@nanocollective/get-md@1.0.0':
-    resolution: {integrity: sha512-LBNfWIuVXzPlGRjz3SCC7YOQh4jN2dW7wqPczQ3jTol/XgOnaa2m8s51YsG7I31MIEvKlSH/190XoGi2obOpVg==}
+  '@nanocollective/get-md@1.0.1':
+    resolution: {integrity: sha512-eDHnCnFrkbmqADGB+wTmn45Hahc9pqU3zC54+GVKGrGl+1PGSgUEUzn6epS2uiTVeOdAxJljXxTl37/WTt7lgg==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -812,8 +812,8 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
-  ai@5.0.82:
-    resolution: {integrity: sha512-wmZZfsU40qB77umrcj3YzMSk6cUP5gxLXZDPfiSQLBLegTVXPUdSJC603tR7JB5JkhBDzN5VLaliuRKQGKpUXg==}
+  ai@5.0.88:
+    resolution: {integrity: sha512-72nSwQT6iMgfbblwDo59cmFTtsNzfyMVH9MigeIh5IHiqoDqxRAkv0IBb9XYj6RD52tAJw7Wj/n+LEhezvYqkw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -1427,6 +1427,10 @@ packages:
   eventsource-parser@3.0.5:
     resolution: {integrity: sha512-bSRG85ZrMdmWtm7qkF9He9TNRzc/Bm99gEJMaQoHJ9E6Kv9QBbsldh2oMj7iXmYNEAVvNgvv5vPorG6W+XtBhQ==}
     engines: {node: '>=20.0.0'}
+
+  eventsource-parser@3.0.6:
+    resolution: {integrity: sha512-Vo1ab+QXPzZ4tCa8SwIHJFaSzy4R6SHf7BY79rFBDf0idraZWAkYrDjDj8uWaSm3S2TK+hJ7/t1CEmZ7jXw+pg==}
+    engines: {node: '>=18.0.0'}
 
   eventsource@3.0.7:
     resolution: {integrity: sha512-CRT1WTyuQoD771GW56XEZFQ/ZoSfWid1alKGDYMmkt2yl8UXrVR4pspqWNEcqKvVIzg6PAltWjxcSSPrboA4iA==}
@@ -2712,8 +2716,8 @@ packages:
     os: [darwin, linux, win32, freebsd, openbsd, netbsd, sunos, android]
     hasBin: true
 
-  tar@7.5.1:
-    resolution: {integrity: sha512-nlGpxf+hv0v7GkWBK2V9spgactGOp0qvfWRxUMjqHyzrt3SgwE48DIv/FhqPHJYLHpgW1opq3nERbz5Anq7n1g==}
+  tar@7.5.2:
+    resolution: {integrity: sha512-7NyxrTE4Anh8km8iEy7o0QYPs+0JKBTj5ZaqHg6B39erLg0qYXN3BijtShwbsNSvQ+LN75+KV+C4QR/f6Gwnpg==}
     engines: {node: '>=18'}
 
   temp-dir@3.0.0:
@@ -3039,25 +3043,25 @@ packages:
 
 snapshots:
 
-  '@ai-sdk/gateway@2.0.3(zod@4.1.12)':
+  '@ai-sdk/gateway@2.0.7(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.14(zod@4.1.12)
+      '@ai-sdk/provider-utils': 3.0.16(zod@3.25.76)
       '@vercel/oidc': 3.0.3
-      zod: 4.1.12
+      zod: 3.25.76
 
-  '@ai-sdk/openai-compatible@1.0.24(zod@4.1.12)':
+  '@ai-sdk/openai-compatible@1.0.26(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.14(zod@4.1.12)
-      zod: 4.1.12
+      '@ai-sdk/provider-utils': 3.0.16(zod@3.25.76)
+      zod: 3.25.76
 
-  '@ai-sdk/provider-utils@3.0.14(zod@4.1.12)':
+  '@ai-sdk/provider-utils@3.0.16(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
-      eventsource-parser: 3.0.5
-      zod: 4.1.12
+      eventsource-parser: 3.0.6
+      zod: 3.25.76
 
   '@ai-sdk/provider@2.0.0':
     dependencies:
@@ -3396,7 +3400,7 @@ snapshots:
       node-fetch: 2.7.0
       nopt: 8.1.0
       semver: 7.7.2
-      tar: 7.5.1
+      tar: 7.5.2
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -3428,7 +3432,7 @@ snapshots:
 
   '@mozilla/readability@0.6.0': {}
 
-  '@nanocollective/get-md@1.0.0':
+  '@nanocollective/get-md@1.0.1':
     dependencies:
       '@mozilla/readability': 0.6.0
       ajv: 8.17.1
@@ -3715,13 +3719,13 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@5.0.82(zod@4.1.12):
+  ai@5.0.88(zod@3.25.76):
     dependencies:
-      '@ai-sdk/gateway': 2.0.3(zod@4.1.12)
+      '@ai-sdk/gateway': 2.0.7(zod@3.25.76)
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.14(zod@4.1.12)
+      '@ai-sdk/provider-utils': 3.0.16(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
-      zod: 4.1.12
+      zod: 3.25.76
 
   ajv@6.12.6:
     dependencies:
@@ -4524,6 +4528,8 @@ snapshots:
   etag@1.8.1: {}
 
   eventsource-parser@3.0.5: {}
+
+  eventsource-parser@3.0.6: {}
 
   eventsource@3.0.7:
     dependencies:
@@ -5905,7 +5911,7 @@ snapshots:
 
   systeminformation@5.27.11: {}
 
-  tar@7.5.1:
+  tar@7.5.2:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
