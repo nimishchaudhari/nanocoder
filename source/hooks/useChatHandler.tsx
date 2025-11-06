@@ -107,7 +107,9 @@ export function useChatHandler({
 			const errorMessage = result.content.replace(/^Error: /, '');
 			addToChatQueue(
 				<ErrorMessage
-					key={`tool-error-${result.tool_call_id}-${componentKeyCounter}-${Date.now()}`}
+					key={`tool-error-${
+						result.tool_call_id
+					}-${componentKeyCounter}-${Date.now()}`}
 					message={errorMessage}
 					hideBox={true}
 				/>,
@@ -224,7 +226,7 @@ export function useChatHandler({
 				);
 			}
 
-			// Merge structured tool calls from LangGraph with content-parsed tool calls
+			// Merge structured tool calls from AI SDK with content-parsed tool calls
 			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
 			const validToolCalls = filterValidToolCalls(allToolCalls);
 
