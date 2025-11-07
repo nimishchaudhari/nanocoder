@@ -44,8 +44,7 @@ const executeFetchUrl = async (args: FetchArgs): Promise<string> => {
 
 // AI SDK tool definition
 const fetchUrlCoreTool = tool({
-	description:
-		'Fetch and parse content from a URL (converts to markdown via Jina AI Reader)',
+	description: 'Fetch and parse markdown content from a URL',
 	inputSchema: jsonSchema<FetchArgs>({
 		type: 'object',
 		properties: {
