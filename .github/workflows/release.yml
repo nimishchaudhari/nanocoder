@@ -190,7 +190,7 @@ jobs:
           git push origin main
 
   update-homebrew:
-    needs: [check-version, publish]
+    needs: [check-version, publish, update-nix]
     if: needs.check-version.outputs.should-publish == 'true'
     runs-on: macos-latest
     steps:
