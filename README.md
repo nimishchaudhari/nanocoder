@@ -84,8 +84,14 @@ nanocoder
 To update:
 
 ```bash
+# Update Homebrew's tap cache first (important!)
+brew update
+
+# Then upgrade nanocoder
 brew upgrade nanocoder
 ```
+
+> **Note**: If `brew upgrade nanocoder` shows the old version is already installed, run `brew update` first. Homebrew caches tap formulas locally and only refreshes them during `brew update`. Without updating the tap cache, you'll see the cached (older) version even if a newer formula exists in the repository.
 
 #### Nix Flakes
 
