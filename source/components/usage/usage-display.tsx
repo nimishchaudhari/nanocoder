@@ -10,7 +10,6 @@ import {useTheme} from '@/hooks/useTheme';
 import {ProgressBar} from './progress-bar.js';
 import type {Message} from '@/types/core.js';
 import type {TokenBreakdown} from '@/usage/types.js';
-import type {Tokenizer} from '@/tokenization/types.js';
 import {formatTokenCount, getUsageStatusColor} from '@/usage/calculator.js';
 
 interface UsageDisplayProps {
@@ -20,7 +19,7 @@ interface UsageDisplayProps {
 	currentTokens: number;
 	breakdown: TokenBreakdown;
 	messages: Message[];
-	tokenizer: Tokenizer;
+	tokenizerName: string;
 	getMessageTokens: (message: Message) => number;
 }
 
@@ -31,7 +30,7 @@ export function UsageDisplay({
 	currentTokens,
 	breakdown,
 	messages,
-	tokenizer,
+	tokenizerName,
 	getMessageTokens,
 }: UsageDisplayProps) {
 	const boxWidth = useTerminalWidth();
@@ -256,7 +255,7 @@ export function UsageDisplay({
 			</Box>
 			<Box marginBottom={1}>
 				<Text color={colors.secondary}>
-					Tokenizer: <Text color={colors.white}>{tokenizer.getName()}</Text>
+					Tokenizer: <Text color={colors.white}>{tokenizerName}</Text>
 				</Text>
 			</Box>
 

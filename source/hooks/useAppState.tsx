@@ -1,4 +1,4 @@
-import {useState, useCallback, useMemo} from 'react';
+import {useState, useCallback, useMemo, useEffect} from 'react';
 import {LLMClient, Message, DevelopmentMode, ToolCall} from '@/types/core';
 import {ToolManager} from '@/tools/tool-manager';
 import {CustomCommandLoader} from '@/custom-commands/loader';
@@ -119,6 +119,15 @@ export function useAppState() {
 		// Fallback to simple char/4 heuristic if provider/model not set
 		return createTokenizer('', '');
 	}, [currentProvider, currentModel]);
+
+	// Cleanup tokenizer resources when it changes
+	useEffect(() => {
+		return () => {
+			if (tokenizer.free) {
+				tokenizer.free();
+			}
+		};
+	}, [tokenizer]);
 
 	// Helper function for token calculation with caching
 	const getMessageTokens = useCallback(

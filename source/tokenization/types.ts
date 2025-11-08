@@ -22,6 +22,12 @@ export interface Tokenizer {
 	 * Get the tokenizer name/type
 	 */
 	getName(): string;
+
+	/**
+	 * Optional cleanup method for releasing resources
+	 * Should be called when the tokenizer is no longer needed
+	 */
+	free?(): void;
 }
 
 /**

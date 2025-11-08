@@ -1,6 +1,10 @@
 import type {Tokenizer} from '../types.js';
 import type {Message} from '@/types/core.js';
 
+/**
+ * Fallback tokenizer for unsupported models
+ * Uses a simple character-based estimation (4 chars per token)
+ */
 export class FallbackTokenizer implements Tokenizer {
 	private readonly CHARS_PER_TOKEN = 4;
 

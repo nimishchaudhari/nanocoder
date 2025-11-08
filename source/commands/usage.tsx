@@ -40,6 +40,14 @@ export const usageCommand: Command = {
 			getMessageTokens,
 		);
 
+		// Extract tokenizer name before cleanup
+		const tokenizerName = tokenizer.getName();
+
+		// Clean up tokenizer resources
+		if (tokenizer.free) {
+			tokenizer.free();
+		}
+
 		// Get tool count and add tool definitions tokens to breakdown
 		const toolManager = getToolManager();
 		if (toolManager) {
@@ -60,7 +68,7 @@ export const usageCommand: Command = {
 			currentTokens: breakdown.total,
 			breakdown,
 			messages,
-			tokenizer,
+			tokenizerName,
 			getMessageTokens,
 		});
 	},
