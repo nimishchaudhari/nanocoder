@@ -251,7 +251,10 @@ export class AISDKClient implements LLMClient {
 			if (result.toolCalls && result.toolCalls.length > 0) {
 				for (const toolCall of result.toolCalls) {
 					toolCalls.push({
-						id: toolCall.toolCallId,
+						// Some providers (like Ollama) don't provide toolCallId, so generate one
+						id:
+							toolCall.toolCallId ||
+							`tool_${Date.now()}_${Math.random().toString(36).substring(7)}`,
 						function: {
 							name: toolCall.toolName,
 							// AI SDK v5 uses 'input' for tool arguments
@@ -379,7 +382,10 @@ export class AISDKClient implements LLMClient {
 			if (toolCallsResult && toolCallsResult.length > 0) {
 				for (const toolCall of toolCallsResult) {
 					const tc: ToolCall = {
-						id: toolCall.toolCallId,
+						// Some providers (like Ollama) don't provide toolCallId, so generate one
+						id:
+							toolCall.toolCallId ||
+							`tool_${Date.now()}_${Math.random().toString(36).substring(7)}`,
 						function: {
 							name: toolCall.toolName,
 							// AI SDK v5 uses 'input' for tool arguments

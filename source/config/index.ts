@@ -128,7 +128,8 @@ export const colors: Colors = getColors();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 // Go up from dist/config to package root, then to source/app/prompts/main-prompt.md
+// This works because source/app/prompts/main-prompt.md is included in the package.json files array
 export const promptPath = join(
 	__dirname,
-	'@/source/app/prompts/main-prompt.md',
+	'../../source/app/prompts/main-prompt.md',
 );
