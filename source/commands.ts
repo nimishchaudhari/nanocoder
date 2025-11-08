@@ -1,6 +1,7 @@
 import {Command} from '@/types/index';
 import React from 'react';
 import ErrorMessage from '@/components/error-message';
+import {fuzzyScore} from '@/utils/fuzzy-matching';
 
 class CommandRegistry {
 	private commands = new Map<string, Command>();
@@ -22,9 +23,23 @@ class CommandRegistry {
 	}
 
 	getCompletions(prefix: string): string[] {
-		return Array.from(this.commands.keys())
-			.filter(name => name.startsWith(prefix))
-			.sort();
+		// Use fuzzy matching with scoring
+		const scoredCommands = Array.from(this.commands.keys())
+			.map(name => ({
+				name,
+				score: fuzzyScore(name, prefix),
+			}))
+			.filter(cmd => cmd.score > 0) // Only include matches
+			.sort((a, b) => {
+				// Sort by score (descending)
+				if (b.score !== a.score) {
+					return b.score - a.score;
+				}
+				// If scores are equal, sort alphabetically
+				return a.name.localeCompare(b.name);
+			});
+
+		return scoredCommands.map(cmd => cmd.name);
 	}
 
 	async execute(

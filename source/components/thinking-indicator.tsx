@@ -43,7 +43,7 @@ export default memo(function ThinkingIndicator() {
 
 	useEffect(() => {
 		startTimeRef.current = Date.now();
-		// eslint-disable-next-line
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- Initialization on mount is intentional
 		setElapsedSeconds(0);
 	}, []);
 

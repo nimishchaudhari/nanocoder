@@ -1,7 +1,8 @@
-import {fetch} from 'undici';
+import {convertToMarkdown} from '@nanocollective/get-md';
 import React from 'react';
 import {Text, Box} from 'ink';
-import type {ToolHandler, ToolDefinition} from '@/types/index';
+import type {ToolDefinition} from '@/types/index';
+import {tool, jsonSchema} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
 
@@ -9,7 +10,7 @@ interface FetchArgs {
 	url: string;
 }
 
-const handler: ToolHandler = async (args: FetchArgs): Promise<string> => {
+const executeFetchUrl = async (args: FetchArgs): Promise<string> => {
 	// Validate URL
 	try {
 		new URL(args.url);
@@ -17,23 +18,11 @@ const handler: ToolHandler = async (args: FetchArgs): Promise<string> => {
 		throw new Error(`Invalid URL: ${args.url}`);
 	}
 
-	// Use Jina AI Reader to convert URL to LLM-friendly markdown
-	const jinaUrl = `https://r.jina.ai/${args.url}`;
-
 	try {
-		const response = await fetch(jinaUrl, {
-			headers: {
-				Accept: 'text/plain',
-			},
-			signal: AbortSignal.timeout(15000), // 15 second timeout
-			method: 'GET',
-		});
+		// Use get-md to convert URL to LLM-friendly markdown
+		const result = await convertToMarkdown(args.url);
 
-		if (!response.ok) {
-			throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-		}
-
-		const content = await response.text();
+		const content = result.markdown;
 
 		if (!content || content.length === 0) {
 			throw new Error('No content returned from URL');
@@ -48,13 +37,26 @@ const handler: ToolHandler = async (args: FetchArgs): Promise<string> => {
 
 		return content;
 	} catch (error: unknown) {
-		if (error instanceof Error && error.name === 'AbortError') {
-			throw new Error(`Request timeout: URL took too long to fetch (>15s)`);
-		}
 		const message = error instanceof Error ? error.message : 'Unknown error';
 		throw new Error(`Failed to fetch URL: ${message}`);
 	}
 };
+
+// AI SDK tool definition
+const fetchUrlCoreTool = tool({
+	description: 'Fetch and parse markdown content from a URL',
+	inputSchema: jsonSchema<FetchArgs>({
+		type: 'object',
+		properties: {
+			url: {
+				type: 'string',
+				description: 'The URL to fetch content from.',
+			},
+		},
+		required: ['url'],
+	}),
+	// NO execute function - prevents AI SDK auto-execution
+});
 
 // Create a component that will re-render when theme changes
 const FetchUrlFormatter = React.memo(
@@ -159,27 +161,12 @@ const validator = (
 	}
 };
 
+// Nanocoder tool definition with AI SDK core tool + custom extensions
 export const fetchUrlTool: ToolDefinition = {
-	handler,
+	name: 'fetch_url',
+	tool: fetchUrlCoreTool, // Native AI SDK tool (no execute)
+	handler: executeFetchUrl,
 	formatter,
 	validator,
 	requiresConfirmation: false,
-	config: {
-		type: 'function',
-		function: {
-			name: 'fetch_url',
-			description:
-				'Fetch and convert any URL to clean, LLM-friendly markdown text. Useful for reading documentation, articles, or web content. Supports images (with captions) and PDFs.',
-			parameters: {
-				type: 'object',
-				properties: {
-					url: {
-						type: 'string',
-						description: 'The URL to fetch and convert to markdown.',
-					},
-				},
-				required: ['url'],
-			},
-		},
-	},
 };

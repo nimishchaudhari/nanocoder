@@ -1,4 +1,42 @@
-# 1.14.0
+# 1.15.0
+
+- Big: Switched backend architecture to use AI SDK over LangGraph. This is a better fit for Nanocoder for many reasons. Thanks to @DenizOkcu for doing this switch.
+
+- Tag files and their contents into messages directly use the `@` symbol. Nanocoder will fuzzy search and allow to choose which files.
+
+- New message streaming to see agent respond in realtime. Toggle stream mode on and off via the `/streaming` command.
+
+- Added Homebrew installation option.
+
+- Improved command auto-complete by adding fuzzy search.
+
+- Improved table rendering in CLI by switching out the custom renderer for the more robust `cli-table3` library.
+
+- Improved non-native tool call parsing by refining the XML/JSON parsing flow.
+
+# 1.14.3
+
+- Added Nix package installation option. Thanks to @Lalit64 for closing issue #75.
+- Chore: bumped `get-md` package version to the latest.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
+## 1.14.2
+
+- Fix: issue #71. Markdown tables and HTML entities are now rendering properly in model responses.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
+## 1.14.1
+
+- Switched out Jina.ai that fetched LLM optimised markdown from URLs to our own, on-device, private Nano Collective package: [get-md](https://github.com/Nano-Collective/get-md).
+- `search_files` tool now ignores contents of `.gitignore` over just a pre-defined set of common ignores.
+- If you use OpenRouter as a provider, it now logs "Nancoder" as the agent.
+- Fix: Added `parallel_tool_calls` to be equal to `false` in the LangGraph client. This helps bring some stability and flow to models especially when editing files.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
+## 1.14.0
 
 - Added `/setup-config` command - an interactive wizard for configuring LLM providers and MCP servers with built-in templates for popular services. Includes real-time validation, manual editing support (Ctrl+E), and automatic configuration reload.
 - Revamped testing setup to now:
@@ -11,7 +49,7 @@
 
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
-# 1.13.9
+## 1.13.9
 
 - Added Anthropic Claude Haiku 4.5 to model database.
 - UI updates to welcome message, status and user input placeholder on narrow terminals.

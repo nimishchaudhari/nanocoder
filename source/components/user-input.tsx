@@ -1,6 +1,6 @@
 import {Box, Text, useFocus, useInput} from 'ink';
 import TextInput from 'ink-text-input';
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useTheme} from '@/hooks/useTheme';
 import {promptHistory} from '@/prompt-history';
 import {commandRegistry} from '@/commands';
@@ -10,6 +10,11 @@ import {useInputState} from '@/hooks/useInputState';
 import {assemblePrompt} from '@/utils/prompt-processor';
 import {Completion} from '@/types/index';
 import {DevelopmentMode, DEVELOPMENT_MODE_LABELS} from '@/types/core';
+import {
+	getCurrentFileMention,
+	getFileCompletions,
+} from '@/utils/file-autocomplete';
+import {handleFileMention} from '@/utils/file-mention-handler';
 
 interface ChatProps {
 	onSubmit?: (message: string) => void;
@@ -36,6 +41,13 @@ export default function UserInput({
 	const uiState = useUIStateContext();
 	const {boxWidth, isNarrow} = useResponsiveTerminal();
 	const [textInputKey, setTextInputKey] = useState(0);
+
+	// File autocomplete state
+	const [isFileAutocompleteMode, setIsFileAutocompleteMode] = useState(false);
+	const [fileCompletions, setFileCompletions] = useState<
+		Array<{path: string; score: number}>
+	>([]);
+	const [selectedFileIndex, setSelectedFileIndex] = useState(0);
 
 	// Responsive placeholder text
 	const defaultPlaceholder = isNarrow
@@ -72,42 +84,118 @@ export default function UserInput({
 	// Check if we're in bash mode (input starts with !)
 	const isBashMode = input.trim().startsWith('!');
 
+	// Check if we're in command mode (input starts with /)
+	const isCommandMode = input.trim().startsWith('/');
+
 	// Load history on mount
 	useEffect(() => {
 		void promptHistory.loadHistory();
 	}, []);
 
+	// Trigger file autocomplete when input changes
+	useEffect(() => {
+		const runFileAutocomplete = async () => {
+			const mention = getCurrentFileMention(input, input.length);
+
+			if (mention) {
+				setIsFileAutocompleteMode(true);
+				const cwd = process.cwd();
+				const completions = await getFileCompletions(mention.mention, cwd);
+				setFileCompletions(completions);
+				setSelectedFileIndex(0); // Reset selection when completions change
+			} else {
+				setIsFileAutocompleteMode(false);
+				setFileCompletions([]);
+				setSelectedFileIndex(0);
+			}
+		};
+
+		void runFileAutocomplete();
+	}, [input]);
+
+	// Calculate command completions using useMemo to prevent flashing
+	const commandCompletions = useMemo(() => {
+		if (!isCommandMode || isFileAutocompleteMode) {
+			return [];
+		}
+
+		const commandPrefix = input.slice(1).split(' ')[0];
+		if (commandPrefix.length === 0) {
+			return [];
+		}
+
+		const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
+		const customCompletions = customCommands
+			.filter(cmd => {
+				return cmd.toLowerCase().includes(commandPrefix.toLowerCase());
+			})
+			.sort((a, b) => a.localeCompare(b));
+
+		return [
+			...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
+			...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
+		] as Completion[];
+	}, [input, isCommandMode, isFileAutocompleteMode, customCommands]);
+
+	// Update UI state for command completions
+	useEffect(() => {
+		if (commandCompletions.length > 0) {
+			setCompletions(commandCompletions);
+			setShowCompletions(true);
+		} else if (showCompletions) {
+			setCompletions([]);
+			setShowCompletions(false);
+		}
+	}, [commandCompletions, showCompletions, setCompletions, setShowCompletions]);
+
 	// Helper functions
 
-	// Command completion logic
-	const handleCommandCompletion = useCallback(
-		(commandPrefix: string) => {
-			const builtInCompletions = commandRegistry.getCompletions(commandPrefix);
-			const customCompletions = customCommands.filter(cmd =>
-				cmd.startsWith(commandPrefix),
-			);
+	// Handle file mention selection (Tab key in file autocomplete mode)
+	const handleFileSelection = useCallback(async () => {
+		if (!isFileAutocompleteMode || fileCompletions.length === 0) {
+			return false;
+		}
 
-			const allCompletions: Completion[] = [
-				...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
-				...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
-			];
+		const mention = getCurrentFileMention(input, input.length);
+		if (!mention) {
+			return false;
+		}
 
-			if (allCompletions.length === 1) {
-				// Auto-complete when there's exactly one match
-				const completion = allCompletions[0];
-				const completedText = `/${completion.name}`;
+		// Select the currently highlighted file
+		const selectedPath = fileCompletions[selectedFileIndex]?.path;
+		if (!selectedPath) {
+			return false;
+		}
 
-				// Force TextInput to remount by changing its key, which resets cursor position
-				updateInput(completedText);
-				setTextInputKey(prev => prev + 1);
-			} else if (allCompletions.length > 1) {
-				// Show completions when there are multiple matches
-				setCompletions(allCompletions);
-				setShowCompletions(true);
-			}
-		},
-		[customCommands, setCompletions, setShowCompletions, updateInput],
-	);
+		// Extract the original mention text (the @... part we're replacing)
+		const mentionText = input.substring(mention.startIndex, mention.endIndex);
+
+		// Handle the file mention to create placeholder
+		const result = await handleFileMention(
+			selectedPath,
+			currentState.displayValue,
+			currentState.placeholderContent,
+			mentionText,
+		);
+
+		if (result) {
+			setInputState(result);
+			setIsFileAutocompleteMode(false);
+			setFileCompletions([]);
+			setSelectedFileIndex(0);
+			setTextInputKey(prev => prev + 1);
+			return true;
+		}
+
+		return false;
+	}, [
+		isFileAutocompleteMode,
+		fileCompletions,
+		selectedFileIndex,
+		input,
+		currentState,
+		setInputState,
+	]);
 
 	// Handle form submission
 	const handleSubmit = useCallback(() => {
@@ -224,17 +312,50 @@ export default function UserInput({
 			return;
 		}
 
-		if (key.tab && input.startsWith('/')) {
-			const commandPrefix = input.slice(1).split(' ')[0];
-			handleCommandCompletion(commandPrefix);
-			return;
+		// Handle Tab key
+		if (key.tab) {
+			// File autocomplete takes priority
+			if (isFileAutocompleteMode) {
+				void handleFileSelection();
+				return;
+			}
+
+			// Command completion - just show suggestions, no selection
+			if (input.startsWith('/')) {
+				const commandPrefix = input.slice(1).split(' ')[0];
+				const builtInCompletions =
+					commandRegistry.getCompletions(commandPrefix);
+				const customCompletions = customCommands.filter(cmd =>
+					cmd.startsWith(commandPrefix),
+				);
+
+				const allCompletions: Completion[] = [
+					...builtInCompletions.map(cmd => ({name: cmd, isCustom: false})),
+					...customCompletions.map(cmd => ({name: cmd, isCustom: true})),
+				];
+
+				if (allCompletions.length === 1) {
+					// Auto-complete when there's exactly one match
+					const completion = allCompletions[0];
+					const completedText = `/${completion.name}`;
+					updateInput(completedText);
+					setTextInputKey(prev => prev + 1);
+				} else if (allCompletions.length > 1) {
+					// Show completions when there are multiple matches
+					setCompletions(allCompletions);
+					setShowCompletions(true);
+				}
+				return;
+			}
 		}
 
-		// Clear UI state on other input
-		if (showCompletions) {
-			setShowCompletions(false);
-			setCompletions([]);
+		// Space exits file autocomplete mode
+		if (inputChar === ' ' && isFileAutocompleteMode) {
+			setIsFileAutocompleteMode(false);
+			setFileCompletions([]);
 		}
+
+		// Clear clear message on other input
 		if (showClearMessage) {
 			setShowClearMessage(false);
 			focus('user-input');
@@ -248,11 +369,25 @@ export default function UserInput({
 
 		// Handle navigation
 		if (key.upArrow) {
+			// File autocomplete navigation takes priority
+			if (isFileAutocompleteMode && fileCompletions.length > 0) {
+				setSelectedFileIndex(prev =>
+					prev > 0 ? prev - 1 : fileCompletions.length - 1,
+				);
+				return;
+			}
 			handleHistoryNavigation('up');
 			return;
 		}
 
 		if (key.downArrow) {
+			// File autocomplete navigation takes priority
+			if (isFileAutocompleteMode && fileCompletions.length > 0) {
+				setSelectedFileIndex(prev =>
+					prev < fileCompletions.length - 1 ? prev + 1 : 0,
+				);
+				return;
+			}
 			handleHistoryNavigation('down');
 			return;
 		}
@@ -313,6 +448,25 @@ export default function UserInput({
 								color={completion.isCustom ? colors.info : colors.primary}
 							>
 								/{completion.name}
+							</Text>
+						))}
+					</Box>
+				)}
+				{isFileAutocompleteMode && fileCompletions.length > 0 && (
+					<Box flexDirection="column" marginTop={1}>
+						<Text color={colors.secondary}>
+							File suggestions (↑/↓ to navigate, Tab to select):
+						</Text>
+						{fileCompletions.slice(0, 5).map((file, index) => (
+							<Text
+								key={index}
+								color={
+									index === selectedFileIndex ? colors.info : colors.primary
+								}
+								bold={index === selectedFileIndex}
+							>
+								{index === selectedFileIndex ? '▸ ' : '  '}
+								{file.path}
 							</Text>
 						))}
 					</Box>

@@ -1,7 +1,7 @@
 import type {ThemePreset} from '@/types/ui';
 
-// LangChain provider configurations
-export interface LangChainProviderConfig {
+// AI provider configurations (OpenAI-compatible)
+export interface AIProviderConfig {
 	name: string;
 	type: string;
 	models: string[];
@@ -16,6 +16,24 @@ export interface LangChainProviderConfig {
 		apiKey?: string;
 		[key: string]: unknown;
 	};
+}
+
+export interface AppConfig {
+  // Existing config from main branch
+  theme: 'light' | 'dark';
+  autoSave: boolean;
+  saveInterval: number;
+  maxSessions: number;
+  retentionDays: number;
+  directory: string;
+  // Conflict resolution: merged session config with existing preferences
+  sessions: {
+    autoSave: boolean;
+    saveInterval: number;
+    maxSessions: number;
+    retentionDays: number;
+    directory: string;
+  };
 }
 
 // Provider configuration type for wizard and config building
@@ -68,6 +86,7 @@ export interface UserPreferences {
 	lastUpdateCheck?: number;
 	selectedTheme?: ThemePreset;
 	trustedDirectories?: string[];
+<<<<<<< HEAD
 	sessions?: {
 	autoSave?: boolean;
 		saveInterval?: number;
@@ -77,4 +96,8 @@ export interface UserPreferences {
 		maxSizeMB?: number;
 		diskSpaceThreshold?: number;
 	};
+=======
+	streamingEnabled?: boolean;
+>>>>>>> origin/main
 }
+

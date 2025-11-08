@@ -1,3 +1,4 @@
+
 export * from '@/commands/exit';
 export * from '@/commands/help';
 export * from '@/commands/clear';
@@ -13,3 +14,17 @@ export * from '@/commands/recommendations';
 export * from '@/commands/status';
 export * from '@/commands/setup-config';
 export * from '@/commands/resume';
+export * from '@/commands/streaming';
+
+import { Command } from 'commander';
+import { resumeCommand } from '../session/resume-command';
+
+export function registerCommands(program: Command): void {
+  // Existing commands would be here
+  program
+    .command('resume')
+    .description('Resume a previous session')
+    .action(resumeCommand);
+  // Other commands...
+}
+

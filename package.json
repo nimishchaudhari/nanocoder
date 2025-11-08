@@ -1,7 +1,7 @@
 {
 	"name": "@nanocollective/nanocoder",
 	"main": "dist/cli.js",
-	"version": "1.14.0",
+	"version": "1.15.0",
 	"description": "A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter",
 	"keywords": [
 		"cli",
@@ -11,7 +11,8 @@
 		"ollama",
 		"openrouter",
 		"local",
-		"typescript"
+		"typescript",
+		"llama-cpp"
 	],
 	"author": "Nano Collective",
 	"license": "MIT",
@@ -34,6 +35,7 @@
 		"build": "tsc && tsc-alias && chmod +x dist/cli.js",
 		"dev": "tsc --watch",
 		"start": "node dist/cli.js",
+		"release:nix": "./scripts/update-nix-version.sh",
 		"test:all": "./scripts/test.sh",
 		"test:ava": "ava",
 		"test:ava:coverage": "c8 ava",
@@ -50,13 +52,16 @@
 		"source/app/prompts/main-prompt.md"
 	],
 	"dependencies": {
-		"@langchain/core": "^0.3.72",
-		"@langchain/openai": "^0.6.15",
+		"@ai-sdk/openai-compatible": "^1.0.24",
 		"@mishieck/ink-titled-box": "^0.3.0",
 		"@modelcontextprotocol/sdk": "^1.17.3",
+		"@nanocollective/get-md": "^1.0.1",
+		"ai": "^5.0.82",
 		"cheerio": "^1.1.2",
 		"cli-highlight": "^2.1.11",
+		"cli-table3": "^0.6.5",
 		"dotenv": "^17.2.3",
+		"ignore": "^7.0.5",
 		"ink": "^6.3.1",
 		"ink-big-text": "^2.0.0",
 		"ink-gradient": "^3.0.0",
