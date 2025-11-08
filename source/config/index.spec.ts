@@ -4,6 +4,8 @@ import {join} from 'path';
 import {tmpdir} from 'os';
 import {getClosestConfigFile, confDirMap, reloadAppConfig} from './index';
 
+console.log(`\nindex.spec.ts`);
+
 // Create a temporary test directory
 const testDir = join(tmpdir(), `nanocoder-test-${Date.now()}`);
 
@@ -64,7 +66,11 @@ test('confDirMap stores config file locations', t => {
 	const configPath = getClosestConfigFile(fileName);
 
 	t.true(fileName in confDirMap, 'Config map should have entry');
-	t.is(confDirMap[fileName], configPath, 'Config map should store correct path');
+	t.is(
+		confDirMap[fileName],
+		configPath,
+		'Config map should store correct path',
+	);
 
 	// Clean up
 	if (existsSync(configPath)) {
