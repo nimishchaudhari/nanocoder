@@ -9,10 +9,14 @@ import type {TokenBreakdown} from './types.js';
 
 /**
  * Calculate token breakdown from messages
+ * @param messages - Messages to calculate breakdown for
+ * @param tokenizer - Tokenizer instance (used as fallback if getTokens not provided)
+ * @param getTokens - Optional cached token counting function for performance
  */
 export function calculateTokenBreakdown(
 	messages: Message[],
 	tokenizer: Tokenizer,
+	getTokens?: (message: Message) => number,
 ): TokenBreakdown {
 	const breakdown: TokenBreakdown = {
 		system: 0,
@@ -24,7 +28,7 @@ export function calculateTokenBreakdown(
 	};
 
 	for (const message of messages) {
-		const tokens = tokenizer.countTokens(message);
+		const tokens = getTokens ? getTokens(message) : tokenizer.countTokens(message);
 
 		switch (message.role) {
 			case 'system':

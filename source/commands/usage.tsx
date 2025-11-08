@@ -21,15 +21,24 @@ export const usageCommand: Command = {
 	handler: async (
 		_args: string[],
 		messages: Message[],
-		metadata: {provider: string; model: string; tokens: number},
+		metadata: {
+			provider: string;
+			model: string;
+			tokens: number;
+			getMessageTokens: (message: Message) => number;
+		},
 	) => {
-		const {provider, model} = metadata;
+		const {provider, model, getMessageTokens} = metadata;
 
 		// Create tokenizer for accurate breakdown
 		const tokenizer = createTokenizer(provider, model);
 
-		// Calculate token breakdown from messages
-		const breakdown = calculateTokenBreakdown(messages, tokenizer);
+		// Calculate token breakdown from messages using cached token counts
+		const breakdown = calculateTokenBreakdown(
+			messages,
+			tokenizer,
+			getMessageTokens,
+		);
 
 		// Get tool count and add tool definitions tokens to breakdown
 		const toolManager = getToolManager();
@@ -52,6 +61,7 @@ export const usageCommand: Command = {
 			breakdown,
 			messages,
 			tokenizer,
+			getMessageTokens,
 		});
 	},
 };

@@ -21,6 +21,7 @@ interface UsageDisplayProps {
 	breakdown: TokenBreakdown;
 	messages: Message[];
 	tokenizer: Tokenizer;
+	getMessageTokens: (message: Message) => number;
 }
 
 export function UsageDisplay({
@@ -31,6 +32,7 @@ export function UsageDisplay({
 	breakdown,
 	messages,
 	tokenizer,
+	getMessageTokens,
 }: UsageDisplayProps) {
 	const boxWidth = useTerminalWidth();
 	const {colors} = useTheme();
@@ -65,21 +67,18 @@ export function UsageDisplay({
 		? (breakdown.toolDefinitions / currentTokens) * 100
 		: 0;
 
-	// Calculate recent activity stats
+	// Calculate recent activity stats using cached token counts
 	const last5Messages = messages.slice(-5);
 	const last5TokenCount = last5Messages.reduce(
-		(sum, msg) => sum + tokenizer.countTokens(msg),
+		(sum, msg) => sum + getMessageTokens(msg),
 		0,
 	);
 
-	// Find largest message
-	let largestMessageTokens = 0;
-	for (const msg of messages) {
-		const tokens = tokenizer.countTokens(msg);
-		if (tokens > largestMessageTokens) {
-			largestMessageTokens = tokens;
-		}
-	}
+	// Find largest message using cached token counts
+	const largestMessageTokens =
+		messages.length > 0
+			? Math.max(...messages.map(msg => getMessageTokens(msg)))
+			: 0;
 
 	// Bar width for category breakdown
 	const barMaxWidth = Math.min(30, boxWidth - 30);

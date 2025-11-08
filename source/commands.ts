@@ -1,4 +1,4 @@
-import {Command} from '@/types/index';
+import type {Command, Message} from '@/types/index';
 import React from 'react';
 import ErrorMessage from '@/components/error-message';
 import {fuzzyScore} from '@/utils/fuzzy-matching';
@@ -44,8 +44,13 @@ class CommandRegistry {
 
 	async execute(
 		input: string,
-		messages: import('@/types/index').Message[],
-		metadata: {provider: string; model: string; tokens: number},
+		messages: Message[],
+		metadata: {
+			provider: string;
+			model: string;
+			tokens: number;
+			getMessageTokens: (message: Message) => number;
+		},
 	): Promise<void | string | React.ReactNode> {
 		const parts = input.trim().split(/\s+/);
 		const commandName = parts[0];
