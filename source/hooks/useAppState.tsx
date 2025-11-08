@@ -1,4 +1,4 @@
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useMemo} from 'react';
 import {LLMClient, Message, DevelopmentMode, ToolCall} from '@/types/core';
 import {ToolManager} from '@/tools/tool-manager';
 import {CustomCommandLoader} from '@/custom-commands/loader';
@@ -8,6 +8,8 @@ import {defaultTheme} from '@/config/themes';
 import type {ThemePreset} from '@/types/ui';
 import type {UpdateInfo, ToolResult} from '@/types/index';
 import type {CustomCommand} from '@/types/commands';
+import {createTokenizer} from '@/tokenization/index.js';
+import type {Tokenizer} from '@/tokenization/types.js';
 import React from 'react';
 
 export interface ConversationContext {
@@ -108,21 +110,31 @@ export function useAppState() {
 		[componentKeyCounter],
 	);
 
+	// Create tokenizer based on current provider and model
+	const tokenizer = useMemo<Tokenizer>(() => {
+		if (currentProvider && currentModel) {
+			return createTokenizer(currentProvider, currentModel);
+		}
+
+		// Fallback to simple char/4 heuristic if provider/model not set
+		return createTokenizer('', '');
+	}, [currentProvider, currentModel]);
+
 	// Helper function for token calculation with caching
 	const getMessageTokens = useCallback(
 		(message: Message) => {
-			const cacheKey = (message.content || '') + message.role;
+			const cacheKey = (message.content || '') + message.role + currentModel;
 
 			const cachedTokens = messageTokenCache.get(cacheKey);
 			if (cachedTokens !== undefined) {
 				return cachedTokens;
 			}
 
-			const tokens = Math.ceil((message.content?.length || 0) / 4);
+			const tokens = tokenizer.countTokens(message);
 			setMessageTokenCache(prev => new Map(prev).set(cacheKey, tokens));
 			return tokens;
 		},
-		[messageTokenCache],
+		[messageTokenCache, tokenizer, currentModel],
 	);
 
 	// Optimized message updater that separates display from context
@@ -183,6 +195,7 @@ export function useAppState() {
 		currentConversationContext,
 		chatComponents,
 		componentKeyCounter,
+		tokenizer,
 
 		// Setters
 		setClient,

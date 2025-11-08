@@ -1,5 +1,17 @@
 {
 	"$schema": "https://unpkg.com/knip@5/schema.json",
 	"ignoreDependencies": [],
-	"ignore": ["nanocoder-dummy-file.ts"]
+	// Files to ignore entirely because they are dynamically imported or used in a way that static analysis can't track
+	"ignore": [
+		"nanocoder-dummy-file.ts",
+		"source/usage/index.ts",
+		"source/usage/storage.ts",
+		"source/usage/tracker.ts"
+	],
+	"ignoreExportsUsedInFile": {
+		"interface": true,
+		"type": true
+	},
+	"entry": ["source/commands/**/*.{ts,tsx}"],
+	"project": ["source/**/*.{ts,tsx}"]
 }
