@@ -34,7 +34,7 @@ export const usageCommand: Command = {
 		const tokenizer = createTokenizer(provider, model);
 
 		// Calculate token breakdown from messages using cached token counts
-		const breakdown = calculateTokenBreakdown(
+		const baseBreakdown = calculateTokenBreakdown(
 			messages,
 			tokenizer,
 			getMessageTokens,
@@ -48,14 +48,19 @@ export const usageCommand: Command = {
 			tokenizer.free();
 		}
 
-		// Get tool count and add tool definitions tokens to breakdown
+		// Calculate tool definitions tokens and create final breakdown (immutable)
 		const toolManager = getToolManager();
-		if (toolManager) {
-			const toolRegistry = toolManager.getToolRegistry();
-			const toolCount = Object.keys(toolRegistry).length;
-			breakdown.toolDefinitions = calculateToolDefinitionsTokens(toolCount);
-			breakdown.total += breakdown.toolDefinitions;
-		}
+		const toolDefinitions = toolManager
+			? calculateToolDefinitionsTokens(
+					Object.keys(toolManager.getToolRegistry()).length,
+			  )
+			: 0;
+
+		const breakdown = {
+			...baseBreakdown,
+			toolDefinitions,
+			total: baseBreakdown.total + toolDefinitions,
+		};
 
 		// Get context limit from models.dev
 		const contextLimit = await getModelContextLimit(model);
