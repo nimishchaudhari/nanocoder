@@ -5,7 +5,7 @@ class Nanocoder < Formula
   sha256 "8466a0ab9cad0effda0cefd2918315a4a3035dfbfd850d55c8ff03461c109f9b"
   license "MIT"
 
-  depends_on "node@18"
+  depends_on "node@20"
 
   def install
     system "npm", "install", *std_npm_args
