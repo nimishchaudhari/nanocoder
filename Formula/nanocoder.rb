@@ -8,7 +8,7 @@ class Nanocoder < Formula
   depends_on "node@18"
 
   def install
-    system "npm", "install", *std_npm_args(prefix: false)
+    system "npm", "install", *std_npm_args
     bin.install_symlink Dir["#{libexec}/bin/*"]
   end
 
