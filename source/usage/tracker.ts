@@ -4,7 +4,7 @@
  */
 
 import type {Message} from '@/types/core.js';
-import type {Tokenizer} from '@/tokenization/types.js';
+import type {Tokenizer} from '@/types/tokenization.js';
 import {calculateTokenBreakdown} from './calculator.js';
 import {addSession} from './storage.js';
 import {getModelContextLimit} from '@/models/index.js';

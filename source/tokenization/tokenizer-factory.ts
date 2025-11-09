@@ -3,7 +3,7 @@
  * Creates appropriate tokenizer based on provider and model
  */
 
-import type {Tokenizer, TokenizerProvider} from './types.js';
+import type {Tokenizer, TokenizerProvider} from '../types/tokenization.js';
 import {OpenAITokenizer} from './tokenizers/openai-tokenizer.js';
 import {AnthropicTokenizer} from './tokenizers/anthropic-tokenizer.js';
 import {LlamaTokenizer} from './tokenizers/llama-tokenizer.js';

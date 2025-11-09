@@ -4,17 +4,17 @@
  */
 
 import React from 'react';
-import type {Command} from '@/types/commands.js';
-import type {Message} from '@/types/core.js';
-import {UsageDisplay} from '@/components/usage/usage-display.js';
+import type {Command} from '@/types/commands';
+import type {Message} from '@/types/core';
+import {UsageDisplay} from '@/components/usage/usage-display';
 import {
 	calculateTokenBreakdown,
 	calculateToolDefinitionsTokens,
-} from '@/usage/calculator.js';
-import {getModelContextLimit} from '@/models/index.js';
-import {createTokenizer} from '@/tokenization/index.js';
+} from '@/usage/calculator';
+import {getModelContextLimit} from '@/models/index';
+import {createTokenizer} from '@/tokenization/index';
 import {getToolManager} from '@/message-handler';
-import {processPromptTemplate} from '@/utils/prompt-processor.js';
+import {processPromptTemplate} from '@/utils/prompt-processor';
 
 export const usageCommand: Command = {
 	name: 'usage',
@@ -52,7 +52,7 @@ export const usageCommand: Command = {
 		const baseBreakdown = calculateTokenBreakdown(
 			[systemMessage, ...messages],
 			tokenizer,
-			(message) => {
+			message => {
 				// For system message, always use tokenizer directly to avoid cache misses
 				if (message.role === 'system') {
 					return tokenizer.countTokens(message);

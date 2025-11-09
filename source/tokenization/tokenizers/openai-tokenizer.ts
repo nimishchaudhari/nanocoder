@@ -4,8 +4,8 @@
  */
 
 import {encoding_for_model, get_encoding, type TiktokenModel} from 'tiktoken';
-import type {Tokenizer} from '../types.js';
-import type {Message} from '@/types/core.js';
+import type {Tokenizer} from '../../types/tokenization';
+import type {Message} from '@/types/core';
 
 /**
  * OpenAI tokenizer using tiktoken for accurate token counting

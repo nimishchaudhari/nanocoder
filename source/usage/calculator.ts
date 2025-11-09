@@ -4,7 +4,7 @@
  */
 
 import type {Message} from '@/types/core.js';
-import type {Tokenizer} from '@/tokenization/types.js';
+import type {Tokenizer} from '@/types/tokenization.js';
 import type {TokenBreakdown} from './types.js';
 
 /**
@@ -28,7 +28,9 @@ export function calculateTokenBreakdown(
 	};
 
 	for (const message of messages) {
-		const tokens = getTokens ? getTokens(message) : tokenizer.countTokens(message);
+		const tokens = getTokens
+			? getTokens(message)
+			: tokenizer.countTokens(message);
 
 		switch (message.role) {
 			case 'system':

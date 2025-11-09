@@ -2,7 +2,7 @@
  * Tokenizer interface and types
  */
 
-import type {Message} from '@/types/core.js';
+import type {Message} from '@/types/core';
 
 /**
  * Tokenizer interface for encoding text and counting tokens

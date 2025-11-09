@@ -9,7 +9,7 @@ import type {ThemePreset} from '@/types/ui';
 import type {UpdateInfo, ToolResult} from '@/types/index';
 import type {CustomCommand} from '@/types/commands';
 import {createTokenizer} from '@/tokenization/index.js';
-import type {Tokenizer} from '@/tokenization/types.js';
+import type {Tokenizer} from '@/types/tokenization.js';
 import React from 'react';
 
 export interface ConversationContext {
