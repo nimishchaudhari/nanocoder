@@ -12,7 +12,7 @@
 }:
 
 let
-  version = "1.15.1";
+  version = "1.16.0";
 in
 
 stdenv.mkDerivation (finalAttrs: {
@@ -23,7 +23,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "nano-collective";
     repo = "nanocoder";
     rev = "v${version}";
-    sha256 = "sha256-IW9mHv646APf8qDpUDR+L33+GehdrnCdryQrAlA8wUo=";
+    sha256 = "sha256-LGEWHt2Tv62h7UI6d9YNMm/8/PKLgwJEizcSNhfZoqk=";
   };
 
   nativeBuildInputs = [
@@ -33,7 +33,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   pnpmDeps = pnpm_9.fetchDeps {
     inherit (finalAttrs) pname version src;
-    hash = "sha256-NZXd49AbpvSAS1OgOd6l7bfBmWx+pe2t2n0qIG2SZaY=";
+    hash = "sha256-Vn7DsIczYX9quYUfF7UMEWZWB69Ce+JRvsL5AzHpeHM=";
 
     # Fix pnpm workspace error - add packages field to workspace file
     postPatch = ''
