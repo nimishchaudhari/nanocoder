@@ -421,8 +421,9 @@ Preferences follow the same location hierarchy as configuration files:
 - `/export` - Export current session to markdown file
 - `/theme` - Select a theme for the Nanocoder CLI
 - `/update` - Update Nanocoder to the latest version
+- `/usage` – Get current model context usage visually
 - `!command` - Execute bash commands directly without leaving Nanocoder (output becomes context for the LLM)
-- `@file` - Include file contents in messages automatically via fuzzy search as you type.
+- `@file` - Include file contents in messages automatically via fuzzy search as you type
 
 #### Custom Commands
 
