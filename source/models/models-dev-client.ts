@@ -270,6 +270,13 @@ async function findModelByName(modelName: string): Promise<ModelInfo | null> {
 export async function getModelContextLimit(
 	modelId: string,
 ): Promise<number | null> {
+	// Try Ollama fallback first with original model ID (before normalization)
+	// This handles cloud models like gpt-oss:20b-cloud
+	const ollamaLimitOriginal = getOllamaFallbackContextLimit(modelId);
+	if (ollamaLimitOriginal) {
+		return ollamaLimitOriginal;
+	}
+
 	// Strip :cloud or -cloud suffix if present (Ollama cloud models)
 	const normalizedModelId =
 		modelId.endsWith(':cloud') || modelId.endsWith('-cloud')
@@ -289,7 +296,7 @@ export async function getModelContextLimit(
 		return modelInfo.contextLimit;
 	}
 
-	// Fall back to Ollama model defaults
+	// Fall back to Ollama model defaults with normalized ID
 	const ollamaLimit = getOllamaFallbackContextLimit(normalizedModelId);
 	if (ollamaLimit) {
 		return ollamaLimit;
