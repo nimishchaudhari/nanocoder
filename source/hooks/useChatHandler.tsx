@@ -19,26 +19,41 @@ import ToolMessage from '@/components/tool-message';
 import React from 'react';
 
 // Helper function to filter out invalid tool calls and deduplicate by ID and function
-const filterValidToolCalls = (toolCalls: ToolCall[]): ToolCall[] => {
+// Returns valid tool calls and error results for invalid ones
+const filterValidToolCalls = (
+	toolCalls: ToolCall[],
+	toolManager: ToolManager | null,
+): {validToolCalls: ToolCall[]; errorResults: ToolResult[]} => {
 	const seenIds = new Set<string>();
 	const seenFunctionCalls = new Set<string>();
+	const validToolCalls: ToolCall[] = [];
+	const errorResults: ToolResult[] = [];
 
-	return toolCalls.filter(toolCall => {
+	for (const toolCall of toolCalls) {
 		// Filter out completely empty tool calls
 		if (!toolCall.id || !toolCall.function?.name) {
-			return false;
+			continue;
 		}
 
 		// Filter out tool calls with empty names
 		if (toolCall.function.name.trim() === '') {
-			return false;
+			continue;
 		}
 
 		// Filter out tool calls for tools that don't exist
+		if (toolManager && !toolManager.hasTool(toolCall.function.name)) {
+			errorResults.push({
+				tool_call_id: toolCall.id,
+				role: 'tool' as const,
+				name: toolCall.function.name,
+				content: `Error: Unknown tool: ${toolCall.function.name}. This tool does not exist. Please use only the tools that are available in the system.`,
+			});
+			continue;
+		}
 
 		// Filter out duplicate tool call IDs (GPT-5 issue)
 		if (seenIds.has(toolCall.id)) {
-			return false;
+			continue;
 		}
 
 		// Filter out functionally identical tool calls (same tool + args)
@@ -46,13 +61,15 @@ const filterValidToolCalls = (toolCalls: ToolCall[]): ToolCall[] => {
 			toolCall.function.arguments,
 		)}`;
 		if (seenFunctionCalls.has(functionSignature)) {
-			return false;
+			continue;
 		}
 
 		seenIds.add(toolCall.id);
 		seenFunctionCalls.add(functionSignature);
-		return true;
-	});
+		validToolCalls.push(toolCall);
+	}
+
+	return {validToolCalls, errorResults};
 };
 
 interface UseChatHandlerProps {
@@ -267,7 +284,10 @@ export function useChatHandler({
 
 			// Merge structured tool calls from AI SDK with content-parsed tool calls
 			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
-			const validToolCalls = filterValidToolCalls(allToolCalls);
+			const {validToolCalls, errorResults} = filterValidToolCalls(
+				allToolCalls,
+				toolManager,
+			);
 
 			// Add assistant message to conversation history
 			const assistantMsg: Message = {
@@ -283,6 +303,39 @@ export function useChatHandler({
 			// Clear streaming state after response is complete
 			setIsStreaming(false);
 			setStreamingContent('');
+
+			// Handle error results for non-existent tools
+			if (errorResults.length > 0) {
+				// Display error messages to user
+				for (const error of errorResults) {
+					addToChatQueue(
+						<ErrorMessage
+							key={`unknown-tool-${error.tool_call_id}-${Date.now()}`}
+							message={error.content}
+							hideBox={true}
+						/>,
+					);
+				}
+
+				// Send error results back to model for self-correction
+				const toolMessages = errorResults.map(result => ({
+					role: 'tool' as const,
+					content: result.content || '',
+					tool_call_id: result.tool_call_id,
+					name: result.name,
+				}));
+
+				const updatedMessagesWithError = [
+					...messages,
+					assistantMsg,
+					...toolMessages,
+				];
+				setMessages(updatedMessagesWithError);
+
+				// Continue the main conversation loop with error messages as context
+				await processAssistantResponse(systemMessage, updatedMessagesWithError);
+				return;
+			}
 
 			// Handle tool calls if present - this continues the loop
 			if (validToolCalls && validToolCalls.length > 0) {

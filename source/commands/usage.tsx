@@ -4,16 +4,17 @@
  */
 
 import React from 'react';
-import type {Command} from '@/types/commands.js';
-import type {Message} from '@/types/core.js';
-import {UsageDisplay} from '@/components/usage/usage-display.js';
+import type {Command} from '@/types/commands';
+import type {Message} from '@/types/core';
+import {UsageDisplay} from '@/components/usage/usage-display';
 import {
 	calculateTokenBreakdown,
 	calculateToolDefinitionsTokens,
-} from '@/usage/calculator.js';
-import {getModelContextLimit} from '@/models/index.js';
-import {createTokenizer} from '@/tokenization/index.js';
+} from '@/usage/calculator';
+import {getModelContextLimit} from '@/models/index';
+import {createTokenizer} from '@/tokenization/index';
 import {getToolManager} from '@/message-handler';
+import {processPromptTemplate} from '@/utils/prompt-processor';
 
 export const usageCommand: Command = {
 	name: 'usage',
@@ -33,11 +34,32 @@ export const usageCommand: Command = {
 		// Create tokenizer for accurate breakdown
 		const tokenizer = createTokenizer(provider, model);
 
-		// Calculate token breakdown from messages using cached token counts
+		// Generate the system prompt to include in token calculation
+		const toolManager = getToolManager();
+		const systemPrompt = processPromptTemplate(
+			toolManager ? toolManager.getAllTools() : {},
+		);
+
+		// Create system message to include in token calculation
+		const systemMessage: Message = {
+			role: 'system',
+			content: systemPrompt,
+		};
+
+		// Calculate token breakdown from messages including system prompt
+		// Note: We don't use getMessageTokens for the system message since it's freshly generated
+		// and won't be in the cache. Instead, we use the tokenizer directly for accurate counting.
 		const baseBreakdown = calculateTokenBreakdown(
-			messages,
+			[systemMessage, ...messages],
 			tokenizer,
-			getMessageTokens,
+			message => {
+				// For system message, always use tokenizer directly to avoid cache misses
+				if (message.role === 'system') {
+					return tokenizer.countTokens(message);
+				}
+				// For other messages, use cached token counts
+				return getMessageTokens(message);
+			},
 		);
 
 		// Extract tokenizer name before cleanup
@@ -49,7 +71,7 @@ export const usageCommand: Command = {
 		}
 
 		// Calculate tool definitions tokens and create final breakdown (immutable)
-		const toolManager = getToolManager();
+		// Note: Tool definitions are sent separately to the API and add token overhead
 		const toolDefinitions = toolManager
 			? calculateToolDefinitionsTokens(
 					Object.keys(toolManager.getToolRegistry()).length,

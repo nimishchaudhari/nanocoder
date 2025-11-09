@@ -5,8 +5,8 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import {getAppDataPath} from '@/config/paths.js';
-import type {UsageData, SessionUsage, DailyAggregate} from './types.js';
+import {getAppDataPath} from '@/config/paths';
+import type {UsageData, SessionUsage, DailyAggregate} from '../types/usage';
 
 const USAGE_FILE_NAME = 'usage.json';
 const MAX_SESSIONS = 100;

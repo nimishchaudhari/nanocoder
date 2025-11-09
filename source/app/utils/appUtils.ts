@@ -177,15 +177,18 @@ ${result.fullOutput || '(No output)'}`;
 			});
 			if (result) {
 				// Check if result is JSX (React element)
+				// Defer adding to chat queue to avoid "Cannot update a component while rendering" error
 				if (React.isValidElement(result)) {
-					onAddToChatQueue(result);
+					queueMicrotask(() => onAddToChatQueue(result));
 				} else if (typeof result === 'string' && result.trim()) {
-					onAddToChatQueue(
-						React.createElement(InfoMessage, {
-							key: `command-result-${componentKeyCounter}`,
-							message: result,
-							hideBox: true,
-						}),
+					queueMicrotask(() =>
+						onAddToChatQueue(
+							React.createElement(InfoMessage, {
+								key: `command-result-${componentKeyCounter}`,
+								message: result,
+								hideBox: true,
+							}),
+						),
 					);
 				}
 			}

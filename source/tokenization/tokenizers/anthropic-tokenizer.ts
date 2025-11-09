@@ -4,8 +4,8 @@
  */
 
 import {countTokens as anthropicCountTokens} from '@anthropic-ai/tokenizer';
-import type {Tokenizer} from '../types.js';
-import type {Message} from '@/types/core.js';
+import type {Tokenizer} from '../../types/tokenization';
+import type {Message} from '@/types/core';
 
 /**
  * Anthropic tokenizer for Claude models

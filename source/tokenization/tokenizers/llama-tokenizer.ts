@@ -4,8 +4,8 @@
  */
 
 import llamaTokenizer from 'llama-tokenizer-js';
-import type {Tokenizer} from '../types.js';
-import type {Message} from '@/types/core.js';
+import type {Tokenizer} from '../../types/tokenization';
+import type {Message} from '@/types/core';
 
 export class LlamaTokenizer implements Tokenizer {
 	private modelName: string;

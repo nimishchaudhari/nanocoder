@@ -9,7 +9,7 @@ import type {ThemePreset} from '@/types/ui';
 import type {UpdateInfo, ToolResult} from '@/types/index';
 import type {CustomCommand} from '@/types/commands';
 import {createTokenizer} from '@/tokenization/index.js';
-import type {Tokenizer} from '@/tokenization/types.js';
+import type {Tokenizer} from '@/types/tokenization.js';
 import React from 'react';
 
 export interface ConversationContext {
@@ -140,7 +140,11 @@ export function useAppState() {
 			}
 
 			const tokens = tokenizer.countTokens(message);
-			setMessageTokenCache(prev => new Map(prev).set(cacheKey, tokens));
+			// Defer cache update to avoid "Cannot update a component while rendering" error
+			// This can happen when components call getMessageTokens during their render
+			queueMicrotask(() => {
+				setMessageTokenCache(prev => new Map(prev).set(cacheKey, tokens));
+			});
 			return tokens;
 		},
 		[messageTokenCache, tokenizer, currentModel],

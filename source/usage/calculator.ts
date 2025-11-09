@@ -3,9 +3,9 @@
  * Calculates token breakdown by category
  */
 
-import type {Message} from '@/types/core.js';
-import type {Tokenizer} from '@/tokenization/types.js';
-import type {TokenBreakdown} from './types.js';
+import type {Message} from '@/types/core';
+import type {Tokenizer} from '@/types/tokenization';
+import type {TokenBreakdown} from '../types/usage';
 
 /**
  * Calculate token breakdown from messages
@@ -28,7 +28,9 @@ export function calculateTokenBreakdown(
 	};
 
 	for (const message of messages) {
-		const tokens = getTokens ? getTokens(message) : tokenizer.countTokens(message);
+		const tokens = getTokens
+			? getTokens(message)
+			: tokenizer.countTokens(message);
 
 		switch (message.role) {
 			case 'system':
