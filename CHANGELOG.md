@@ -1,3 +1,9 @@
+# 1.16.1
+
+- Fix: Removed postinstall hook that caused installation failures due to missing scripts directory in published package. Models.dev data is now fetched on first use instead of during installation.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 # 1.16.0
 
 - New `/usage` command! Visually see model context usage. Thanks to @spinualexandru for doing this. Closes issue #12. 🎉

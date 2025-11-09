@@ -1,7 +1,7 @@
 {
 	"name": "@nanocollective/nanocoder",
 	"main": "dist/cli.js",
-	"version": "1.16.0",
+	"version": "1.16.1",
 	"description": "A local-first CLI coding agent that brings the power of agentic coding tools like Claude Code and Gemini CLI to local models or controlled APIs like OpenRouter",
 	"keywords": [
 		"cli",
@@ -35,7 +35,6 @@
 		"build": "tsc && tsc-alias && chmod +x dist/cli.js",
 		"dev": "tsc --watch",
 		"start": "node dist/cli.js",
-		"postinstall": "node scripts/fetch-models.js",
 		"release:nix": "./scripts/update-nix-version.sh",
 		"test:all": "./scripts/test.sh",
 		"test:ava": "ava",
