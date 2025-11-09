@@ -2,6 +2,38 @@ import {ModelEntry} from '@/types/index';
 
 const MODEL_DATABASE: ModelEntry[] = [
 	{
+		name: 'minimax/minimax-m2',
+		author: 'MiniMax',
+		size: '230B',
+		local: true,
+		api: true,
+		minMemoryGB: 160,
+		quality: {
+			agentic: 9,
+			local: 2,
+			cost: 7,
+		},
+		costType: 'free',
+		costDetails:
+			'Free to run locally. API: from $0.25/M input, $1.02/M output.',
+	},
+	{
+		name: 'moonshotai/kimi-k2-thinking',
+		author: 'Moonshot AI',
+		size: '1T',
+		local: true,
+		api: true,
+		minMemoryGB: 500,
+		quality: {
+			agentic: 8,
+			local: 1,
+			cost: 7,
+		},
+		costType: 'free',
+		costDetails:
+			'Free to run locally. API: from $0.60/M input, $2.50/M output.',
+	},
+	{
 		name: 'qwen2.5-coder:0.5b',
 		author: 'Alibaba',
 		size: '0.5B',
@@ -280,6 +312,22 @@ const MODEL_DATABASE: ModelEntry[] = [
 		costType: 'free',
 		costDetails:
 			'Free to run locally. API: from $0.07/M input, $0.28/M output.',
+	},
+	{
+		name: 'mistralai/voxtral-small-24b-2507',
+		author: 'Mistral',
+		size: '24B',
+		local: true,
+		api: true,
+		minMemoryGB: 18,
+		quality: {
+			agentic: 5,
+			local: 7,
+			cost: 8.5,
+		},
+		costType: 'free',
+		costDetails:
+			'Free to run locally. API: from $0.10/M input, $0.30/M output.',
 	},
 	{
 		name: 'devstral-medium',
