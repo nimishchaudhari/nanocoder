@@ -6,7 +6,12 @@ export interface Command<T = React.ReactElement> {
 	handler: (
 		args: string[],
 		messages: Message[],
-		metadata: {provider: string; model: string; tokens: number},
+		metadata: {
+			provider: string;
+			model: string;
+			tokens: number;
+			getMessageTokens: (message: Message) => number;
+		},
 	) => Promise<T>;
 }
 

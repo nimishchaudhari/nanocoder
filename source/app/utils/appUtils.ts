@@ -173,6 +173,7 @@ ${result.fullOutput || '(No output)'}`;
 				provider: options.provider,
 				model: options.model,
 				tokens: totalTokens,
+				getMessageTokens: options.getMessageTokens,
 			});
 			if (result) {
 				// Check if result is JSX (React element)

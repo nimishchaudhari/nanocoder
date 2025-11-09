@@ -30,6 +30,7 @@ import {
 	streamingCommand,
 	themeCommand,
 	updateCommand,
+	usageCommand,
 } from '@/commands/index';
 import SuccessMessage from '@/components/success-message';
 import ErrorMessage from '@/components/error-message';
@@ -274,6 +275,7 @@ export function useAppInitialization({
 				statusCommand,
 				setupConfigCommand,
 				streamingCommand,
+				usageCommand,
 			]);
 
 			// Now start with the properly initialized objects (excluding MCP)

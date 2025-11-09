@@ -35,6 +35,7 @@
 		"build": "tsc && tsc-alias && chmod +x dist/cli.js",
 		"dev": "tsc --watch",
 		"start": "node dist/cli.js",
+		"postinstall": "node scripts/fetch-models.js",
 		"release:nix": "./scripts/update-nix-version.sh",
 		"test:all": "./scripts/test.sh",
 		"test:ava": "ava",
@@ -53,6 +54,7 @@
 	],
 	"dependencies": {
 		"@ai-sdk/openai-compatible": "^1.0.24",
+		"@anthropic-ai/tokenizer": "^0.0.4",
 		"@mishieck/ink-titled-box": "^0.3.0",
 		"@modelcontextprotocol/sdk": "^1.17.3",
 		"@nanocollective/get-md": "^1.0.1",
@@ -69,9 +71,12 @@
 		"ink-spinner": "^5.0.0",
 		"ink-tab": "^5.2.0",
 		"ink-text-input": "^6.0.0",
+		"llama-tokenizer-js": "^1.2.2",
 		"react": "^19.0.0",
 		"systeminformation": "^5.27.10",
-		"undici": "^7.16.0"
+		"tiktoken": "^1.0.22",
+		"undici": "^7.16.0",
+		"xdg-basedir": "^5.1.0"
 	},
 	"devDependencies": {
 		"@ava/typescript": "^6.0.0",

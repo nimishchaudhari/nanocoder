@@ -12,6 +12,7 @@ import type {
 	StreamCallbacks,
 } from '@/types/index';
 import {XMLToolCallParser} from '@/tool-calling/xml-parser';
+import {getModelContextLimit} from '@/models/index.js';
 
 /**
  * Parses API errors into user-friendly messages
@@ -136,11 +137,13 @@ export class AISDKClient implements LLMClient {
 	private availableModels: string[];
 	private providerConfig: AIProviderConfig;
 	private undiciAgent: Agent;
+	private cachedContextSize: number;
 
 	constructor(providerConfig: AIProviderConfig) {
 		this.providerConfig = providerConfig;
 		this.availableModels = providerConfig.models;
 		this.currentModel = providerConfig.models[0] || '';
+		this.cachedContextSize = 0;
 
 		const {requestTimeout, socketTimeout, connectionPool} = this.providerConfig;
 		const resolvedSocketTimeout =
@@ -161,6 +164,22 @@ export class AISDKClient implements LLMClient {
 		});
 
 		this.provider = this.createProvider();
+
+		// Fetch context size asynchronously (don't block construction)
+		void this.updateContextSize();
+	}
+
+	/**
+	 * Fetch and cache context size from models.dev
+	 */
+	private async updateContextSize(): Promise<void> {
+		try {
+			const contextSize = await getModelContextLimit(this.currentModel);
+			this.cachedContextSize = contextSize || 0;
+		} catch {
+			// Silently fail - context size will remain 0
+			this.cachedContextSize = 0;
+		}
 	}
 
 	static create(providerConfig: AIProviderConfig): Promise<AISDKClient> {
@@ -202,6 +221,8 @@ export class AISDKClient implements LLMClient {
 
 	setModel(model: string): void {
 		this.currentModel = model;
+		// Update context size when model changes
+		void this.updateContextSize();
 	}
 
 	getCurrentModel(): string {
@@ -209,9 +230,7 @@ export class AISDKClient implements LLMClient {
 	}
 
 	getContextSize(): number {
-		// Context size is not available without external model metadata service
-		// This method is kept for LLMClient interface compatibility but always returns 0
-		return 0;
+		return this.cachedContextSize;
 	}
 
 	getAvailableModels(): Promise<string[]> {
