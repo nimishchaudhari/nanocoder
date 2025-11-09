@@ -97,7 +97,9 @@ export function UsageDisplay({
 		>
 			{/* Overall Usage */}
 			<Box marginBottom={1}>
-				<Text color={colors.secondary}>Overall Usage</Text>
+				<Text color={colors.primary} bold>
+					Overall Usage
+				</Text>
 			</Box>
 			<Box marginBottom={0}>
 				<ProgressBar
@@ -119,7 +121,9 @@ export function UsageDisplay({
 
 			{/* Category Breakdown */}
 			<Box marginTop={1} marginBottom={1}>
-				<Text color={colors.secondary}>Breakdown by Category</Text>
+				<Text color={colors.primary} bold>
+					Breakdown by Category
+				</Text>
 			</Box>
 
 			{/* System Prompt */}
@@ -233,7 +237,9 @@ export function UsageDisplay({
 
 			{/* Model Information */}
 			<Box marginTop={1} marginBottom={1}>
-				<Text color={colors.secondary}>Model Information</Text>
+				<Text color={colors.primary} bold>
+					Model Information
+				</Text>
 			</Box>
 			<Box>
 				<Text color={colors.secondary}>
@@ -261,7 +267,9 @@ export function UsageDisplay({
 
 			{/* Recent Activity */}
 			<Box marginTop={1} marginBottom={1}>
-				<Text color={colors.secondary}>Recent Activity</Text>
+				<Text color={colors.primary} bold>
+					Recent Activity
+				</Text>
 			</Box>
 			<Box>
 				<Text color={colors.secondary}>
