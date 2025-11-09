@@ -74,32 +74,3 @@ export function writeCache(data: ModelsDevDatabase): void {
 		console.warn('Failed to write models cache:', error);
 	}
 }
-
-export function isCacheValid(): boolean {
-	const cached = readCache();
-	return cached !== null;
-}
-
-export function clearCache(): void {
-	try {
-		const cachePath = getCacheFilePath();
-		if (fs.existsSync(cachePath)) {
-			fs.unlinkSync(cachePath);
-		}
-	} catch (error) {
-		console.warn('Failed to clear models cache:', error);
-	}
-}
-
-/**
- * Get cache age in milliseconds
- * Returns -1 if cache doesn't exist
- */
-export function getCacheAge(): number {
-	const cached = readCache();
-	if (!cached) {
-		return -1;
-	}
-
-	return Date.now() - cached.fetchedAt;
-}

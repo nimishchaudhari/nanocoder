@@ -10,20 +10,20 @@ export {
 	getTodayAggregate,
 	getLastNDaysAggregate,
 	clearUsageData,
-} from './storage.js';
+} from './storage';
 
 export {
 	SessionTracker,
 	initializeSession,
 	getCurrentSession,
 	clearCurrentSession,
-} from './tracker.js';
+} from './tracker';
 
 export {
 	calculateTokenBreakdown,
 	calculateToolDefinitionsTokens,
 	getUsageStatusColor,
 	formatTokenCount,
-} from './calculator.js';
+} from './calculator';
 
-export type {TokenBreakdown} from './types.js';
+export type {TokenBreakdown} from '../types/usage';

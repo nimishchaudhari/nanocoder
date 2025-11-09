@@ -5,12 +5,7 @@
 
 import {request} from 'undici';
 import {readCache, writeCache} from './models-cache.js';
-import type {
-	ModelsDevDatabase,
-	ModelsDevProvider,
-	ModelsDevModel,
-	ModelInfo,
-} from './models-types.js';
+import type {ModelsDevDatabase, ModelInfo} from './models-types.js';
 
 const MODELS_DEV_API_URL = 'https://models.dev/api.json';
 
@@ -149,7 +144,7 @@ function getOllamaFallbackContextLimit(modelName: string): number | null {
  * Fetch models data from models.dev API
  * Falls back to cache if API is unavailable
  */
-export async function fetchModelsData(): Promise<ModelsDevDatabase | null> {
+async function fetchModelsData(): Promise<ModelsDevDatabase | null> {
 	try {
 		const response = await request(MODELS_DEV_API_URL, {
 			method: 'GET',
@@ -187,7 +182,7 @@ export async function fetchModelsData(): Promise<ModelsDevDatabase | null> {
 /**
  * Get models data, preferring cache if valid
  */
-export async function getModelsData(): Promise<ModelsDevDatabase | null> {
+async function getModelsData(): Promise<ModelsDevDatabase | null> {
 	// Try cache first
 	const cached = readCache();
 	if (cached) {
@@ -202,9 +197,7 @@ export async function getModelsData(): Promise<ModelsDevDatabase | null> {
  * Find a model by ID across all providers
  * Returns the model info and provider name
  */
-export async function findModelById(
-	modelId: string,
-): Promise<ModelInfo | null> {
+async function findModelById(modelId: string): Promise<ModelInfo | null> {
 	const data = await getModelsData();
 	if (!data) {
 		return null;
@@ -236,9 +229,7 @@ export async function findModelById(
  * Find a model by partial name match
  * Useful for local models where exact ID might not match
  */
-export async function findModelByName(
-	modelName: string,
-): Promise<ModelInfo | null> {
+async function findModelByName(modelName: string): Promise<ModelInfo | null> {
 	const data = await getModelsData();
 	if (!data) {
 		return null;
@@ -306,35 +297,4 @@ export async function getModelContextLimit(
 
 	// No context limit found
 	return null;
-}
-
-/**
- * Get all models from a specific provider
- */
-export async function getProviderModels(
-	providerId: string,
-): Promise<ModelsDevModel[] | null> {
-	const data = await getModelsData();
-	if (!data) {
-		return null;
-	}
-
-	const provider = data[providerId];
-	if (!provider) {
-		return null;
-	}
-
-	return Object.values(provider.models);
-}
-
-/**
- * List all available providers
- */
-export async function listProviders(): Promise<ModelsDevProvider[] | null> {
-	const data = await getModelsData();
-	if (!data) {
-		return null;
-	}
-
-	return Object.values(data);
 }

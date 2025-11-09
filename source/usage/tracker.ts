@@ -3,12 +3,12 @@
  * Tracks current session usage
  */
 
-import type {Message} from '@/types/core.js';
-import type {Tokenizer} from '@/types/tokenization.js';
-import {calculateTokenBreakdown} from './calculator.js';
-import {addSession} from './storage.js';
-import {getModelContextLimit} from '@/models/index.js';
-import type {SessionUsage, CurrentSessionStats} from './types.js';
+import type {Message} from '@/types/core';
+import type {Tokenizer} from '@/types/tokenization';
+import {calculateTokenBreakdown} from './calculator';
+import {addSession} from './storage';
+import {getModelContextLimit} from '@/models/index';
+import type {SessionUsage, CurrentSessionStats} from '../types/usage';
 
 export class SessionTracker {
 	private sessionId: string;

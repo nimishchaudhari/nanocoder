@@ -9,7 +9,7 @@ import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {ProgressBar} from './progress-bar.js';
 import type {Message} from '@/types/core.js';
-import type {TokenBreakdown} from '@/usage/types.js';
+import type {TokenBreakdown} from '@/types/usage.js';
 import {formatTokenCount, getUsageStatusColor} from '@/usage/calculator.js';
 
 interface UsageDisplayProps {

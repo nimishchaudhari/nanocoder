@@ -3,9 +3,9 @@
  * Calculates token breakdown by category
  */
 
-import type {Message} from '@/types/core.js';
-import type {Tokenizer} from '@/types/tokenization.js';
-import type {TokenBreakdown} from './types.js';
+import type {Message} from '@/types/core';
+import type {Tokenizer} from '@/types/tokenization';
+import type {TokenBreakdown} from '../types/usage';
 
 /**
  * Calculate token breakdown from messages
