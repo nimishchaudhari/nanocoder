@@ -1,3 +1,13 @@
+# 1.16.0
+
+- New `/usage` command! Visually see model context usage. Thanks to @spinualexandru for doing this. Closes issue #12. 🎉
+
+- Added new models to the recommendations database.
+
+- Fix: Model asked for permission to call tools that didn't exist. It now errors and loops back to the model to correct itself.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 # 1.15.1
 
 - Fix: Sometimes Ollama returns tool calls without IDs, this caused empty responses occassionally. If no ID is detected, we now generate one.
