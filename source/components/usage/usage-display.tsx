@@ -79,8 +79,10 @@ export function UsageDisplay({
 			? Math.max(...messages.map(msg => getMessageTokens(msg)))
 			: 0;
 
-	// Bar width for category breakdown
-	const barMaxWidth = Math.min(30, boxWidth - 30);
+	// Responsive layout calculations based on terminal width
+	// For narrow terminals, reduce space for bars
+	const barMaxWidth = Math.max(10, Math.min(30, boxWidth - 20));
+	const mainProgressWidth = Math.max(20, Math.min(60, boxWidth - 12));
 
 	return (
 		<TitledBox
@@ -104,7 +106,7 @@ export function UsageDisplay({
 			<Box marginBottom={0}>
 				<ProgressBar
 					percent={percentUsed}
-					width={Math.min(60, boxWidth - 8)}
+					width={mainProgressWidth}
 					color={progressColor}
 				/>
 				<Text color={colors.white} bold>
@@ -127,101 +129,102 @@ export function UsageDisplay({
 			</Box>
 
 			{/* System Prompt */}
-			<Box flexDirection="row" marginBottom={0}>
-				<Box width={20}>
-					<Text color={colors.info}>System Prompt</Text>
+			<Box flexDirection="column" marginBottom={1}>
+				<Box marginBottom={0}>
+					<Text color={colors.info}>System Prompt:</Text>
 				</Box>
-				<Box width={barMaxWidth}>
+				<Box flexDirection="row">
 					<ProgressBar
 						percent={systemPercent}
 						width={barMaxWidth}
 						color={colors.info}
 					/>
-				</Box>
-				<Box marginLeft={2}>
-					<Text color={colors.white}>
-						{Math.round(systemPercent)}% ({formatTokenCount(breakdown.system)})
-					</Text>
+					<Box marginLeft={1}>
+						<Text color={colors.white}>
+							{Math.round(systemPercent)}% ({formatTokenCount(breakdown.system)}
+							)
+						</Text>
+					</Box>
 				</Box>
 			</Box>
 
 			{/* User Messages */}
-			<Box flexDirection="row" marginBottom={0}>
-				<Box width={20}>
-					<Text color={colors.secondary}>User Messages</Text>
+			<Box flexDirection="column" marginBottom={1}>
+				<Box marginBottom={0}>
+					<Text color={colors.secondary}>User Messages:</Text>
 				</Box>
-				<Box width={barMaxWidth}>
+				<Box flexDirection="row">
 					<ProgressBar
 						percent={userPercent}
 						width={barMaxWidth}
 						color={colors.info}
 					/>
-				</Box>
-				<Box marginLeft={2}>
-					<Text color={colors.white}>
-						{Math.round(userPercent)}% (
-						{formatTokenCount(breakdown.userMessages)})
-					</Text>
+					<Box marginLeft={1}>
+						<Text color={colors.white}>
+							{Math.round(userPercent)}% (
+							{formatTokenCount(breakdown.userMessages)})
+						</Text>
+					</Box>
 				</Box>
 			</Box>
 
 			{/* Assistant Messages */}
-			<Box flexDirection="row" marginBottom={0}>
-				<Box width={20}>
-					<Text color={colors.secondary}>Assistant Messages</Text>
+			<Box flexDirection="column" marginBottom={1}>
+				<Box marginBottom={0}>
+					<Text color={colors.secondary}>Assistant Messages:</Text>
 				</Box>
-				<Box width={barMaxWidth}>
+				<Box flexDirection="row">
 					<ProgressBar
 						percent={assistantPercent}
 						width={barMaxWidth}
 						color={colors.info}
 					/>
-				</Box>
-				<Box marginLeft={2}>
-					<Text color={colors.white}>
-						{Math.round(assistantPercent)}% (
-						{formatTokenCount(breakdown.assistantMessages)})
-					</Text>
+					<Box marginLeft={1}>
+						<Text color={colors.white}>
+							{Math.round(assistantPercent)}% (
+							{formatTokenCount(breakdown.assistantMessages)})
+						</Text>
+					</Box>
 				</Box>
 			</Box>
 
 			{/* Tool Messages */}
-			<Box flexDirection="row" marginBottom={0}>
-				<Box width={20}>
-					<Text color={colors.secondary}>Tool Messages</Text>
+			<Box flexDirection="column" marginBottom={1}>
+				<Box marginBottom={0}>
+					<Text color={colors.secondary}>Tool Messages:</Text>
 				</Box>
-				<Box width={barMaxWidth}>
+				<Box flexDirection="row">
 					<ProgressBar
 						percent={toolMessagesPercent}
 						width={barMaxWidth}
 						color={colors.info}
 					/>
-				</Box>
-				<Box marginLeft={2}>
-					<Text color={colors.white}>
-						{Math.round(toolMessagesPercent)}% (
-						{formatTokenCount(breakdown.toolResults)})
-					</Text>
+					<Box marginLeft={1}>
+						<Text color={colors.white}>
+							{Math.round(toolMessagesPercent)}% (
+							{formatTokenCount(breakdown.toolResults)})
+						</Text>
+					</Box>
 				</Box>
 			</Box>
 
 			{/* Tool Definitions */}
-			<Box flexDirection="row" marginBottom={1}>
-				<Box width={20}>
-					<Text color={colors.secondary}>Tool Definitions</Text>
+			<Box flexDirection="column" marginBottom={1}>
+				<Box marginBottom={0}>
+					<Text color={colors.secondary}>Tool Definitions:</Text>
 				</Box>
-				<Box width={barMaxWidth}>
+				<Box flexDirection="row">
 					<ProgressBar
 						percent={toolDefsPercent}
 						width={barMaxWidth}
 						color={colors.info}
 					/>
-				</Box>
-				<Box marginLeft={2}>
-					<Text color={colors.white}>
-						{Math.round(toolDefsPercent)}% (
-						{formatTokenCount(breakdown.toolDefinitions)})
-					</Text>
+					<Box marginLeft={1}>
+						<Text color={colors.white}>
+							{Math.round(toolDefsPercent)}% (
+							{formatTokenCount(breakdown.toolDefinitions)})
+						</Text>
+					</Box>
 				</Box>
 			</Box>
 
