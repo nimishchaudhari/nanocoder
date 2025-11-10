@@ -4,7 +4,6 @@ export * from '@/types/config';
 export * from '@/types/mcp';
 export * from '@/types/commands';
 export * from '@/types/ui';
-export * from '@/types/tools';
 export * from '@/types/app';
 export * from '@/types/utils';
 export * from '@/types/components';
