@@ -575,3 +575,61 @@ test('stress test - handles very long parameter values', t => {
 	t.is(parsed.length, 1);
 	t.is((parsed[0].parameters.data as string).length, 10000);
 });
+
+// HTML tag rejection tests
+test('parseToolCalls - rejects HTML div tags', t => {
+	const content = '<div><p>Some HTML content</p></div>';
+	const result = XMLToolCallParser.parseToolCalls(content);
+
+	t.is(result.length, 0);
+});
+
+test('parseToolCalls - rejects HTML ul/li list tags', t => {
+	const content = '<ul><li>Item 1</li><li>Item 2</li></ul>';
+	const result = XMLToolCallParser.parseToolCalls(content);
+
+	t.is(result.length, 0);
+});
+
+test('parseToolCalls - rejects HTML table tags', t => {
+	const content = '<table><tr><td>Cell 1</td><td>Cell 2</td></tr></table>';
+	const result = XMLToolCallParser.parseToolCalls(content);
+
+	t.is(result.length, 0);
+});
+
+test('parseToolCalls - rejects HTML header tags', t => {
+	const content = '<h1>Title</h1><h2>Subtitle</h2>';
+	const result = XMLToolCallParser.parseToolCalls(content);
+
+	t.is(result.length, 0);
+});
+
+test('parseToolCalls - rejects HTML formatting tags', t => {
+	const content = '<strong>Bold</strong><em>Italic</em>';
+	const result = XMLToolCallParser.parseToolCalls(content);
+
+	t.is(result.length, 0);
+});
+
+test('parseToolCalls - rejects mixed HTML and valid tool calls correctly', t => {
+	const content = `<div>Some HTML</div>
+<read_file><path>/test.txt</path></read_file>
+<p>More HTML</p>`;
+	const result = XMLToolCallParser.parseToolCalls(content);
+
+	// Should only parse the valid tool call, not the HTML
+	t.is(result.length, 1);
+	t.is(result[0].toolName, 'read_file');
+});
+
+test('parseToolCalls - allows valid tool calls with HTML-like parameter content', t => {
+	const content =
+		'<create_file><path>/test.html</path><content><div>HTML content</div></content></create_file>';
+	const result = XMLToolCallParser.parseToolCalls(content);
+
+	// Should parse the tool call, with HTML as parameter value
+	t.is(result.length, 1);
+	t.is(result[0].toolName, 'create_file');
+	t.truthy(result[0].parameters.content);
+});

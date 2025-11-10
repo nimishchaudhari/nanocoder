@@ -284,6 +284,7 @@ export function useChatHandler({
 
 			// Merge structured tool calls from AI SDK with content-parsed tool calls
 			const allToolCalls = [...(toolCalls || []), ...parsedToolCalls];
+
 			const {validToolCalls, errorResults} = filterValidToolCalls(
 				allToolCalls,
 				toolManager,
@@ -583,7 +584,46 @@ export function useChatHandler({
 					);
 				}
 			}
+
 			// If no tool calls, the conversation naturally ends here
+			// BUT: if there's ALSO no content, that's likely an error - the model should have said something
+			// Auto-reprompt to help the model continue
+			if (validToolCalls.length === 0 && !cleanedContent.trim()) {
+				// Check if we just executed tools (messages should have tool results)
+				const lastMessage = messages[messages.length - 1];
+				const hasRecentToolResults = lastMessage?.role === 'tool';
+
+				if (hasRecentToolResults) {
+					// Add a system-like nudge message to help model continue
+					const nudgeMessage: Message = {
+						role: 'user',
+						content:
+							'Please provide a summary or response based on the tool results above.',
+					};
+
+					const updatedMessagesWithNudge = [
+						...messages,
+						assistantMsg,
+						nudgeMessage,
+					];
+					setMessages(updatedMessagesWithNudge);
+
+					// Continue the conversation loop with the nudge
+					await processAssistantResponse(
+						systemMessage,
+						updatedMessagesWithNudge,
+					);
+					return;
+				} else {
+					addToChatQueue(
+						<ErrorMessage
+							key={`empty-response-${componentKeyCounter}`}
+							message="The model returned an empty response. This may happen if the model is having issues or has finished processing. Try asking a follow-up question or saying 'continue' if you expected more output."
+							hideBox={true}
+						/>,
+					);
+				}
+			}
 		} catch (error) {
 			if (
 				error instanceof Error &&

@@ -2,7 +2,7 @@ import {spawn} from 'node:child_process';
 import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
-import type {ToolDefinition, BashToolResult} from '@/types/index';
+import type {ToolDefinition} from '@/types/index';
 import {tool, jsonSchema} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
@@ -32,17 +32,16 @@ ${stdout}`;
 				fullOutput = stdout;
 			}
 
-			// Limit the context for LLM to first 4000 characters
+			// Limit the context for LLM to first 2000 characters to prevent overwhelming the model
 			const llmContext =
-				fullOutput.length > 4000 ? fullOutput.substring(0, 4000) : fullOutput;
+				fullOutput.length > 2000
+					? fullOutput.substring(0, 2000) +
+					  '\n... [Output truncated. Use more specific commands to see full output]'
+					: fullOutput;
 
-			// Return as JSON string to maintain compatibility with ToolHandler type
-			resolve(
-				JSON.stringify({
-					fullOutput,
-					llmContext,
-				} as BashToolResult),
-			);
+			// Return ONLY the llmContext to avoid sending massive outputs to the model
+			// The formatter will need to be updated to handle plain strings
+			resolve(llmContext);
 		});
 
 		proc.on('error', error => {
@@ -87,30 +86,11 @@ const ExecuteBashFormatter = React.memo(
 			// Syntax highlighting failed, will use plain command
 		}
 
-		// Parse the result if it's a JSON string
-		let parsedResult: {fullOutput: string; llmContext: string} | null = null;
-		if (result) {
-			try {
-				parsedResult = JSON.parse(result) as {
-					fullOutput: string;
-					llmContext: string;
-				};
-			} catch {
-				// If parsing fails, treat as plain string
-				parsedResult = {
-					fullOutput: result,
-					llmContext: result.length > 4000 ? result.substring(0, 4000) : result,
-				};
-			}
-		}
-
-		// Calculate token estimation for the output if result is provided
+		// Result is now a plain string (truncated output)
 		let outputSize = 0;
 		let estimatedTokens = 0;
-		let fullOutputSize = 0;
-		if (parsedResult) {
-			outputSize = parsedResult.llmContext.length;
-			fullOutputSize = parsedResult.fullOutput.length;
+		if (result) {
+			outputSize = result.length;
 			estimatedTokens = Math.ceil(outputSize / 4); // ~4 characters per token
 		}
 
@@ -123,12 +103,11 @@ const ExecuteBashFormatter = React.memo(
 					<Text color={colors.primary}>{command}</Text>
 				</Box>
 
-				{parsedResult && (
+				{result && (
 					<Box>
 						<Text color={colors.secondary}>Output: </Text>
 						<Text color={colors.white}>
-							{fullOutputSize} characters (~{estimatedTokens} tokens sent to
-							LLM)
+							{outputSize} characters (~{estimatedTokens} tokens sent to LLM)
 						</Text>
 					</Box>
 				)}

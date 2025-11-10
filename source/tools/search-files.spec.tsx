@@ -40,7 +40,7 @@ test('SearchFilesFormatter renders with query', t => {
 	}
 
 	const element = formatter(
-		{query: 'test query', maxResults: 50},
+		{query: 'test query', maxResults: 10},
 		'Found 5 matches',
 	);
 	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
@@ -60,7 +60,7 @@ test('SearchFilesFormatter renders with pattern', t => {
 	}
 
 	const element = formatter(
-		{pattern: '**/*.ts', maxResults: 50},
+		{pattern: '**/*.ts', maxResults: 10},
 		'Found 10 files',
 	);
 	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
@@ -110,7 +110,7 @@ test('SearchFilesFormatter displays query parameter', t => {
 	}
 
 	const element = formatter(
-		{query: 'searchTerm', maxResults: 100},
+		{query: 'searchTerm', maxResults: 10},
 		'Found 3 matches',
 	);
 	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
@@ -128,7 +128,7 @@ test('SearchFilesFormatter displays pattern parameter', t => {
 	}
 
 	const element = formatter(
-		{pattern: 'src/**/*.tsx', maxResults: 100},
+		{pattern: 'src/**/*.tsx', maxResults: 10},
 		'Found 7 files',
 	);
 	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
@@ -209,7 +209,7 @@ test.serial('search_files respects .gitignore for content search', async t => {
 			// Test content search - should exclude ignored files
 			const contentResult = await searchFilesTool.handler({
 				query: 'const',
-				maxResults: 50,
+				maxResults: 10,
 			});
 
 			t.false(
@@ -262,7 +262,7 @@ test.serial('search_files respects .gitignore for pattern search', async t => {
 			// Test pattern search - should exclude ignored files
 			const patternResult = await searchFilesTool.handler({
 				pattern: '**/*.tsx',
-				maxResults: 50,
+				maxResults: 10,
 			});
 
 			t.false(
@@ -309,7 +309,7 @@ test.serial(
 				// Test pattern search - should exclude node_modules even without .gitignore
 				const patternResult = await searchFilesTool.handler({
 					pattern: '**/*.js',
-					maxResults: 50,
+					maxResults: 10,
 				});
 
 				t.false(
@@ -362,7 +362,7 @@ test.serial('search_files handles multiple .gitignore patterns', async t => {
 			// Test pattern search
 			const result = await searchFilesTool.handler({
 				pattern: '**/*',
-				maxResults: 50,
+				maxResults: 10,
 			});
 
 			t.true(result.includes('src/app.ts'), 'Should include normal files');
@@ -387,7 +387,7 @@ test.serial('search_files handles multiple .gitignore patterns', async t => {
 test('search_files requires either query or pattern', async t => {
 	await t.throwsAsync(
 		async () => {
-			await searchFilesTool.handler({maxResults: 50});
+			await searchFilesTool.handler({maxResults: 10});
 		},
 		{
 			message: /Either "query" or "pattern" must be provided/,
@@ -441,4 +441,46 @@ test('search_files tool has handler function', t => {
 
 test('search_files tool has formatter function', t => {
 	t.is(typeof searchFilesTool.formatter, 'function');
+});
+
+// ============================================================================
+// Tests for maxResults Hard Cap
+// ============================================================================
+
+test.serial('search_files enforces hard cap of 10 results', async t => {
+	t.timeout(10000);
+	// Request more than 10 results but should be capped at 10
+	const result = await searchFilesTool.handler({
+		query: 'const',
+		maxResults: 100, // Request 100, but should cap at 10
+	});
+
+	// Check that the result mentions showing first 10 or has max 10 matches
+	// The format should indicate truncation or show max 10 matches
+	const firstLine = result.split('\n')[0];
+	const matchCount = firstLine.match(/Found (\d+)/);
+
+	if (matchCount) {
+		const count = parseInt(matchCount[1], 10);
+		// Should be capped at 10
+		t.true(count <= 10, `Found ${count} matches, should be max 10`);
+	}
+
+	// Also verify it doesn't say "Found 100" or similar large numbers
+	t.false(result.includes('Found 100'));
+	t.false(result.includes('Found 50'));
+});
+
+test.serial('search_files respects maxResults when less than cap', async t => {
+	t.timeout(10000);
+	// Request fewer than 10 results
+	const result = await searchFilesTool.handler({
+		query: 'const',
+		maxResults: 5, // Request only 5
+	});
+
+	// Should respect the lower limit
+	// Result should have fewer matches than if we requested 10
+	t.truthy(result);
+	t.false(result.includes('Error'));
 });

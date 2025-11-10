@@ -201,7 +201,8 @@ interface SearchFilesArgs {
 
 const executeSearchFiles = async (args: SearchFilesArgs): Promise<string> => {
 	const cwd = process.cwd();
-	const maxResults = args.maxResults || 50;
+	// Hard cap at 10 results to prevent overwhelming the model
+	const maxResults = Math.min(args.maxResults || 10, 10);
 	const contextLines = args.contextLines || 2;
 
 	try {
@@ -277,7 +278,8 @@ const searchFilesCoreTool = tool({
 			},
 			maxResults: {
 				type: 'number',
-				description: 'Maximum number of results to return (default: 50).',
+				description:
+					'Maximum number of results to return (default: 10, max: 10).',
 			},
 			contextLines: {
 				type: 'number',

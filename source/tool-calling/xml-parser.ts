@@ -61,6 +61,46 @@ export class XMLToolCallParser {
 	 * Rejects partial matches, malformed syntax, and invalid structures
 	 */
 	private static isValidToolCall(fullMatch: string, toolName: string): boolean {
+		// Reject common HTML tags that might be in model output
+		const htmlTags = [
+			'div',
+			'span',
+			'p',
+			'a',
+			'ul',
+			'ol',
+			'li',
+			'table',
+			'tr',
+			'td',
+			'th',
+			'thead',
+			'tbody',
+			'h1',
+			'h2',
+			'h3',
+			'h4',
+			'h5',
+			'h6',
+			'br',
+			'hr',
+			'strong',
+			'em',
+			'code',
+			'pre',
+			'blockquote',
+			'img',
+			'section',
+			'article',
+			'header',
+			'footer',
+			'nav',
+			'aside',
+		];
+		if (htmlTags.includes(toolName.toLowerCase())) {
+			return false;
+		}
+
 		// Check for malformed attribute-style syntax like <function=name> or <parameter=name>
 		if (fullMatch.includes('=')) {
 			return false;
