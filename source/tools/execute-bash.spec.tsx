@@ -187,8 +187,9 @@ test('execute_bash handles syntax errors', async t => {
 
 test('execute_bash truncates long output to 2000 characters', async t => {
 	// Generate output longer than 2000 characters
+	// Use POSIX-compatible syntax (seq instead of bash brace expansion)
 	const longCommand =
-		'for i in {1..100}; do echo "This is a long line of text that repeats many times"; done';
+		'seq 1 100 | while read i; do echo "This is a long line of text that repeats many times"; done';
 	const result = await executeBashTool.handler({command: longCommand});
 
 	t.truthy(result);
