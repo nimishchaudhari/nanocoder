@@ -86,7 +86,7 @@ export function useAppState() {
 	const [chatComponents, setChatComponents] = useState<React.ReactNode[]>([]);
 	const [componentKeyCounter, setComponentKeyCounter] = useState(0);
 
-	// Helper function to add components to the chat queue with stable keys and memory optimization
+	// Helper function to add components to the chat queue with stable keys
 	const addToChatQueue = useCallback(
 		(component: React.ReactNode) => {
 			const newCounter = componentKeyCounter + 1;
@@ -99,13 +99,10 @@ export function useAppState() {
 				});
 			}
 
-			setChatComponents(prevComponents => {
-				const newComponents = [...prevComponents, componentWithKey];
-				// Keep reasonable limit in memory for performance
-				return newComponents.length > 50
-					? newComponents.slice(-50)
-					: newComponents;
-			});
+			setChatComponents(prevComponents => [
+				...prevComponents,
+				componentWithKey,
+			]);
 		},
 		[componentKeyCounter],
 	);
@@ -150,17 +147,10 @@ export function useAppState() {
 		[messageTokenCache, tokenizer, currentModel],
 	);
 
-	// Optimized message updater that separates display from context
+	// Message updater - no limits, display all messages
 	const updateMessages = useCallback((newMessages: Message[]) => {
-		setMessages(newMessages); // Full context always preserved for model
-
-		// Limit display messages for UI performance only
-		const displayLimit = 30;
-		setDisplayMessages(
-			newMessages.length > displayLimit
-				? newMessages.slice(-displayLimit)
-				: newMessages,
-		);
+		setMessages(newMessages);
+		setDisplayMessages(newMessages);
 	}, []);
 
 	// Reset tool confirmation state

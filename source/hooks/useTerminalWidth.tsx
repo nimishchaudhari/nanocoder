@@ -18,6 +18,13 @@ export const useTerminalWidth = () => {
 			setBoxWidth(prevWidth => (prevWidth !== newWidth ? newWidth : prevWidth));
 		};
 
+		// Increase max listeners if needed (many components use this hook simultaneously)
+		const currentMax = process.stdout.getMaxListeners();
+		if (currentMax !== 0 && currentMax < 50) {
+			// 0 means unlimited, otherwise ensure we have enough headroom
+			process.stdout.setMaxListeners(50);
+		}
+
 		// Listen for terminal resize events
 		process.stdout.on('resize', handleResize);
 
