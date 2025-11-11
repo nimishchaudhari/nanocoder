@@ -76,16 +76,16 @@ export const updateCommand: Command = {
 					});
 				}
 
-				// Show success message
-				return React.createElement(SuccessMessage, {
+				// Fallback for unknown installation method
+				return React.createElement(InfoMessage, {
 					message:
-						'Nanocoder has been updated to the latest version. Please restart your session to apply the update.',
+						'A new version is available. Please update using your package manager.',
 					hideBox: true,
 				});
 			} else {
 				// Already up to date
-				return React.createElement(SuccessMessage, {
-					message: 'Nanocoder is already up to date.',
+				return React.createElement(InfoMessage, {
+					message: 'You are already on the latest version.',
 					hideBox: true,
 				});
 			}
@@ -93,7 +93,10 @@ export const updateCommand: Command = {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error);
 			logError(`Failed to update Nanocoder: ${errorMessage}`, true);
-			return React.createElement(React.Fragment);
+			return React.createElement(ErrorMessage, {
+				message: `Failed to check for updates: ${errorMessage}`,
+				hideBox: true,
+			});
 		}
 	},
 };

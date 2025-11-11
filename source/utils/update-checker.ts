@@ -4,7 +4,7 @@ import {fileURLToPath} from 'url';
 import {loadPreferences, savePreferences} from '@/config/preferences';
 import {logError} from '@/utils/message-queue';
 import type {NpmRegistryResponse, UpdateInfo} from '@/types/index';
-import {detectInstallationMethod as detectInstallationMethod} from './installation-detector';
+import {detectInstallationMethod} from './installation-detector';
 
 const UPDATE_COMMANDS = {
 	NPM: 'npm update -g @nanocollective/nanocoder',

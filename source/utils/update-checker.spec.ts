@@ -5,7 +5,6 @@ console.log(`\nupdate-checker.spec.ts`);
 
 // Mock fetch globally for testing
 const originalFetch = globalThis.fetch;
-const originalExecPath = process.execPath;
 
 // Helper to create mock fetch responses
 function createMockFetch(
