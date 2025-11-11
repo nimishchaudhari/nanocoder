@@ -5,6 +5,7 @@ console.log(`\nupdate-checker.spec.ts`);
 
 // Mock fetch globally for testing
 const originalFetch = globalThis.fetch;
+const originalExecPath = process.execPath;
 
 // Helper to create mock fetch responses
 function createMockFetch(
@@ -29,11 +30,14 @@ function createMockFetch(
 test.beforeEach(() => {
 	// Reset fetch before each test
 	globalThis.fetch = originalFetch;
+	// Default to npm install override
+	process.env.NANOCODER_INSTALL_METHOD = 'npm';
 });
 
 test.afterEach(() => {
-	// Restore original fetch after each test
+	// Restore original fetch and env after each test
 	globalThis.fetch = originalFetch;
+	delete process.env.NANOCODER_INSTALL_METHOD;
 });
 
 // Version Comparison Tests
@@ -186,6 +190,35 @@ test('checkForUpdates: returns correct update command', async t => {
 	const result = await checkForUpdates();
 
 	t.is(result.updateCommand, 'npm update -g @nanocollective/nanocoder');
+});
+
+test('checkForUpdates: returns correct Homebrew command when installed via Homebrew', async t => {
+	globalThis.fetch = createMockFetch(200, {
+		version: '2.0.0',
+		name: '@nanocollective/nanocoder',
+	});
+
+	process.env.NANOCODER_INSTALL_METHOD = 'homebrew';
+
+	const result = await checkForUpdates();
+
+	t.is(result.updateCommand, 'brew update && brew upgrade nanocoder');
+});
+
+test('checkForUpdates: returns message for Nix installations (no executable command)', async t => {
+	globalThis.fetch = createMockFetch(200, {
+		version: '2.0.0',
+		name: '@nanocollective/nanocoder',
+	});
+
+	process.env.NANOCODER_INSTALL_METHOD = 'nix';
+
+	const result = await checkForUpdates();
+
+	t.is(
+		result.updateMessage,
+		'To update, re-run: nix run github:Nano-Collective/nanocoder (or update your flake).',
+	);
 });
 
 test('checkForUpdates: includes current version in response', async t => {

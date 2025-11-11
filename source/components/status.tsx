@@ -7,16 +7,12 @@ import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import {confDirMap} from '@/config/index';
 import {themes, getThemeColors} from '@/config/themes';
 import type {ThemePreset} from '@/types/ui';
+import type {UpdateInfo} from '@/types/utils';
 
 // Get CWD once at module load time
 const cwd = process.cwd();
 
-interface UpdateInfo {
-	hasUpdate: boolean;
-	currentVersion: string;
-	latestVersion?: string;
-	updateCommand?: string;
-}
+// Using UpdateInfo from '@/types/utils' for type consistency
 
 export default memo(function Status({
 	provider,
@@ -74,9 +70,18 @@ export default memo(function Status({
 						</Text>
 					)}
 					{updateInfo?.hasUpdate && (
-						<Text color={colors.warning}>
-							⚠ v{updateInfo.currentVersion} → v{updateInfo.latestVersion}
-						</Text>
+						<>
+							<Text color={colors.warning}>
+								⚠ v{updateInfo.currentVersion} → v{updateInfo.latestVersion}
+							</Text>
+							{updateInfo.updateCommand ? (
+								<Text color={colors.secondary}>
+									↳ Run: /update or {updateInfo.updateCommand}
+								</Text>
+							) : updateInfo.updateMessage ? (
+								<Text color={colors.secondary}>{updateInfo.updateMessage}</Text>
+							) : null}
+						</>
 					)}
 				</Box>
 			) : (
@@ -126,11 +131,13 @@ export default memo(function Status({
 								<Text bold={true}>Update Available: </Text>v
 								{updateInfo.currentVersion} → v{updateInfo.latestVersion}
 							</Text>
-							{updateInfo.updateCommand && (
+							{updateInfo.updateCommand ? (
 								<Text color={colors.secondary}>
 									↳ Run: /update or {updateInfo.updateCommand}
 								</Text>
-							)}
+							) : updateInfo.updateMessage ? (
+								<Text color={colors.secondary}>{updateInfo.updateMessage}</Text>
+							) : null}
 						</>
 					)}
 				</TitledBox>
