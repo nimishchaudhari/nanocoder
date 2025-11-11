@@ -4,6 +4,8 @@
 
 - Fix: Config files now correctly use `~/.config/nanocoder/` (or platform equivalents) instead of `~/.local/share/nanocoder/`, restoring proper XDG semantic separation between configuration and data. Thanks to @bowmanjd for patching this.
 
+- Fix: Many edge-case fixes in the markdown parser for assistant messages. Outputs are far cleaner now.
+
 - Removed message display limit, you can now see the entire session history. The message queue is very well optimised at this point so we can afford to.
 
 - Removed `read_many_files` tool, it's rarely used by models over `read_file` and provides little benefit.
