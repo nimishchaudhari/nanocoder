@@ -350,7 +350,9 @@ test.serial(
 
 				// Should find both MyVariable and myvariable
 				t.true(result.includes('test.ts'), 'Should find matches');
-				const matches = result.split('\n').filter(line => line.includes(':'));
+				const matches = result
+					.split('\n')
+					.filter((line: string) => line.includes(':'));
 				t.true(matches.length >= 2, 'Should find both case variations');
 			} finally {
 				process.chdir(originalCwd);
@@ -388,7 +390,7 @@ test.serial(
 				// Should only find MyVariable, not myvariable
 				t.true(result.includes('MyVariable'), 'Should find exact case match');
 				const lines = result.split('\n');
-				const matchLines = lines.filter(line =>
+				const matchLines = lines.filter((line: string) =>
 					line.includes('MyVariable'),
 				).length;
 				t.is(matchLines, 1, 'Should find only one exact match');
@@ -606,7 +608,7 @@ test.serial('search_file_contents handles multi-line matches', async t => {
 			// Should find both occurrences
 			const lines = result
 				.split('\n')
-				.filter(line => line.includes('searchTerm'));
+				.filter((line: string) => line.includes('searchTerm'));
 			t.true(
 				lines.length >= 2,
 				'Should find multiple occurrences on different lines',
