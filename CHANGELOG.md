@@ -2,6 +2,8 @@
 
 - Fix: Update checker used old rendering method so it appeared broken and always checking for an update. This has now been resolved.
 
+- Fix: Config files now correctly use `~/.config/nanocoder/` (or platform equivalents) instead of `~/.local/share/nanocoder/`, restoring proper XDG semantic separation between configuration and data.
+
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
 # 1.16.2
