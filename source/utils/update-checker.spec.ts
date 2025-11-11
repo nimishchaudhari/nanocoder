@@ -47,6 +47,7 @@ test('checkForUpdates: detects newer major version', async t => {
 	const result = await checkForUpdates();
 
 	t.true(result.hasUpdate);
+	t.is(result.currentVersion, '1.16.3');
 	t.is(result.latestVersion, '2.0.0');
 	t.truthy(result.updateCommand);
 });
@@ -65,17 +66,31 @@ test('checkForUpdates: detects newer minor version', async t => {
 
 test('checkForUpdates: detects newer patch version', async t => {
 	globalThis.fetch = createMockFetch(200, {
-		version: '1.16.3',
+		version: '1.16.4',
 		name: '@nanocollective/nanocoder',
 	});
 
 	const result = await checkForUpdates();
 
 	t.true(result.hasUpdate);
-	t.is(result.latestVersion, '1.16.3');
+	t.is(result.latestVersion, '1.16.4');
 });
 
 test('checkForUpdates: detects same version (no update)', async t => {
+	globalThis.fetch = createMockFetch(200, {
+		version: '1.16.3',
+		name: '@nanocollective/nanocoder',
+	});
+
+	const result = await checkForUpdates();
+
+	t.false(result.hasUpdate);
+	t.is(result.currentVersion, '1.16.3');
+	t.is(result.latestVersion, '1.16.3');
+	t.is(result.updateCommand, undefined);
+});
+
+test('checkForUpdates: detects older version (no update)', async t => {
 	globalThis.fetch = createMockFetch(200, {
 		version: '1.16.2',
 		name: '@nanocollective/nanocoder',
@@ -84,21 +99,7 @@ test('checkForUpdates: detects same version (no update)', async t => {
 	const result = await checkForUpdates();
 
 	t.false(result.hasUpdate);
-	t.is(result.currentVersion, '1.16.2');
 	t.is(result.latestVersion, '1.16.2');
-	t.is(result.updateCommand, undefined);
-});
-
-test('checkForUpdates: detects older version (no update)', async t => {
-	globalThis.fetch = createMockFetch(200, {
-		version: '1.16.1',
-		name: '@nanocollective/nanocoder',
-	});
-
-	const result = await checkForUpdates();
-
-	t.false(result.hasUpdate);
-	t.is(result.latestVersion, '1.16.1');
 });
 
 test('checkForUpdates: handles version with v prefix', async t => {
@@ -121,7 +122,7 @@ test('checkForUpdates: handles pre-release versions', async t => {
 
 	const result = await checkForUpdates();
 
-	// Pre-release info is stripped, so 2.0.0 > 1.16.2
+	// Pre-release info is stripped, so 2.0.0 > 1.16.3
 	t.true(result.hasUpdate);
 	t.is(result.latestVersion, '2.0.0-beta.1');
 });

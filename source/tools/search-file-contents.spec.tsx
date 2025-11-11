@@ -490,6 +490,8 @@ test.serial('search_file_contents enforces max cap of 100 results', async t => {
 	const firstLine = result.split('\n')[0];
 	const matchCount = firstLine.match(/Found (\d+)/);
 
+	t.truthy(matchCount, 'Should have match count in result');
+
 	if (matchCount) {
 		const count = parseInt(matchCount[1], 10);
 		t.true(count <= 100, `Found ${count} matches, should be max 100`);
