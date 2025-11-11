@@ -3,11 +3,11 @@ import {createFileTool} from '@/tools/create-file';
 import {insertLinesTool} from '@/tools/insert-lines';
 import {replaceLinesTool} from '@/tools/replace-lines';
 import {deleteLinesTool} from '@/tools/delete-lines';
-import {readManyFilesTool} from '@/tools/read-many-files';
 import {executeBashTool} from '@/tools/execute-bash';
 import {webSearchTool} from '@/tools/web-search';
 import {fetchUrlTool} from '@/tools/fetch-url';
-import {searchFilesTool} from '@/tools/search-files';
+import {findFilesTool} from '@/tools/find-files';
+import {searchFileContentsTool} from '@/tools/search-file-contents';
 import React from 'react';
 import type {ToolHandler, ToolDefinition, AISDKCoreTool} from '@/types/index';
 
@@ -17,11 +17,11 @@ export const toolDefinitions: ToolDefinition[] = [
 	insertLinesTool,
 	replaceLinesTool,
 	deleteLinesTool,
-	readManyFilesTool,
 	executeBashTool,
 	webSearchTool,
 	fetchUrlTool,
-	searchFilesTool,
+	findFilesTool,
+	searchFileContentsTool,
 ];
 
 // Export handlers for manual execution (human-in-the-loop)

@@ -115,14 +115,23 @@ export function reloadAppConfig(): void {
 	appConfig = loadAppConfig();
 }
 
+let cachedColors: Colors | null = null;
+
 export function getColors(): Colors {
-	const preferences = loadPreferences();
-	const selectedTheme = preferences.selectedTheme || defaultTheme;
-	return getThemeColors(selectedTheme);
+	if (!cachedColors) {
+		const preferences = loadPreferences();
+		const selectedTheme = preferences.selectedTheme || defaultTheme;
+		cachedColors = getThemeColors(selectedTheme);
+	}
+	return cachedColors;
 }
 
-// Legacy export for backwards compatibility
-export const colors: Colors = getColors();
+// Legacy export for backwards compatibility - use a getter to avoid circular dependency
+export const colors = new Proxy({} as Colors, {
+	get(_target, prop) {
+		return getColors()[prop as keyof Colors];
+	},
+});
 
 // Get the package root directory (where this module is installed)
 const __filename = fileURLToPath(import.meta.url);

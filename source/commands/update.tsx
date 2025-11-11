@@ -17,7 +17,10 @@ export const updateCommand: Command = {
 
 			if (updateInfo.hasUpdate) {
 				// Show updating message
-				logInfo('Downloading and installing the latest Nanocoder update...', true);
+				logInfo(
+					'Downloading and installing the latest Nanocoder update...',
+					true,
+				);
 
 				// Run the update command
 				await toolRegistry.execute_bash({
@@ -38,7 +41,8 @@ export const updateCommand: Command = {
 				});
 			}
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : String(error);
+			const errorMessage =
+				error instanceof Error ? error.message : String(error);
 			logError(`Failed to update Nanocoder: ${errorMessage}`, true);
 			return React.createElement(React.Fragment);
 		}
