@@ -1,6 +1,8 @@
 import test from 'ava';
 import {stripMarkdown} from './utils.js';
 
+console.log(`\nutils.spec.ts`);
+
 test('stripMarkdown removes inline code', t => {
 	const text = 'Use `npm install` to install';
 	const result = stripMarkdown(text);

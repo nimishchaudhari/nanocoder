@@ -1,6 +1,8 @@
 import test from 'ava';
 import {decodeHtmlEntities} from './html-entities.js';
 
+console.log(`\nhtml-entities.spec.ts`);
+
 test('decodeHtmlEntities handles common entities', t => {
 	const text = 'Hello&nbsp;World &amp; Friends';
 	const result = decodeHtmlEntities(text);
@@ -38,7 +40,8 @@ test('decodeHtmlEntities handles mathematical symbols', t => {
 });
 
 test('decodeHtmlEntities handles typography symbols', t => {
-	const text = '&ndash; &mdash; &lsquo;text&rsquo; &ldquo;text&rdquo; &hellip; &bull;';
+	const text =
+		'&ndash; &mdash; &lsquo;text&rsquo; &ldquo;text&rdquo; &hellip; &bull;';
 	const result = decodeHtmlEntities(text);
 	t.is(result, '– — \u2018text\u2019 \u201Ctext\u201D … •');
 });

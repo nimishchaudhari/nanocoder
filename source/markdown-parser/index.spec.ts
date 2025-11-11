@@ -2,6 +2,8 @@ import test from 'ava';
 import {parseMarkdown} from './index.js';
 import type {Colors} from '../types/markdown-parser.js';
 
+console.log(`\nindex.spec.ts`);
+
 const mockColors: Colors = {
 	primary: '#3b82f6',
 	secondary: '#6b7280',

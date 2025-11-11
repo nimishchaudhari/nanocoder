@@ -2,6 +2,8 @@ import test from 'ava';
 import {parseMarkdownTable} from './table-parser';
 import type {Colors} from '../types/markdown-parser';
 
+console.log(`\ntable-parser.spec.ts`);
+
 const mockColors: Colors = {
 	primary: '#3b82f6',
 	secondary: '#6b7280',

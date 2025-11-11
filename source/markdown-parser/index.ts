@@ -110,11 +110,11 @@ export function parseMarkdown(text: string, themeColors: Colors): string {
 	});
 
 	// Step 5: Restore code blocks and inline code from placeholders
-	result = result.replace(/__CODE_BLOCK_(\d+)__/g, (_match, index) => {
-		return codeBlocks[parseInt(index, 10)];
+	result = result.replace(/__CODE_BLOCK_(\d+)__/g, (_match, index: string) => {
+		return codeBlocks[parseInt(index, 10)] || '';
 	});
-	result = result.replace(/__INLINE_CODE_(\d+)__/g, (_match, index) => {
-		return inlineCodes[parseInt(index, 10)];
+	result = result.replace(/__INLINE_CODE_(\d+)__/g, (_match, index: string) => {
+		return inlineCodes[parseInt(index, 10)] || '';
 	});
 
 	return result;
@@ -123,5 +123,4 @@ export function parseMarkdown(text: string, themeColors: Colors): string {
 // Re-export utilities for convenience
 export {decodeHtmlEntities} from './html-entities.js';
 export {parseMarkdownTable} from './table-parser.js';
-export {stripMarkdown} from './utils.js';
 export type {Colors} from '../types/markdown-parser.js';
