@@ -16,7 +16,7 @@ _In replacement:_
 
 - Added the `find_files` tool. The model provides a pattern and the tool returns matching files and directory paths.
 
-- Added `search-file-contents` tool. The model provides a pattern and the tool returns matching content and metadata for further use.
+- Added `search_file_contents` tool. The model provides a pattern and the tool returns matching content and metadata for further use.
 
 - Revised `read_file` tool to reveal progressive information about a file. Called on its own, it'll return just file metadata, the model can also choose to pass line number ranges to get specific content.
 
