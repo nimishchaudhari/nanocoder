@@ -480,21 +480,46 @@ test('search_file_contents tool has formatter function', t => {
 
 test.serial('search_file_contents enforces max cap of 100 results', async t => {
 	t.timeout(10000);
-	// Request more than 100 results but should be capped at 100
-	const result = await searchFileContentsTool.handler({
-		query: 'const',
-		maxResults: 500, // Request 500, but should cap at 100
-	});
+	const testDir = join(process.cwd(), 'test-search-max-cap-temp');
 
-	// Check that the result doesn't exceed 100 matches
-	const firstLine = result.split('\n')[0];
-	const matchCount = firstLine.match(/Found (\d+)/);
+	try {
+		// Create a test directory with many matching files
+		mkdirSync(testDir, {recursive: true});
 
-	t.truthy(matchCount, 'Should have match count in result');
+		// Create 150 files with the word "searchTarget" to test the cap
+		for (let i = 0; i < 150; i++) {
+			writeFileSync(
+				join(testDir, `file${i}.ts`),
+				`const searchTarget${i} = "value";`,
+			);
+		}
 
-	if (matchCount) {
-		const count = parseInt(matchCount[1], 10);
-		t.true(count <= 100, `Found ${count} matches, should be max 100`);
+		const originalCwd = process.cwd();
+
+		try {
+			process.chdir(testDir);
+
+			// Request more than 100 results but should be capped at 100
+			const result = await searchFileContentsTool.handler({
+				query: 'searchTarget',
+				maxResults: 500, // Request 500, but should cap at 100
+			});
+
+			// Check that the result doesn't exceed 100 matches
+			const firstLine = result.split('\n')[0];
+			const matchCount = firstLine.match(/Found (\d+)/);
+
+			t.truthy(matchCount, 'Should have match count in result');
+
+			if (matchCount) {
+				const count = parseInt(matchCount[1], 10);
+				t.true(count <= 100, `Found ${count} matches, should be max 100`);
+			}
+		} finally {
+			process.chdir(originalCwd);
+		}
+	} finally {
+		rmSync(testDir, {recursive: true, force: true});
 	}
 });
 
