@@ -11,4 +11,5 @@ export interface UpdateInfo {
 	currentVersion: string;
 	latestVersion?: string;
 	updateCommand?: string;
+	updateMessage?: string;
 }

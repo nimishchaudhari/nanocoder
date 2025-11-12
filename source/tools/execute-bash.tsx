@@ -21,15 +21,19 @@ const executeExecuteBash = async (args: {command: string}): Promise<string> => {
 			stderr += data.toString();
 		});
 
-		proc.on('close', () => {
+		proc.on('close', (code: number | null) => {
 			let fullOutput = '';
+
+			// Include exit code information
+			const exitCodeInfo = code !== null ? `EXIT_CODE: ${code}\n` : '';
+
 			if (stderr) {
-				fullOutput = `STDERR:
+				fullOutput = `${exitCodeInfo}STDERR:
 ${stderr}
 STDOUT:
 ${stdout}`;
 			} else {
-				fullOutput = stdout;
+				fullOutput = `${exitCodeInfo}${stdout}`;
 			}
 
 			// Limit the context for LLM to first 2000 characters to prevent overwhelming the model

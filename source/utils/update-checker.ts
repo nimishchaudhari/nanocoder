@@ -4,6 +4,20 @@ import {fileURLToPath} from 'url';
 import {loadPreferences, savePreferences} from '@/config/preferences';
 import {logError} from '@/utils/message-queue';
 import type {NpmRegistryResponse, UpdateInfo} from '@/types/index';
+import {detectInstallationMethod} from './installation-detector';
+
+const UPDATE_COMMANDS = {
+	NPM: 'npm update -g @nanocollective/nanocoder',
+	// Check if package exists before upgrading to provide better error messages
+	HOMEBREW:
+		'brew list nanocoder >/dev/null 2>&1 && brew upgrade nanocoder || (echo "Error: nanocoder not found in Homebrew. Please install it first with: brew install nanocoder" && exit 1)',
+} as const;
+
+const UPDATE_MESSAGES = {
+	NIX: 'To update, re-run: nix run github:Nano-Collective/nanocoder (or update your flake).',
+	UNKNOWN:
+		'A new version is available. Please update using your package manager.',
+} as const;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -118,13 +132,39 @@ export async function checkForUpdates(): Promise<UpdateInfo> {
 
 		const hasUpdate = isNewerVersion(currentVersion, latestVersion);
 
+		function getUpdateDetails(hasUpdate: boolean): {
+			command?: string;
+			message?: string;
+		} {
+			if (!hasUpdate) {
+				return {};
+			}
+
+			const method = detectInstallationMethod();
+
+			// Use constants defined at top of file for maintainability
+
+			switch (method) {
+				case 'npm':
+					return {command: UPDATE_COMMANDS.NPM};
+				case 'homebrew':
+					return {command: UPDATE_COMMANDS.HOMEBREW};
+				case 'nix':
+					return {message: UPDATE_MESSAGES.NIX};
+				default:
+					// For 'unknown' fallback to a general message (do not attempt to run a command)
+					return {message: UPDATE_MESSAGES.UNKNOWN};
+			}
+		}
+
+		const updateDetails = getUpdateDetails(hasUpdate);
+
 		return {
 			hasUpdate,
 			currentVersion,
 			latestVersion,
-			updateCommand: hasUpdate
-				? 'npm update -g @nanocollective/nanocoder'
-				: undefined,
+			updateCommand: updateDetails.command,
+			updateMessage: updateDetails.message,
 		};
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : String(error);
