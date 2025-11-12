@@ -361,7 +361,14 @@ export default function UserInput({
 			focus('user-input');
 		}
 
-		// Handle return keys
+		// Handle return keys for multiline input
+		// VSCode sends Option+Enter as a carriage return character (\r, 0x0D) not as a key event
+		if (inputChar === '\r') {
+			updateInput(input + '\n');
+			return;
+		}
+
+		// Support Shift+Enter if the terminal sends it properly (like Warp does)
 		if (key.return && key.shift) {
 			updateInput(input + '\n');
 			return;
