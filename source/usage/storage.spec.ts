@@ -12,8 +12,6 @@ import {
 } from './storage.js';
 import type {UsageData, SessionUsage, TokenBreakdown} from '../types/usage.js';
 
-console.log('\nstorage.spec.ts');
-
 // ============================================================================
 // Test Setup
 // ============================================================================
@@ -28,7 +26,7 @@ function createTestDir(): string {
 	return testDir;
 }
 
-// Mock getAppDataPath to use test directory
+// Use XDG_DATA_HOME to control app data directory for tests
 let originalEnv: NodeJS.ProcessEnv;
 
 test.before(() => {
@@ -38,7 +36,7 @@ test.before(() => {
 test.beforeEach(() => {
 	// Create a fresh test directory for each test
 	const testDir = createTestDir();
-	// Override XDG_DATA_HOME to point to test directory (used by xdgData)
+	// Override XDG_DATA_HOME to point to test directory
 	process.env.XDG_DATA_HOME = testDir;
 	// Clear any existing data
 	clearUsageData();
@@ -59,6 +57,44 @@ test.afterEach(() => {
 
 test.after(() => {
 	process.env = originalEnv;
+});
+
+// ============================================================================
+// Migration Tests
+// ============================================================================
+
+test('migrates usage data from legacy config directory to app data directory', t => {
+	// Arrange: create a legacy usage.json at the old config location.
+	// Legacy usage.json lived in the config directory (getConfigPath()).
+	// When NANOCODER_CONFIG_DIR is set, getConfigPath() returns it directly.
+	// So here we create a fake legacy config dir and point NANOCODER_CONFIG_DIR at it.
+	const legacyConfigDir = path.join(os.tmpdir(), 'nanocoder-legacy-config');
+	fs.mkdirSync(legacyConfigDir, {recursive: true});
+
+	const legacyFilePath = path.join(legacyConfigDir, 'usage.json');
+	const legacyData: UsageData = {
+		sessions: [createMockSession('legacy', 'model', 123)],
+		dailyAggregates: [],
+		totalLifetime: 123,
+		lastUpdated: Date.now(),
+	};
+	fs.writeFileSync(legacyFilePath, JSON.stringify(legacyData), 'utf-8');
+
+	// Point NANOCODER_CONFIG_DIR to our legacy config dir to simulate pre-change behavior
+	process.env.NANOCODER_CONFIG_DIR = legacyConfigDir;
+
+	// Act: first read should trigger migration into getAppDataPath() directory
+	const data = readUsageData();
+
+	// Assert: data is preserved
+	t.is(data.totalLifetime, 123);
+	t.is(data.sessions.length, 1);
+
+	// And the new file exists at the app data path
+	const appDataHome = process.env.XDG_DATA_HOME!;
+	const appDataDir = path.join(appDataHome, 'nanocoder');
+	const newFilePath = path.join(appDataDir, 'usage.json');
+	t.true(fs.existsSync(newFilePath));
 });
 
 // Helper to create mock token breakdown

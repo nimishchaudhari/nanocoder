@@ -8,7 +8,7 @@ import {logError} from '@/utils/message-queue';
 import {loadPreferences} from '@/config/preferences';
 import {getThemeColors, defaultTheme} from '@/config/themes';
 import {substituteEnvVars} from '@/config/env-substitution';
-import {getAppDataPath} from '@/config/paths';
+import {getConfigPath} from '@/config/paths';
 
 // Load .env file from working directory (shell environment takes precedence)
 // Suppress dotenv console output by temporarily redirecting stdout
@@ -29,7 +29,7 @@ export const confDirMap: Record<string, string> = {};
 // Find the closest config file for the requested configuration file
 export function getClosestConfigFile(fileName: string): string {
 	try {
-		const appDataPath = getAppDataPath();
+		const configDir = getConfigPath();
 
 		// First, lets check for a working directory config
 		if (existsSync(join(process.cwd(), fileName))) {
@@ -49,13 +49,13 @@ export function getClosestConfigFile(fileName: string): string {
 		// Last, lets look for an user level config.
 
 		// If the file doesn't exist, create it
-		if (!existsSync(join(appDataPath, fileName))) {
-			createDefaultConfFile(appDataPath, fileName);
+		if (!existsSync(join(configDir, fileName))) {
+			createDefaultConfFile(configDir, fileName);
 		}
 
-		confDirMap[fileName] = join(appDataPath, fileName);
+		confDirMap[fileName] = join(configDir, fileName);
 
-		return join(appDataPath, fileName);
+		return join(configDir, fileName);
 	} catch (error) {
 		logError(`Failed to load ${fileName}: ${String(error)}`);
 	}

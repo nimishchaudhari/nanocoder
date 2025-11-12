@@ -4,7 +4,7 @@ import SelectInput from 'ink-select-input';
 import {join} from 'node:path';
 import {existsSync} from 'node:fs';
 import {colors} from '@/config';
-import {getAppDataPath} from '@/config/paths';
+import {getConfigPath} from '@/config/paths';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
 export type ConfigLocation = 'project' | 'global';
@@ -27,7 +27,7 @@ export function LocationStep({
 }: LocationStepProps) {
 	const {isNarrow, truncatePath} = useResponsiveTerminal();
 	const projectPath = join(projectDir, 'agents.config.json');
-	const globalPath = join(getAppDataPath(), 'agents.config.json');
+	const globalPath = join(getConfigPath(), 'agents.config.json');
 
 	const projectExists = existsSync(projectPath);
 	const globalExists = existsSync(globalPath);

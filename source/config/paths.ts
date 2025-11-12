@@ -2,10 +2,27 @@ import {homedir} from 'os';
 import {join} from 'path';
 
 export function getAppDataPath(): string {
-	return getConfigPath();
+	// Platform-specific app data directories
+	let baseAppDataPath: string;
+	switch (process.platform) {
+		case 'win32': {
+			baseAppDataPath =
+				process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming');
+			break;
+		}
+		case 'darwin': {
+			baseAppDataPath = join(homedir(), 'Library', 'Application Support');
+			break;
+		}
+		default: {
+			baseAppDataPath =
+				process.env.XDG_DATA_HOME || join(homedir(), '.local', 'share');
+		}
+	}
+	return join(baseAppDataPath, 'nanocoder');
 }
 
-function getConfigPath(): string {
+export function getConfigPath(): string {
 	// Allow explicit override via environment variable
 	if (process.env.NANOCODER_CONFIG_DIR) {
 		return process.env.NANOCODER_CONFIG_DIR;
@@ -15,7 +32,8 @@ function getConfigPath(): string {
 	let baseConfigPath: string;
 	switch (process.platform) {
 		case 'win32':
-			baseConfigPath = process.env.APPDATA ?? join(homedir(), '.config');
+			baseConfigPath =
+				process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming');
 			break;
 		case 'darwin':
 			baseConfigPath = join(homedir(), 'Library', 'Preferences');

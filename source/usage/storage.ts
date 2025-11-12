@@ -1,20 +1,63 @@
 /**
  * Usage data storage
- * Persists usage statistics to config directory
+ * Persists usage statistics to the app data directory
  */
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import {getAppDataPath} from '@/config/paths';
+import {getAppDataPath, getConfigPath} from '@/config/paths';
 import type {UsageData, SessionUsage, DailyAggregate} from '../types/usage';
 
 const USAGE_FILE_NAME = 'usage.json';
 const MAX_SESSIONS = 100;
 const MAX_DAILY_AGGREGATES = 30;
 
+function getLegacyUsageFilePath(): string {
+	// Legacy location: config directory (pre-app-data change)
+	try {
+		const configDir = getConfigPath();
+		return path.join(configDir, USAGE_FILE_NAME);
+	} catch {
+		return '';
+	}
+}
+
 function getUsageFilePath(): string {
-	const configDir = getAppDataPath();
-	return path.join(configDir, USAGE_FILE_NAME);
+	const appDataDir = getAppDataPath();
+	const newPath = path.join(appDataDir, USAGE_FILE_NAME);
+
+	// If new path already exists, use it
+	if (fs.existsSync(newPath)) {
+		return newPath;
+	}
+
+	// Attempt one-time lazy migration from legacy location
+	const legacyPath = getLegacyUsageFilePath();
+	if (legacyPath && fs.existsSync(legacyPath)) {
+		try {
+			if (!fs.existsSync(appDataDir)) {
+				fs.mkdirSync(appDataDir, {recursive: true});
+			}
+
+			try {
+				fs.renameSync(legacyPath, newPath);
+			} catch {
+				// Fallback if rename/move fails: copy then best-effort delete
+				fs.copyFileSync(legacyPath, newPath);
+				try {
+					fs.unlinkSync(legacyPath);
+				} catch {
+					// ignore cleanup failure
+				}
+			}
+
+			return newPath;
+		} catch {
+			// On any failure, fall through to using newPath without migration
+		}
+	}
+
+	return newPath;
 }
 
 function ensureConfigDir(): void {
