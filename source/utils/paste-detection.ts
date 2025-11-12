@@ -11,8 +11,8 @@ interface PasteDetectionOptions {
 }
 
 const DEFAULT_PASTE_OPTIONS: PasteDetectionOptions = {
-	timeThreshold: 16, // ~1 frame at 60fps
-	charThreshold: 50, // Characters added in single change
+	timeThreshold: 50, // Increased to 50ms to be more forgiving of fast typing
+	charThreshold: 5, // Lower threshold - detect pastes of 5+ chars (size method needs 10+ chars)
 	lineThreshold: 2, // Multiple lines added instantly
 };
 
@@ -42,7 +42,13 @@ export class PasteDetector {
 		const currentTime = Date.now();
 		const timeElapsed = currentTime - this.lastInputTime;
 		const charsAdded = newText.length - this.lastInputLength;
-		const linesAdded = newText.split('\n').length - 1;
+
+		// Calculate lines added in THIS change, not total lines in text
+		const previousLineCount = this.lastInputLength > 0
+			? newText.slice(0, this.lastInputLength).split('\n').length
+			: 1;
+		const currentLineCount = newText.split('\n').length;
+		const linesAdded = currentLineCount - previousLineCount;
 
 		// Get the added text (assuming it's at the end)
 		const addedText = newText.slice(this.lastInputLength);

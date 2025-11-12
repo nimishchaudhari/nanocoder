@@ -8,8 +8,8 @@ import {PlaceholderType} from '@/types/hooks';
 
 console.log(`\npaste-utils.spec.ts`);
 
-test('handlePaste returns null for small pastes', t => {
-	const pastedText = 'small text';
+test('handlePaste returns null for empty pastes', t => {
+	const pastedText = '';
 	const currentDisplayValue = 'existing content';
 	const currentPlaceholderContent: Record<string, PlaceholderContent> = {};
 
@@ -22,8 +22,34 @@ test('handlePaste returns null for small pastes', t => {
 	t.is(result, null);
 });
 
+test('handlePaste creates placeholder for small pastes', t => {
+	const pastedText = 'small text';
+	const currentDisplayValue = 'existing content';
+	const currentPlaceholderContent: Record<string, PlaceholderContent> = {};
+
+	const result = handlePaste(
+		pastedText,
+		currentDisplayValue,
+		currentPlaceholderContent,
+	);
+
+	t.truthy(result);
+	t.is(typeof result!.displayValue, 'string');
+	t.true(result!.displayValue.includes('[Paste #'));
+	t.true(result!.displayValue.includes('10 chars]'));
+
+	// Should contain the pasted content in the map
+	const pasteIds = Object.keys(result!.placeholderContent);
+	t.is(pasteIds.length, 1);
+	const pasteContent = result!.placeholderContent[
+		pasteIds[0]
+	] as PastePlaceholderContent;
+	t.is(pasteContent.content, pastedText);
+	t.is(pasteContent.type, PlaceholderType.PASTE);
+});
+
 test('handlePaste creates placeholder for large pastes', t => {
-	const pastedText = 'a'.repeat(600); // Above 500 char threshold
+	const pastedText = 'a'.repeat(600);
 	const currentDisplayValue = 'existing content';
 	const currentPlaceholderContent: Record<string, PlaceholderContent> = {};
 

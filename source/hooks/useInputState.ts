@@ -77,6 +77,9 @@ export function useInputState() {
 				if (pasteResult) {
 					// Large paste detected - create placeholder
 					pushToUndoStack(pasteResult);
+					// Update paste detector state to match the new display value (with placeholder)
+					// This prevents detection confusion on subsequent pastes
+					pasteDetectorRef.current.updateState(pasteResult.displayValue);
 				} else {
 					// Small paste - treat as normal input
 					pushToUndoStack({

@@ -11,8 +11,10 @@ export function handlePaste(
 	currentPlaceholderContent: Record<string, PlaceholderContent>,
 	detectionMethod?: 'rate' | 'size' | 'multiline',
 ): InputState | null {
-	const THRESHOLD = 80; // characters
-	if (pastedText.length < THRESHOLD) {
+	// No minimum threshold - any detected paste gets a placeholder
+	// This is especially important for multi-line pastes where only the first line
+	// may be captured by the input component
+	if (pastedText.length === 0) {
 		return null;
 	}
 
