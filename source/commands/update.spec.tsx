@@ -1,6 +1,6 @@
 import test from 'ava';
-import {updateCommand} from './update.js';
-import {toolRegistry} from '@/tools/index';
+import {updateCommand, hasCommandFailed} from './update.js';
+import {toolRegistry} from '../tools/index.js';
 
 console.log(`\nupdate.spec.tsx`);
 
@@ -127,6 +127,94 @@ test('updateCommand: handles execute_bash failure with error message', async t =
 	toolRegistry.execute_bash = originalExecuteBash;
 	globalThis.fetch = originalFetch;
 	delete process.env.NANOCODER_INSTALL_METHOD;
+});
+
+// Error Detection Tests
+// These tests verify the hasCommandFailed function correctly identifies failures
+
+test('hasCommandFailed: detects failure via exit code', t => {
+	const output = 'EXIT_CODE: 1\nSome error occurred';
+	t.true(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: detects success via exit code 0', t => {
+	const output = 'EXIT_CODE: 0\nSuccess message';
+	t.false(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: detects "command not found" error', t => {
+	const output = 'EXIT_CODE: 127\nSTDERR:\nbash: foobar: command not found';
+	t.true(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: detects "permission denied" error', t => {
+	const output = 'EXIT_CODE: 1\nSTDERR:\npermission denied';
+	t.true(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: detects "no such file or directory" error', t => {
+	const output = 'EXIT_CODE: 2\nSTDERR:\nno such file or directory';
+	t.true(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: does not false positive on "0 errors"', t => {
+	const output = 'EXIT_CODE: 0\nBuild completed with 0 errors';
+	t.false(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: does not false positive on "error-free"', t => {
+	const output = 'EXIT_CODE: 0\nThe build was error-free';
+	t.false(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: does not false positive on "no errors found"', t => {
+	const output = 'EXIT_CODE: 0\nScan complete: no errors found';
+	t.false(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: detects "error:" at start of line', t => {
+	const output = 'EXIT_CODE: 1\nSTDERR:\nerror: something went wrong';
+	t.true(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: detects "fatal" error', t => {
+	const output = 'EXIT_CODE: 1\nSTDERR:\nfatal: Not a git repository';
+	t.true(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: detects "failed" message', t => {
+	const output = 'EXIT_CODE: 1\nSTDERR:\nOperation failed';
+	t.true(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: handles output with only STDERR (non-error)', t => {
+	// Some tools write progress to stderr
+	const output = 'EXIT_CODE: 0\nSTDERR:\nDownloading... 100%\nSTDOUT:\nSuccess';
+	t.false(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: handles output with only STDERR (with error)', t => {
+	const output =
+		'EXIT_CODE: 1\nSTDERR:\nDownload failed due to network error\nSTDOUT:\n';
+	t.true(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: handles empty output', t => {
+	const output = '';
+	t.false(hasCommandFailed(output));
+});
+
+test('hasCommandFailed: handles null/undefined output', t => {
+	// @ts-ignore - testing edge case
+	t.false(hasCommandFailed(null));
+	// @ts-ignore - testing edge case
+	t.false(hasCommandFailed(undefined));
+});
+
+test('hasCommandFailed: exit code takes precedence over success messages', t => {
+	// Even if output looks successful, exit code 1 means failure
+	const output = 'EXIT_CODE: 1\nAll tests passed successfully!';
+	t.true(hasCommandFailed(output));
 });
 
 // Note: Full integration tests with mocking would require a more sophisticated

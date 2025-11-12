@@ -7,6 +7,74 @@ import SuccessMessage from '@/components/success-message';
 import InfoMessage from '@/components/info-message';
 import ErrorMessage from '@/components/error-message';
 
+/**
+ * Determines if a command execution failed based on multiple signals.
+ * Checks exit code first (most reliable), then looks for specific error patterns.
+ * Exported for testing purposes.
+ */
+export function hasCommandFailed(output: string): boolean {
+	const outputStr = String(output || '');
+
+	// Strategy 1: Check exit code (most reliable)
+	const exitCodeMatch = outputStr.match(/^EXIT_CODE:\s*(\d+)/m);
+	if (exitCodeMatch) {
+		const exitCode = parseInt(exitCodeMatch[1], 10);
+		// Non-zero exit code indicates failure
+		if (exitCode !== 0) {
+			return true;
+		}
+	}
+
+	// Strategy 2: Check for critical error patterns
+	// Use word boundaries and case-sensitive matching to avoid false positives
+	const normalized = outputStr.toLowerCase();
+
+	// Critical errors that definitively indicate failure
+	const criticalErrors = [
+		/\bcommand not found\b/i,
+		/\bno such file or directory\b/i,
+		/\bpermission denied\b/i,
+		/^error:/im, // Error at start of line
+		/\berror:\s*(?!0\b)/i, // "error:" not followed by 0
+		/\bfatal\b/i,
+		/\bfailed\b/i,
+		/\bcannot\b/i,
+	];
+
+	for (const pattern of criticalErrors) {
+		if (pattern.test(normalized)) {
+			// Additional check: avoid false positives for success messages
+			// like "0 errors", "error-free", "no errors found"
+			if (
+				/0\s*errors?|error-?free|no\s*errors?\s*found/i.test(normalized)
+			) {
+				continue;
+			}
+			return true;
+		}
+	}
+
+	// Strategy 3: Check if STDERR has content (warning: not always an error)
+	// Some tools write progress to stderr, so this is a weak signal
+	// Only use this if no other signals present
+	const hasStderr = /^STDERR:\s*\S/m.test(outputStr);
+	if (hasStderr) {
+		// Check if stderr contains actual error indicators, not just warnings/info
+		const stderrMatch = outputStr.match(/^STDERR:\s*([\s\S]*?)(?:^STDOUT:|$)/m);
+		if (stderrMatch) {
+			const stderrContent = stderrMatch[1].toLowerCase();
+			// Only treat as error if stderr contains error-like content
+			if (
+				/\berror\b|\bfatal\b|\bfailed\b|\bcannot\b/i.test(stderrContent)
+			) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 export const updateCommand: Command = {
 	name: 'update',
 	description: 'Update Nanocoder to the latest version',
@@ -31,19 +99,8 @@ export const updateCommand: Command = {
 							command: updateInfo.updateCommand,
 						});
 
-						const normalized = String(result || '').toLowerCase();
-						const failureIndicators = [
-							'command not found',
-							'not found',
-							'permission denied',
-							'no such file or directory',
-							'error',
-						];
-
-						const failed = failureIndicators.some(ind =>
-							normalized.includes(ind),
-						);
-						if (failed) {
+						// Check for command failure using multiple strategies
+						if (hasCommandFailed(result)) {
 							logError('Update command executed but returned an error', true);
 							return React.createElement(ErrorMessage, {
 								message: `Update command failed. Output: ${String(result)}`,
