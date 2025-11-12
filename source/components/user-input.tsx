@@ -41,6 +41,8 @@ export default function UserInput({
 	const uiState = useUIStateContext();
 	const {boxWidth, isNarrow} = useResponsiveTerminal();
 	const [textInputKey, setTextInputKey] = useState(0);
+	// Store the original InputState (including placeholders) when starting history navigation
+	const [originalInputState, setOriginalInputState] = useState<typeof inputState.currentState | null>(null);
 
 	// File autocomplete state
 	const [isFileAutocompleteMode, setIsFileAutocompleteMode] = useState(false);
@@ -231,6 +233,8 @@ export default function UserInput({
 
 			if (direction === 'up') {
 				if (historyIndex === -1) {
+					// Save the full current state (including placeholders) before starting navigation
+					setOriginalInputState(currentState);
 					setOriginalInput(input);
 					setHistoryIndex(history.length - 1);
 					setInputState(history[history.length - 1]);
@@ -241,7 +245,9 @@ export default function UserInput({
 					setInputState(history[newIndex]);
 					setTextInputKey(prev => prev + 1);
 				} else {
+					// Clear when going past the first history item
 					setHistoryIndex(-2);
+					setOriginalInput('');
 					updateInput('');
 					setTextInputKey(prev => prev + 1);
 				}
@@ -252,13 +258,26 @@ export default function UserInput({
 					setInputState(history[newIndex]);
 					setTextInputKey(prev => prev + 1);
 				} else if (historyIndex === history.length - 1) {
+					// Restore the full original state (including placeholders)
 					setHistoryIndex(-1);
-					updateInput(originalInput);
+					if (originalInputState) {
+						setInputState(originalInputState);
+						setOriginalInputState(null);
+					} else {
+						updateInput(originalInput);
+					}
 					setOriginalInput('');
 					setTextInputKey(prev => prev + 1);
 				} else if (historyIndex === -2) {
-					setHistoryIndex(0);
-					setInputState(history[0]);
+					// Restore the original input state when pressing down from the empty state
+					setHistoryIndex(-1);
+					if (originalInputState) {
+						setInputState(originalInputState);
+						setOriginalInputState(null);
+					} else {
+						updateInput(originalInput);
+					}
+					setOriginalInput('');
 					setTextInputKey(prev => prev + 1);
 				}
 			}
@@ -267,6 +286,8 @@ export default function UserInput({
 			historyIndex,
 			input,
 			originalInput,
+			currentState,
+			originalInputState,
 			setHistoryIndex,
 			setOriginalInput,
 			setInputState,
