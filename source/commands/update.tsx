@@ -45,9 +45,7 @@ export function hasCommandFailed(output: string): boolean {
 		if (pattern.test(normalized)) {
 			// Additional check: avoid false positives for success messages
 			// like "0 errors", "error-free", "no errors found"
-			if (
-				/0\s*errors?|error-?free|no\s*errors?\s*found/i.test(normalized)
-			) {
+			if (/0\s*errors?|error-?free|no\s*errors?\s*found/i.test(normalized)) {
 				continue;
 			}
 			return true;
@@ -64,9 +62,7 @@ export function hasCommandFailed(output: string): boolean {
 		if (stderrMatch) {
 			const stderrContent = stderrMatch[1].toLowerCase();
 			// Only treat as error if stderr contains error-like content
-			if (
-				/\berror\b|\bfatal\b|\bfailed\b|\bcannot\b/i.test(stderrContent)
-			) {
+			if (/\berror\b|\bfatal\b|\bfailed\b|\bcannot\b/i.test(stderrContent)) {
 				return true;
 			}
 		}

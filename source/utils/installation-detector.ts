@@ -66,7 +66,9 @@ export function detectInstallationMethod(): InstallationMethod {
 		// Warn about invalid value but continue with normal detection
 		// TODO: Replace console.warn with logWarning once available in main branch
 		console.warn(
-			`Invalid NANOCODER_INSTALL_METHOD: "${envOverride}". Valid values: ${validMethods.join(', ')}`,
+			`Invalid NANOCODER_INSTALL_METHOD: "${envOverride}". Valid values: ${validMethods.join(
+				', ',
+			)}`,
 		);
 	}
 

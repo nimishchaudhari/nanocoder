@@ -1,7 +1,17 @@
 import test from 'ava';
+import {readFileSync} from 'fs';
+import {join, dirname} from 'path';
+import {fileURLToPath} from 'url';
 import {checkForUpdates} from './update-checker';
 
 console.log(`\nupdate-checker.spec.ts`);
+
+// Get current version from package.json dynamically
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJsonPath = join(__dirname, '../../package.json');
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+const CURRENT_VERSION = packageJson.version as string;
 
 // Mock fetch globally for testing
 const originalFetch = globalThis.fetch;
@@ -50,7 +60,7 @@ test('checkForUpdates: detects newer major version', async t => {
 	const result = await checkForUpdates();
 
 	t.true(result.hasUpdate);
-	t.is(result.currentVersion, '1.16.3');
+	t.is(result.currentVersion, CURRENT_VERSION);
 	t.is(result.latestVersion, '2.0.0');
 	t.truthy(result.updateCommand);
 });
@@ -81,15 +91,15 @@ test('checkForUpdates: detects newer patch version', async t => {
 
 test('checkForUpdates: detects same version (no update)', async t => {
 	globalThis.fetch = createMockFetch(200, {
-		version: '1.16.3',
+		version: CURRENT_VERSION,
 		name: '@nanocollective/nanocoder',
 	});
 
 	const result = await checkForUpdates();
 
 	t.false(result.hasUpdate);
-	t.is(result.currentVersion, '1.16.3');
-	t.is(result.latestVersion, '1.16.3');
+	t.is(result.currentVersion, CURRENT_VERSION);
+	t.is(result.latestVersion, CURRENT_VERSION);
 	t.is(result.updateCommand, undefined);
 });
 
@@ -201,7 +211,10 @@ test('checkForUpdates: returns correct Homebrew command when installed via Homeb
 
 	const result = await checkForUpdates();
 
-	t.is(result.updateCommand, 'brew update && brew upgrade nanocoder');
+	t.is(
+		result.updateCommand,
+		'brew list nanocoder >/dev/null 2>&1 && brew upgrade nanocoder || (echo "Error: nanocoder not found in Homebrew. Please install it first with: brew install nanocoder" && exit 1)',
+	);
 });
 
 test('checkForUpdates: returns message for Nix installations (no executable command)', async t => {

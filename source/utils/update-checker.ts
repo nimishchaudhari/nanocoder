@@ -9,7 +9,8 @@ import {detectInstallationMethod} from './installation-detector';
 const UPDATE_COMMANDS = {
 	NPM: 'npm update -g @nanocollective/nanocoder',
 	// Check if package exists before upgrading to provide better error messages
-	HOMEBREW: 'brew list nanocoder >/dev/null 2>&1 && brew upgrade nanocoder || (echo "Error: nanocoder not found in Homebrew. Please install it first with: brew install nanocoder" && exit 1)',
+	HOMEBREW:
+		'brew list nanocoder >/dev/null 2>&1 && brew upgrade nanocoder || (echo "Error: nanocoder not found in Homebrew. Please install it first with: brew install nanocoder" && exit 1)',
 } as const;
 
 const UPDATE_MESSAGES = {

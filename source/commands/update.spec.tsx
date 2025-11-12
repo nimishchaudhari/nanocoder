@@ -219,7 +219,8 @@ test('hasCommandFailed: exit code takes precedence over success messages', t => 
 
 // Homebrew error handling
 test('updateCommand: detects homebrew "not found" error', t => {
-	const output = 'EXIT_CODE: 1\nSTDERR:\nError: nanocoder not found in Homebrew\nPlease install it first with: brew install nanocoder';
+	const output =
+		'EXIT_CODE: 1\nSTDERR:\nError: nanocoder not found in Homebrew\nPlease install it first with: brew install nanocoder';
 	t.true(hasCommandFailed(output));
 });
 
