@@ -7,6 +7,11 @@ export function getAppDataPath(): string {
 		return process.env.NANOCODER_DATA_DIR;
 	}
 
+	// Check XDG_DATA_HOME first (works cross-platform for testing)
+	if (process.env.XDG_DATA_HOME) {
+		return join(process.env.XDG_DATA_HOME, 'nanocoder');
+	}
+
 	// Platform-specific app data directories
 	let baseAppDataPath: string;
 	switch (process.platform) {
@@ -20,8 +25,7 @@ export function getAppDataPath(): string {
 			break;
 		}
 		default: {
-			baseAppDataPath =
-				process.env.XDG_DATA_HOME || join(homedir(), '.local', 'share');
+			baseAppDataPath = join(homedir(), '.local', 'share');
 		}
 	}
 	return join(baseAppDataPath, 'nanocoder');
