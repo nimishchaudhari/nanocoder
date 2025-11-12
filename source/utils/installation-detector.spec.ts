@@ -160,18 +160,18 @@ test('detectInstallationMethod: warns on invalid env override and continues dete
 	// Set an invalid value
 	process.env.NANOCODER_INSTALL_METHOD = 'invalid-method';
 
-	// Capture console.warn
+	// Capture console.log (logWarning falls back to console.log when queue not available)
 	const warnings: string[] = [];
-	const originalWarn = console.warn;
-	console.warn = (msg: string) => {
+	const originalLog = console.log;
+	console.log = (msg: string) => {
 		warnings.push(msg);
 	};
 
 	// Should fall back to normal detection
 	const result = detectInstallationMethod();
 
-	// Restore console.warn
-	console.warn = originalWarn;
+	// Restore console.log
+	console.log = originalLog;
 
 	// Should have warned about invalid value
 	t.is(warnings.length, 1);

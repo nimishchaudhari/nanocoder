@@ -1,6 +1,7 @@
 import {fileURLToPath} from 'url';
 import {dirname, join, sep} from 'path';
 import {existsSync} from 'fs';
+import {logWarning} from './message-queue';
 
 export type InstallationMethod = 'npm' | 'homebrew' | 'nix' | 'unknown';
 
@@ -64,8 +65,7 @@ export function detectInstallationMethod(): InstallationMethod {
 			return envOverride as InstallationMethod;
 		}
 		// Warn about invalid value but continue with normal detection
-		// TODO: Replace console.warn with logWarning once available in main branch
-		console.warn(
+		logWarning(
 			`Invalid NANOCODER_INSTALL_METHOD: "${envOverride}". Valid values: ${validMethods.join(
 				', ',
 			)}`,
