@@ -14,6 +14,7 @@ A local-first CLI coding agent that brings the power of agentic coding tools lik
   - [AI Provider Setup](#ai-provider-setup)
   - [MCP (Model Context Protocol) Servers](#mcp-model-context-protocol-servers)
   - [User Preferences](#user-preferences)
+  - [Application Data Directory](#application-data-directory)
   - [Commands](#commands)
     - [Built-in Commands](#built-in-commands)
     - [Custom Commands](#custom-commands)
@@ -183,13 +184,15 @@ Nanocoder looks for configuration in the following order (first found wins):
    - Use this for project-specific providers, models, or API keys
    - Perfect for team sharing or repository-specific configurations
 
-2. **User-level (preferred)**: Platform-specific application data directory
+2. **User-level (preferred)**: Platform-specific configuration directory
 
    - **macOS**: `~/Library/Preferences/nanocoder/agents.config.json`
    - **Linux/Unix**: `~/.config/nanocoder/agents.config.json`
    - **Windows**: `%APPDATA%\nanocoder\agents.config.json`
    - Your global default configuration
    - Used when no project-level config exists
+
+   You can override this global configuration directory by setting `NANOCODER_CONFIG_DIR`. When set, Nanocoder will look for `agents.config.json` and related config files directly in this directory.
 
 3. **User-level (legacy)**: `~/.agents.config.json`
    - Supported for backward compatibility
@@ -262,6 +265,9 @@ Nanocoder looks for configuration in the following order (first found wins):
 **Environment Variables:**
 
 Keep API keys out of version control using environment variables. Variables are loaded from shell environment (`.bashrc`, `.zshrc`) or `.env` file in your working directory.
+
+- `NANOCODER_CONFIG_DIR`: Override the global configuration directory.
+- `NANOCODER_DATA_DIR`: Override the application data directory used for internal data like usage statistics.
 
 **Syntax:** `$VAR_NAME`, `${VAR_NAME}`, or `${VAR_NAME:-default}`
 **Supported in:** `baseUrl`, `apiKey`, `models`, MCP server `command`, `args`, `env`
@@ -401,6 +407,16 @@ Preferences follow the same location hierarchy as configuration files:
 
 - View current preferences: The file is human-readable JSON
 - Reset preferences: Delete any `nanocoder-preferences.json` to start fresh
+
+### Application Data Directory
+
+Nanocoder stores internal application data (such as usage statistics) in a separate application data directory:
+
+- **macOS**: `~/Library/Application Support/nanocoder`
+- **Linux/Unix**: `$XDG_DATA_HOME/nanocoder` or `~/.local/share/nanocoder`
+- **Windows**: `%APPDATA%\nanocoder`
+
+You can override this directory using `NANOCODER_DATA_DIR`.
 
 ### Commands
 
