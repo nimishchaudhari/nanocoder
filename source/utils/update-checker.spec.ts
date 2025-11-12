@@ -52,8 +52,12 @@ test.afterEach(() => {
 // Version Comparison Tests
 
 test('checkForUpdates: detects newer major version', async t => {
+	// Calculate a newer major version dynamically
+	const currentParts = CURRENT_VERSION.split('.');
+	const newerMajorVersion = `${parseInt(currentParts[0]) + 1}.0.0`;
+
 	globalThis.fetch = createMockFetch(200, {
-		version: '2.0.0',
+		version: newerMajorVersion,
 		name: '@nanocollective/nanocoder',
 	});
 
@@ -61,32 +65,40 @@ test('checkForUpdates: detects newer major version', async t => {
 
 	t.true(result.hasUpdate);
 	t.is(result.currentVersion, CURRENT_VERSION);
-	t.is(result.latestVersion, '2.0.0');
+	t.is(result.latestVersion, newerMajorVersion);
 	t.truthy(result.updateCommand);
 });
 
 test('checkForUpdates: detects newer minor version', async t => {
+	// Calculate a newer minor version dynamically
+	const currentParts = CURRENT_VERSION.split('.');
+	const newerMinorVersion = `${currentParts[0]}.${parseInt(currentParts[1]) + 1}.0`;
+
 	globalThis.fetch = createMockFetch(200, {
-		version: '1.17.0',
+		version: newerMinorVersion,
 		name: '@nanocollective/nanocoder',
 	});
 
 	const result = await checkForUpdates();
 
 	t.true(result.hasUpdate);
-	t.is(result.latestVersion, '1.17.0');
+	t.is(result.latestVersion, newerMinorVersion);
 });
 
 test('checkForUpdates: detects newer patch version', async t => {
+	// Calculate a newer patch version dynamically
+	const currentParts = CURRENT_VERSION.split('.');
+	const newerPatchVersion = `${currentParts[0]}.${currentParts[1]}.${parseInt(currentParts[2]) + 1}`;
+
 	globalThis.fetch = createMockFetch(200, {
-		version: '1.16.4',
+		version: newerPatchVersion,
 		name: '@nanocollective/nanocoder',
 	});
 
 	const result = await checkForUpdates();
 
 	t.true(result.hasUpdate);
-	t.is(result.latestVersion, '1.16.4');
+	t.is(result.latestVersion, newerPatchVersion);
 });
 
 test('checkForUpdates: detects same version (no update)', async t => {
@@ -104,40 +116,54 @@ test('checkForUpdates: detects same version (no update)', async t => {
 });
 
 test('checkForUpdates: detects older version (no update)', async t => {
+	// Calculate an older patch version dynamically
+	const currentParts = CURRENT_VERSION.split('.');
+	const patchNum = parseInt(currentParts[2]);
+	// Use 0 if current patch is already 0, otherwise decrement
+	const olderPatchVersion = `${currentParts[0]}.${currentParts[1]}.${Math.max(0, patchNum - 1)}`;
+
 	globalThis.fetch = createMockFetch(200, {
-		version: '1.16.2',
+		version: olderPatchVersion,
 		name: '@nanocollective/nanocoder',
 	});
 
 	const result = await checkForUpdates();
 
 	t.false(result.hasUpdate);
-	t.is(result.latestVersion, '1.16.2');
+	t.is(result.latestVersion, olderPatchVersion);
 });
 
 test('checkForUpdates: handles version with v prefix', async t => {
+	// Use a newer major version with v prefix
+	const currentParts = CURRENT_VERSION.split('.');
+	const newerMajorVersion = `v${parseInt(currentParts[0]) + 1}.0.0`;
+
 	globalThis.fetch = createMockFetch(200, {
-		version: 'v2.0.0',
+		version: newerMajorVersion,
 		name: '@nanocollective/nanocoder',
 	});
 
 	const result = await checkForUpdates();
 
 	t.true(result.hasUpdate);
-	t.is(result.latestVersion, 'v2.0.0');
+	t.is(result.latestVersion, newerMajorVersion);
 });
 
 test('checkForUpdates: handles pre-release versions', async t => {
+	// Use a newer major version with pre-release tag
+	const currentParts = CURRENT_VERSION.split('.');
+	const newerPreReleaseVersion = `${parseInt(currentParts[0]) + 1}.0.0-beta.1`;
+
 	globalThis.fetch = createMockFetch(200, {
-		version: '2.0.0-beta.1',
+		version: newerPreReleaseVersion,
 		name: '@nanocollective/nanocoder',
 	});
 
 	const result = await checkForUpdates();
 
-	// Pre-release info is stripped, so 2.0.0 > 1.16.3
+	// Pre-release info is stripped during comparison
 	t.true(result.hasUpdate);
-	t.is(result.latestVersion, '2.0.0-beta.1');
+	t.is(result.latestVersion, newerPreReleaseVersion);
 });
 
 // Network Error Handling Tests
