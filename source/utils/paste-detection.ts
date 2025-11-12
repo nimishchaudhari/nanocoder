@@ -44,9 +44,10 @@ export class PasteDetector {
 		const charsAdded = newText.length - this.lastInputLength;
 
 		// Calculate lines added in THIS change, not total lines in text
-		const previousLineCount = this.lastInputLength > 0
-			? newText.slice(0, this.lastInputLength).split('\n').length
-			: 1;
+		const previousLineCount =
+			this.lastInputLength > 0
+				? newText.slice(0, this.lastInputLength).split('\n').length
+				: 1;
 		const currentLineCount = newText.split('\n').length;
 		const linesAdded = currentLineCount - previousLineCount;
 
