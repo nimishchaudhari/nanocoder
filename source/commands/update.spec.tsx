@@ -217,6 +217,12 @@ test('hasCommandFailed: exit code takes precedence over success messages', t => 
 	t.true(hasCommandFailed(output));
 });
 
+// Homebrew error handling
+test('updateCommand: detects homebrew "not found" error', t => {
+	const output = 'EXIT_CODE: 1\nSTDERR:\nError: nanocoder not found in Homebrew\nPlease install it first with: brew install nanocoder';
+	t.true(hasCommandFailed(output));
+});
+
 // Edge case: both updateCommand and updateMessage undefined
 test('updateCommand: handles edge case when both updateCommand and updateMessage are undefined', async t => {
 	const originalFetch = globalThis.fetch;
