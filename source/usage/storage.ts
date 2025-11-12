@@ -6,6 +6,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {getAppDataPath, getConfigPath} from '@/config/paths';
+import {logInfo, logWarning} from '@/utils/message-queue';
 import type {UsageData, SessionUsage, DailyAggregate} from '../types/usage';
 
 const USAGE_FILE_NAME = 'usage.json';
@@ -41,19 +42,29 @@ function getUsageFilePath(): string {
 
 			try {
 				fs.renameSync(legacyPath, newPath);
-			} catch {
+				logInfo(`Migrated usage data to new location: ${newPath}`);
+			} catch (renameError) {
 				// Fallback if rename/move fails: copy then best-effort delete
+				logWarning(
+					`Could not move usage file (${renameError instanceof Error ? renameError.message : 'unknown error'}), copying instead...`,
+				);
 				fs.copyFileSync(legacyPath, newPath);
 				try {
 					fs.unlinkSync(legacyPath);
-				} catch {
-					// ignore cleanup failure
+					logInfo(`Successfully migrated usage data to: ${newPath}`);
+				} catch (unlinkError) {
+					logWarning(
+						`Migrated usage data to new location, but could not remove old file at ${legacyPath}. You may want to manually delete it.`,
+					);
 				}
 			}
 
 			return newPath;
-		} catch {
+		} catch (error) {
 			// On any failure, fall through to using newPath without migration
+			logWarning(
+				`Failed to migrate usage data from ${legacyPath}: ${error instanceof Error ? error.message : 'unknown error'}. Old data remains at legacy location.`,
+			);
 		}
 	}
 

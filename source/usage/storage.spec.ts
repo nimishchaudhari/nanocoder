@@ -12,6 +12,8 @@ import {
 } from './storage.js';
 import type {UsageData, SessionUsage, TokenBreakdown} from '../types/usage.js';
 
+console.log('\nstorage.spec.ts');
+
 // ============================================================================
 // Test Setup
 // ============================================================================
