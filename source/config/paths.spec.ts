@@ -33,60 +33,67 @@ test.afterEach(() => {
 	resetEnvironment();
 });
 
+function testPathGetter(
+	t: import('ava').ExecutionContext,
+	platform: NodeJS.Platform,
+	env: Record<string, string | undefined>,
+	getter: () => string,
+	expected: string,
+) {
+	resetEnvironment();
+	setPlatform(platform);
+	for (const [key, value] of Object.entries(env)) {
+		if (value === undefined) delete process.env[key];
+		else process.env[key] = value;
+	}
+	t.is(getter(), expected);
+}
+
 // getAppDataPath
 
 test.serial('getAppDataPath uses NANOCODER_DATA_DIR override verbatim', t => {
-	process.env.NANOCODER_DATA_DIR = '/custom/data';
-	process.env.APPDATA = 'C:/Ignored';
-	process.env.XDG_DATA_HOME = '/ignored';
-	setPlatform('linux');
-
-	t.is(
-		getAppDataPath(),
+	testPathGetter(
+		t,
+		'linux',
+		{
+			NANOCODER_DATA_DIR: '/custom/data',
+			APPDATA: 'C:/Ignored',
+			XDG_DATA_HOME: '/ignored',
+		},
+		getAppDataPath,
 		'/custom/data',
-		'Must respect NANOCODER_DATA_DIR with highest precedence',
 	);
 });
 
 test.serial('getAppDataPath darwin default path is stable', t => {
-	delete process.env.NANOCODER_DATA_DIR;
-	setPlatform('darwin');
-	process.env.HOME = '/Users/test';
-
-	const result = getAppDataPath();
-	t.is(
-		result,
+	testPathGetter(
+		t,
+		'darwin',
+		{HOME: '/Users/test'},
+		getAppDataPath,
 		path.join('/Users/test', 'Library', 'Application Support', 'nanocoder'),
-		'Stable macOS data path contract',
 	);
 });
 
 test.serial('getAppDataPath win32 uses APPDATA when set', t => {
-	delete process.env.NANOCODER_DATA_DIR;
-	setPlatform('win32');
-	process.env.APPDATA = 'C:/Users/test/AppData/Roaming';
-
-	const result = getAppDataPath();
-	t.is(
-		result,
+	testPathGetter(
+		t,
+		'win32',
+		{APPDATA: 'C:/Users/test/AppData/Roaming'},
+		getAppDataPath,
 		path.join('C:/Users/test/AppData/Roaming', 'nanocoder'),
-		'Stable Windows data path contract with APPDATA',
 	);
 });
 
 test.serial(
 	'getAppDataPath win32 falls back to homedir Roaming when APPDATA missing',
 	t => {
-		delete process.env.NANOCODER_DATA_DIR;
-		setPlatform('win32');
-		delete process.env.APPDATA;
-		process.env.HOME = 'C:/Users/test';
-
-		const result = getAppDataPath();
-		t.is(
-			result,
+		testPathGetter(
+			t,
+			'win32',
+			{APPDATA: undefined, HOME: 'C:/Users/test'},
+			getAppDataPath,
 			path.join('C:/Users/test', 'AppData', 'Roaming', 'nanocoder'),
-			'Stable Windows data path contract fallback',
 		);
 	},
 );
@@ -94,84 +101,75 @@ test.serial(
 test.serial(
 	'getAppDataPath linux honours XDG_DATA_HOME and ignores APPDATA',
 	t => {
-		delete process.env.NANOCODER_DATA_DIR;
-		setPlatform('linux');
-		process.env.XDG_DATA_HOME = '/xdg-data';
-		process.env.APPDATA = '/should-not-be-used';
-
-		const result = getAppDataPath();
-		t.is(result, path.join('/xdg-data', 'nanocoder'));
+		testPathGetter(
+			t,
+			'linux',
+			{XDG_DATA_HOME: '/xdg-data', APPDATA: '/should-not-be-used'},
+			getAppDataPath,
+			path.join('/xdg-data', 'nanocoder'),
+		);
 	},
 );
 
 test.serial('getAppDataPath linux falls back to ~/.local/share', t => {
-	delete process.env.NANOCODER_DATA_DIR;
-	setPlatform('linux');
-	delete process.env.XDG_DATA_HOME;
-	process.env.HOME = '/home/test';
-
-	const result = getAppDataPath();
-	t.is(
-		result,
+	testPathGetter(
+		t,
+		'linux',
+		{XDG_DATA_HOME: undefined, HOME: '/home/test'},
+		getAppDataPath,
 		path.join('/home/test', '.local', 'share', 'nanocoder'),
-		'Stable Linux data path contract fallback',
 	);
 });
 
 // getConfigPath
 
 test.serial('getConfigPath uses NANOCODER_CONFIG_DIR override verbatim', t => {
-	process.env.NANOCODER_CONFIG_DIR = '/custom/config';
-	process.env.XDG_CONFIG_HOME = '/ignored';
-	process.env.APPDATA = 'C:/Ignored';
-	setPlatform('linux');
-
-	t.is(
-		getConfigPath(),
+	testPathGetter(
+		t,
+		'linux',
+		{
+			NANOCODER_CONFIG_DIR: '/custom/config',
+			XDG_CONFIG_HOME: '/ignored',
+			APPDATA: 'C:/Ignored',
+		},
+		getConfigPath,
 		'/custom/config',
-		'Must respect NANOCODER_CONFIG_DIR with highest precedence',
 	);
 });
 
 test.serial('getConfigPath darwin default path is stable', t => {
-	delete process.env.NANOCODER_CONFIG_DIR;
-	setPlatform('darwin');
-	process.env.HOME = '/Users/test';
-
-	const result = getConfigPath();
-	t.is(
-		result,
+	testPathGetter(
+		t,
+		'darwin',
+		{NANOCODER_CONFIG_DIR: undefined, HOME: '/Users/test'},
+		getConfigPath,
 		path.join('/Users/test', 'Library', 'Preferences', 'nanocoder'),
-		'Stable macOS config path contract',
 	);
 });
 
 test.serial('getConfigPath win32 uses APPDATA when set', t => {
-	delete process.env.NANOCODER_CONFIG_DIR;
-	setPlatform('win32');
-	process.env.APPDATA = 'C:/Users/test/AppData/Roaming';
-
-	const result = getConfigPath();
-	t.is(
-		result,
+	testPathGetter(
+		t,
+		'win32',
+		{NANOCODER_CONFIG_DIR: undefined, APPDATA: 'C:/Users/test/AppData/Roaming'},
+		getConfigPath,
 		path.join('C:/Users/test/AppData/Roaming', 'nanocoder'),
-		'Stable Windows config path contract with APPDATA',
 	);
 });
 
 test.serial(
 	'getConfigPath win32 falls back to homedir Roaming when APPDATA missing',
 	t => {
-		delete process.env.NANOCODER_CONFIG_DIR;
-		setPlatform('win32');
-		delete process.env.APPDATA;
-		process.env.HOME = 'C:/Users/test';
-
-		const result = getConfigPath();
-		t.is(
-			result,
+		testPathGetter(
+			t,
+			'win32',
+			{
+				NANOCODER_CONFIG_DIR: undefined,
+				APPDATA: undefined,
+				HOME: 'C:/Users/test',
+			},
+			getConfigPath,
 			path.join('C:/Users/test', 'AppData', 'Roaming', 'nanocoder'),
-			'Stable Windows config path contract fallback',
 		);
 	},
 );
@@ -179,26 +177,30 @@ test.serial(
 test.serial(
 	'getConfigPath linux honours XDG_CONFIG_HOME and ignores APPDATA',
 	t => {
-		delete process.env.NANOCODER_CONFIG_DIR;
-		setPlatform('linux');
-		process.env.XDG_CONFIG_HOME = '/xdg-config';
-		process.env.APPDATA = '/should-not-be-used';
-
-		const result = getConfigPath();
-		t.is(result, path.join('/xdg-config', 'nanocoder'));
+		testPathGetter(
+			t,
+			'linux',
+			{
+				NANOCODER_CONFIG_DIR: undefined,
+				XDG_CONFIG_HOME: '/xdg-config',
+				APPDATA: '/should-not-be-used',
+			},
+			getConfigPath,
+			path.join('/xdg-config', 'nanocoder'),
+		);
 	},
 );
 
 test.serial('getConfigPath linux falls back to ~/.config', t => {
-	delete process.env.NANOCODER_CONFIG_DIR;
-	setPlatform('linux');
-	delete process.env.XDG_CONFIG_HOME;
-	process.env.HOME = '/home/test';
-
-	const result = getConfigPath();
-	t.is(
-		result,
+	testPathGetter(
+		t,
+		'linux',
+		{
+			NANOCODER_CONFIG_DIR: undefined,
+			XDG_CONFIG_HOME: undefined,
+			HOME: '/home/test',
+		},
+		getConfigPath,
 		path.join('/home/test', '.config', 'nanocoder'),
-		'Stable Linux config path contract fallback',
 	);
 });
