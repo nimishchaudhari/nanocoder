@@ -79,9 +79,9 @@ test.serial('getAppDataPath win32 uses APPDATA when set', t => {
 	testPathGetter(
 		t,
 		'win32',
-		{APPDATA: 'C:/Users/test/AppData/Roaming'},
+		{APPDATA: path.join('C:', 'Users', 'test', 'AppData', 'Roaming')},
 		getAppDataPath,
-		path.join('C:/Users/test/AppData/Roaming', 'nanocoder'),
+		path.join('C:', 'Users', 'test', 'AppData', 'Roaming', 'nanocoder'),
 	);
 });
 
@@ -91,9 +91,9 @@ test.serial(
 		testPathGetter(
 			t,
 			'win32',
-			{APPDATA: undefined, HOME: 'C:/Users/test'},
+			{APPDATA: undefined, HOME: path.join('C:', 'Users', 'test')},
 			getAppDataPath,
-			path.join('C:/Users/test', 'AppData', 'Roaming', 'nanocoder'),
+			path.join('C:', 'Users', 'test', 'AppData', 'Roaming', 'nanocoder'),
 		);
 	},
 );
@@ -164,9 +164,12 @@ test.serial('getConfigPath win32 uses APPDATA when set', t => {
 	testPathGetter(
 		t,
 		'win32',
-		{NANOCODER_CONFIG_DIR: undefined, APPDATA: 'C:/Users/test/AppData/Roaming'},
+		{
+			NANOCODER_CONFIG_DIR: undefined,
+			APPDATA: path.join('C:', 'Users', 'test', 'AppData', 'Roaming'),
+		},
 		getConfigPath,
-		path.join('C:/Users/test/AppData/Roaming', 'nanocoder'),
+		path.join('C:', 'Users', 'test', 'AppData', 'Roaming', 'nanocoder'),
 	);
 });
 
@@ -179,10 +182,10 @@ test.serial(
 			{
 				NANOCODER_CONFIG_DIR: undefined,
 				APPDATA: undefined,
-				HOME: 'C:/Users/test',
+				HOME: path.join('C:', 'Users', 'test'),
 			},
 			getConfigPath,
-			path.join('C:/Users/test', 'AppData', 'Roaming', 'nanocoder'),
+			path.join('C:', 'Users', 'test', 'AppData', 'Roaming', 'nanocoder'),
 		);
 	},
 );
