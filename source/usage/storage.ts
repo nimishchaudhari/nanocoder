@@ -60,10 +60,10 @@ function getUsageFilePath(): string {
 	return newPath;
 }
 
-function ensureConfigDir(): void {
-	const configDir = getAppDataPath();
-	if (!fs.existsSync(configDir)) {
-		fs.mkdirSync(configDir, {recursive: true});
+function ensureAppDataDir(): void {
+	const appDataDir = getAppDataPath();
+	if (!fs.existsSync(appDataDir)) {
+		fs.mkdirSync(appDataDir, {recursive: true});
 	}
 }
 
@@ -96,7 +96,7 @@ export function readUsageData(): UsageData {
 
 export function writeUsageData(data: UsageData): void {
 	try {
-		ensureConfigDir();
+		ensureAppDataDir();
 
 		data.lastUpdated = Date.now();
 

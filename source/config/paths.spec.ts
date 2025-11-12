@@ -6,6 +6,8 @@ import {getAppDataPath, getConfigPath} from './paths';
 // configuration and data directories. Do not change expected values
 // without providing a migration strategy.
 
+console.log(`\npaths.spec.ts`);
+
 const ORIGINAL_PLATFORM = process.platform;
 const ORIGINAL_ENV = {...process.env};
 
