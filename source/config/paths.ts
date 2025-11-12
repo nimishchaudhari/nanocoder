@@ -2,6 +2,11 @@ import {homedir} from 'os';
 import {join} from 'path';
 
 export function getAppDataPath(): string {
+	// Allow explicit override via environment variable
+	if (process.env.NANOCODER_DATA_DIR) {
+		return process.env.NANOCODER_DATA_DIR;
+	}
+
 	// Platform-specific app data directories
 	let baseAppDataPath: string;
 	switch (process.platform) {
