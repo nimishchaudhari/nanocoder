@@ -12,14 +12,6 @@ function createEmptyInputState(): InputState {
 	};
 }
 
-function _createInputStateFromString(text: string): InputState {
-	// Convert old string-based history to new InputState format
-	return {
-		displayValue: text,
-		placeholderContent: {},
-	};
-}
-
 export function useInputState() {
 	// Core state following the spec
 	const [currentState, setCurrentState] = useState<InputState>(
@@ -37,6 +29,11 @@ export function useInputState() {
 	// Paste detection
 	const pasteDetectorRef = useRef(new PasteDetector());
 	const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+	// Track recent paste for chunked paste handling (VS Code terminal issue)
+	const lastPasteTimeRef = useRef<number>(0);
+	const lastPasteIdRef = useRef<string | null>(null);
+	const PASTE_CHUNK_WINDOW_MS = 200; // Time window to consider text as part of same paste (increased for slower terminals)
 
 	// Cached line count for performance
 	const [cachedLineCount, setCachedLineCount] = useState(1);
@@ -62,11 +59,116 @@ export function useInputState() {
 				return;
 			}
 
+			const now = Date.now();
+			const timeSinceLastPaste = now - lastPasteTimeRef.current;
+
+			// Check if this might be a continuation of a recent paste (chunked paste in VS Code)
+			if (
+				lastPasteIdRef.current &&
+				timeSinceLastPaste < PASTE_CHUNK_WINDOW_MS &&
+				currentState.placeholderContent[lastPasteIdRef.current]
+			) {
+				// This looks like a chunked paste continuation
+				// Extract the new text that was added (should be at the end)
+				const placeholder =
+					currentState.placeholderContent[lastPasteIdRef.current];
+				const expectedLength = currentState.displayValue.length;
+				const addedChunk = newInput.slice(expectedLength);
+
+				if (
+					addedChunk.length > 0 &&
+					placeholder.type === PlaceholderType.PASTE
+				) {
+					// Merge the new chunk into the existing paste placeholder
+					const updatedContent = placeholder.content + addedChunk;
+					const oldPlaceholder = placeholder.displayText;
+					const newPlaceholder = `[Paste #${lastPasteIdRef.current}: ${updatedContent.length} chars]`;
+
+					const updatedPlaceholderContent = {
+						...currentState.placeholderContent,
+						[lastPasteIdRef.current]: {
+							...placeholder,
+							content: updatedContent,
+							originalSize: updatedContent.length,
+							displayText: newPlaceholder,
+						},
+					};
+
+					// Replace old placeholder with updated one in display value
+					const newDisplayValue = currentState.displayValue.replace(
+						oldPlaceholder,
+						newPlaceholder,
+					);
+
+					pushToUndoStack({
+						displayValue: newDisplayValue,
+						placeholderContent: updatedPlaceholderContent,
+					});
+
+					// Update paste detector to the new display value
+					pasteDetectorRef.current.updateState(newDisplayValue);
+					lastPasteTimeRef.current = now; // Extend the window
+					return;
+				}
+			}
+
 			// Then detect if this might be a paste
 			const detection = pasteDetectorRef.current.detectPaste(newInput);
 
 			if (detection.isPaste && detection.addedText.length > 0) {
-				// Try to handle as paste
+				// If we have an active paste within a short window (even if state hasn't fully updated),
+				// treat this as a continuation to prevent duplicate placeholders
+				const isVeryRecentPaste = timeSinceLastPaste < 20; // 20ms grace period for rapid multi-detections
+
+				if (
+					lastPasteIdRef.current &&
+					(isVeryRecentPaste ||
+						(timeSinceLastPaste < PASTE_CHUNK_WINDOW_MS &&
+							currentState.placeholderContent[lastPasteIdRef.current]))
+				) {
+					// If we don't have the placeholder in state yet, just update detector and skip
+					// This happens when multiple detections fire before React updates state
+					const placeholder =
+						currentState.placeholderContent[lastPasteIdRef.current];
+					if (!placeholder) {
+						// Skip duplicate early detection
+						pasteDetectorRef.current.updateState(newInput);
+						return;
+					}
+
+					// Treat as chunked continuation
+					if (placeholder.type === PlaceholderType.PASTE) {
+						const updatedContent = placeholder.content + detection.addedText;
+						const oldPlaceholder = placeholder.displayText;
+						const newPlaceholder = `[Paste #${lastPasteIdRef.current}: ${updatedContent.length} chars]`;
+
+						const updatedPlaceholderContent = {
+							...currentState.placeholderContent,
+							[lastPasteIdRef.current!]: {
+								...placeholder,
+								content: updatedContent,
+								originalSize: updatedContent.length,
+								displayText: newPlaceholder,
+							},
+						};
+
+						const newDisplayValue = currentState.displayValue.replace(
+							oldPlaceholder,
+							newPlaceholder,
+						);
+
+						pushToUndoStack({
+							displayValue: newDisplayValue,
+							placeholderContent: updatedPlaceholderContent,
+						});
+
+						pasteDetectorRef.current.updateState(newDisplayValue);
+						lastPasteTimeRef.current = now;
+						return;
+					}
+				}
+
+				// Try to handle as paste (new paste)
 				const pasteResult = handlePaste(
 					detection.addedText,
 					currentState.displayValue,
@@ -80,6 +182,17 @@ export function useInputState() {
 					// Update paste detector state to match the new display value (with placeholder)
 					// This prevents detection confusion on subsequent pastes
 					pasteDetectorRef.current.updateState(pasteResult.displayValue);
+
+					// Track this paste for potential chunked continuation
+					const pasteId = Object.keys(pasteResult.placeholderContent).find(
+						id =>
+							!currentState.placeholderContent[id] &&
+							pasteResult.placeholderContent[id].type === PlaceholderType.PASTE,
+					);
+					if (pasteId) {
+						lastPasteIdRef.current = pasteId;
+						lastPasteTimeRef.current = now;
+					}
 				} else {
 					// Small paste - treat as normal input
 					pushToUndoStack({
@@ -180,6 +293,8 @@ export function useInputState() {
 		setHistoryIndex(-1);
 		setCachedLineCount(1);
 		pasteDetectorRef.current.reset();
+		lastPasteTimeRef.current = 0;
+		lastPasteIdRef.current = null;
 	}, []);
 
 	// Cleanup on unmount
