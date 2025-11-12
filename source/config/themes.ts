@@ -286,6 +286,25 @@ export const themes: Record<ThemePreset, Theme> = {
 			diffRemovedText: '#ff00ff',
 		},
 	},
+  'dracula': {
+    name: 'dracula',
+    displayName: 'Dracula',
+    colors: {
+      white: '#f8f8f2',
+      black: '#282a36',
+      primary: '#ff79c6',
+      tool: '#8be9fd',
+      success: '#50fa7b',
+      error: '#ff5555',
+      secondary: '#bd93f9',
+      info: '#f1fa8c',
+      warning: '#ffb86c',
+      diffAdded: '#00ff00',
+      diffRemoved: '#ff0000',
+      diffAddedText: '#50fa7b',
+      diffRemovedText: '#ff5555',
+    },
+  },
 };
 
 export function getThemeColors(themePreset: ThemePreset) {
