@@ -1,3 +1,15 @@
+# 1.16.4
+
+- Decouple config vs data directories to introduce clear separation between configuration and application data directories. Thanks to @bowmanjd pushing this update.
+
+- Update checker now attempts to detect how you installed Nanocoder and uses that to update with CLI with. It all also presents, update steps to the user correctly to do manually. Thanks to @fabriziosalmi for doing this.
+
+- Added Dracula theme.
+
+- Fix: Improved paste detection to create placeholders for any pasted content (removed 80-char minimum), fixed consecutive paste placeholder sizing, and prevented Shift+Enter from falsely triggering paste detection.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 # 1.16.3
 
 - Fix: Update checker used old rendering method so it appeared broken and always checking for an update. This has now been resolved.
