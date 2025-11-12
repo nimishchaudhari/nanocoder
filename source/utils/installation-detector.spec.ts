@@ -1,5 +1,10 @@
 import test from 'ava';
-import {detectInstallationMethod} from './installation-detector';
+import {
+	detectInstallationMethod,
+	detectFromPath,
+} from './installation-detector';
+
+console.log(`\ninstallation-detector.spec.ts`);
 
 test.beforeEach(() => {
 	// Clean up environment variables before each test
@@ -63,4 +68,90 @@ test('detectInstallationMethod: detects npm via PNPM_HOME', t => {
 test('detectInstallationMethod: detects npm via npm_execpath', t => {
 	process.env.npm_execpath = '/usr/local/lib/node_modules/npm/bin/npm-cli.js';
 	t.is(detectInstallationMethod(), 'npm');
+});
+
+// Path Detection Tests
+// These tests verify the detectFromPath function correctly identifies installation methods from paths
+
+test('detectFromPath: detects nix from /nix/store path', t => {
+	const path =
+		'/nix/store/abc123-nanocoder-1.0.0/lib/node_modules/@nanocollective/nanocoder/dist';
+	t.is(detectFromPath(path), 'nix');
+});
+
+test('detectFromPath: detects homebrew from Cellar path (macOS Intel)', t => {
+	const path =
+		'/usr/local/Cellar/nanocoder/1.0.0/libexec/lib/node_modules/@nanocollective/nanocoder/dist';
+	t.is(detectFromPath(path), 'homebrew');
+});
+
+test('detectFromPath: detects homebrew from Cellar path (macOS ARM)', t => {
+	const path =
+		'/opt/homebrew/Cellar/nanocoder/1.0.0/libexec/lib/node_modules/@nanocollective/nanocoder/dist';
+	t.is(detectFromPath(path), 'homebrew');
+});
+
+test('detectFromPath: detects homebrew from generic homebrew path', t => {
+	const path = '/opt/homebrew/lib/node_modules/@nanocollective/nanocoder/dist';
+	t.is(detectFromPath(path), 'homebrew');
+});
+
+test('detectFromPath: detects homebrew from Linux homebrew path', t => {
+	const path =
+		'/home/linuxbrew/.linuxbrew/Cellar/nanocoder/1.0.0/lib/node_modules/@nanocollective/nanocoder/dist';
+	t.is(detectFromPath(path), 'homebrew');
+});
+
+test('detectFromPath: detects npm from node_modules path (global)', t => {
+	const path = '/usr/local/lib/node_modules/@nanocollective/nanocoder/dist';
+	t.is(detectFromPath(path), 'npm');
+});
+
+test('detectFromPath: detects npm from node_modules path (local)', t => {
+	const path = '/home/user/project/node_modules/@nanocollective/nanocoder/dist';
+	t.is(detectFromPath(path), 'npm');
+});
+
+test('detectFromPath: detects npm from pnpm store path', t => {
+	const path =
+		'/home/user/.pnpm-store/.pnpm/@nanocollective+nanocoder@1.0.0/node_modules/@nanocollective/nanocoder/dist';
+	t.is(detectFromPath(path), 'npm');
+});
+
+test('detectFromPath: detects npm from .bin directory', t => {
+	const path = '/usr/local/lib/node_modules/.bin/nanocoder';
+	t.is(detectFromPath(path), 'npm');
+});
+
+test('detectFromPath: returns null for unrecognized paths', t => {
+	const path = '/home/user/Downloads/nanocoder/dist';
+	t.is(detectFromPath(path), null);
+});
+
+test('detectFromPath: detects npm from Windows AppData path', t => {
+	// Windows npm global installations typically go to AppData
+	const path =
+		'C:\\Users\\user\\AppData\\Roaming\\npm\\node_modules\\@nanocollective\\nanocoder\\dist';
+	t.is(detectFromPath(path), 'npm');
+});
+
+test('detectFromPath: nix takes precedence over node_modules', t => {
+	// Edge case: nix store might contain "node_modules" in the path
+	const path =
+		'/nix/store/abc123-nanocoder-1.0.0/lib/node_modules/@nanocollective/nanocoder/dist';
+	t.is(detectFromPath(path), 'nix');
+});
+
+test('detectFromPath: homebrew takes precedence over node_modules', t => {
+	// Edge case: homebrew path contains node_modules
+	const path =
+		'/opt/homebrew/Cellar/nanocoder/1.0.0/lib/node_modules/@nanocollective/nanocoder/dist';
+	t.is(detectFromPath(path), 'homebrew');
+});
+
+// Edge case tests
+test('detectInstallationMethod: env vars take precedence over path', t => {
+	// Even if running from a homebrew path, HOMEBREW_PREFIX should be checked first
+	process.env.HOMEBREW_PREFIX = '/opt/homebrew';
+	t.is(detectInstallationMethod(), 'homebrew');
 });

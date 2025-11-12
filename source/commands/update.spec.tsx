@@ -217,6 +217,37 @@ test('hasCommandFailed: exit code takes precedence over success messages', t => 
 	t.true(hasCommandFailed(output));
 });
 
+// Edge case: both updateCommand and updateMessage undefined
+test('updateCommand: handles edge case when both updateCommand and updateMessage are undefined', async t => {
+	const originalFetch = globalThis.fetch;
+	globalThis.fetch = (async () => {
+		return {
+			ok: true,
+			status: 200,
+			statusText: 'OK',
+			json: async () => ({
+				version: '99.99.99',
+				name: '@nanocollective/nanocoder',
+			}),
+		} as unknown as Response;
+	}) as typeof fetch;
+
+	// Set an unknown installation method that won't return a command or message
+	process.env.NANOCODER_INSTALL_METHOD = 'unknown';
+
+	const result = await updateCommand.handler([]);
+
+	// Should return the fallback InfoMessage
+	// @ts-ignore - accessing React element props
+	t.truthy(result.props?.message);
+	// @ts-ignore
+	t.regex(result.props.message, /package manager/i);
+
+	// Cleanup
+	globalThis.fetch = originalFetch;
+	delete process.env.NANOCODER_INSTALL_METHOD;
+});
+
 // Note: Full integration tests with mocking would require a more sophisticated
 // test setup with module mocking capabilities. The update-checker.spec.ts file
 // provides comprehensive coverage of the update checking logic itself.

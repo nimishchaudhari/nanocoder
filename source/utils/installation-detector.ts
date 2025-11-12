@@ -14,6 +14,37 @@ const safeProcess: MaybeProcess =
 	typeof process !== 'undefined' ? (process as unknown as MaybeProcess) : {};
 
 /**
+ * Detects installation method from a given module path.
+ * Exported for testing purposes.
+ * @param modulePath The path to check
+ * @returns The detected installation method or null if not detected from path
+ */
+export function detectFromPath(modulePath: string): InstallationMethod | null {
+	// Strategy 1: Check for Nix installation (most specific)
+	// Nix store has `/nix/store/` path with store hashes - this is very reliable
+	if (modulePath.includes('/nix/store/')) {
+		return 'nix';
+	}
+
+	// Strategy 2: Check for Homebrew installation via path
+	// Homebrew puts packages under Cellar directory in standard locations
+	// Common paths: /opt/homebrew, /usr/local, /home/linuxbrew/.linuxbrew
+	if (
+		modulePath.includes(`${sep}Cellar${sep}`) ||
+		modulePath.includes(`${sep}homebrew${sep}`)
+	) {
+		return 'homebrew';
+	}
+
+	// Strategy 3: Check for npm/pnpm/yarn installation using multiple signals
+	if (isNpmBasedInstallation(modulePath)) {
+		return 'npm';
+	}
+
+	return null;
+}
+
+/**
  * Detects how Nanocoder was installed by using multiple detection strategies.
  * Uses a combination of path inspection, environment variables, and file system markers.
  * An environment variable `NANOCODER_INSTALL_METHOD` can be used to override detection for testing.
@@ -29,32 +60,18 @@ export function detectInstallationMethod(): InstallationMethod {
 		return envOverride as InstallationMethod;
 	}
 
-	// Use the module path of this file (compiled output in `dist`) to determine how it was installed.
-	const modulePath = dirname(fileURLToPath(import.meta.url));
-
-	// Strategy 1: Check for Nix installation (most specific)
-	// Nix store has `/nix/store/` path with store hashes - this is very reliable
-	if (modulePath.includes('/nix/store/')) {
-		return 'nix';
-	}
-
-	// Strategy 2: Check for Homebrew installation
-	// Homebrew has specific environment variables and paths
+	// Strategy 1: Check environment variables (most reliable after override)
 	if (safeProcess.env?.HOMEBREW_PREFIX || safeProcess.env?.HOMEBREW_CELLAR) {
 		return 'homebrew';
 	}
-	// Homebrew puts packages under Cellar directory in standard locations
-	// Common paths: /opt/homebrew, /usr/local, /home/linuxbrew/.linuxbrew
-	if (
-		modulePath.includes(`${sep}Cellar${sep}`) ||
-		modulePath.includes(`${sep}homebrew${sep}`)
-	) {
-		return 'homebrew';
-	}
 
-	// Strategy 3: Check for npm/pnpm/yarn installation using multiple signals
-	if (isNpmBasedInstallation(modulePath)) {
-		return 'npm';
+	// Use the module path of this file (compiled output in `dist`) to determine how it was installed.
+	const modulePath = dirname(fileURLToPath(import.meta.url));
+
+	// Strategy 2: Check path-based detection
+	const pathResult = detectFromPath(modulePath);
+	if (pathResult) {
+		return pathResult;
 	}
 
 	return 'unknown';
