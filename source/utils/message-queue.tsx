@@ -71,7 +71,8 @@ export function logError(message: string, hideBox: boolean = true) {
 	addMessageToQueue('error', message, hideBox);
 }
 
-function logSuccess(message: string, hideBox: boolean = true) {
+// Temporarily ingored in `knip.json`. We do want this. We just haven't used it yet.
+export function logSuccess(message: string, hideBox: boolean = true) {
 	addMessageToQueue('success', message, hideBox);
 }
 
