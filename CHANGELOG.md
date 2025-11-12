@@ -6,7 +6,11 @@
 
 - Added Dracula theme.
 
-- Fix: Improved paste detection to create placeholders for any pasted content (removed 80-char minimum), fixed consecutive paste placeholder sizing, and prevented Shift+Enter from falsely triggering paste detection.
+- Fix: Command auto-complaete would only work if there was just one command left to auto-complete to. Now whatever the top suggestion is is the one it autocompletes to.
+
+- Fix: Improved paste detection to create placeholders for any pasted content (removed 80-char minimum), fixed consecutive paste placeholder sizing, paste chunking for VSCode and other terminals.
+
+- Fix: Creating new lines in VSCode Terminal was broken. This has now been fixed.
 
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
