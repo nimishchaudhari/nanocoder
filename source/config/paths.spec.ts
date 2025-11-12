@@ -121,6 +121,19 @@ test.serial('getAppDataPath linux falls back to ~/.local/share', t => {
 	);
 });
 
+test.serial(
+	'getAppDataPath non-standard platform falls back to Linux-style defaults',
+	t => {
+		testPathGetter(
+			t,
+			'freebsd',
+			{XDG_DATA_HOME: undefined, HOME: '/home/test'},
+			getAppDataPath,
+			path.join('/home/test', '.local', 'share', 'nanocoder'),
+		);
+	},
+);
+
 // getConfigPath
 
 test.serial('getConfigPath uses NANOCODER_CONFIG_DIR override verbatim', t => {
@@ -204,3 +217,20 @@ test.serial('getConfigPath linux falls back to ~/.config', t => {
 		path.join('/home/test', '.config', 'nanocoder'),
 	);
 });
+
+test.serial(
+	'getConfigPath non-standard platform falls back to Linux-style defaults',
+	t => {
+		testPathGetter(
+			t,
+			'freebsd',
+			{
+				NANOCODER_CONFIG_DIR: undefined,
+				XDG_CONFIG_HOME: undefined,
+				HOME: '/home/test',
+			},
+			getConfigPath,
+			path.join('/home/test', '.config', 'nanocoder'),
+		);
+	},
+);
