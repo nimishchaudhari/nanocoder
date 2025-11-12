@@ -2,6 +2,7 @@ import React from 'react';
 import ErrorMessage from '@/components/error-message';
 import InfoMessage from '@/components/info-message';
 import SuccessMessage from '@/components/success-message';
+import WarningMessage from '@/components/warning-message';
 import type {MessageType} from '@/types/index';
 
 // Global message queue function - will be set by App component
@@ -47,6 +48,11 @@ function addMessageToQueue(
 				<SuccessMessage key={key} message={message} hideBox={hideBox} />
 			);
 			break;
+		case 'warning':
+			component = (
+				<WarningMessage key={key} message={message} hideBox={hideBox} />
+			);
+			break;
 		case 'info':
 		default:
 			component = <InfoMessage key={key} message={message} hideBox={hideBox} />;
@@ -63,4 +69,13 @@ export function logInfo(message: string, hideBox: boolean = true) {
 
 export function logError(message: string, hideBox: boolean = true) {
 	addMessageToQueue('error', message, hideBox);
+}
+
+// Temporarily ingored in `knip.json`. We do want this. We just haven't used it yet.
+export function logSuccess(message: string, hideBox: boolean = true) {
+	addMessageToQueue('success', message, hideBox);
+}
+
+export function logWarning(message: string, hideBox: boolean = true) {
+	addMessageToQueue('warning', message, hideBox);
 }

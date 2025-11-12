@@ -1,4 +1,4 @@
-export type MessageType = 'info' | 'error' | 'success';
+export type MessageType = 'info' | 'error' | 'success' | 'warning';
 
 export interface NpmRegistryResponse {
 	version: string;
