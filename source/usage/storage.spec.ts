@@ -99,6 +99,132 @@ test('migrates usage data from legacy config directory to app data directory', t
 	t.true(fs.existsSync(newFilePath));
 });
 
+test('migration removes legacy file after successful migration', t => {
+	// Create legacy file
+	const legacyConfigDir = path.join(os.tmpdir(), 'nanocoder-legacy-config-2');
+	fs.mkdirSync(legacyConfigDir, {recursive: true});
+	const legacyFilePath = path.join(legacyConfigDir, 'usage.json');
+	const legacyData: UsageData = {
+		sessions: [createMockSession('legacy', 'model', 456)],
+		dailyAggregates: [],
+		totalLifetime: 456,
+		lastUpdated: Date.now(),
+	};
+	fs.writeFileSync(legacyFilePath, JSON.stringify(legacyData), 'utf-8');
+
+	process.env.NANOCODER_CONFIG_DIR = legacyConfigDir;
+
+	// Trigger migration
+	readUsageData();
+
+	// Legacy file should be gone
+	t.false(fs.existsSync(legacyFilePath));
+});
+
+test('migration skips when new file already exists', t => {
+	// Create both legacy and new files
+	const legacyConfigDir = path.join(os.tmpdir(), 'nanocoder-legacy-config-3');
+	fs.mkdirSync(legacyConfigDir, {recursive: true});
+	const legacyFilePath = path.join(legacyConfigDir, 'usage.json');
+	const legacyData: UsageData = {
+		sessions: [createMockSession('legacy', 'model', 111)],
+		dailyAggregates: [],
+		totalLifetime: 111,
+		lastUpdated: Date.now(),
+	};
+	fs.writeFileSync(legacyFilePath, JSON.stringify(legacyData), 'utf-8');
+
+	// Create new file with different data
+	const appDataHome = process.env.XDG_DATA_HOME!;
+	const appDataDir = path.join(appDataHome, 'nanocoder');
+	fs.mkdirSync(appDataDir, {recursive: true});
+	const newFilePath = path.join(appDataDir, 'usage.json');
+	const newData: UsageData = {
+		sessions: [createMockSession('new', 'model', 999)],
+		dailyAggregates: [],
+		totalLifetime: 999,
+		lastUpdated: Date.now(),
+	};
+	fs.writeFileSync(newFilePath, JSON.stringify(newData), 'utf-8');
+
+	process.env.NANOCODER_CONFIG_DIR = legacyConfigDir;
+
+	// Read should use new file, not migrate
+	const data = readUsageData();
+
+	// Should have data from new file, not legacy
+	t.is(data.totalLifetime, 999);
+
+	// Legacy file should still exist (wasn't touched)
+	t.true(fs.existsSync(legacyFilePath));
+	t.true(fs.existsSync(newFilePath));
+});
+
+test('migration handles missing legacy config directory gracefully', t => {
+	// Don't create legacy directory, just set NANOCODER_CONFIG_DIR to non-existent path
+	process.env.NANOCODER_CONFIG_DIR = path.join(
+		os.tmpdir(),
+		'nanocoder-nonexistent',
+	);
+
+	// Should not throw and should return empty data
+	const data = readUsageData();
+	t.is(data.sessions.length, 0);
+	t.is(data.totalLifetime, 0);
+});
+
+test('migration handles corrupt legacy file gracefully', t => {
+	// Create legacy file with invalid JSON
+	const legacyConfigDir = path.join(os.tmpdir(), 'nanocoder-legacy-config-4');
+	fs.mkdirSync(legacyConfigDir, {recursive: true});
+	const legacyFilePath = path.join(legacyConfigDir, 'usage.json');
+	fs.writeFileSync(legacyFilePath, 'not valid json{{{', 'utf-8');
+
+	process.env.NANOCODER_CONFIG_DIR = legacyConfigDir;
+
+	// Should not throw, should return empty data
+	const data = readUsageData();
+	t.is(data.sessions.length, 0);
+	t.is(data.totalLifetime, 0);
+});
+
+test('migration preserves all session data fields', t => {
+	const legacyConfigDir = path.join(os.tmpdir(), 'nanocoder-legacy-config-5');
+	fs.mkdirSync(legacyConfigDir, {recursive: true});
+	const legacyFilePath = path.join(legacyConfigDir, 'usage.json');
+
+	// Create a session with all fields
+	const session = createMockSession('test-provider', 'test-model', 5000);
+	const legacyData: UsageData = {
+		sessions: [session],
+		dailyAggregates: [
+			{
+				date: '2025-01-01',
+				sessions: 1,
+				totalTokens: 5000,
+				providers: {'test-provider': 5000},
+				models: {'test-model': 5000},
+			},
+		],
+		totalLifetime: 5000,
+		lastUpdated: Date.now(),
+	};
+	fs.writeFileSync(legacyFilePath, JSON.stringify(legacyData), 'utf-8');
+
+	process.env.NANOCODER_CONFIG_DIR = legacyConfigDir;
+
+	const data = readUsageData();
+
+	// Verify all fields preserved
+	t.is(data.sessions.length, 1);
+	t.is(data.sessions[0]!.provider, 'test-provider');
+	t.is(data.sessions[0]!.model, 'test-model');
+	t.is(data.sessions[0]!.tokens.total, 5000);
+	t.is(data.dailyAggregates.length, 1);
+	t.is(data.dailyAggregates[0]!.providers['test-provider'], 5000);
+	t.is(data.totalLifetime, 5000);
+});
+
 // Helper to create mock token breakdown
 function createMockBreakdown(total = 1000): TokenBreakdown {
 	return {

@@ -46,7 +46,9 @@ function getUsageFilePath(): string {
 			} catch (renameError) {
 				// Fallback if rename/move fails: copy then best-effort delete
 				logWarning(
-					`Could not move usage file (${renameError instanceof Error ? renameError.message : 'unknown error'}), copying instead...`,
+					`Could not move usage file (${
+						renameError instanceof Error ? renameError.message : 'unknown error'
+					}), copying instead...`,
 				);
 				fs.copyFileSync(legacyPath, newPath);
 				try {
@@ -63,7 +65,9 @@ function getUsageFilePath(): string {
 		} catch (error) {
 			// On any failure, fall through to using newPath without migration
 			logWarning(
-				`Failed to migrate usage data from ${legacyPath}: ${error instanceof Error ? error.message : 'unknown error'}. Old data remains at legacy location.`,
+				`Failed to migrate usage data from ${legacyPath}: ${
+					error instanceof Error ? error.message : 'unknown error'
+				}. Old data remains at legacy location.`,
 			);
 		}
 	}
