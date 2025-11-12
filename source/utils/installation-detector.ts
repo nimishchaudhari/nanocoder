@@ -1,5 +1,7 @@
 import {fileURLToPath} from 'url';
-import {dirname} from 'path';
+import {dirname, join, sep} from 'path';
+import {existsSync} from 'fs';
+
 export type InstallationMethod = 'npm' | 'homebrew' | 'nix' | 'unknown';
 
 // Define a safe process wrapper to avoid using `any` while keeping compatibility
@@ -12,8 +14,8 @@ const safeProcess: MaybeProcess =
 	typeof process !== 'undefined' ? (process as unknown as MaybeProcess) : {};
 
 /**
- * Detects how Nanocoder was installed by inspecting the module's runtime path.
- * This is more reliable than process.execPath, which points to the Node binary.
+ * Detects how Nanocoder was installed by using multiple detection strategies.
+ * Uses a combination of path inspection, environment variables, and file system markers.
  * An environment variable `NANOCODER_INSTALL_METHOD` can be used to override detection for testing.
  * @returns {InstallationMethod} The detected installation method.
  */
@@ -28,23 +30,95 @@ export function detectInstallationMethod(): InstallationMethod {
 	}
 
 	// Use the module path of this file (compiled output in `dist`) to determine how it was installed.
-	// This is more reliable than process.execPath in most Node installations.
 	const modulePath = dirname(fileURLToPath(import.meta.url));
 
-	// Homebrew puts the package under a Cellar directory, often under /opt/homebrew or /usr/local
-	if (modulePath.includes('Cellar') || modulePath.includes('/homebrew/')) {
-		return 'homebrew';
-	}
-
-	// Nix store has `/nix/store/` path with store hashes
+	// Strategy 1: Check for Nix installation (most specific)
+	// Nix store has `/nix/store/` path with store hashes - this is very reliable
 	if (modulePath.includes('/nix/store/')) {
 		return 'nix';
 	}
 
-	// Node/npm-based installs will include node_modules in the module path
-	if (modulePath.includes('node_modules')) {
+	// Strategy 2: Check for Homebrew installation
+	// Homebrew has specific environment variables and paths
+	if (safeProcess.env?.HOMEBREW_PREFIX || safeProcess.env?.HOMEBREW_CELLAR) {
+		return 'homebrew';
+	}
+	// Homebrew puts packages under Cellar directory in standard locations
+	// Common paths: /opt/homebrew, /usr/local, /home/linuxbrew/.linuxbrew
+	if (
+		modulePath.includes(`${sep}Cellar${sep}`) ||
+		modulePath.includes(`${sep}homebrew${sep}`)
+	) {
+		return 'homebrew';
+	}
+
+	// Strategy 3: Check for npm/pnpm/yarn installation using multiple signals
+	if (isNpmBasedInstallation(modulePath)) {
 		return 'npm';
 	}
 
 	return 'unknown';
+}
+
+/**
+ * Checks if this is an npm-based installation (npm, pnpm, or yarn).
+ * Uses multiple detection strategies for robustness across different package managers.
+ */
+function isNpmBasedInstallation(modulePath: string): boolean {
+	// Check 1: Environment variables set by package managers
+	if (
+		safeProcess.env?.npm_config_prefix ||
+		safeProcess.env?.npm_config_global ||
+		safeProcess.env?.PNPM_HOME ||
+		safeProcess.env?.npm_execpath
+	) {
+		return true;
+	}
+
+	// Check 2: Standard node_modules path (npm, yarn v1)
+	if (modulePath.includes('node_modules')) {
+		return true;
+	}
+
+	// Check 3: pnpm store structure (.pnpm directory)
+	if (modulePath.includes(`.pnpm${sep}`)) {
+		return true;
+	}
+
+	// Check 4: Look for .bin directory in parent paths (all package managers use this)
+	// This handles symlinked executables
+	const binDirPattern = `${sep}.bin${sep}`;
+	if (modulePath.includes(binDirPattern)) {
+		return true;
+	}
+
+	// Check 5: Look for package.json in expected locations relative to the module
+	// For global installs, package.json should be in parent directories
+	// This handles edge cases like custom install locations
+	return hasPackageJsonMarker(modulePath);
+}
+
+/**
+ * Walks up the directory tree looking for package.json as a marker of npm installation.
+ * Only checks a few levels to avoid excessive file system operations.
+ */
+function hasPackageJsonMarker(startPath: string): boolean {
+	let currentPath = startPath;
+	const maxLevelsToCheck = 4; // Limit to prevent excessive traversal
+
+	for (let i = 0; i < maxLevelsToCheck; i++) {
+		const packageJsonPath = join(currentPath, 'package.json');
+		if (existsSync(packageJsonPath)) {
+			return true;
+		}
+
+		const parentPath = dirname(currentPath);
+		// Stop if we've reached the root
+		if (parentPath === currentPath) {
+			break;
+		}
+		currentPath = parentPath;
+	}
+
+	return false;
 }
