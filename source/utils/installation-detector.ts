@@ -53,11 +53,21 @@ export function detectFromPath(modulePath: string): InstallationMethod | null {
 export function detectInstallationMethod(): InstallationMethod {
 	// Env var override has highest priority for testing / debugging
 	const envOverride = safeProcess.env?.NANOCODER_INSTALL_METHOD;
-	if (
-		envOverride &&
-		['npm', 'homebrew', 'nix', 'unknown'].includes(envOverride)
-	) {
-		return envOverride as InstallationMethod;
+	if (envOverride) {
+		const validMethods: InstallationMethod[] = [
+			'npm',
+			'homebrew',
+			'nix',
+			'unknown',
+		];
+		if (validMethods.includes(envOverride as InstallationMethod)) {
+			return envOverride as InstallationMethod;
+		}
+		// Warn about invalid value but continue with normal detection
+		// TODO: Replace console.warn with logWarning once available in main branch
+		console.warn(
+			`Invalid NANOCODER_INSTALL_METHOD: "${envOverride}". Valid values: ${validMethods.join(', ')}`,
+		);
 	}
 
 	// Strategy 1: Check environment variables (most reliable after override)

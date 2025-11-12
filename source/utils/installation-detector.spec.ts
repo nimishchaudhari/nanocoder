@@ -155,3 +155,30 @@ test('detectInstallationMethod: env vars take precedence over path', t => {
 	process.env.HOMEBREW_PREFIX = '/opt/homebrew';
 	t.is(detectInstallationMethod(), 'homebrew');
 });
+
+test('detectInstallationMethod: warns on invalid env override and continues detection', t => {
+	// Set an invalid value
+	process.env.NANOCODER_INSTALL_METHOD = 'invalid-method';
+
+	// Capture console.warn
+	const warnings: string[] = [];
+	const originalWarn = console.warn;
+	console.warn = (msg: string) => {
+		warnings.push(msg);
+	};
+
+	// Should fall back to normal detection
+	const result = detectInstallationMethod();
+
+	// Restore console.warn
+	console.warn = originalWarn;
+
+	// Should have warned about invalid value
+	t.is(warnings.length, 1);
+	t.regex(warnings[0], /Invalid NANOCODER_INSTALL_METHOD/);
+	t.regex(warnings[0], /invalid-method/);
+
+	// Should still return a valid installation method
+	// (will be detected from the actual running environment - npm in this case since we're in node_modules)
+	t.true(['npm', 'homebrew', 'nix', 'unknown'].includes(result));
+});
