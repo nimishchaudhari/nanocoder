@@ -54,7 +54,7 @@ function getUsageFilePath(): string {
 				try {
 					fs.unlinkSync(legacyPath);
 					logInfo(`Successfully migrated usage data to: ${newPath}`);
-				} catch (unlinkError) {
+				} catch {
 					logWarning(
 						`Migrated usage data to new location, but could not remove old file at ${legacyPath}. You may want to manually delete it.`,
 					);

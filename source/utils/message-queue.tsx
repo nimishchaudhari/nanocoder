@@ -71,7 +71,7 @@ export function logError(message: string, hideBox: boolean = true) {
 	addMessageToQueue('error', message, hideBox);
 }
 
-export function logSuccess(message: string, hideBox: boolean = true) {
+function logSuccess(message: string, hideBox: boolean = true) {
 	addMessageToQueue('success', message, hideBox);
 }
 
