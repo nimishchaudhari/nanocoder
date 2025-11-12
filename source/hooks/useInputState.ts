@@ -120,16 +120,16 @@ export function useInputState() {
 				// treat this as a continuation to prevent duplicate placeholders
 				const isVeryRecentPaste = timeSinceLastPaste < 20; // 20ms grace period for rapid multi-detections
 
+				const activePasteId = lastPasteIdRef.current;
 				if (
-					lastPasteIdRef.current &&
+					activePasteId &&
 					(isVeryRecentPaste ||
 						(timeSinceLastPaste < PASTE_CHUNK_WINDOW_MS &&
-							currentState.placeholderContent[lastPasteIdRef.current]))
+							currentState.placeholderContent[activePasteId]))
 				) {
 					// If we don't have the placeholder in state yet, just update detector and skip
 					// This happens when multiple detections fire before React updates state
-					const placeholder =
-						currentState.placeholderContent[lastPasteIdRef.current];
+					const placeholder = currentState.placeholderContent[activePasteId];
 					if (!placeholder) {
 						// Skip duplicate early detection
 						pasteDetectorRef.current.updateState(newInput);
@@ -140,11 +140,11 @@ export function useInputState() {
 					if (placeholder.type === PlaceholderType.PASTE) {
 						const updatedContent = placeholder.content + detection.addedText;
 						const oldPlaceholder = placeholder.displayText;
-						const newPlaceholder = `[Paste #${lastPasteIdRef.current}: ${updatedContent.length} chars]`;
+						const newPlaceholder = `[Paste #${activePasteId}: ${updatedContent.length} chars]`;
 
 						const updatedPlaceholderContent = {
 							...currentState.placeholderContent,
-							[lastPasteIdRef.current!]: {
+							[activePasteId]: {
 								...placeholder,
 								content: updatedContent,
 								originalSize: updatedContent.length,
