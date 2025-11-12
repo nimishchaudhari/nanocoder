@@ -72,7 +72,9 @@ test('checkForUpdates: detects newer major version', async t => {
 test('checkForUpdates: detects newer minor version', async t => {
 	// Calculate a newer minor version dynamically
 	const currentParts = CURRENT_VERSION.split('.');
-	const newerMinorVersion = `${currentParts[0]}.${parseInt(currentParts[1]) + 1}.0`;
+	const newerMinorVersion = `${currentParts[0]}.${
+		parseInt(currentParts[1]) + 1
+	}.0`;
 
 	globalThis.fetch = createMockFetch(200, {
 		version: newerMinorVersion,
@@ -88,7 +90,9 @@ test('checkForUpdates: detects newer minor version', async t => {
 test('checkForUpdates: detects newer patch version', async t => {
 	// Calculate a newer patch version dynamically
 	const currentParts = CURRENT_VERSION.split('.');
-	const newerPatchVersion = `${currentParts[0]}.${currentParts[1]}.${parseInt(currentParts[2]) + 1}`;
+	const newerPatchVersion = `${currentParts[0]}.${currentParts[1]}.${
+		parseInt(currentParts[2]) + 1
+	}`;
 
 	globalThis.fetch = createMockFetch(200, {
 		version: newerPatchVersion,
@@ -120,7 +124,10 @@ test('checkForUpdates: detects older version (no update)', async t => {
 	const currentParts = CURRENT_VERSION.split('.');
 	const patchNum = parseInt(currentParts[2]);
 	// Use 0 if current patch is already 0, otherwise decrement
-	const olderPatchVersion = `${currentParts[0]}.${currentParts[1]}.${Math.max(0, patchNum - 1)}`;
+	const olderPatchVersion = `${currentParts[0]}.${currentParts[1]}.${Math.max(
+		0,
+		patchNum - 1,
+	)}`;
 
 	globalThis.fetch = createMockFetch(200, {
 		version: olderPatchVersion,
