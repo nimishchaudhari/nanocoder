@@ -1,7 +1,7 @@
 import {Command} from '@/types/index';
 import React from 'react';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {Box, Text} from 'ink';
+import {Box, Newline, Text} from 'ink';
 import {colors} from '@/config/index';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import ErrorMessage from '@/components/error-message';
@@ -78,9 +78,11 @@ function InitSuccess({
 			))}
 
 			<Box marginTop={1} flexDirection="column">
-				<Text color={colors.white}>
-					Your project is now ready for AI-assisted development!
-				</Text>
+				<Box marginBottom={1}>
+					<Text color={colors.white}>
+						Your project is now ready for AI-assisted development!
+					</Text>
+				</Box>
 				<Text color={colors.secondary}>
 					The AGENTS.md file will help AI understand your project context.
 				</Text>
@@ -92,25 +94,6 @@ function InitSuccess({
 function InitError({message}: {message: string}) {
 	return <ErrorMessage message={`✗ ${message}`} />;
 }
-
-const DEFAULT_CONFIG = {
-	nanocoder: {
-		providers: [
-			{
-				name: 'OpenRouter',
-				baseUrl: 'https://openrouter.ai/api/v1',
-				apiKey: 'your-openrouter-api-key-here',
-				models: ['openai/gpt-4o-mini', 'anthropic/claude-3-haiku'],
-			},
-			{
-				name: 'Local Ollama',
-				baseUrl: 'http://localhost:11434/v1',
-				models: ['llama3.2', 'qwen2.5-coder'],
-			},
-		],
-		mcpServers: [],
-	},
-};
 
 // Enhanced example commands based on detected project type
 const getExampleCommands = (projectType: string, primaryLanguage: string) => {
@@ -219,21 +202,19 @@ export const initCommand: Command = {
 
 		try {
 			// Check if already initialized
-			const configPath = join(cwd, 'agents.config.json');
 			const agentsPath = join(cwd, 'AGENTS.md');
 			const nanocoderDir = join(cwd, '.nanocoder');
 
 			// Check for existing initialization
-			const hasConfig = existsSync(configPath);
 			const hasAgents = existsSync(agentsPath);
 			const hasNanocoder = existsSync(nanocoderDir);
 
-			if (hasConfig && hasAgents && hasNanocoder) {
+			if (hasAgents && hasNanocoder) {
 				return Promise.resolve(
 					React.createElement(InitError, {
 						key: `init-error-${Date.now()}`,
 						message:
-							'Project already fully initialized. Found agents.config.json, AGENTS.md, and .nanocoder/ directory.',
+							'Project already initialized. Found AGENTS.md and .nanocoder/ directory.',
 					}),
 				);
 			}
@@ -249,12 +230,6 @@ export const initCommand: Command = {
 			// Extract existing AI configuration files
 			const rulesExtractor = new ExistingRulesExtractor(cwd);
 			const existingRules = rulesExtractor.extractExistingRules();
-
-			// Create agents.config.json if it doesn't exist
-			if (!hasConfig) {
-				writeFileSync(configPath, JSON.stringify(DEFAULT_CONFIG, null, 2));
-				created.push('agents.config.json');
-			}
 
 			// Create AGENTS.md based on analysis and existing rules
 			if (!hasAgents) {
