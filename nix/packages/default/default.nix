@@ -34,7 +34,7 @@ stdenv.mkDerivation (finalAttrs: {
   pnpmDeps = pnpm_9.fetchDeps {
     inherit (finalAttrs) pname version src;
     hash = "sha256-Vn7DsIczYX9quYUfF7UMEWZWB69Ce+JRvsL5AzHpeHM=";
-    fetcherVersion = "1";
+    fetcherVersion = 2;
 
     # Fix pnpm workspace error - add packages field to workspace file
     postPatch = ''
