@@ -92,7 +92,7 @@ function InitSuccess({
 }
 
 function InitError({message}: {message: string}) {
-	return <ErrorMessage message={`✗ ${message}`} />;
+	return <ErrorMessage hideBox={true} message={`✗ ${message}`} />;
 }
 
 // Enhanced example commands based on detected project type
