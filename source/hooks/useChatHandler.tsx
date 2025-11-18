@@ -12,10 +12,12 @@ import {parseToolCalls} from '@/tool-calling/index';
 import {ConversationStateManager} from '@/app/utils/conversationState';
 import {promptHistory} from '@/prompt-history';
 import {isStreamingEnabled} from '@/config/preferences';
+import {displayToolResult} from '@/utils/tool-result-display';
+import {parseToolArguments} from '@/utils/tool-args-parser';
+import {formatError} from '@/utils/error-formatter';
 import UserMessage from '@/components/user-message';
 import AssistantMessage from '@/components/assistant-message';
 import ErrorMessage from '@/components/error-message';
-import ToolMessage from '@/components/tool-message';
 import React from 'react';
 
 // Helper function to filter out invalid tool calls and deduplicate by ID and function
@@ -122,85 +124,6 @@ export function useChatHandler({
 			conversationStateManager.current.reset();
 		}
 	}, [messages.length]);
-	// Display tool result with proper formatting (similar to useToolHandler)
-	const displayToolResult = async (toolCall: ToolCall, result: ToolResult) => {
-		// Check if this is an error result
-		const isError = result.content.startsWith('Error: ');
-
-		if (isError) {
-			// Display as error message
-			const errorMessage = result.content.replace(/^Error: /, '');
-			addToChatQueue(
-				<ErrorMessage
-					key={`tool-error-${
-						result.tool_call_id
-					}-${componentKeyCounter}-${Date.now()}`}
-					message={errorMessage}
-					hideBox={true}
-				/>,
-			);
-			return;
-		}
-
-		if (toolManager) {
-			const formatter = toolManager.getToolFormatter(result.name);
-			if (formatter) {
-				try {
-					// Parse arguments if they're a JSON string
-					let parsedArgs: unknown = toolCall.function.arguments;
-					if (typeof parsedArgs === 'string') {
-						try {
-							parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
-						} catch {
-							// If parsing fails, use as-is
-						}
-					}
-					const formattedResult = await formatter(parsedArgs, result.content);
-
-					if (React.isValidElement(formattedResult)) {
-						addToChatQueue(
-							React.cloneElement(formattedResult, {
-								key: `tool-result-${
-									result.tool_call_id
-								}-${componentKeyCounter}-${Date.now()}`,
-							}),
-						);
-					} else {
-						addToChatQueue(
-							<ToolMessage
-								key={`tool-result-${
-									result.tool_call_id
-								}-${componentKeyCounter}-${Date.now()}`}
-								title={`⚒ ${result.name}`}
-								message={String(formattedResult)}
-								hideBox={true}
-							/>,
-						);
-					}
-				} catch {
-					// If formatter fails, show raw result
-					addToChatQueue(
-						<ToolMessage
-							key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
-							title={`⚒ ${result.name}`}
-							message={result.content}
-							hideBox={true}
-						/>,
-					);
-				}
-			} else {
-				// No formatter, show raw result
-				addToChatQueue(
-					<ToolMessage
-						key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
-						title={`⚒ ${result.name}`}
-						message={result.content}
-						hideBox={true}
-					/>,
-				);
-			}
-		}
-	};
 
 	// Process assistant response - handles the conversation loop with potential tool calls (for follow-ups)
 	const processAssistantResponse = async (
@@ -420,18 +343,9 @@ export function useChatHandler({
 						);
 						if (validator) {
 							try {
-								// Parse arguments if they're a JSON string
-								let parsedArgs: unknown = toolCall.function.arguments;
-								if (typeof parsedArgs === 'string') {
-									try {
-										parsedArgs = JSON.parse(parsedArgs) as Record<
-											string,
-											unknown
-										>;
-									} catch {
-										// If parsing fails, use as-is
-									}
-								}
+								const parsedArgs = parseToolArguments(
+									toolCall.function.arguments,
+								);
 
 								const validationResult = await validator(parsedArgs);
 								if (!validationResult.valid) {
@@ -471,18 +385,9 @@ export function useChatHandler({
 								toolCall.function.name,
 							);
 							if (validator) {
-								// Parse arguments if they're a JSON string
-								let parsedArgs: unknown = toolCall.function.arguments;
-								if (typeof parsedArgs === 'string') {
-									try {
-										parsedArgs = JSON.parse(parsedArgs) as Record<
-											string,
-											unknown
-										>;
-									} catch {
-										// If parsing fails, use as-is
-									}
-								}
+								const parsedArgs = parseToolArguments(
+									toolCall.function.arguments,
+								);
 
 								const validationResult = await validator(parsedArgs);
 								if (!validationResult.valid) {
@@ -524,16 +429,20 @@ export function useChatHandler({
 							);
 
 							// Display the tool result immediately
-							await displayToolResult(toolCall, result);
+							await displayToolResult(
+								toolCall,
+								result,
+								toolManager,
+								addToChatQueue,
+								componentKeyCounter,
+							);
 						} catch (error) {
 							// Handle tool execution errors
 							const errorResult: ToolResult = {
 								tool_call_id: toolCall.id,
 								role: 'tool' as const,
 								name: toolCall.function.name,
-								content: `Error: ${
-									error instanceof Error ? error.message : String(error)
-								}`,
+								content: `Error: ${formatError(error)}`,
 							};
 							directResults.push(errorResult);
 
@@ -544,7 +453,13 @@ export function useChatHandler({
 							);
 
 							// Display the error result
-							await displayToolResult(toolCall, errorResult);
+							await displayToolResult(
+								toolCall,
+								errorResult,
+								toolManager,
+								addToChatQueue,
+								componentKeyCounter,
+							);
 						}
 					}
 
@@ -638,7 +553,7 @@ export function useChatHandler({
 				);
 			} else {
 				// Extract clean error message
-				const errorMsg = error instanceof Error ? error.message : String(error);
+				const errorMsg = formatError(error);
 				addToChatQueue(
 					<ErrorMessage
 						hideBox={true}
@@ -720,7 +635,7 @@ export function useChatHandler({
 				);
 			} else {
 				// Extract clean error message
-				const errorMsg = error instanceof Error ? error.message : String(error);
+				const errorMsg = formatError(error);
 				addToChatQueue(
 					<ErrorMessage
 						key={`error-${componentKeyCounter}`}

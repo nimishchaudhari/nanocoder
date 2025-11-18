@@ -1,5 +1,7 @@
 import type {ToolCall, ToolResult, ToolHandler} from '@/types/index';
 import type {ToolManager} from '@/tools/tool-manager';
+import {parseToolArguments} from '@/utils/tool-args-parser';
+import {formatError} from '@/utils/error-formatter';
 
 // This will be set by the ChatSession
 let toolRegistryGetter: (() => Record<string, ToolHandler>) | null = null;
@@ -39,17 +41,9 @@ export async function processToolUse(toolCall: ToolCall): Promise<ToolResult> {
 	}
 
 	try {
-		// Parse arguments if they're a JSON string
-		let parsedArgs: Record<string, unknown> = toolCall.function.arguments;
-		if (typeof parsedArgs === 'string') {
-			try {
-				parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
-			} catch (e) {
-				throw new Error(
-					`Error: Invalid tool arguments: ${(e as Error).message}`,
-				);
-			}
-		}
+		const parsedArgs = parseToolArguments<Record<string, unknown>>(
+			toolCall.function.arguments,
+		);
 		const result = await handler(parsedArgs);
 		return {
 			tool_call_id: toolCall.id,
@@ -59,9 +53,7 @@ export async function processToolUse(toolCall: ToolCall): Promise<ToolResult> {
 		};
 	} catch (error) {
 		// Convert exceptions to error messages that the model can see and correct
-		const errorMessage = `Error: ${
-			error instanceof Error ? error.message : String(error)
-		}`;
+		const errorMessage = `Error: ${formatError(error)}`;
 		return {
 			tool_call_id: toolCall.id,
 			role: 'tool',

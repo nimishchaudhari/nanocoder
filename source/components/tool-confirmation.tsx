@@ -10,6 +10,8 @@ import type {ToolCall} from '@/types/core';
 import {toolFormatters} from '@/tools/index';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {getToolManager} from '@/message-handler';
+import {parseToolArguments} from '@/utils/tool-args-parser';
+import {formatError} from '@/utils/error-formatter';
 
 interface ToolConfirmationProps {
 	toolCall: ToolCall;
@@ -54,14 +56,7 @@ export default function ToolConfirmation({
 				if (validator) {
 					try {
 						// Parse arguments if they're a JSON string
-						let parsedArgs: unknown = toolCall.function.arguments;
-						if (typeof parsedArgs === 'string') {
-							try {
-								parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
-							} catch {
-								// If parsing fails, use as-is
-							}
-						}
+						const parsedArgs = parseToolArguments(toolCall.function.arguments);
 
 						const validationResult = await validator(parsedArgs);
 						if (!validationResult.valid) {
@@ -74,9 +69,7 @@ export default function ToolConfirmation({
 						}
 					} catch (error) {
 						console.error('Error running validator:', error);
-						const errorMsg = `Validation error: ${
-							error instanceof Error ? error.message : String(error)
-						}`;
+						const errorMsg = `Validation error: ${formatError(error)}`;
 						setValidationError(errorMsg);
 						setHasValidationError(true);
 						setFormatterPreview(<Text color={colors.error}>{errorMsg}</Text>);
@@ -90,14 +83,7 @@ export default function ToolConfirmation({
 				setIsLoadingPreview(true);
 				try {
 					// Parse arguments if they're a JSON string
-					let parsedArgs: unknown = toolCall.function.arguments;
-					if (typeof parsedArgs === 'string') {
-						try {
-							parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
-						} catch {
-							// If parsing fails, use as-is
-						}
-					}
+					const parsedArgs = parseToolArguments(toolCall.function.arguments);
 					const preview = await formatter(parsedArgs);
 					setFormatterPreview(preview);
 				} catch (error) {
