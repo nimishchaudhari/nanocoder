@@ -374,7 +374,6 @@ export function useToolHandler({
 		handleToolConfirmation,
 		handleToolConfirmationCancel,
 		startToolConfirmationFlow,
-		displayToolResult,
 		continueConversationWithToolResults,
 		executeCurrentTool,
 	};
