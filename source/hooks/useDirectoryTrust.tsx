@@ -1,7 +1,7 @@
 import {useState, useEffect, useCallback} from 'react';
 import path from 'path';
 import {loadPreferences, savePreferences} from '@/config/preferences';
-import {logError} from '@/utils/message-queue';
+import {logError, logInfo} from '@/utils/message-queue';
 
 interface UseDirectoryTrustReturn {
 	isTrusted: boolean;
@@ -46,7 +46,7 @@ export function useDirectoryTrust(
 					err instanceof Error ? err.message : 'Unknown error occurred';
 				setError(`Failed to check directory trust status: ${errorMessage}`);
 
-				logError(`useDirectoryTrust: ${errorMessage}`);
+				logError(`${errorMessage}`);
 			} finally {
 				setIsLoading(false);
 			}
@@ -76,9 +76,7 @@ export function useDirectoryTrust(
 				preferences.trustedDirectories = trustedDirectories;
 				savePreferences(preferences);
 
-				logError(
-					`useDirectoryTrust (info): Directory added to trusted list: ${normalizedDirectory}`,
-				);
+				logInfo(`Directory added to trusted list: ${normalizedDirectory}`);
 			}
 
 			setIsTrusted(true);
@@ -87,7 +85,7 @@ export function useDirectoryTrust(
 				err instanceof Error ? err.message : 'Unknown error occurred';
 			setError(`Failed to save directory trust: ${errorMessage}`);
 
-			logError(`useDirectoryTrust: ${errorMessage}`);
+			logError(`${errorMessage}`);
 		}
 	}, [directory]);
 
