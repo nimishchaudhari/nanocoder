@@ -9,7 +9,6 @@ import {processToolUse, getToolManager} from '@/message-handler';
 import {ConversationContext} from '@/hooks/useAppState';
 import {displayToolResult} from '@/utils/tool-result-display';
 import {parseToolArguments} from '@/utils/tool-args-parser';
-import {formatError} from '@/utils/error-formatter';
 import {createCancellationResults} from '@/utils/tool-cancellation';
 import InfoMessage from '@/components/info-message';
 import ErrorMessage from '@/components/error-message';

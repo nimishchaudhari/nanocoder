@@ -1,6 +1,5 @@
 import type {ToolCall, ToolResult, ToolHandler} from '@/types/index';
 import type {ToolManager} from '@/tools/tool-manager';
-import {parseToolArguments} from '@/utils/tool-args-parser';
 import {formatError} from '@/utils/error-formatter';
 
 // This will be set by the ChatSession
@@ -41,9 +40,17 @@ export async function processToolUse(toolCall: ToolCall): Promise<ToolResult> {
 	}
 
 	try {
-		const parsedArgs = parseToolArguments<Record<string, unknown>>(
-			toolCall.function.arguments,
-		);
+		// Parse arguments - throw error on parse failure (strict mode for tool execution)
+		let parsedArgs: Record<string, unknown> = toolCall.function.arguments;
+		if (typeof parsedArgs === 'string') {
+			try {
+				parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
+			} catch (e) {
+				throw new Error(
+					`Error: Invalid tool arguments: ${(e as Error).message}`,
+				);
+			}
+		}
 		const result = await handler(parsedArgs);
 		return {
 			tool_call_id: toolCall.id,
