@@ -1,6 +1,8 @@
 import test from 'ava';
 import {getModelContextLimit} from './models-dev-client.js';
 
+console.log(`\nmodels-dev-client.spec.ts`);
+
 /**
  * Tests for models-dev-client.ts
  *

@@ -7,9 +7,11 @@ import {
 } from '@/types/core';
 import {processToolUse, getToolManager} from '@/message-handler';
 import {ConversationContext} from '@/hooks/useAppState';
+import {displayToolResult} from '@/utils/tool-result-display';
+import {parseToolArguments} from '@/utils/tool-args-parser';
+import {createCancellationResults} from '@/utils/tool-cancellation';
 import InfoMessage from '@/components/info-message';
 import ErrorMessage from '@/components/error-message';
-import ToolMessage from '@/components/tool-message';
 import React from 'react';
 
 interface UseToolHandlerProps {
@@ -56,69 +58,6 @@ export function useToolHandler({
 	currentProvider: _currentProvider,
 	setDevelopmentMode,
 }: UseToolHandlerProps) {
-	// Display tool result with proper formatting
-	const displayToolResult = async (toolCall: ToolCall, result: ToolResult) => {
-		const toolManager = getToolManager();
-		if (toolManager) {
-			const formatter = toolManager.getToolFormatter(result.name);
-			if (formatter) {
-				try {
-					// Parse arguments if they're a JSON string
-					let parsedArgs: unknown = toolCall.function.arguments;
-					if (typeof parsedArgs === 'string') {
-						try {
-							parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
-						} catch {
-							// If parsing fails, use as-is
-						}
-					}
-					const formattedResult = await formatter(parsedArgs, result.content);
-
-					if (React.isValidElement(formattedResult)) {
-						addToChatQueue(
-							React.cloneElement(formattedResult, {
-								key: `tool-result-${
-									result.tool_call_id
-								}-${componentKeyCounter}-${Date.now()}`,
-							}),
-						);
-					} else {
-						addToChatQueue(
-							<ToolMessage
-								key={`tool-result-${
-									result.tool_call_id
-								}-${componentKeyCounter}-${Date.now()}`}
-								title={`⚒ ${result.name}`}
-								message={String(formattedResult)}
-								hideBox={true}
-							/>,
-						);
-					}
-				} catch {
-					// If formatter fails, show raw result
-					addToChatQueue(
-						<ToolMessage
-							key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
-							title={`⚒ ${result.name}`}
-							message={result.content}
-							hideBox={true}
-						/>,
-					);
-				}
-			} else {
-				// No formatter, show raw result
-				addToChatQueue(
-					<ToolMessage
-						key={`tool-result-${result.tool_call_id}-${componentKeyCounter}`}
-						title={`⚒ ${result.name}`}
-						message={result.content}
-						hideBox={true}
-					/>,
-				);
-			}
-		}
-	};
-
 	// Continue conversation with tool results - maintains the proper loop
 	const continueConversationWithToolResults = async (
 		toolResults?: ToolResult[],
@@ -178,12 +117,7 @@ export function useToolHandler({
 
 			// Create cancellation results for all pending tools
 			// This is critical to maintain conversation state integrity
-			const cancellationResults = pendingToolCalls.map(toolCall => ({
-				tool_call_id: toolCall.id,
-				role: 'tool' as const,
-				name: toolCall.function.name,
-				content: 'Tool execution was cancelled by the user.',
-			}));
+			const cancellationResults = createCancellationResults(pendingToolCalls);
 
 			const {updatedMessages, assistantMsg} = currentConversationContext;
 
@@ -242,15 +176,7 @@ export function useToolHandler({
 			const validator = toolManager.getToolValidator(currentTool.function.name);
 			if (validator) {
 				try {
-					// Parse arguments if they're a JSON string
-					let parsedArgs: unknown = currentTool.function.arguments;
-					if (typeof parsedArgs === 'string') {
-						try {
-							parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
-						} catch {
-							// If parsing fails, use as-is
-						}
-					}
+					const parsedArgs = parseToolArguments(currentTool.function.arguments);
 
 					const validationResult = await validator(parsedArgs);
 					if (!validationResult.valid) {
@@ -328,18 +254,10 @@ export function useToolHandler({
 		try {
 			// Special handling for switch_mode tool
 			if (currentTool.function.name === 'switch_mode' && setDevelopmentMode) {
-				let parsedArgs: unknown = currentTool.function.arguments;
-				if (typeof parsedArgs === 'string') {
-					try {
-						parsedArgs = JSON.parse(parsedArgs) as Record<string, unknown>;
-					} catch {
-						// If parsing fails, use as-is
-					}
-				}
+				const parsedArgs = parseToolArguments(currentTool.function.arguments);
 
 				// Actually switch the mode
-				const requestedMode = (parsedArgs as Record<string, unknown>)
-					.mode as DevelopmentMode;
+				const requestedMode = parsedArgs.mode as DevelopmentMode;
 				setDevelopmentMode(requestedMode);
 
 				addToChatQueue(
@@ -357,7 +275,13 @@ export function useToolHandler({
 			setCompletedToolResults(newResults);
 
 			// Display the tool result
-			await displayToolResult(currentTool, result);
+			await displayToolResult(
+				currentTool,
+				result,
+				toolManager,
+				addToChatQueue,
+				componentKeyCounter,
+			);
 
 			// Move to next tool or complete the process
 			if (currentToolIndex + 1 < pendingToolCalls.length) {
@@ -399,12 +323,7 @@ export function useToolHandler({
 
 		// Create cancellation results for all pending tools
 		// This is critical to maintain conversation state integrity
-		const cancellationResults = pendingToolCalls.map(toolCall => ({
-			tool_call_id: toolCall.id,
-			role: 'tool' as const,
-			name: toolCall.function.name,
-			content: 'Tool execution was cancelled by the user.',
-		}));
+		const cancellationResults = createCancellationResults(pendingToolCalls);
 
 		const {updatedMessages, assistantMsg} = currentConversationContext;
 
@@ -452,7 +371,6 @@ export function useToolHandler({
 		handleToolConfirmation,
 		handleToolConfirmationCancel,
 		startToolConfirmationFlow,
-		displayToolResult,
 		continueConversationWithToolResults,
 		executeCurrentTool,
 	};
