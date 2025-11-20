@@ -1,6 +1,8 @@
 import test from 'ava';
 import {formatError} from './error-formatter';
 
+console.log(`\nerror-formatter.spec.ts`);
+
 // Tests for Error instances
 test('formatError - formats standard Error instance', t => {
 	const error = new Error('Something went wrong');

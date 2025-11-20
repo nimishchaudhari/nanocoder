@@ -1,6 +1,8 @@
 import test from 'ava';
 import {parseToolArguments} from './tool-args-parser';
 
+console.log(`\ntool-args-parser.spec.ts`);
+
 // Tests for lenient mode (default, strict=false)
 test('parseToolArguments - parses valid JSON string in lenient mode', t => {
 	const input = '{"path": "/test", "count": 42}';

@@ -2,6 +2,8 @@ import test from 'ava';
 import type {ToolCall} from '@/types/index';
 import {createCancellationResults} from './tool-cancellation';
 
+console.log(`\ntool-cancellation.spec.ts`);
+
 // Helper to create mock tool calls
 function createMockToolCall(
 	id: string,

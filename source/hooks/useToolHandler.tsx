@@ -176,9 +176,7 @@ export function useToolHandler({
 			const validator = toolManager.getToolValidator(currentTool.function.name);
 			if (validator) {
 				try {
-					const parsedArgs = parseToolArguments(
-						currentTool.function.arguments,
-					);
+					const parsedArgs = parseToolArguments(currentTool.function.arguments);
 
 					const validationResult = await validator(parsedArgs);
 					if (!validationResult.valid) {
@@ -259,8 +257,7 @@ export function useToolHandler({
 				const parsedArgs = parseToolArguments(currentTool.function.arguments);
 
 				// Actually switch the mode
-				const requestedMode = (parsedArgs as Record<string, unknown>)
-					.mode as DevelopmentMode;
+				const requestedMode = parsedArgs.mode as DevelopmentMode;
 				setDevelopmentMode(requestedMode);
 
 				addToChatQueue(

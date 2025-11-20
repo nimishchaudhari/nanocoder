@@ -1,10 +1,28 @@
 import React from 'react';
 import test from 'ava';
-import type {ToolCall, ToolResult} from '@/types/index';
-import type {ToolManager} from '@/tools/tool-manager';
-import {displayToolResult} from './tool-result-display';
-import ErrorMessage from '@/components/error-message';
-import ToolMessage from '@/components/tool-message';
+import type {ToolCall, ToolResult} from '../types/core.js';
+import type {ToolManager} from '../tools/tool-manager.js';
+import {displayToolResult} from './tool-result-display.js';
+import ErrorMessage from '../components/error-message.js';
+import ToolMessage from '../components/tool-message.js';
+
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
+interface ErrorMessageProps {
+	message: string;
+	hideTitle?: boolean;
+	hideBox?: boolean;
+}
+
+interface ToolMessageProps {
+	title?: string;
+	message: string | React.ReactNode;
+	hideTitle?: boolean;
+	hideBox?: boolean;
+	isBashMode?: boolean;
+}
 
 // ============================================================================
 // Test Helpers
@@ -68,6 +86,11 @@ class MockToolManager implements Partial<ToolManager> {
 	}
 }
 
+// Helper to safely cast MockToolManager to ToolManager for tests
+function asMockToolManager(mock: MockToolManager): ToolManager {
+	return mock as unknown as ToolManager;
+}
+
 // ============================================================================
 // Tests for Error Display
 // ============================================================================
@@ -101,18 +124,22 @@ test('displayToolResult - strips "Error: " prefix from error message', async t =
 
 	await displayToolResult(toolCall, result, null, addToChatQueue, 1);
 
-	const element = queue[0] as React.ReactElement;
+	const element = queue[0] as React.ReactElement<ErrorMessageProps>;
 	t.is(element.props.message, 'File not found');
 });
 
 test('displayToolResult - sets hideBox to true for error message', async t => {
 	const toolCall = createMockToolCall('call-1', 'TestTool');
-	const result = createMockToolResult('call-1', 'TestTool', 'Error: Test error');
+	const result = createMockToolResult(
+		'call-1',
+		'TestTool',
+		'Error: Test error',
+	);
 	const {addToChatQueue, queue} = createMockAddToChatQueue();
 
 	await displayToolResult(toolCall, result, null, addToChatQueue, 1);
 
-	const element = queue[0] as React.ReactElement;
+	const element = queue[0] as React.ReactElement<ErrorMessageProps>;
 	t.is(element.props.hideBox, true);
 });
 
@@ -142,7 +169,7 @@ test('displayToolResult - uses formatter when available', async t => {
 
 	const toolManager = new MockToolManager();
 	let formatterCalled = false;
-	toolManager.registerFormatter('ReadFile', (args, content) => {
+	toolManager.registerFormatter('ReadFile', (_args, content) => {
 		formatterCalled = true;
 		return `Formatted: ${content}`;
 	});
@@ -150,7 +177,7 @@ test('displayToolResult - uses formatter when available', async t => {
 	await displayToolResult(
 		toolCall,
 		result,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
@@ -170,12 +197,12 @@ test('displayToolResult - displays formatted result as ToolMessage when formatte
 	await displayToolResult(
 		toolCall,
 		result,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
 
-	const element = queue[0] as React.ReactElement;
+	const element = queue[0] as React.ReactElement<ToolMessageProps>;
 	t.is(element.type, ToolMessage);
 	t.is(element.props.message, 'Formatted content');
 	t.is(element.props.title, '⚒ ReadFile');
@@ -193,7 +220,7 @@ test('displayToolResult - clones React element when formatter returns element', 
 	await displayToolResult(
 		toolCall,
 		result,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
@@ -217,13 +244,13 @@ test('displayToolResult - falls back to raw result when formatter throws', async
 	await displayToolResult(
 		toolCall,
 		result,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
 
 	t.is(queue.length, 1);
-	const element = queue[0] as React.ReactElement;
+	const element = queue[0] as React.ReactElement<ToolMessageProps>;
 	t.is(element.props.message, 'raw result');
 	t.is(element.props.title, '⚒ BrokenTool');
 });
@@ -243,13 +270,13 @@ test('displayToolResult - displays raw result when no formatter exists', async t
 	await displayToolResult(
 		toolCall,
 		result,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
 
 	t.is(queue.length, 1);
-	const element = queue[0] as React.ReactElement;
+	const element = queue[0] as React.ReactElement<ToolMessageProps>;
 	t.is(element.props.message, 'raw content');
 	t.is(element.props.title, '⚒ NoFormatterTool');
 });
@@ -259,11 +286,9 @@ test('displayToolResult - displays raw result when no formatter exists', async t
 // ============================================================================
 
 test('displayToolResult - parses string arguments before passing to formatter', async t => {
-	const toolCall = createMockToolCall(
-		'call-1',
-		'TestTool',
-		'{"path": "/test"}',
-	);
+	const toolCall = createMockToolCall('call-1', 'TestTool', {
+		path: '/test',
+	});
 	const result = createMockToolResult('call-1', 'TestTool', 'result');
 	const {addToChatQueue} = createMockAddToChatQueue();
 
@@ -277,7 +302,7 @@ test('displayToolResult - parses string arguments before passing to formatter', 
 	await displayToolResult(
 		toolCall,
 		result,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
@@ -301,7 +326,7 @@ test('displayToolResult - passes object arguments directly to formatter', async 
 	await displayToolResult(
 		toolCall,
 		result,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
@@ -324,14 +349,14 @@ test('displayToolResult - generates unique keys using componentKeyCounter', asyn
 	await displayToolResult(
 		toolCall,
 		result,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
 	await displayToolResult(
 		toolCall,
 		result,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		2,
 	);
@@ -354,14 +379,14 @@ test('displayToolResult - includes tool_call_id in key', async t => {
 	await displayToolResult(
 		toolCall1,
 		result1,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
 	await displayToolResult(
 		toolCall2,
 		result2,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
@@ -386,12 +411,12 @@ test('displayToolResult - sets hideBox to true for all ToolMessage displays', as
 	await displayToolResult(
 		toolCall,
 		result,
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
 
-	const element = queue[0] as React.ReactElement;
+	const element = queue[0] as React.ReactElement<ToolMessageProps>;
 	t.is(element.props.hideBox, true);
 });
 
@@ -415,7 +440,7 @@ test('displayToolResult - handles complex multi-tool scenario', async t => {
 	await displayToolResult(
 		createMockToolCall('call-1', 'ReadFile', {path: '/test.txt'}),
 		createMockToolResult('call-1', 'ReadFile', 'file contents'),
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		1,
 	);
@@ -423,7 +448,7 @@ test('displayToolResult - handles complex multi-tool scenario', async t => {
 	await displayToolResult(
 		createMockToolCall('call-2', 'ExecuteBash', {command: 'ls'}),
 		createMockToolResult('call-2', 'ExecuteBash', 'file1\nfile2'),
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		2,
 	);
@@ -431,7 +456,7 @@ test('displayToolResult - handles complex multi-tool scenario', async t => {
 	await displayToolResult(
 		createMockToolCall('call-3', 'ToolWithoutFormatter'),
 		createMockToolResult('call-3', 'ToolWithoutFormatter', 'raw output'),
-		toolManager as ToolManager,
+		asMockToolManager(toolManager),
 		addToChatQueue,
 		3,
 	);

@@ -1,6 +1,8 @@
 import test from 'ava';
 import {fuzzyScore, fuzzyScoreFilePath} from './fuzzy-matching';
 
+console.log(`\nfuzzy-matching.spec.ts`);
+
 // Tests for fuzzyScore (general text matching)
 test('fuzzyScore - exact match returns highest score', t => {
 	t.is(fuzzyScore('help', 'help'), 1000);
