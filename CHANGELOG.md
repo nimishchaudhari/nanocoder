@@ -1,3 +1,13 @@
+# 1.16.5
+
+- `/init` no longer generates an `agents.config.json` file as per new configuration setup.
+
+- Refactoring code to reduce duplication. Thanks to @JimStenstrom.
+
+- Fix: Nix installation was broken. Fixed thanks to @Thomashighbaugh.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 # 1.16.4
 
 - Decouple config vs data directories to introduce clear separation between configuration and application data directories. Thanks to @bowmanjd pushing this update.
