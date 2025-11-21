@@ -130,7 +130,7 @@ export function SummaryStep({
 								{!isNarrow && (
 									<>
 										<Text dimColor>
-											Cmd: {server.command} {server.args.join(' ')}
+											Cmd: {server.command} {server.args?.join(' ') || ''}
 										</Text>
 										{server.env && Object.keys(server.env).length > 0 && (
 											<Text dimColor>

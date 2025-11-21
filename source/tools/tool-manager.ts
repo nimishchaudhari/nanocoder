@@ -201,4 +201,18 @@ export class ToolManager {
 	getServerTools(serverName: string): MCPTool[] {
 		return this.mcpClient?.getServerTools(serverName) || [];
 	}
+
+	/**
+	 * Get server information including transport type and URL
+	 */
+	getServerInfo(serverName: string) {
+		return this.mcpClient?.getServerInfo(serverName);
+	}
+
+	/**
+	 * Get the MCP client instance
+	 */
+	getMCPClient() {
+		return this.mcpClient;
+	}
 }

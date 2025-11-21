@@ -137,7 +137,32 @@ interface ConfigObject {
 			organizationId?: string;
 			timeout?: number;
 		}>;
-		mcpServers?: Record<string, McpServerConfig>;
+		mcpServers?: Array<{
+			name: string;
+			transport: 'stdio' | 'websocket' | 'http';
+			command?: string;
+			args?: string[];
+			env?: Record<string, string>;
+			url?: string;
+			headers?: Record<string, string>;
+			auth?: {
+				type: 'bearer' | 'basic' | 'api-key' | 'custom';
+				token?: string;
+				username?: string;
+				password?: string;
+				apiKey?: string;
+				customHeaders?: Record<string, string>;
+			};
+			timeout?: number;
+			reconnect?: {
+				enabled: boolean;
+				maxAttempts: number;
+				backoffMs: number;
+			};
+			description?: string;
+			tags?: string[];
+			enabled?: boolean;
+		}>;
 	};
 }
 
@@ -184,9 +209,22 @@ export function buildConfigObject(
 		},
 	};
 
-	// Add MCP servers if any
+	// Add MCP servers if any - convert Record<string, McpServerConfig> to new array format
 	if (Object.keys(mcpServers).length > 0) {
-		config.nanocoder.mcpServers = mcpServers;
+		config.nanocoder.mcpServers = Object.values(mcpServers).map(server => ({
+			name: server.name,
+			transport: server.transport || 'stdio', // Default to stdio for backward compatibility
+			command: server.command,
+			args: server.args,
+			env: server.env,
+			url: server.url,
+			headers: server.headers,
+			auth: server.auth,
+			timeout: server.timeout,
+			description: server.description,
+			tags: server.tags,
+			enabled: true, // Default to enabled for wizard configurations
+		}));
 	}
 
 	return config;

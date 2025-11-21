@@ -1,33 +1,60 @@
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
+import {WebSocketClientTransport} from '@modelcontextprotocol/sdk/client/websocket.js';
+import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+
+// Union type for all supported client transports
+type ClientTransport =
+	| StdioClientTransport
+	| WebSocketClientTransport
+	| StreamableHTTPClientTransport;
 import type {Tool, ToolParameterSchema, AISDKCoreTool} from '@/types/index';
 import {tool, jsonSchema} from '@/types/index';
 import {logInfo, logError} from '@/utils/message-queue';
+import {TransportFactory} from './transport-factory.js';
 
 import type {MCPServer, MCPTool, MCPInitResult} from '@/types/index';
 
 export class MCPClient {
 	private clients: Map<string, Client> = new Map();
-	private transports: Map<string, StdioClientTransport> = new Map();
+	private transports: Map<string, ClientTransport> = new Map();
 	private serverTools: Map<string, MCPTool[]> = new Map();
+	private serverConfigs: Map<string, MCPServer> = new Map();
 	private isConnected: boolean = false;
 
 	constructor() {}
 
+	/**
+	 * Ensures backward compatibility for old MCP server configurations
+	 * by adding default transport type for existing configurations
+	 */
+	private normalizeServerConfig(server: MCPServer): MCPServer {
+		// If no transport is specified, default to 'stdio' for backward compatibility
+		if (!server.transport) {
+			return {
+				...server,
+				transport: 'stdio',
+			};
+		}
+		return server;
+	}
+
 	async connectToServer(server: MCPServer): Promise<void> {
-		// Create transport for the server
-		const transport = new StdioClientTransport({
-			command: server.command,
-			args: server.args || [],
-			env: {
-				...server.env,
-				// Set log level environment variables that many servers respect
-				LOG_LEVEL: 'ERROR',
-				DEBUG: '0',
-				VERBOSE: '0',
-			},
-			stderr: 'ignore',
-		});
+		// Normalize server configuration for backward compatibility
+		const normalizedServer = this.normalizeServerConfig(server);
+
+		// Validate server configuration
+		const validation = TransportFactory.validateServerConfig(normalizedServer);
+		if (!validation.valid) {
+			throw new Error(
+				`Invalid MCP server configuration for "${
+					normalizedServer.name
+				}": ${validation.errors.join(', ')}`,
+			);
+		}
+
+		// Create transport using the factory
+		const transport = TransportFactory.createTransport(normalizedServer);
 
 		// Create and connect client
 		const client = new Client({
@@ -37,9 +64,10 @@ export class MCPClient {
 
 		await client.connect(transport);
 
-		// Store client and transport
-		this.clients.set(server.name, client);
-		this.transports.set(server.name, transport);
+		// Store client, transport, and server config
+		this.clients.set(normalizedServer.name, client);
+		this.transports.set(normalizedServer.name, transport);
+		this.serverConfigs.set(normalizedServer.name, normalizedServer);
 
 		// List available tools from this server
 		const toolsResult = await client.listTools();
@@ -47,10 +75,10 @@ export class MCPClient {
 			name: tool.name,
 			description: tool.description || undefined,
 			inputSchema: tool.inputSchema,
-			serverName: server.name,
+			serverName: normalizedServer.name,
 		}));
 
-		this.serverTools.set(server.name, tools);
+		this.serverTools.set(normalizedServer.name, tools);
 
 		// Success - no console logging here, will be handled by app
 	}
@@ -64,10 +92,13 @@ export class MCPClient {
 		// Connect to servers in parallel for better performance
 		const connectionPromises = servers.map(async server => {
 			try {
-				await this.connectToServer(server);
-				const tools = this.serverTools.get(server.name) || [];
+				// Normalize server configuration for backward compatibility
+				const normalizedServer = this.normalizeServerConfig(server);
+
+				await this.connectToServer(normalizedServer);
+				const tools = this.serverTools.get(normalizedServer.name) || [];
 				const result: MCPInitResult = {
-					serverName: server.name,
+					serverName: normalizedServer.name,
 					success: true,
 					toolCount: tools.length,
 				};
@@ -75,8 +106,9 @@ export class MCPClient {
 				onProgress?.(result);
 				return result;
 			} catch (error) {
+				const normalizedServer = this.normalizeServerConfig(server);
 				const result: MCPInitResult = {
-					serverName: server.name,
+					serverName: normalizedServer.name,
 					success: false,
 					error: error instanceof Error ? error.message : String(error),
 				};
@@ -308,6 +340,7 @@ export class MCPClient {
 		this.clients.clear();
 		this.transports.clear();
 		this.serverTools.clear();
+		this.serverConfigs.clear();
 		this.isConnected = false;
 	}
 
@@ -321,5 +354,38 @@ export class MCPClient {
 
 	getServerTools(serverName: string): MCPTool[] {
 		return this.serverTools.get(serverName) || [];
+	}
+
+	/**
+	 * Gets server information including transport type and URL for remote servers
+	 */
+	getServerInfo(serverName: string):
+		| {
+				name: string;
+				transport: string;
+				url?: string;
+				toolCount: number;
+				connected: boolean;
+				description?: string;
+				tags?: string[];
+		  }
+		| undefined {
+		const client = this.clients.get(serverName);
+		const serverConfig = this.serverConfigs.get(serverName);
+		const tools = this.serverTools.get(serverName) || [];
+
+		if (!client || !serverConfig) {
+			return undefined;
+		}
+
+		return {
+			name: serverName,
+			transport: serverConfig.transport,
+			url: serverConfig.url,
+			toolCount: tools.length,
+			connected: true,
+			description: serverConfig.description,
+			tags: serverConfig.tags,
+		};
 	}
 }

@@ -7,6 +7,20 @@ import {Box, Text} from 'ink';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 
+// Helper function to get transport icons
+function getTransportIcon(transportType: string): string {
+	switch (transportType.toLowerCase()) {
+		case 'stdio':
+			return '💻';
+		case 'websocket':
+			return '🔄';
+		case 'http':
+			return '🌐';
+		default:
+			return '❓';
+	}
+}
+
 interface MCPProps {
 	toolManager: ToolManager | null;
 }
@@ -49,17 +63,29 @@ function MCP({toolManager}: MCPProps) {
     "mcpServers": [
       {
         "name": "example-server",
+        "transport": "stdio",
         "command": "node",
         "args": ["path/to/server.js"],
         "env": {
           "API_KEY": "your-key"
         }
+      },
+      {
+        "name": "remote-server",
+        "transport": "http",
+        "url": "https://example.com/mcp",
+        "timeout": 30000
       }
     ]
   }
 }`}
 						</Text>
 					</Box>
+
+					<Text color={colors.secondary}>
+						Use <Text color={colors.primary}>/setup-config</Text> to configure
+						servers interactively.
+					</Text>
 				</>
 			) : (
 				<>
@@ -71,14 +97,40 @@ function MCP({toolManager}: MCPProps) {
 
 					{connectedServers.map((serverName, index) => {
 						const serverTools = toolManager?.getServerTools(serverName) || [];
+						const serverInfo = toolManager?.getServerInfo(serverName);
+						const transportIcon = getTransportIcon(
+							serverInfo?.transport || 'stdio',
+						);
+
 						return (
 							<Box key={index} marginBottom={1}>
 								<Box flexDirection="column">
 									<Text color={colors.white}>
-										• <Text color={colors.primary}>{serverName}</Text>:{' '}
-										{serverTools.length} tool
+										• {transportIcon}{' '}
+										<Text color={colors.primary}>{serverName}</Text>:{' '}
+										<Text color={colors.secondary}>
+											({serverInfo?.transport?.toUpperCase() || 'STDIO'})
+										</Text>{' '}
+										• {serverTools.length} tool
 										{serverTools.length !== 1 ? 's' : ''}
 									</Text>
+
+									{serverInfo?.url && (
+										<Text color={colors.secondary}>URL: {serverInfo.url}</Text>
+									)}
+
+									{serverInfo?.description && (
+										<Text color={colors.secondary}>
+											{serverInfo.description}
+										</Text>
+									)}
+
+									{serverInfo?.tags && serverInfo.tags.length > 0 && (
+										<Text color={colors.secondary}>
+											Tags: {serverInfo.tags.map(tag => `#${tag}`).join(' ')}
+										</Text>
+									)}
+
 									{serverTools.length > 0 && (
 										<Text color={colors.secondary}>
 											Tools:{' '}
