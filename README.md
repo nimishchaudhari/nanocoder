@@ -330,6 +330,7 @@ Nanocoder supports connecting to MCP servers to extend its capabilities with add
 		"mcpServers": [
 			{
 				"name": "filesystem",
+				"transport": "stdio",
 				"command": "npx",
 				"args": [
 					"@modelcontextprotocol/server-filesystem",
@@ -338,6 +339,7 @@ Nanocoder supports connecting to MCP servers to extend its capabilities with add
 			},
 			{
 				"name": "github",
+				"transport": "stdio",
 				"command": "npx",
 				"args": ["@modelcontextprotocol/server-github"],
 				"env": {
@@ -345,12 +347,16 @@ Nanocoder supports connecting to MCP servers to extend its capabilities with add
 				}
 			},
 			{
-				"name": "custom-server",
-				"command": "python",
-				"args": ["path/to/server.py"],
-				"env": {
-					"API_KEY": "your-api-key"
-				}
+				"name": "remote-search",
+				"transport": "http",
+				"url": "https://api.example.com/mcp",
+				"timeout": 30000
+			},
+			{
+				"name": "websocket-server",
+				"transport": "websocket",
+				"url": "wss://ws.example.com/mcp",
+				"timeout": 60000
 			}
 		]
 	}
@@ -360,25 +366,40 @@ Nanocoder supports connecting to MCP servers to extend its capabilities with add
 **MCP Server Configuration:**
 
 - `name`: Display name for the MCP server
-- `command`: Executable command to start the server
-- `args`: Array of command-line arguments
-- `env`: Environment variables for the server process
+- `transport`: Transport type (`stdio`, `http`, `websocket`)
+- **For stdio transport:**
+  - `command`: Executable command to start the server
+  - `args`: Array of command-line arguments
+  - `env`: Environment variables for the server process
+- **For http/websocket transport:**
+  - `url`: Server endpoint URL
+  - `timeout`: Connection timeout in milliseconds (optional)
+
+**Transport Types:**
+
+- **stdio** (💻): Local command-line servers (most common)
+- **http** (🌐): Remote HTTP API endpoints
+- **websocket** (🔄): Real-time WebSocket connections
 
 When MCP servers are configured, Nanocoder will:
 
 - Automatically connect to all configured servers on startup
 - Make all server tools available to the AI model
 - Show connected servers and their tools with the `/mcp` command
+- Display transport type and connection details in configuration summary
 
 Popular MCP servers:
 
-- **Filesystem**: Enhanced file operations
-- **GitHub**: Repository management
-- **Brave Search**: Web search capabilities
+- **Filesystem**: Enhanced file operations (stdio)
+- **GitHub**: Repository management (stdio)
+- **Brave Search**: Web search capabilities (http)
 - **Memory**: Persistent context storage
+- **Context7**: Documentation lookup (http)
+- **DeepWiki**: Wikipedia search (http)
+- **Sequential Thinking**: Advanced reasoning (http)
 - [View more MCP servers](https://github.com/modelcontextprotocol/servers)
 
-> **Note**: MCP server configuration follows the same location hierarchy as AI provider setup above. Use `/setup-config` for an interactive configuration wizard, or manually edit `agents.config.json` at the project level (current directory) or user level (platform-specific paths listed above).
+> **Note**: MCP server configuration follows the same location hierarchy as AI provider setup above. Use `/setup-config` for an interactive configuration wizard with templates for both local and remote MCP servers, or manually edit `agents.config.json` at the project level (current directory) or user level (platform-specific paths listed above).
 
 ### User Preferences
 
