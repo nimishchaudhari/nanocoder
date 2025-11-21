@@ -81,12 +81,14 @@ test('SummaryStep shows MCP server count', t => {
 	const mcpServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem'],
 			env: {},
 		},
 		github: {
 			name: 'github',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-github'],
 			env: {GITHUB_TOKEN: 'test'},
@@ -138,6 +140,7 @@ test('SummaryStep displays MCP server names', t => {
 	const mcpServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem'],
 			env: {},
@@ -501,6 +504,7 @@ test('SummaryStep displays MCP server details', t => {
 	const mcpServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem'],
 			env: {},
@@ -521,6 +525,162 @@ test('SummaryStep displays MCP server details', t => {
 
 	const output = lastFrame();
 	t.regex(output!, /filesystem/);
+});
+
+test('SummaryStep displays stdio MCP server with transport icon and command', t => {
+	const mcpServers = {
+		filesystem: {
+			name: 'filesystem',
+			transport: 'stdio',
+			command: 'npx',
+			args: ['-y', '@modelcontextprotocol/server-filesystem'],
+			env: {},
+		},
+	};
+
+	const {lastFrame} = render(
+		<SummaryStep
+			configPath="/test/agents.config.json"
+			providers={[]}
+			mcpServers={mcpServers}
+			onSave={() => {}}
+			onAddProviders={() => {}}
+			onAddMcpServers={() => {}}
+			onCancel={() => {}}
+		/>,
+	);
+
+	const output = lastFrame();
+	// Should show transport icon
+	t.regex(output!, /filesystem.*💻/);
+	// Should show transport type
+	t.regex(output!, /Transport:\s*stdio/);
+	// Should show command details
+	t.regex(
+		output!,
+		/Cmd:\s*npx\s+-y\s+@modelcontextprotocol\/server-filesystem/,
+	);
+});
+
+test('SummaryStep displays HTTP MCP server with transport icon and URL', t => {
+	const mcpServers = {
+		remoteServer: {
+			name: 'remoteServer',
+			transport: 'http',
+			url: 'https://api.example.com/mcp',
+			timeout: 30000,
+		},
+	};
+
+	const {lastFrame} = render(
+		<SummaryStep
+			configPath="/test/agents.config.json"
+			providers={[]}
+			mcpServers={mcpServers}
+			onSave={() => {}}
+			onAddProviders={() => {}}
+			onAddMcpServers={() => {}}
+			onCancel={() => {}}
+		/>,
+	);
+
+	const output = lastFrame();
+	// Should show transport icon
+	t.regex(output!, /remoteServer.*🌐/);
+	// Should show transport type
+	t.regex(output!, /Transport:\s*http/);
+	// Should show URL instead of command
+	t.regex(output!, /URL:\s*https:\/\/api\.example\.com\/mcp/);
+	// Should show timeout
+	t.regex(output!, /Timeout:\s*30s/);
+});
+
+test('SummaryStep displays WebSocket MCP server with transport icon and URL', t => {
+	const mcpServers = {
+		wsServer: {
+			name: 'wsServer',
+			transport: 'websocket',
+			url: 'wss://ws.example.com/mcp',
+			timeout: 60000,
+		},
+	};
+
+	const {lastFrame} = render(
+		<SummaryStep
+			configPath="/test/agents.config.json"
+			providers={[]}
+			mcpServers={mcpServers}
+			onSave={() => {}}
+			onAddProviders={() => {}}
+			onAddMcpServers={() => {}}
+			onCancel={() => {}}
+		/>,
+	);
+
+	const output = lastFrame();
+	// Should show transport icon
+	t.regex(output!, /wsServer.*🔄/);
+	// Should show transport type
+	t.regex(output!, /Transport:\s*websocket/);
+	// Should show WebSocket URL
+	t.regex(output!, /WS URL:\s*wss:\/\/ws\.example\.com\/mcp/);
+	// Should show timeout
+	t.regex(output!, /Timeout:\s*60s/);
+});
+
+test('SummaryStep displays unknown transport with question mark icon', t => {
+	const mcpServers = {
+		unknownServer: {
+			name: 'unknownServer',
+			transport: 'unknown' as any,
+		},
+	};
+
+	const {lastFrame} = render(
+		<SummaryStep
+			configPath="/test/agents.config.json"
+			providers={[]}
+			mcpServers={mcpServers}
+			onSave={() => {}}
+			onAddProviders={() => {}}
+			onAddMcpServers={() => {}}
+			onCancel={() => {}}
+		/>,
+	);
+
+	const output = lastFrame();
+	// Should show question mark icon for unknown transport
+	t.regex(output!, /unknownServer.*❓/);
+	// Should show transport type
+	t.regex(output!, /Transport:\s*unknown/);
+});
+
+test('SummaryStep displays environment variables when present', t => {
+	const mcpServers = {
+		github: {
+			name: 'github',
+			transport: 'stdio',
+			command: 'npx',
+			args: ['-y', '@modelcontextprotocol/server-github'],
+			env: {GITHUB_TOKEN: 'test-token', GITHUB_USER: 'testuser'},
+		},
+	};
+
+	const {lastFrame} = render(
+		<SummaryStep
+			configPath="/test/agents.config.json"
+			providers={[]}
+			mcpServers={mcpServers}
+			onSave={() => {}}
+			onAddProviders={() => {}}
+			onAddMcpServers={() => {}}
+			onCancel={() => {}}
+		/>,
+	);
+
+	const output = lastFrame();
+	// Should show environment variables
+	t.regex(output!, /Env:\s*GITHUB_TOKEN,\s*GITHUB_USER/);
 });
 
 test('SummaryStep renders without crashing', t => {
@@ -557,12 +717,14 @@ test('SummaryStep handles multiple providers and servers', t => {
 	const mcpServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem'],
 			env: {},
 		},
 		github: {
 			name: 'github',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-github'],
 			env: {GITHUB_TOKEN: 'test'},

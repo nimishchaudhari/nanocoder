@@ -112,6 +112,24 @@ export default function App() {
 		setDevelopmentMode: appState.setDevelopmentMode,
 	});
 
+	// Setup initialization
+	const appInitialization = useAppInitialization({
+		setClient: appState.setClient,
+		setCurrentModel: appState.setCurrentModel,
+		setCurrentProvider: appState.setCurrentProvider,
+		setToolManager: appState.setToolManager,
+		setCustomCommandLoader: appState.setCustomCommandLoader,
+		setCustomCommandExecutor: appState.setCustomCommandExecutor,
+		setCustomCommandCache: appState.setCustomCommandCache,
+		setStartChat: appState.setStartChat,
+		setMcpInitialized: appState.setMcpInitialized,
+		setUpdateInfo: appState.setUpdateInfo,
+		addToChatQueue: appState.addToChatQueue,
+		componentKeyCounter: appState.componentKeyCounter,
+		customCommandCache: appState.customCommandCache,
+		setIsConfigWizardMode: appState.setIsConfigWizardMode,
+	});
+
 	// Setup mode handlers
 	const modeHandlers = useModeHandlers({
 		client: appState.client,
@@ -130,24 +148,7 @@ export default function App() {
 		setIsConfigWizardMode: appState.setIsConfigWizardMode,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
-	});
-
-	// Setup initialization
-	useAppInitialization({
-		setClient: appState.setClient,
-		setCurrentModel: appState.setCurrentModel,
-		setCurrentProvider: appState.setCurrentProvider,
-		setToolManager: appState.setToolManager,
-		setCustomCommandLoader: appState.setCustomCommandLoader,
-		setCustomCommandExecutor: appState.setCustomCommandExecutor,
-		setCustomCommandCache: appState.setCustomCommandCache,
-		setStartChat: appState.setStartChat,
-		setMcpInitialized: appState.setMcpInitialized,
-		setUpdateInfo: appState.setUpdateInfo,
-		addToChatQueue: appState.addToChatQueue,
-		componentKeyCounter: appState.componentKeyCounter,
-		customCommandCache: appState.customCommandCache,
-		setIsConfigWizardMode: appState.setIsConfigWizardMode,
+		reinitializeMCPServers: appInitialization.reinitializeMCPServers,
 	});
 
 	// Memoize handlers to prevent unnecessary re-renders

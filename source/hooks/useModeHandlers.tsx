@@ -6,6 +6,7 @@ import {
 	loadPreferences,
 } from '@/config/preferences';
 import {reloadAppConfig} from '@/config/index';
+import {getToolManager} from '@/message-handler';
 import SuccessMessage from '@/components/success-message';
 import ErrorMessage from '@/components/error-message';
 import React from 'react';
@@ -28,6 +29,9 @@ interface UseModeHandlersProps {
 	setIsConfigWizardMode: (mode: boolean) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	componentKeyCounter: number;
+	reinitializeMCPServers: (
+		toolManager: import('@/tools/tool-manager').ToolManager,
+	) => Promise<void>;
 }
 
 export function useModeHandlers({
@@ -47,6 +51,7 @@ export function useModeHandlers({
 	setIsConfigWizardMode,
 	addToChatQueue,
 	componentKeyCounter,
+	reinitializeMCPServers,
 }: UseModeHandlersProps) {
 	// Helper function to enter model selection mode
 	const enterModelSelectionMode = () => {
@@ -229,6 +234,31 @@ export function useModeHandlers({
 				// Clear message history when switching providers
 				setMessages([]);
 				await newClient.clearContext();
+
+				// Reinitialize MCP servers with the new configuration
+				const toolManager = getToolManager();
+				if (toolManager) {
+					try {
+						await reinitializeMCPServers(toolManager);
+						addToChatQueue(
+							<SuccessMessage
+								key={`mcp-reinit-${componentKeyCounter}`}
+								message="MCP servers reinitialized with new configuration."
+								hideBox={true}
+							/>,
+						);
+					} catch (mcpError) {
+						addToChatQueue(
+							<ErrorMessage
+								key={`mcp-reinit-error-${componentKeyCounter}`}
+								message={`Failed to reinitialize MCP servers: ${String(
+									mcpError,
+								)}`}
+								hideBox={true}
+							/>,
+						);
+					}
+				}
 
 				addToChatQueue(
 					<SuccessMessage
