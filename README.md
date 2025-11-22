@@ -377,9 +377,9 @@ Nanocoder supports connecting to MCP servers to extend its capabilities with add
 
 **Transport Types:**
 
-- **stdio** (💻): Local command-line servers (most common)
-- **http** (🌐): Remote HTTP API endpoints
-- **websocket** (🔄): Real-time WebSocket connections
+- **stdio**: Local command-line servers (most common)
+- **http**: Remote HTTP API endpoints
+- **websocket**: Real-time WebSocket connections
 
 When MCP servers are configured, Nanocoder will:
 
