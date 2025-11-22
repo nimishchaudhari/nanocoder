@@ -13,7 +13,7 @@ import type {MCPInitResult, UserPreferences} from '@/types/index';
 import type {CustomCommand} from '@/types/commands';
 import {setToolManagerGetter, setToolRegistryGetter} from '@/message-handler';
 import {commandRegistry} from '@/commands';
-import {appConfig} from '@/config/index';
+import {appConfig, reloadAppConfig} from '@/config/index';
 import {
 	clearCommand,
 	commandsCommand,
@@ -304,5 +304,11 @@ export function useAppInitialization({
 		initializeClient,
 		loadCustomCommands,
 		initializeMCPServers,
+		reinitializeMCPServers: async (toolManager: ToolManager) => {
+			// Reload app config to get latest MCP servers
+			reloadAppConfig();
+			// Reinitialize MCP servers with new configuration
+			await initializeMCPServers(toolManager);
+		},
 	};
 }

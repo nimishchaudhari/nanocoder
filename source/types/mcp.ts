@@ -1,8 +1,38 @@
+export type MCPTransportType = 'stdio' | 'websocket' | 'http';
+
+export interface MCPAuthConfig {
+	type: 'bearer' | 'basic' | 'api-key' | 'custom';
+	token?: string;
+	username?: string;
+	password?: string;
+	apiKey?: string;
+	customHeaders?: Record<string, string>;
+}
+
 export interface MCPServer {
 	name: string;
-	command: string;
+	transport: MCPTransportType;
+
+	// STDIO-specific fields
+	command?: string;
 	args?: string[];
 	env?: Record<string, string>;
+
+	// Remote transport-specific fields
+	url?: string;
+	headers?: Record<string, string>;
+	auth?: MCPAuthConfig;
+	timeout?: number;
+	reconnect?: {
+		enabled: boolean;
+		maxAttempts: number;
+		backoffMs: number;
+	};
+
+	// Common fields
+	description?: string;
+	tags?: string[];
+	enabled?: boolean;
 }
 
 export interface MCPTool {

@@ -53,9 +53,29 @@ export interface AppConfig {
 
 	mcpServers?: {
 		name: string;
-		command: string;
+		transport: 'stdio' | 'websocket' | 'http';
+		command?: string;
 		args?: string[];
 		env?: Record<string, string>;
+		url?: string;
+		headers?: Record<string, string>;
+		auth?: {
+			type: 'bearer' | 'basic' | 'api-key' | 'custom';
+			token?: string;
+			username?: string;
+			password?: string;
+			apiKey?: string;
+			customHeaders?: Record<string, string>;
+		};
+		timeout?: number;
+		reconnect?: {
+			enabled: boolean;
+			maxAttempts: number;
+			backoffMs: number;
+		};
+		description?: string;
+		tags?: string[];
+		enabled?: boolean;
 	}[];
 }
 

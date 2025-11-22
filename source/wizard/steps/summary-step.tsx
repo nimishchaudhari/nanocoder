@@ -5,6 +5,68 @@ import type {McpServerConfig} from '../templates/mcp-templates';
 import {colors} from '@/config/index';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
+// Helper function to get transport icon
+function getTransportIcon(transport: string): string {
+	switch (transport) {
+		case 'stdio':
+			return '💻';
+		case 'http':
+			return '🌐';
+		case 'websocket':
+			return '🔄';
+		default:
+			return '❓';
+	}
+}
+
+// Helper function to get connection details based on transport type
+function getConnectionDetails(
+	server: McpServerConfig,
+): {label: string; value: string}[] {
+	const details: {label: string; value: string}[] = [];
+
+	// Always show transport type
+	details.push({
+		label: 'Transport',
+		value: server.transport || 'unknown',
+	});
+
+	// Show connection details based on transport type
+	if (server.transport === 'stdio') {
+		const command = server.command || '';
+		const args = server.args?.join(' ') || '';
+		details.push({
+			label: 'Cmd',
+			value: `${command} ${args}`.trim(),
+		});
+	} else if (server.transport === 'http' || server.transport === 'websocket') {
+		if (server.url) {
+			details.push({
+				label: server.transport === 'http' ? 'URL' : 'WS URL',
+				value: server.url,
+			});
+		}
+
+		// Show timeout for remote servers if specified
+		if (server.timeout) {
+			details.push({
+				label: 'Timeout',
+				value: `${server.timeout / 1000}s`,
+			});
+		}
+	}
+
+	// Show environment variables if present
+	if (server.env && Object.keys(server.env).length > 0) {
+		details.push({
+			label: 'Env',
+			value: Object.keys(server.env).join(', '),
+		});
+	}
+
+	return details;
+}
+
 interface SummaryStepProps {
 	configPath: string;
 	providers: ProviderConfig[];
@@ -122,21 +184,24 @@ export function SummaryStep({
 				) : (
 					serverNames.map(name => {
 						const server = mcpServers[name];
+						const transportIcon = getTransportIcon(
+							server.transport || 'unknown',
+						);
+						const connectionDetails = getConnectionDetails(server);
+
 						return (
 							<Box key={name} flexDirection="column" marginLeft={2}>
 								<Text>
-									• <Text color={colors.success}>{server.name}</Text>
+									• <Text color={colors.success}>{server.name}</Text>{' '}
+									{transportIcon}
 								</Text>
 								{!isNarrow && (
 									<>
-										<Text dimColor>
-											Cmd: {server.command} {server.args.join(' ')}
-										</Text>
-										{server.env && Object.keys(server.env).length > 0 && (
-											<Text dimColor>
-												Env: {Object.keys(server.env).join(', ')}
+										{connectionDetails.map((detail, index) => (
+											<Text key={index} dimColor>
+												{detail.label}: {detail.value}
 											</Text>
-										)}
+										))}
 									</>
 								)}
 							</Box>

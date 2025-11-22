@@ -23,6 +23,7 @@ test('validateConfig: returns valid for correct configuration', t => {
 	const mcpServers: Record<string, McpServerConfig> = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
 		},
@@ -127,7 +128,7 @@ test('validateConfig: errors when MCP server missing args', t => {
 	];
 
 	const mcpServers = {
-		filesystem: {name: 'filesystem', command: 'npx'},
+		filesystem: {name: 'filesystem', transport: 'stdio', command: 'npx'},
 	} as unknown as Record<string, McpServerConfig>;
 
 	const result = validateConfig(providers, mcpServers);
@@ -192,6 +193,7 @@ test('buildConfigObject: includes MCP servers when provided', t => {
 	const mcpServers: Record<string, McpServerConfig> = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
 		},
@@ -200,8 +202,12 @@ test('buildConfigObject: includes MCP servers when provided', t => {
 	const config = buildConfigObject(providers, mcpServers);
 
 	t.truthy(config.nanocoder.mcpServers);
-	t.truthy(config.nanocoder.mcpServers?.filesystem);
-	t.is(config.nanocoder.mcpServers?.filesystem.command, 'npx');
+	t.true(Array.isArray(config.nanocoder.mcpServers));
+	const filesystemServer = config.nanocoder.mcpServers?.find(
+		s => s.name === 'filesystem',
+	);
+	t.truthy(filesystemServer);
+	t.is(filesystemServer?.command, 'npx');
 });
 
 test('buildConfigObject: includes apiKey when present', t => {
@@ -296,11 +302,13 @@ test('buildConfigObject: handles multiple MCP servers', t => {
 	const mcpServers: Record<string, McpServerConfig> = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
 		},
 		github: {
 			name: 'github',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-github'],
 			env: {GITHUB_TOKEN: 'token'},
@@ -310,8 +318,14 @@ test('buildConfigObject: handles multiple MCP servers', t => {
 	const config = buildConfigObject(providers, mcpServers);
 
 	t.is(Object.keys(config.nanocoder.mcpServers ?? {}).length, 2);
-	t.truthy(config.nanocoder.mcpServers?.filesystem);
-	t.truthy(config.nanocoder.mcpServers?.github);
+	const filesystemServer = config.nanocoder.mcpServers?.find(
+		s => s.name === 'filesystem',
+	);
+	const githubServer = config.nanocoder.mcpServers?.find(
+		s => s.name === 'github',
+	);
+	t.truthy(filesystemServer);
+	t.truthy(githubServer);
 });
 
 // ============================================================================
