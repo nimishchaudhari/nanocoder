@@ -32,16 +32,6 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "nanocoder.askAboutSelection",
-				"title": "Ask Nanocoder About Selection",
-				"category": "Nanocoder"
-			},
-			{
-				"command": "nanocoder.openChat",
-				"title": "Open Chat Panel",
-				"category": "Nanocoder"
-			},
-			{
 				"command": "nanocoder.connect",
 				"title": "Connect to Nanocoder",
 				"category": "Nanocoder"
@@ -52,58 +42,11 @@
 				"category": "Nanocoder"
 			},
 			{
-				"command": "nanocoder.applyDiff",
-				"title": "Apply Changes",
-				"category": "Nanocoder"
-			},
-			{
-				"command": "nanocoder.rejectDiff",
-				"title": "Reject Changes",
-				"category": "Nanocoder"
-			},
-			{
 				"command": "nanocoder.startCli",
 				"title": "Start Nanocoder CLI",
 				"category": "Nanocoder"
 			}
 		],
-		"menus": {
-			"editor/context": [
-				{
-					"command": "nanocoder.askAboutSelection",
-					"group": "nanocoder",
-					"when": "editorHasSelection"
-				}
-			],
-			"explorer/context": [
-				{
-					"command": "nanocoder.askAboutSelection",
-					"group": "nanocoder"
-				}
-			]
-		},
-		"viewsContainers": {
-			"activitybar": [
-				{
-					"id": "nanocoder",
-					"title": "Nanocoder",
-					"icon": "media/icon.svg"
-				}
-			]
-		},
-		"views": {
-			"nanocoder": [
-				{
-					"type": "webview",
-					"id": "nanocoder.chatPanel",
-					"name": "Chat"
-				},
-				{
-					"id": "nanocoder.pendingChanges",
-					"name": "Pending Changes"
-				}
-			]
-		},
 		"configuration": {
 			"title": "Nanocoder",
 			"properties": {
@@ -128,20 +71,7 @@
 					"description": "Show diff preview before applying file changes"
 				}
 			}
-		},
-		"keybindings": [
-			{
-				"command": "nanocoder.askAboutSelection",
-				"key": "ctrl+shift+n",
-				"mac": "cmd+shift+n",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "nanocoder.openChat",
-				"key": "ctrl+shift+c",
-				"mac": "cmd+shift+c"
-			}
-		]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "pnpm run build",

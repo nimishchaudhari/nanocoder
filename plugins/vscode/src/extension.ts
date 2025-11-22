@@ -2,14 +2,9 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import {WebSocketClient} from './websocket-client';
 import {DiffManager} from './diff-manager';
-import {ChatPanelProvider} from './chat-panel';
-import {PendingChangesProvider} from './pending-changes-provider';
-import {
-	ServerMessage,
-	FileChangeMessage,
-	DiagnosticInfo,
-	DEFAULT_PORT,
-} from './protocol';
+import {ServerMessage, FileChangeMessage, DiagnosticInfo} from './protocol';
+
+const DEFAULT_PORT = 51820;
 
 let wsClient: WebSocketClient;
 let diffManager: DiffManager;
@@ -33,25 +28,6 @@ export function activate(context: vscode.ExtensionContext) {
 	updateStatusBar(false);
 	statusBarItem.show();
 
-	// Register tree view for pending changes
-	const pendingChangesProvider = new PendingChangesProvider(diffManager);
-	vscode.window.registerTreeDataProvider(
-		'nanocoder.pendingChanges',
-		pendingChangesProvider,
-	);
-
-	// Register chat panel webview
-	const chatPanelProvider = new ChatPanelProvider(
-		context.extensionUri,
-		wsClient,
-	);
-	context.subscriptions.push(
-		vscode.window.registerWebviewViewProvider(
-			ChatPanelProvider.viewType,
-			chatPanelProvider,
-		),
-	);
-
 	// Handle messages from CLI
 	wsClient.onMessage(message => handleServerMessage(message));
 
@@ -59,16 +35,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('nanocoder.connect', connect),
 		vscode.commands.registerCommand('nanocoder.disconnect', disconnect),
-		vscode.commands.registerCommand(
-			'nanocoder.askAboutSelection',
-			askAboutSelection,
-		),
-		vscode.commands.registerCommand('nanocoder.openChat', openChat),
-		vscode.commands.registerCommand('nanocoder.applyDiff', applyDiff),
-		vscode.commands.registerCommand('nanocoder.rejectDiff', rejectDiff),
-		vscode.commands.registerCommand('nanocoder.showDiff', showDiff),
-		vscode.commands.registerCommand('nanocoder.applyAll', applyAll),
-		vscode.commands.registerCommand('nanocoder.rejectAll', rejectAll),
 		vscode.commands.registerCommand('nanocoder.startCli', startCli),
 	);
 
@@ -183,13 +149,13 @@ function handleFileChange(message: FileChangeMessage): void {
 				'Apply',
 				'Reject',
 			)
-			.then(action => {
+			.then(async action => {
 				if (action === 'Show Diff') {
 					diffManager.showDiff(message.id);
 				} else if (action === 'Apply') {
-					applyDiff(message.id);
+					await diffManager.applyChange(message.id);
 				} else if (action === 'Reject') {
-					rejectDiff(message.id);
+					diffManager.rejectChange(message.id);
 				}
 			});
 	}
@@ -244,89 +210,6 @@ function severityToString(
 		case vscode.DiagnosticSeverity.Hint:
 			return 'hint';
 	}
-}
-
-// Command handlers
-async function askAboutSelection(): Promise<void> {
-	if (!wsClient.isConnected()) {
-		const action = await vscode.window.showWarningMessage(
-			'Not connected to Nanocoder CLI',
-			'Connect',
-		);
-		if (action === 'Connect') {
-			await connect();
-		}
-		return;
-	}
-
-	const editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		vscode.window.showWarningMessage('No active editor');
-		return;
-	}
-
-	const selection = editor.selection;
-	const selectedText = editor.document.getText(selection);
-	const filePath = editor.document.uri.fsPath;
-
-	// Prompt for question
-	const question = await vscode.window.showInputBox({
-		prompt: 'What would you like to ask about this code?',
-		placeHolder: 'e.g., "Explain this function" or "How can I optimize this?"',
-	});
-
-	if (!question) return;
-
-	// Build prompt with context
-	const prompt = selectedText
-		? `Regarding this code from ${path.basename(
-				filePath,
-		  )}:\n\`\`\`\n${selectedText}\n\`\`\`\n\n${question}`
-		: question;
-
-	wsClient.send({
-		type: 'send_prompt',
-		prompt,
-		context: {
-			filePath,
-			selection: selectedText || undefined,
-			cursorPosition: {
-				line: selection.active.line,
-				character: selection.active.character,
-			},
-		},
-	});
-
-	// Open chat panel to show response
-	vscode.commands.executeCommand('nanocoder.chatPanel.focus');
-}
-
-function openChat(): void {
-	vscode.commands.executeCommand('nanocoder.chatPanel.focus');
-}
-
-async function showDiff(id: string): Promise<void> {
-	await diffManager.showDiff(id);
-}
-
-async function applyDiff(id: string): Promise<void> {
-	const success = await diffManager.applyChange(id);
-	if (success) {
-		wsClient.send({type: 'apply_change', id});
-	}
-}
-
-function rejectDiff(id: string): void {
-	diffManager.rejectChange(id);
-	wsClient.send({type: 'reject_change', id});
-}
-
-async function applyAll(): Promise<void> {
-	await diffManager.applyAll();
-}
-
-function rejectAll(): void {
-	diffManager.rejectAll();
 }
 
 function startCli(): void {
