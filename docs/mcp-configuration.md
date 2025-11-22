@@ -6,19 +6,19 @@ This guide covers how to configure Model Context Protocol (MCP) servers with Nan
 
 Nanocoder supports three transport types for MCP servers:
 
-### stdio (Standard Input/Output) 💻
+### stdio (Standard Input/Output)
 
 - **Use case**: Local command-line servers
 - **Communication**: Process-based with stdin/stdout
 - **Common for**: Filesystem, GitHub, local tools
 
-### http (HTTP/HTTPS) 🌐
+### http (HTTP/HTTPS)
 
 - **Use case**: Remote HTTP API endpoints
 - **Communication**: RESTful HTTP requests
 - **Common for**: Cloud services, search APIs, documentation lookup
 
-### websocket (WebSocket) 🔄
+### websocket (WebSocket)
 
 - **Use case**: Real-time bidirectional communication
 - **Communication**: Persistent WebSocket connections
