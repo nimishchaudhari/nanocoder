@@ -27,10 +27,12 @@ export class TransportFactory {
 			case 'http':
 				return this.createHTTPTransport(server);
 
-			default:
+			default: {
+				const _exhaustiveCheck: never = server.transport;
 				throw new Error(
-					`Unsupported transport type: ${(server as any).transport}`,
+					`Unsupported transport type: ${_exhaustiveCheck as string}`,
 				);
+			}
 		}
 	}
 

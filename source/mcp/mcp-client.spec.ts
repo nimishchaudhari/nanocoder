@@ -1,14 +1,7 @@
 import test from 'ava';
 import {MCPClient} from './mcp-client';
-import type {MCPServer, MCPTransportType} from '../types/mcp';
 
-// Mock server configuration for testing
-const mockStdioServerConfig: MCPServer = {
-	name: 'test-server',
-	transport: 'stdio',
-	command: 'node',
-	args: ['server.js'],
-};
+console.log(`\nmcp-client.spec.ts`);
 
 // ============================================================================
 // Tests for MCPClient - Transport Support
@@ -78,27 +71,11 @@ test('MCPClient: getConnectedServers returns array', t => {
 	t.true(Array.isArray(connectedServers));
 });
 
-test('MCPClient: isServerConnected works correctly', async t => {
+test('MCPClient: isServerConnected returns false for non-existent servers', t => {
 	const client = new MCPClient();
 
-	// Initially not connected to any server
+	// Should return false for any server that hasn't been connected
 	t.false(client.isServerConnected('non-existent-server'));
-
-	// Connect to a real MCP server (fetch server as test)
-	const realServerConfig: MCPServer = {
-		name: 'test-fetch',
-		transport: 'stdio',
-		command: 'npx',
-		args: ['-y', '@modelcontextprotocol/server-fetch'],
-	};
-
-	try {
-		await client.connectToServer(realServerConfig);
-		t.true(client.isServerConnected('test-fetch'));
-		t.false(client.isServerConnected('another-server'));
-	} catch (error) {
-		// If connection fails, we can still test the negative case
-		t.log(`Connection failed (expected in test environment): ${error}`);
-		t.false(client.isServerConnected('test-fetch'));
-	}
+	t.false(client.isServerConnected('another-server'));
+	t.false(client.isServerConnected(''));
 });

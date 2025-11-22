@@ -7,16 +7,19 @@ This guide covers how to configure Model Context Protocol (MCP) servers with Nan
 Nanocoder supports three transport types for MCP servers:
 
 ### stdio (Standard Input/Output) 💻
+
 - **Use case**: Local command-line servers
 - **Communication**: Process-based with stdin/stdout
 - **Common for**: Filesystem, GitHub, local tools
 
 ### http (HTTP/HTTPS) 🌐
+
 - **Use case**: Remote HTTP API endpoints
 - **Communication**: RESTful HTTP requests
 - **Common for**: Cloud services, search APIs, documentation lookup
 
 ### websocket (WebSocket) 🔄
+
 - **Use case**: Real-time bidirectional communication
 - **Communication**: Persistent WebSocket connections
 - **Common for**: Live data streams, interactive services
@@ -26,6 +29,7 @@ Nanocoder supports three transport types for MCP servers:
 ### Local stdio Servers
 
 #### File System Access
+
 ```json
 {
 	"name": "filesystem",
@@ -37,6 +41,7 @@ Nanocoder supports three transport types for MCP servers:
 ```
 
 #### GitHub Integration
+
 ```json
 {
 	"name": "github",
@@ -50,6 +55,7 @@ Nanocoder supports three transport types for MCP servers:
 ```
 
 #### Custom Python Server
+
 ```json
 {
 	"name": "custom-tools",
@@ -66,6 +72,7 @@ Nanocoder supports three transport types for MCP servers:
 ### Remote HTTP Servers
 
 #### Search Service
+
 ```json
 {
 	"name": "brave-search",
@@ -76,6 +83,7 @@ Nanocoder supports three transport types for MCP servers:
 ```
 
 #### Documentation Lookup
+
 ```json
 {
 	"name": "context7",
@@ -88,6 +96,7 @@ Nanocoder supports three transport types for MCP servers:
 ### Remote WebSocket Servers
 
 #### Real-time Data Stream
+
 ```json
 {
 	"name": "market-data",
@@ -100,15 +109,18 @@ Nanocoder supports three transport types for MCP servers:
 ## Configuration Reference
 
 ### Base Fields (All Servers)
+
 - `name` (required): Display name for the server
 - `transport` (required): Transport type (`stdio`, `http`, `websocket`)
 
 ### stdio Transport Fields
+
 - `command` (required): Command to execute
 - `args` (optional): Array of command-line arguments
 - `env` (optional): Environment variables object
 
 ### http/websocket Transport Fields
+
 - `url` (required): Server endpoint URL
 - `timeout` (optional): Connection timeout in milliseconds (default: 30000)
 
@@ -130,6 +142,7 @@ Use environment variables to keep sensitive data out of configuration files:
 ```
 
 **Supported syntax:**
+
 - `$VAR_NAME`
 - `${VAR_NAME}`
 - `${VAR_NAME:-default_value}`
@@ -137,12 +150,14 @@ Use environment variables to keep sensitive data out of configuration files:
 ## Popular MCP Servers
 
 ### Local Servers (stdio)
+
 - **@modelcontextprotocol/server-filesystem**: File operations
 - **@modelcontextprotocol/server-github**: GitHub repository management
 - **@modelcontextprotocol/server-postgres**: Database operations
 - **@modelcontextprotocol/server-brave-search**: Web search (can also be run remotely)
 
 ### Remote Services (http/websocket)
+
 - **Context7**: API documentation lookup
 - **DeepWiki**: Wikipedia and knowledge base search
 - **Sequential Thinking**: Advanced reasoning capabilities
@@ -157,6 +172,7 @@ For interactive setup, use the built-in configuration wizard:
 ```
 
 This provides:
+
 - Pre-built templates for popular MCP servers
 - Real-time validation
 - Transport type selection
@@ -201,6 +217,7 @@ This provides:
 ## Advanced Configuration
 
 ### Multiple Instances of Same Server
+
 ```json
 {
 	"mcpServers": [
@@ -214,13 +231,17 @@ This provides:
 			"name": "filesystem-home",
 			"transport": "stdio",
 			"command": "npx",
-			"args": ["@modelcontextprotocol/server-filesystem", "/home/user/documents"]
+			"args": [
+				"@modelcontextprotocol/server-filesystem",
+				"/home/user/documents"
+			]
 		}
 	]
 }
 ```
 
 ### Hybrid Local/Remote Setup
+
 ```json
 {
 	"mcpServers": [

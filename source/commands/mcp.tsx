@@ -25,7 +25,7 @@ interface MCPProps {
 	toolManager: ToolManager | null;
 }
 
-function MCP({toolManager}: MCPProps) {
+export function MCP({toolManager}: MCPProps) {
 	const boxWidth = useTerminalWidth();
 	const {colors} = useTheme();
 	const connectedServers = toolManager?.getConnectedServers() || [];

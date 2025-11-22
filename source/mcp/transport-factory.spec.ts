@@ -2,6 +2,8 @@ import test from 'ava';
 import {TransportFactory} from './transport-factory';
 import type {MCPServer, MCPTransportType} from '../types/mcp';
 
+console.log(`\ntransport-factory.spec.ts`);
+
 // ============================================================================
 // Tests for TransportFactory
 // ============================================================================
