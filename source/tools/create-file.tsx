@@ -1,6 +1,6 @@
 import {resolve, dirname} from 'node:path';
-import {writeFile, access} from 'node:fs/promises';
-import {constants} from 'node:fs';
+import {writeFile, access, readFile} from 'node:fs/promises';
+import {constants, existsSync} from 'node:fs';
 import {highlight} from 'cli-highlight';
 import React from 'react';
 import {Text, Box} from 'ink';
@@ -9,6 +9,7 @@ import {tool, jsonSchema} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import ToolMessage from '@/components/tool-message';
+import {isVSCodeConnected, sendFileChangeToVSCode} from '@/vscode/index';
 
 // Handler function - used by both Nanocoder and AI SDK tool
 const executeCreateFile = async (args: {
@@ -114,7 +115,32 @@ const CreateFileFormatter = React.memo(({args}: {args: CreateFileArgs}) => {
 	return <ToolMessage message={messageContent} hideBox={true} />;
 });
 
-const formatter = (args: CreateFileArgs): React.ReactElement => {
+const formatter = async (
+	args: CreateFileArgs,
+	result?: string,
+): Promise<React.ReactElement> => {
+	// Send diff to VS Code during preview phase (before execution)
+	if (result === undefined && isVSCodeConnected()) {
+		const path = args.path || args.file_path || '';
+		const content = args.content || '';
+		const absPath = resolve(path);
+
+		// Get original content if file exists
+		let originalContent = '';
+		if (existsSync(absPath)) {
+			try {
+				originalContent = await readFile(absPath, 'utf-8');
+			} catch {
+				// File might exist but not be readable
+			}
+		}
+
+		sendFileChangeToVSCode(absPath, originalContent, content, 'create_file', {
+			path,
+			content,
+		});
+	}
+
 	return <CreateFileFormatter args={args} />;
 };
 

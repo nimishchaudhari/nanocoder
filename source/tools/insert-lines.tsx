@@ -9,6 +9,7 @@ import {tool, jsonSchema} from '@/types/core';
 import {getColors} from '@/config/index';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import ToolMessage from '@/components/tool-message';
+import {isVSCodeConnected, sendFileChangeToVSCode} from '@/vscode/index';
 
 interface InsertLinesArgs {
 	path: string;
@@ -42,8 +43,10 @@ const executeInsertLines = async (args: InsertLinesArgs): Promise<string> => {
 	const newLines = [...lines];
 	newLines.splice(line_number - 1, 0, ...insertLines);
 
-	// Write updated content
+	// Build new content
 	const newContent = newLines.join('\n');
+
+	// Write updated content
 	await writeFile(absPath, newContent, 'utf-8');
 
 	// Generate full file contents to show the model the current file state
@@ -334,6 +337,32 @@ const formatter = async (
 	result?: string,
 ): Promise<React.ReactElement> => {
 	const colors = getColors() as ThemeColors;
+
+	// Send diff to VS Code during preview phase (before execution)
+	if (result === undefined && isVSCodeConnected()) {
+		const {path, line_number, content} = args;
+		const absPath = resolve(path);
+		try {
+			const fileContent = await readFile(absPath, 'utf-8');
+			const lines = fileContent.split('\n');
+			const lineNumber = Number(line_number);
+
+			// Build new content for diff preview
+			const insertLines = content.split('\n');
+			const newLines = [...lines];
+			newLines.splice(lineNumber - 1, 0, ...insertLines);
+			const newContent = newLines.join('\n');
+
+			sendFileChangeToVSCode(absPath, fileContent, newContent, 'insert_lines', {
+				path,
+				line_number,
+				content,
+			});
+		} catch {
+			// Silently ignore errors sending to VS Code
+		}
+	}
+
 	const preview = await formatInsertLinesPreview(args, result, colors);
 	return <InsertLinesFormatter preview={preview} />;
 };

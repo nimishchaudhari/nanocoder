@@ -133,8 +133,8 @@ If you want to contribute or modify Nanocoder:
 
 **Prerequisites:**
 
-- Node.js 18+
-- npm
+- Node.js 20+
+- pnpm
 
 **Setup:**
 
@@ -143,25 +143,25 @@ If you want to contribute or modify Nanocoder:
 ```bash
 git clone [repo-url]
 cd nanocoder
-npm install
+pnpm install
 ```
 
 2. Build the project:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 3. Run locally:
 
 ```bash
-npm run start
+pnpm run start
 ```
 
 Or build and run in one command:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ## Configuration

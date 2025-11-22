@@ -9,6 +9,7 @@ import {tool, jsonSchema} from '@/types/core';
 import {getColors} from '@/config/index';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import ToolMessage from '@/components/tool-message';
+import {isVSCodeConnected, sendFileChangeToVSCode} from '@/vscode/index';
 
 interface ReplaceLinesArgs {
 	path: string;
@@ -56,8 +57,10 @@ const executeReplaceLines = async (args: ReplaceLinesArgs): Promise<string> => {
 	const newLines = [...lines];
 	newLines.splice(line_number - 1, linesToRemove, ...replaceLines);
 
-	// Write updated content
+	// Build the new content
 	const newContent = newLines.join('\n');
+
+	// Write updated content
 	await writeFile(absPath, newContent, 'utf-8');
 
 	// Generate full file contents to show the model the current file state
@@ -404,6 +407,42 @@ const formatter = async (
 	result?: string,
 ): Promise<React.ReactElement> => {
 	const colors = getColors() as ThemeColors;
+
+	// Send diff to VS Code during preview phase (before execution)
+	// Only send when result is undefined (preview mode, not after execution)
+	if (result === undefined && isVSCodeConnected()) {
+		const {path, line_number, end_line, content} = args;
+		const absPath = resolve(path);
+		try {
+			const fileContent = await readFile(absPath, 'utf-8');
+			const lines = fileContent.split('\n');
+			const lineNumber = Number(line_number);
+			const endLine = Number(end_line) || lineNumber;
+
+			// Build new content for diff preview
+			const replaceLines = content.split('\n');
+			const linesToRemove = endLine - lineNumber + 1;
+			const newLines = [...lines];
+			newLines.splice(lineNumber - 1, linesToRemove, ...replaceLines);
+			const newContent = newLines.join('\n');
+
+			sendFileChangeToVSCode(
+				absPath,
+				fileContent,
+				newContent,
+				'replace_lines',
+				{
+					path,
+					line_number,
+					end_line: endLine,
+					content,
+				},
+			);
+		} catch {
+			// Silently ignore errors sending to VS Code
+		}
+	}
+
 	const preview = await formatReplaceLinesPreview(args, result, colors);
 	return <ReplaceLinesFormatter preview={preview} />;
 };
