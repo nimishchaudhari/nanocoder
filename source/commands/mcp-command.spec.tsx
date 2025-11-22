@@ -1,6 +1,6 @@
 import test from 'ava';
 import React from 'react';
-import {render} from '@testing-library/react';
+import {render} from 'ink-testing-library';
 import {MCP} from './mcp';
 import {ToolManager} from '../tools/tool-manager';
 
@@ -15,12 +15,11 @@ test('MCP command: shows no servers when none connected', t => {
 		getServerInfo: () => undefined,
 	} as unknown as ToolManager;
 
-	const Component = () => <MCP toolManager={mockToolManager} />;
+	const {lastFrame} = render(<MCP toolManager={mockToolManager} />);
 
-	const {container} = render(<Component />);
-
-	// Should show the "No MCP servers connected" message
-	t.true(container.textContent.includes('No MCP servers connected'));
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /No MCP servers connected/);
 });
 
 test('MCP command: displays transport type icons', t => {
@@ -45,19 +44,20 @@ test('MCP command: displays transport type icons', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const Component = () => <MCP toolManager={mockToolManager} />;
+	const {lastFrame} = render(<MCP toolManager={mockToolManager} />);
 
-	const {container} = render(<Component />);
+	const output = lastFrame();
+	t.truthy(output);
 
 	// Should show transport icons
-	t.true(container.textContent.includes('💻')); // stdio icon
-	t.true(container.textContent.includes('🔄')); // websocket icon
-	t.true(container.textContent.includes('🌐')); // http icon
+	t.regex(output!, /💻/); // stdio icon
+	t.regex(output!, /🔄/); // websocket icon
+	t.regex(output!, /🌐/); // http icon
 
 	// Should show transport type names
-	t.true(container.textContent.includes('STDIO'));
-	t.true(container.textContent.includes('WEBSOCKET'));
-	t.true(container.textContent.includes('HTTP'));
+	t.regex(output!, /STDIO/);
+	t.regex(output!, /WEBSOCKET/);
+	t.regex(output!, /HTTP/);
 });
 
 test('MCP command: displays URLs for remote servers', t => {
@@ -73,12 +73,13 @@ test('MCP command: displays URLs for remote servers', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const Component = () => <MCP toolManager={mockToolManager} />;
+	const {lastFrame} = render(<MCP toolManager={mockToolManager} />);
 
-	const {container} = render(<Component />);
+	const output = lastFrame();
+	t.truthy(output);
 
 	// Should show the URL for remote server
-	t.true(container.textContent.includes('URL: https://example.com/mcp'));
+	t.regex(output!, /URL: https:\/\/example\.com\/mcp/);
 });
 
 test('MCP command: displays server descriptions', t => {
@@ -94,12 +95,13 @@ test('MCP command: displays server descriptions', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const Component = () => <MCP toolManager={mockToolManager} />;
+	const {lastFrame} = render(<MCP toolManager={mockToolManager} />);
 
-	const {container} = render(<Component />);
+	const output = lastFrame();
+	t.truthy(output);
 
 	// Should show the description
-	t.true(container.textContent.includes('This is a test server description'));
+	t.regex(output!, /This is a test server description/);
 });
 
 test('MCP command: displays server tags', t => {
@@ -115,12 +117,13 @@ test('MCP command: displays server tags', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const Component = () => <MCP toolManager={mockToolManager} />;
+	const {lastFrame} = render(<MCP toolManager={mockToolManager} />);
 
-	const {container} = render(<Component />);
+	const output = lastFrame();
+	t.truthy(output);
 
 	// Should show the tags with # prefix
-	t.true(container.textContent.includes('Tags: #documentation #remote #http'));
+	t.regex(output!, /Tags: #documentation #remote #http/);
 });
 
 test('MCP command: displays tool information correctly', t => {
@@ -139,18 +142,19 @@ test('MCP command: displays tool information correctly', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const Component = () => <MCP toolManager={mockToolManager} />;
+	const {lastFrame} = render(<MCP toolManager={mockToolManager} />);
 
-	const {container} = render(<Component />);
+	const output = lastFrame();
+	t.truthy(output);
 
 	// Should show correct tool count
-	t.true(container.textContent.includes('3 tools'));
+	t.regex(output!, /3 tools/);
 
 	// Should list tool names
-	t.true(container.textContent.includes('Tools:'));
-	t.true(container.textContent.includes('tool-1'));
-	t.true(container.textContent.includes('tool-2'));
-	t.true(container.textContent.includes('tool-3'));
+	t.regex(output!, /Tools:/);
+	t.regex(output!, /tool-1/);
+	t.regex(output!, /tool-2/);
+	t.regex(output!, /tool-3/);
 });
 
 test('MCP command: handles singular tool count', t => {
@@ -165,13 +169,14 @@ test('MCP command: handles singular tool count', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const Component = () => <MCP toolManager={mockToolManager} />;
+	const {lastFrame} = render(<MCP toolManager={mockToolManager} />);
 
-	const {container} = render(<Component />);
+	const output = lastFrame();
+	t.truthy(output);
 
 	// Should show singular "tool" (not "tools")
-	t.true(container.textContent.includes('1 tool'));
-	t.false(container.textContent.includes('1 tools'));
+	t.regex(output!, /1 tool/);
+	t.notRegex(output!, /1 tools/);
 });
 
 test('MCP command: shows server count header', t => {
@@ -186,12 +191,13 @@ test('MCP command: shows server count header', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const Component = () => <MCP toolManager={mockToolManager} />;
+	const {lastFrame} = render(<MCP toolManager={mockToolManager} />);
 
-	const {container} = render(<Component />);
+	const output = lastFrame();
+	t.truthy(output);
 
 	// Should show connected servers count
-	t.true(container.textContent.includes('Connected MCP Servers (3):'));
+	t.regex(output!, /Connected MCP Servers \(3\):/);
 });
 
 test('MCP command: shows configuration examples', t => {
@@ -201,17 +207,18 @@ test('MCP command: shows configuration examples', t => {
 		getServerInfo: () => undefined,
 	} as unknown as ToolManager;
 
-	const Component = () => <MCP toolManager={mockToolManager} />;
+	const {lastFrame} = render(<MCP toolManager={mockToolManager} />);
 
-	const {container} = render(<Component />);
+	const output = lastFrame();
+	t.truthy(output);
 
 	// Should show configuration examples with transport field
-	t.true(container.textContent.includes('"transport": "stdio"'));
-	t.true(container.textContent.includes('"transport": "http"'));
+	t.regex(output!, /"transport": "stdio"/);
+	t.regex(output!, /"transport": "http"/);
 
 	// Should include transport field in examples
-	t.true(container.textContent.includes('"command":'));
-	t.true(container.textContent.includes('"url":'));
+	t.regex(output!, /"command":/);
+	t.regex(output!, /"url":/);
 });
 
 test('MCP command: uses transport type getTransportIcon function correctly', t => {
@@ -235,13 +242,15 @@ test('MCP command: uses transport type getTransportIcon function correctly', t =
 			}),
 		} as unknown as ToolManager;
 
-		const Component = () => <MCP toolManager={mockToolManager} />;
+		const {lastFrame} = render(<MCP toolManager={mockToolManager} />);
 
-		const {container} = render(<Component />);
+		const output = lastFrame();
+		t.truthy(output);
 
 		// Should show the correct icon for the transport type
-		t.true(
-			container.textContent.includes(testCase.expectedIcon),
+		t.regex(
+			output!,
+			new RegExp(testCase.expectedIcon),
 			`Should show ${testCase.expectedIcon} for ${testCase.transport} transport`,
 		);
 	}
