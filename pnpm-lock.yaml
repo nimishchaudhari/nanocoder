@@ -100,7 +100,7 @@ importers:
         specifier: ^19.0.0
         version: 19.1.12
       '@types/ws':
-        specifier: ^8.5.13
+        specifier: ^8.18.1
         version: 8.18.1
       '@vdemedes/prettier-config':
         specifier: ^2.0.1
