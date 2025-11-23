@@ -72,7 +72,6 @@ export class VSCodeServer {
 				});
 
 				this.wss.on('listening', () => {
-					console.log(`VS Code server listening on port ${this.port}`);
 					resolve(true);
 				});
 
@@ -80,12 +79,10 @@ export class VSCodeServer {
 					this.handleConnection(ws);
 				});
 
-				this.wss.on('error', error => {
-					console.error('VS Code server error:', error);
+				this.wss.on('error', _error => {
 					resolve(false);
 				});
-			} catch (error) {
-				console.error('Failed to start VS Code server:', error);
+			} catch {
 				resolve(false);
 			}
 		});
