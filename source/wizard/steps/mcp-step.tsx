@@ -10,6 +10,17 @@ import {
 import {colors} from '@/config/index';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
+// Helper function to group templates by category
+const groupTemplatesByCategory = (templates: McpTemplate[]) => {
+	const localTemplates = templates.filter(
+		template => template.category === 'local',
+	);
+	const remoteTemplates = templates.filter(
+		template => template.category === 'remote',
+	);
+	return {localTemplates, remoteTemplates};
+};
+
 interface McpStepProps {
 	onComplete: (mcpServers: Record<string, McpServerConfig>) => void;
 	onBack?: () => void;
@@ -17,15 +28,17 @@ interface McpStepProps {
 }
 
 type Mode =
-	| 'template-selection'
+	| 'local-servers'
+	| 'remote-servers'
+	| 'review'
 	| 'edit-selection'
 	| 'edit-or-delete'
-	| 'field-input'
-	| 'done';
+	| 'field-input';
 
 interface TemplateOption {
 	label: string;
 	value: string;
+	category?: string;
 }
 
 export function McpStep({
@@ -36,7 +49,7 @@ export function McpStep({
 	const {isNarrow} = useResponsiveTerminal();
 	const [servers, setServers] =
 		useState<Record<string, McpServerConfig>>(existingServers);
-	const [mode, setMode] = useState<Mode>('template-selection');
+	const [mode, setMode] = useState<Mode>('local-servers');
 	const [selectedTemplate, setSelectedTemplate] = useState<McpTemplate | null>(
 		null,
 	);
@@ -52,38 +65,85 @@ export function McpStep({
 
 	const serverNames = Object.keys(servers);
 
-	const templateOptions: TemplateOption[] = [
-		...(serverNames.length > 0
-			? [{label: 'Edit existing MCP servers', value: 'edit'}]
-			: []),
-		...MCP_TEMPLATES.map(template => ({
-			// Hide descriptions on narrow terminals
-			label: isNarrow
-				? template.name
-				: `${template.name} - ${template.description}`,
-			value: template.id,
-		})),
-		{
-			label: `Done adding MCP servers`,
-			value: 'done',
-		},
-	];
+	// Filter templates by category
+	const localTemplates = MCP_TEMPLATES.filter(
+		template => template.category === 'local',
+	);
+	const remoteTemplates = MCP_TEMPLATES.filter(
+		template => template.category === 'remote',
+	);
 
-	const editOptions: TemplateOption[] = [
-		...serverNames.map((name, index) => ({
-			label: `${index + 1}. ${name}`,
-			value: `edit-${name}`,
-		})),
-	];
+	// Create template options for current screen
+	const getTemplateOptions = (): TemplateOption[] => {
+		if (mode === 'local-servers') {
+			const options: TemplateOption[] = [];
+			
+			// Add local templates
+			localTemplates.forEach(template => {
+				options.push({
+					label: isNarrow
+						? `${template.name}`
+						: `${template.name} - ${template.description}`,
+					value: template.id,
+					category: 'local',
+				});
+			});
+			
+			// Add done option
+			options.push({
+				label: 'Done adding local servers',
+				value: 'done',
+			});
+			
+			return options;
+		}
+		
+		if (mode === 'remote-servers') {
+			const options: TemplateOption[] = [];
+			
+			// Add remote templates
+			remoteTemplates.forEach(template => {
+				options.push({
+					label: isNarrow
+						? `${template.name}`
+						: `${template.name} - ${template.description}`,
+					value: template.id,
+					category: 'remote',
+				});
+			});
+			
+			// Add done option
+			options.push({
+				label: 'Done adding remote servers',
+				value: 'done',
+			});
+			
+			return options;
+		}
+		
+		return [];
+	};
+
+	const templateOptions = getTemplateOptions();
 
 	const handleTemplateSelect = (item: TemplateOption) => {
 		if (item.value === 'done') {
-			onComplete(servers);
+			// Navigate to next screen
+			if (mode === 'local-servers') {
+				setMode('remote-servers');
+			} else if (mode === 'remote-servers') {
+				setMode('review');
+			}
 			return;
 		}
 
-		if (item.value === 'edit') {
-			setMode('edit-selection');
+		if (item.value === 'skip') {
+			// Navigate to next screen
+			if (mode === 'local-servers') {
+				setMode('remote-servers');
+			} else if (mode === 'remote-servers') {
+				setMode('review');
+			}
 			return;
 		}
 
@@ -118,7 +178,15 @@ export function McpStep({
 			setServers(newServers);
 			setEditingServerName(null);
 			// Always go back to template selection after deleting
-			setMode('template-selection');
+			if (mode === 'edit-or-delete') {
+				// Determine which screen to go back to based on server category
+				const server = servers[editingServerName];
+				if (server?.transport === 'stdio') {
+					setMode('local-servers');
+				} else {
+					setMode('remote-servers');
+				}
+			}
 			return;
 		}
 
@@ -237,7 +305,7 @@ export function McpStep({
 				setCurrentValue('');
 				setMultilineBuffer('');
 				setEditingServerName(null);
-				setMode('template-selection');
+				setMode('local-servers');
 			} catch (err) {
 				setError(
 					err instanceof Error ? err.message : 'Failed to build configuration',
@@ -246,6 +314,14 @@ export function McpStep({
 		}
 	};
 
+	const editOptions: TemplateOption[] = [
+		...serverNames.map((name, index) => ({
+			label: `${index + 1}. ${name}`,
+			value: `edit-${name}`,
+		})),
+	];
+
+	// Handle keyboard navigation
 	useInput((input, key) => {
 		// Handle Shift+Tab for going back
 		if (key.shift && key.tab) {
@@ -268,7 +344,11 @@ export function McpStep({
 						setMode('edit-or-delete');
 					} else {
 						// Was adding, go back to template selection
-						setMode('template-selection');
+						if (selectedTemplate?.category === 'local') {
+							setMode('local-servers');
+						} else {
+							setMode('remote-servers');
+						}
 					}
 					setSelectedTemplate(null);
 					setCurrentFieldIndex(0);
@@ -282,13 +362,22 @@ export function McpStep({
 				setEditingServerName(null);
 				setMode('edit-selection');
 			} else if (mode === 'edit-selection') {
-				// In edit selection, go back to template selection
-				setMode('template-selection');
-			} else if (mode === 'template-selection') {
-				// At root level, call parent's onBack
-				if (onBack) {
-					onBack();
+				// In edit selection, go back to previous screen
+				const server = editingServerName ? servers[editingServerName] : null;
+				if (server?.transport === 'stdio') {
+					setMode('local-servers');
+				} else {
+					setMode('remote-servers');
 				}
+			} else if (mode === 'local-servers' && onBack) {
+				// At local servers screen, call parent's onBack
+				onBack();
+			} else if (mode === 'remote-servers') {
+				// At remote servers screen, go back to local servers
+				setMode('local-servers');
+			} else if (mode === 'review') {
+				// At review screen, go back to remote servers
+				setMode('remote-servers');
 			}
 			return;
 		}
@@ -313,7 +402,11 @@ export function McpStep({
 					handleFieldSubmit();
 				} else if (key.escape) {
 					// Go back to template selection
-					setMode('template-selection');
+					if (selectedTemplate?.category === 'local') {
+						setMode('local-servers');
+					} else {
+						setMode('remote-servers');
+					}
 					setSelectedTemplate(null);
 					setCurrentFieldIndex(0);
 					setFieldAnswers({});
@@ -325,12 +418,12 @@ export function McpStep({
 		}
 	});
 
-	if (mode === 'template-selection') {
+	if (mode === 'local-servers') {
 		return (
 			<Box flexDirection="column">
 				<Box marginBottom={1}>
 					<Text bold color={colors.primary}>
-						Add MCP servers to extend Nanocoder with additional tools:
+						Configure Local MCP Servers (STDIO):
 					</Text>
 				</Box>
 				{Object.keys(servers).length > 0 && (
@@ -342,8 +435,89 @@ export function McpStep({
 				)}
 				<SelectInput
 					items={templateOptions}
-					onSelect={(item: TemplateOption) => handleTemplateSelect(item)}
+					onSelect={handleTemplateSelect}
 				/>
+				<Box marginTop={1}>
+					<Text color={colors.secondary}>
+						Press Enter to select an option | Shift+Tab to go back
+					</Text>
+				</Box>
+			</Box>
+		);
+	}
+
+	if (mode === 'remote-servers') {
+		return (
+			<Box flexDirection="column">
+				<Box marginBottom={1}>
+					<Text bold color={colors.primary}>
+						Configure Remote MCP Servers (HTTP/WebSocket):
+					</Text>
+				</Box>
+				{Object.keys(servers).length > 0 && (
+					<Box marginBottom={1}>
+						<Text color={colors.success}>
+							Added: {Object.keys(servers).join(', ')}
+						</Text>
+					</Box>
+				)}
+				<SelectInput
+					items={templateOptions}
+					onSelect={handleTemplateSelect}
+				/>
+				<Box marginTop={1}>
+					<Text color={colors.secondary}>
+						Press Enter to select an option | Shift+Tab to go back
+					</Text>
+				</Box>
+			</Box>
+		);
+	}
+
+	if (mode === 'review') {
+		return (
+			<Box flexDirection="column">
+				<Box marginBottom={1}>
+					<Text bold color={colors.primary}>
+						MCP Servers Configuration Review:
+					</Text>
+				</Box>
+				{Object.keys(servers).length > 0 ? (
+					<Box flexDirection="column">
+						{Object.entries(servers).map(([name, server], index) => (
+							<Box key={index} marginBottom={1}>
+								<Text>
+									{index + 1}. {name} ({server.transport})
+								</Text>
+							</Box>
+						))}
+					</Box>
+				) : (
+					<Box marginBottom={1}>
+						<Text>No MCP servers configured.</Text>
+					</Box>
+				)}
+				<Box marginTop={1}>
+					<SelectInput
+						items={[
+							{label: 'Edit existing servers', value: 'edit'},
+							{label: 'Add more local servers', value: 'add-local'},
+							{label: 'Add more remote servers', value: 'add-remote'},
+							{label: 'Done configuring MCP servers', value: 'done'},
+						]}
+						onSelect={(item) => {
+							if (item.value === 'edit') {
+								setMode('edit-selection');
+							} else if (item.value === 'add-local') {
+								setMode('local-servers');
+							} else if (item.value === 'add-remote') {
+								setMode('remote-servers');
+							} else if (item.value === 'done') {
+								onComplete(servers);
+							}
+						}}
+					/>
+				</Box>
 			</Box>
 		);
 	}

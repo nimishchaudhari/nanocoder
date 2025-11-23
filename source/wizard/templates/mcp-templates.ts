@@ -37,6 +37,8 @@ export interface McpTemplate {
 	command: string;
 	fields: TemplateField[];
 	buildConfig: (answers: Record<string, string>) => McpServerConfig;
+	category?: 'local' | 'remote';
+	transportType: McpTransportType;
 }
 
 export const MCP_TEMPLATES: McpTemplate[] = [
@@ -67,6 +69,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description: 'Read/write files and directories',
 			tags: ['filesystem', 'local'],
 		}),
+		category: 'local',
+		transportType: 'stdio',
 	},
 	{
 		id: 'github',
@@ -92,6 +96,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description: 'Repository management and operations',
 			tags: ['github', 'git', 'repository', 'stdio'],
 		}),
+		category: 'local',
+		transportType: 'stdio',
 	},
 	{
 		id: 'postgres',
@@ -117,6 +123,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description: 'Database queries and management',
 			tags: ['database', 'postgres', 'sql'],
 		}),
+		category: 'local',
+		transportType: 'stdio',
 	},
 	{
 		id: 'brave-search',
@@ -142,6 +150,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description: 'Web search capabilities',
 			tags: ['search', 'web', 'brave'],
 		}),
+		category: 'local',
+		transportType: 'stdio',
 	},
 	{
 		id: 'fetch',
@@ -170,6 +180,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			}
 			return config;
 		},
+		category: 'local',
+		transportType: 'stdio',
 	},
 	{
 		id: 'custom',
@@ -253,6 +265,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 
 			return config;
 		},
+		category: 'local', // Default to local, but can be remote based on transport
+		transportType: 'stdio', // Default to stdio, but can be http/websocket based on transport
 	},
 	{
 		id: 'deepwiki',
@@ -281,6 +295,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			tags: ['remote', 'wiki', 'documentation', 'http'],
 			timeout: 30000,
 		}),
+		category: 'remote',
+		transportType: 'http',
 	},
 	{
 		id: 'sequential-thinking',
@@ -310,6 +326,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			tags: ['remote', 'reasoning', 'analysis', 'http'],
 			timeout: 30000,
 		}),
+		category: 'remote',
+		transportType: 'http',
 	},
 	{
 		id: 'context7',
@@ -338,6 +356,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			tags: ['remote', 'context', 'information', 'http'],
 			timeout: 30000,
 		}),
+		category: 'remote',
+		transportType: 'http',
 	},
 	{
 		id: 'remote-fetch',
@@ -366,5 +386,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			tags: ['remote', 'http', 'scraping', 'fetch'],
 			timeout: 30000,
 		}),
+		category: 'remote',
+		transportType: 'http',
 	},
 ];
