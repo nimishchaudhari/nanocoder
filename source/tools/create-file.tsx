@@ -9,7 +9,11 @@ import {tool, jsonSchema} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import ToolMessage from '@/components/tool-message';
-import {isVSCodeConnected, sendFileChangeToVSCode} from '@/vscode/index';
+import {
+	isVSCodeConnected,
+	sendFileChangeToVSCode,
+	closeDiffInVSCode,
+} from '@/vscode/index';
 
 // Handler function - used by both Nanocoder and AI SDK tool
 const executeCreateFile = async (args: {
@@ -115,15 +119,19 @@ const CreateFileFormatter = React.memo(({args}: {args: CreateFileArgs}) => {
 	return <ToolMessage message={messageContent} hideBox={true} />;
 });
 
+// Track VS Code change IDs for cleanup
+const vscodeChangeIds = new Map<string, string>();
+
 const formatter = async (
 	args: CreateFileArgs,
 	result?: string,
 ): Promise<React.ReactElement> => {
+	const path = args.path || args.file_path || '';
+	const absPath = resolve(path);
+
 	// Send diff to VS Code during preview phase (before execution)
 	if (result === undefined && isVSCodeConnected()) {
-		const path = args.path || args.file_path || '';
 		const content = args.content || '';
-		const absPath = resolve(path);
 
 		// Get original content if file exists
 		let originalContent = '';
@@ -135,10 +143,26 @@ const formatter = async (
 			}
 		}
 
-		sendFileChangeToVSCode(absPath, originalContent, content, 'create_file', {
-			path,
+		const changeId = sendFileChangeToVSCode(
+			absPath,
+			originalContent,
 			content,
-		});
+			'create_file',
+			{
+				path,
+				content,
+			},
+		);
+		if (changeId) {
+			vscodeChangeIds.set(absPath, changeId);
+		}
+	} else if (result !== undefined && isVSCodeConnected()) {
+		// Tool was executed (confirmed or rejected), close the diff
+		const changeId = vscodeChangeIds.get(absPath);
+		if (changeId) {
+			closeDiffInVSCode(changeId);
+			vscodeChangeIds.delete(absPath);
+		}
 	}
 
 	return <CreateFileFormatter args={args} />;

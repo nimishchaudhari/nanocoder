@@ -9,7 +9,11 @@ import {tool, jsonSchema} from '@/types/core';
 import {getColors} from '@/config/index';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import ToolMessage from '@/components/tool-message';
-import {isVSCodeConnected, sendFileChangeToVSCode} from '@/vscode/index';
+import {
+	isVSCodeConnected,
+	sendFileChangeToVSCode,
+	closeDiffInVSCode,
+} from '@/vscode/index';
 
 interface InsertLinesArgs {
 	path: string;
@@ -332,16 +336,20 @@ async function formatInsertLinesPreview(
 	}
 }
 
+// Track VS Code change IDs for cleanup
+const vscodeChangeIds = new Map<string, string>();
+
 const formatter = async (
 	args: InsertLinesArgs,
 	result?: string,
 ): Promise<React.ReactElement> => {
 	const colors = getColors() as ThemeColors;
+	const {path} = args;
+	const absPath = resolve(path);
 
 	// Send diff to VS Code during preview phase (before execution)
 	if (result === undefined && isVSCodeConnected()) {
-		const {path, line_number, content} = args;
-		const absPath = resolve(path);
+		const {line_number, content} = args;
 		try {
 			const fileContent = await readFile(absPath, 'utf-8');
 			const lines = fileContent.split('\n');
@@ -353,13 +361,23 @@ const formatter = async (
 			newLines.splice(lineNumber - 1, 0, ...insertLines);
 			const newContent = newLines.join('\n');
 
-			sendFileChangeToVSCode(absPath, fileContent, newContent, 'insert_lines', {
+			const changeId = sendFileChangeToVSCode(absPath, fileContent, newContent, 'insert_lines', {
 				path,
 				line_number,
 				content,
 			});
+			if (changeId) {
+				vscodeChangeIds.set(absPath, changeId);
+			}
 		} catch {
 			// Silently ignore errors sending to VS Code
+		}
+	} else if (result !== undefined && isVSCodeConnected()) {
+		// Tool was executed (confirmed or rejected), close the diff
+		const changeId = vscodeChangeIds.get(absPath);
+		if (changeId) {
+			closeDiffInVSCode(changeId);
+			vscodeChangeIds.delete(absPath);
 		}
 	}
 

@@ -8,6 +8,7 @@ import {PendingChange, FileChangeMessage} from './protocol';
  */
 export class DiffManager {
 	private pendingChanges: Map<string, PendingChange> = new Map();
+	private openEditors: Map<string, vscode.Uri[]> = new Map();
 	private tempDir: string;
 	private onChangeCallbacks: Set<() => void> = new Set();
 
@@ -75,6 +76,9 @@ export class DiffManager {
 			);
 			fs.writeFileSync(modifiedUri.fsPath, change.newContent, 'utf-8');
 
+			// Track this editor
+			this.openEditors.set(id, [modifiedUri]);
+
 			// Open the new file content for preview
 			const doc = await vscode.workspace.openTextDocument(modifiedUri);
 			await vscode.window.showTextDocument(doc, {
@@ -82,20 +86,6 @@ export class DiffManager {
 				preserveFocus: false,
 			});
 
-			// Show info message about new file
-			vscode.window
-				.showInformationMessage(
-					`Nanocoder wants to create: ${fileName}`,
-					'Apply',
-					'Reject',
-				)
-				.then(action => {
-					if (action === 'Apply') {
-						this.applyChange(id);
-					} else if (action === 'Reject') {
-						this.rejectChange(id);
-					}
-				});
 			return;
 		}
 
@@ -106,6 +96,9 @@ export class DiffManager {
 		const modifiedUri = vscode.Uri.file(
 			path.join(this.tempDir, `${id}-modified-${fileName}`),
 		);
+
+		// Track these editors
+		this.openEditors.set(id, [originalUri, modifiedUri]);
 
 		// Write temp files for diff
 		fs.writeFileSync(originalUri.fsPath, change.originalContent, 'utf-8');
@@ -123,6 +116,48 @@ export class DiffManager {
 	}
 
 	/**
+	 * Close diff for a pending change (called when CLI confirms/rejects)
+	 */
+	async closeDiff(id: string): Promise<void> {
+		await this.closeEditors(id);
+		this.removePendingChange(id);
+	}
+
+	/**
+	 * Close diff editors associated with a change
+	 */
+	private async closeEditors(id: string): Promise<void> {
+		const uris = this.openEditors.get(id);
+		if (!uris) {
+			return;
+		}
+
+		// Close all tabs showing these URIs
+		const allTabs = vscode.window.tabGroups.all.flatMap(group => group.tabs);
+
+		for (const tab of allTabs) {
+			let shouldClose = false;
+			const input = tab.input;
+
+			if (input instanceof vscode.TabInputText) {
+				// Check if this is one of our temp files
+				shouldClose = uris.some(uri => uri.fsPath === input.uri.fsPath);
+			} else if (input instanceof vscode.TabInputTextDiff) {
+				// Check if this is our diff editor
+				shouldClose =
+					uris.some(uri => uri.fsPath === input.original.fsPath) ||
+					uris.some(uri => uri.fsPath === input.modified.fsPath);
+			}
+
+			if (shouldClose) {
+				await vscode.window.tabGroups.close(tab);
+			}
+		}
+
+		this.openEditors.delete(id);
+	}
+
+	/**
 	 * Apply a pending change to the actual file
 	 */
 	async applyChange(id: string): Promise<boolean> {
@@ -133,6 +168,9 @@ export class DiffManager {
 		}
 
 		try {
+			// Close diff editors first
+			await this.closeEditors(id);
+
 			const uri = vscode.Uri.file(change.filePath);
 
 			// Check if file exists
@@ -182,13 +220,17 @@ export class DiffManager {
 	/**
 	 * Reject a pending change
 	 */
-	rejectChange(id: string): boolean {
+	async rejectChange(id: string): Promise<boolean> {
 		const change = this.pendingChanges.get(id);
 		if (!change) {
 			return false;
 		}
 
+		// Close diff editors first
+		await this.closeEditors(id);
+
 		this.removePendingChange(id);
+
 		vscode.window.showInformationMessage(
 			`Rejected changes to ${path.basename(change.filePath)}`,
 		);

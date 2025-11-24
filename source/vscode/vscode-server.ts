@@ -13,6 +13,7 @@ import {
 	StatusMessage,
 	ConnectionAckMessage,
 	DiagnosticsRequestMessage,
+	CloseDiffMessage,
 	DiagnosticInfo,
 	PROTOCOL_VERSION,
 	DEFAULT_PORT,
@@ -209,6 +210,29 @@ export class VSCodeServer {
 	}
 
 	/**
+	 * Close diff preview in VS Code (when tool is confirmed/rejected in CLI)
+	 */
+	closeDiff(id: string): void {
+		const message: CloseDiffMessage = {
+			type: 'close_diff',
+			id,
+		};
+		this.broadcast(message);
+		// Also remove from pending changes
+		this.pendingChanges.delete(id);
+	}
+
+	/**
+	 * Close all pending diff previews
+	 */
+	closeAllDiffs(): void {
+		const pendingIds = Array.from(this.pendingChanges.keys());
+		for (const id of pendingIds) {
+			this.closeDiff(id);
+		}
+	}
+
+	/**
 	 * Get a pending change by ID
 	 */
 	getPendingChange(id: string): PendingChange | undefined {
@@ -354,4 +378,26 @@ export function sendFileChangeToVSCode(
 		toolName,
 		toolArgs,
 	);
+}
+
+/**
+ * Close a diff preview in VS Code (when tool confirmed/rejected in CLI)
+ */
+export function closeDiffInVSCode(id: string | null): void {
+	if (!id || !serverInstance?.hasConnections()) {
+		return;
+	}
+
+	serverInstance.closeDiff(id);
+}
+
+/**
+ * Close all pending diff previews in VS Code
+ */
+export function closeAllDiffsInVSCode(): void {
+	if (!serverInstance?.hasConnections()) {
+		return;
+	}
+
+	serverInstance.closeAllDiffs();
 }

@@ -10,6 +10,7 @@ import {ConversationContext} from '@/hooks/useAppState';
 import {displayToolResult} from '@/utils/tool-result-display';
 import {parseToolArguments} from '@/utils/tool-args-parser';
 import {createCancellationResults} from '@/utils/tool-cancellation';
+import {getVSCodeServer} from '@/vscode/index';
 import InfoMessage from '@/components/info-message';
 import ErrorMessage from '@/components/error-message';
 import React from 'react';
@@ -101,6 +102,12 @@ export function useToolHandler({
 	// Handle tool confirmation
 	const handleToolConfirmation = (confirmed: boolean) => {
 		if (!confirmed) {
+			// User cancelled - close all VS Code diffs
+			const vscodeServer = getVSCodeServer();
+			if (vscodeServer?.hasConnections()) {
+				vscodeServer.closeAllDiffs();
+			}
+
 			// User cancelled - show message
 			addToChatQueue(
 				<InfoMessage

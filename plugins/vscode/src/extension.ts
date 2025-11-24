@@ -2,7 +2,12 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import {WebSocketClient} from './websocket-client';
 import {DiffManager} from './diff-manager';
-import {ServerMessage, FileChangeMessage, DiagnosticInfo} from './protocol';
+import {
+	ServerMessage,
+	FileChangeMessage,
+	CloseDiffMessage,
+	DiagnosticInfo,
+} from './protocol';
 
 const DEFAULT_PORT = 51820;
 
@@ -124,6 +129,9 @@ function handleServerMessage(message: ServerMessage): void {
 		case 'file_change':
 			handleFileChange(message);
 			break;
+		case 'close_diff':
+			handleCloseDiff(message);
+			break;
 		case 'status':
 			if (message.model) {
 				statusBarItem.text = `$(check) ${message.model}`;
@@ -150,25 +158,12 @@ function handleFileChange(message: FileChangeMessage): void {
 	if (showDiffPreview) {
 		// Show diff immediately
 		diffManager.showDiff(message.id);
-	} else {
-		// Notify user
-		vscode.window
-			.showInformationMessage(
-				`Nanocoder wants to modify ${path.basename(message.filePath)}`,
-				'Show Diff',
-				'Apply',
-				'Reject',
-			)
-			.then(async action => {
-				if (action === 'Show Diff') {
-					diffManager.showDiff(message.id);
-				} else if (action === 'Apply') {
-					await diffManager.applyChange(message.id);
-				} else if (action === 'Reject') {
-					diffManager.rejectChange(message.id);
-				}
-			});
 	}
+}
+
+function handleCloseDiff(message: CloseDiffMessage): void {
+	// Close the diff preview when tool is confirmed/rejected in CLI
+	diffManager.closeDiff(message.id);
 }
 
 function handleDiagnosticsRequest(filePath?: string): void {

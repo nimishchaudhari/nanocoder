@@ -12,7 +12,8 @@ export type ServerMessage =
 	| AssistantMessage
 	| StatusMessage
 	| ConnectionAckMessage
-	| DiagnosticsRequestMessage;
+	| DiagnosticsRequestMessage
+	| CloseDiffMessage;
 
 // Message types from Extension to CLI
 export type ClientMessage =
@@ -71,6 +72,12 @@ export interface ConnectionAckMessage {
 export interface DiagnosticsRequestMessage {
 	type: 'diagnostics_request';
 	filePath?: string; // Optional: specific file, or all files if omitted
+}
+
+// Close diff preview (when tool confirmed/rejected in CLI)
+export interface CloseDiffMessage {
+	type: 'close_diff';
+	id: string;
 }
 
 // User prompt from extension

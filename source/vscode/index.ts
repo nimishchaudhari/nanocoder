@@ -14,6 +14,8 @@ export {
 	getVSCodeServer,
 	isVSCodeConnected,
 	sendFileChangeToVSCode,
+	closeDiffInVSCode,
+	closeAllDiffsInVSCode,
 	type VSCodeServerCallbacks,
 	type PromptHandler,
 	type MessageHandler,
