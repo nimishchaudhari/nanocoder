@@ -57,6 +57,15 @@ export interface AppConfig {
 		args?: string[];
 		env?: Record<string, string>;
 	}[];
+
+	// LSP server configurations (optional - auto-discovery enabled by default)
+	lspServers?: {
+		name: string;
+		command: string;
+		args?: string[];
+		languages: string[]; // File extensions this server handles
+		env?: Record<string, string>;
+	}[];
 }
 
 export interface UserPreferences {

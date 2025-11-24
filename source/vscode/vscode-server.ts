@@ -231,7 +231,6 @@ export class VSCodeServer {
 
 	private handleConnection(ws: WebSocket): void {
 		this.clients.add(ws);
-		console.log('VS Code extension connected');
 
 		// Send connection acknowledgment
 		const ack: ConnectionAckMessage = {
@@ -260,12 +259,10 @@ export class VSCodeServer {
 
 		ws.on('close', () => {
 			this.clients.delete(ws);
-			console.log('VS Code extension disconnected');
 			this.callbacks.onDisconnect?.();
 		});
 
 		ws.on('error', error => {
-			console.error('WebSocket error:', error);
 			this.clients.delete(ws);
 		});
 	}

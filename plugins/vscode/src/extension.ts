@@ -36,6 +36,16 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('nanocoder.connect', connect),
 		vscode.commands.registerCommand('nanocoder.disconnect', disconnect),
 		vscode.commands.registerCommand('nanocoder.startCli', startCli),
+		// Context menu commands
+		vscode.commands.registerCommand('nanocoder.askAboutCode', () =>
+			sendCodeToNanocoder('ask'),
+		),
+		vscode.commands.registerCommand('nanocoder.explainCode', () =>
+			sendCodeToNanocoder('explain'),
+		),
+		vscode.commands.registerCommand('nanocoder.refactorCode', () =>
+			sendCodeToNanocoder('refactor'),
+		),
 	);
 
 	// Auto-connect if configured
@@ -254,4 +264,95 @@ function sendWorkspaceContext(): void {
 		activeFile: activeEditor?.document.uri.fsPath,
 		diagnostics,
 	});
+}
+
+// Send selected code to Nanocoder CLI with a specific action
+function sendCodeToNanocoder(action: 'ask' | 'explain' | 'refactor'): void {
+	const editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		vscode.window.showWarningMessage('No active editor');
+		return;
+	}
+
+	const selection = editor.selection;
+	if (selection.isEmpty) {
+		vscode.window.showWarningMessage('No code selected');
+		return;
+	}
+
+	if (!wsClient.isConnected()) {
+		vscode.window
+			.showWarningMessage(
+				'Not connected to Nanocoder CLI',
+				'Connect',
+				'Start CLI',
+			)
+			.then(choice => {
+				if (choice === 'Connect') {
+					connect().then(() => sendCodeToNanocoder(action));
+				} else if (choice === 'Start CLI') {
+					startCli();
+				}
+			});
+		return;
+	}
+
+	const selectedText = editor.document.getText(selection);
+	const filePath = editor.document.uri.fsPath;
+	const fileName = path.basename(filePath);
+	const startLine = selection.start.line + 1;
+	const endLine = selection.end.line + 1;
+
+	// Build prompt based on action
+	let prompt: string;
+	switch (action) {
+		case 'ask':
+			// For 'ask', prompt the user for their question
+			vscode.window
+				.showInputBox({
+					prompt: 'What would you like to ask about this code?',
+					placeHolder: 'Enter your question...',
+				})
+				.then(question => {
+					if (question) {
+						const fullPrompt = `${question}\n\nCode from ${fileName} (lines ${startLine}-${endLine}):\n\`\`\`\n${selectedText}\n\`\`\``;
+						sendPromptWithContext(fullPrompt, filePath, selectedText, selection);
+					}
+				});
+			return;
+
+		case 'explain':
+			prompt = `Explain this code from ${fileName} (lines ${startLine}-${endLine}):\n\`\`\`\n${selectedText}\n\`\`\``;
+			break;
+
+		case 'refactor':
+			prompt = `Suggest refactoring improvements for this code from ${fileName} (lines ${startLine}-${endLine}):\n\`\`\`\n${selectedText}\n\`\`\``;
+			break;
+	}
+
+	sendPromptWithContext(prompt, filePath, selectedText, selection);
+}
+
+// Helper to send prompt with context
+function sendPromptWithContext(
+	prompt: string,
+	filePath: string,
+	selection: string,
+	selectionRange: vscode.Selection,
+): void {
+	wsClient.send({
+		type: 'send_prompt',
+		prompt,
+		context: {
+			filePath,
+			selection,
+			cursorPosition: {
+				line: selectionRange.start.line,
+				character: selectionRange.start.character,
+			},
+		},
+	});
+
+	vscode.window.showInformationMessage('Sent to Nanocoder CLI');
+	outputChannel.appendLine(`Sent prompt to CLI: ${prompt.substring(0, 100)}...`);
 }

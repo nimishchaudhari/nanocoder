@@ -614,12 +614,6 @@ Here's a comprehensive overview of all available tools and when to use them:
 - **web_search**: Search the web using Brave Search, returns titles, URLs, and snippets
 - **fetch_url**: Fetch and convert any URL to clean markdown (useful for reading docs)
 
-## Diagnostics
-
-- **get_diagnostics**: Get errors and warnings for a file or project from the language server
-  - Returns type errors, linting issues, and other diagnostics
-  - Use this to check for problems before or after making code changes
-
 ## MCP Tools
 
 Additional tools may be available from connected MCP servers. These will be dynamically available based on your configuration.

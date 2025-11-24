@@ -93,7 +93,6 @@ export function useVSCodeServer({
 				onConnect: () => {
 					setIsConnected(true);
 					setConnectionCount(server.getConnectionCount());
-					console.log('VS Code extension connected');
 					// Send current status
 					if (currentModelRef.current || currentProviderRef.current) {
 						server.sendStatus(
@@ -107,21 +106,10 @@ export function useVSCodeServer({
 					setIsConnected(hasConnections);
 					setConnectionCount(server.getConnectionCount());
 				},
-				onChangeApplied: id => {
-					console.log(`Change ${id} applied by VS Code`);
-				},
-				onChangeRejected: id => {
-					console.log(`Change ${id} rejected by VS Code`);
-				},
 			});
 
 			// Start the server
-			const started = await server.start();
-			if (started) {
-				console.log(`VS Code server started on port ${port}`);
-			} else {
-				console.error('Failed to start VS Code server');
-			}
+			await server.start();
 		};
 
 		void initServer();

@@ -14,6 +14,7 @@ import type {CustomCommand} from '@/types/commands';
 import {setToolManagerGetter, setToolRegistryGetter} from '@/message-handler';
 import {commandRegistry} from '@/commands';
 import {appConfig} from '@/config/index';
+import {getLSPManager, type LSPInitResult} from '@/lsp/index';
 import {
 	clearCommand,
 	commandsCommand,
@@ -181,6 +182,67 @@ export function useAppInitialization({
 		}
 	};
 
+	// Initialize LSP servers with auto-discovery
+	const initializeLSPServers = async () => {
+		const lspManager = getLSPManager({
+			rootUri: `file://${process.cwd()}`,
+			autoDiscover: true,
+			// Use custom servers from config if provided
+			servers: appConfig.lspServers?.map(server => ({
+				name: server.name,
+				command: server.command,
+				args: server.args,
+				languages: server.languages,
+				env: server.env,
+			})),
+		});
+
+		// Define progress callback to show live updates
+		const onProgress = (result: LSPInitResult) => {
+			if (result.success) {
+				addToChatQueue(
+					<SuccessMessage
+						key={`lsp-success-${result.serverName}-${componentKeyCounter}`}
+						message={`LSP: Connected to "${result.serverName}"`}
+						hideBox={true}
+					/>,
+				);
+			}
+			// Don't show errors for auto-discovery failures - servers might not be installed
+		};
+
+		try {
+			const results = await lspManager.initialize({
+				autoDiscover: true,
+				servers: appConfig.lspServers?.map(server => ({
+					name: server.name,
+					command: server.command,
+					args: server.args,
+					languages: server.languages,
+					env: server.env,
+				})),
+				onProgress,
+			});
+
+			// Only show summary if we connected to at least one server
+			const successCount = results.filter(r => r.success).length;
+			if (successCount > 0) {
+				addToChatQueue(
+					<InfoMessage
+						key={`lsp-summary-${componentKeyCounter}`}
+						message={`LSP: ${successCount} language server${
+							successCount > 1 ? 's' : ''
+						} ready`}
+						hideBox={true}
+					/>,
+				);
+			}
+		} catch (error) {
+			// Silent failure for LSP - it's optional
+			console.error('LSP initialization error:', error);
+		}
+	};
+
 	const start = async (
 		newToolManager: ToolManager,
 		newCustomCommandLoader: CustomCommandLoader,
@@ -294,6 +356,9 @@ export function useAppInitialization({
 
 			// Initialize MCP servers after UI is shown
 			await initializeMCPServers(newToolManager);
+
+			// Initialize LSP servers with auto-discovery
+			await initializeLSPServers();
 		};
 
 		void initializeApp();
@@ -304,5 +369,6 @@ export function useAppInitialization({
 		initializeClient,
 		loadCustomCommands,
 		initializeMCPServers,
+		initializeLSPServers,
 	};
 }
