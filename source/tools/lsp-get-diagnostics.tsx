@@ -56,7 +56,10 @@ function formatVSCodeDiagnostics(
 		if (!byFile.has(path)) {
 			byFile.set(path, []);
 		}
-		byFile.get(path)!.push(diag);
+		const fileDiagnostics = byFile.get(path);
+		if (fileDiagnostics) {
+			fileDiagnostics.push(diag);
+		}
 	}
 
 	const lines: string[] = [];
@@ -138,10 +141,10 @@ const executeGetDiagnostics = async (
 				diag.severity === DiagnosticSeverity.Error
 					? 'ERROR'
 					: diag.severity === DiagnosticSeverity.Warning
-						? 'WARNING'
-						: diag.severity === DiagnosticSeverity.Information
-							? 'INFO'
-							: 'HINT';
+					? 'WARNING'
+					: diag.severity === DiagnosticSeverity.Information
+					? 'INFO'
+					: 'HINT';
 
 			const line = diag.range.start.line + 1;
 			const char = diag.range.start.character + 1;
@@ -174,10 +177,10 @@ const executeGetDiagnostics = async (
 				diag.severity === DiagnosticSeverity.Error
 					? 'ERROR'
 					: diag.severity === DiagnosticSeverity.Warning
-						? 'WARNING'
-						: diag.severity === DiagnosticSeverity.Information
-							? 'INFO'
-							: 'HINT';
+					? 'WARNING'
+					: diag.severity === DiagnosticSeverity.Information
+					? 'INFO'
+					: 'HINT';
 
 			const line = diag.range.start.line + 1;
 			const char = diag.range.start.character + 1;
@@ -214,7 +217,9 @@ const GetDiagnosticsFormatter = React.memo(
 	({args, result}: {args: GetDiagnosticsArgs; result?: string}) => {
 		const themeContext = React.useContext(ThemeContext);
 		if (!themeContext) {
-			throw new Error('GetDiagnosticsFormatter must be used within a ThemeProvider');
+			throw new Error(
+				'GetDiagnosticsFormatter must be used within a ThemeProvider',
+			);
 		}
 		const {colors} = themeContext;
 

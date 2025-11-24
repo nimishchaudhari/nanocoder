@@ -361,11 +361,17 @@ const formatter = async (
 			newLines.splice(lineNumber - 1, 0, ...insertLines);
 			const newContent = newLines.join('\n');
 
-			const changeId = sendFileChangeToVSCode(absPath, fileContent, newContent, 'insert_lines', {
-				path,
-				line_number,
-				content,
-			});
+			const changeId = sendFileChangeToVSCode(
+				absPath,
+				fileContent,
+				newContent,
+				'insert_lines',
+				{
+					path,
+					line_number,
+					content,
+				},
+			);
 			if (changeId) {
 				vscodeChangeIds.set(absPath, changeId);
 			}

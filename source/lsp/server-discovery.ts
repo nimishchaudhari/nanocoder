@@ -186,10 +186,7 @@ export function discoverLanguageServers(): LSPServerConfig[] {
 		// Verify server works if check command provided
 		// Use the resolved command path for verification
 		if (server.checkCommand) {
-			const checkCmd = server.checkCommand.replace(
-				server.command,
-				commandPath,
-			);
+			const checkCmd = server.checkCommand.replace(server.command, commandPath);
 			if (!verifyServer(checkCmd)) continue;
 		}
 

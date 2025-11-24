@@ -125,7 +125,7 @@ export class LSPManager extends EventEmitter {
 				this.emit('diagnostics', params);
 			});
 
-			client.on('exit', (code: number | null) => {
+			client.on('exit', (_code: number | null) => {
 				this.clients.delete(config.name);
 				// Remove language mappings for this server
 				for (const [lang, serverName] of this.languageToServer.entries()) {

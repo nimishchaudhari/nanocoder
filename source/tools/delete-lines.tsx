@@ -410,11 +410,17 @@ const formatter = async (
 			newLines.splice(lineNumber - 1, linesToRemove);
 			const newContent = newLines.join('\n');
 
-			const changeId = sendFileChangeToVSCode(absPath, fileContent, newContent, 'delete_lines', {
-				path,
-				line_number,
-				end_line: endLine,
-			});
+			const changeId = sendFileChangeToVSCode(
+				absPath,
+				fileContent,
+				newContent,
+				'delete_lines',
+				{
+					path,
+					line_number,
+					end_line: endLine,
+				},
+			);
 			if (changeId) {
 				vscodeChangeIds.set(absPath, changeId);
 			}

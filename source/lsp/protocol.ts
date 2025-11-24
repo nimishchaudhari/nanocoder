@@ -181,7 +181,8 @@ export interface TextDocumentIdentifier {
 	uri: string;
 }
 
-export interface VersionedTextDocumentIdentifier extends TextDocumentIdentifier {
+export interface VersionedTextDocumentIdentifier
+	extends TextDocumentIdentifier {
 	version: number;
 }
 
@@ -190,21 +191,6 @@ export interface TextDocumentItem {
 	languageId: string;
 	version: number;
 	text: string;
-}
-
-export interface TextDocumentPositionParams {
-	textDocument: TextDocumentIdentifier;
-	position: Position;
-}
-
-// LSP Completion
-export interface CompletionParams extends TextDocumentPositionParams {
-	context?: CompletionContext;
-}
-
-export interface CompletionContext {
-	triggerKind: CompletionTriggerKind;
-	triggerCharacter?: string;
 }
 
 export enum CompletionTriggerKind {
@@ -236,20 +222,8 @@ export enum CompletionItemKind {
 	Interface = 8,
 	Module = 9,
 	Property = 10,
-	Unit = 11,
-	Value = 12,
-	Enum = 13,
 	Keyword = 14,
 	Snippet = 15,
-	Color = 16,
-	File = 17,
-	Reference = 18,
-	Folder = 19,
-	EnumMember = 20,
-	Constant = 21,
-	Struct = 22,
-	Event = 23,
-	Operator = 24,
 	TypeParameter = 25,
 }
 

@@ -389,7 +389,12 @@ test('createFileChangeFromTool handles Windows-style paths', t => {
 
 test('createFileChangeFromTool handles relative paths', t => {
 	t.notThrows(() => {
-		createFileChangeFromTool('./relative/path.ts', 'content', 'create_file', {});
+		createFileChangeFromTool(
+			'./relative/path.ts',
+			'content',
+			'create_file',
+			{},
+		);
 	});
 });
 

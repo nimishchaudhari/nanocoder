@@ -286,7 +286,7 @@ export class VSCodeServer {
 			this.callbacks.onDisconnect?.();
 		});
 
-		ws.on('error', error => {
+		ws.on('error', _error => {
 			this.clients.delete(ws);
 		});
 	}

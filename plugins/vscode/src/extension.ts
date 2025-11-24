@@ -311,7 +311,12 @@ function sendCodeToNanocoder(action: 'ask' | 'explain' | 'refactor'): void {
 				.then(question => {
 					if (question) {
 						const fullPrompt = `${question}\n\nCode from ${fileName} (lines ${startLine}-${endLine}):\n\`\`\`\n${selectedText}\n\`\`\``;
-						sendPromptWithContext(fullPrompt, filePath, selectedText, selection);
+						sendPromptWithContext(
+							fullPrompt,
+							filePath,
+							selectedText,
+							selection,
+						);
 					}
 				});
 			return;
@@ -349,5 +354,7 @@ function sendPromptWithContext(
 	});
 
 	vscode.window.showInformationMessage('Sent to Nanocoder CLI');
-	outputChannel.appendLine(`Sent prompt to CLI: ${prompt.substring(0, 100)}...`);
+	outputChannel.appendLine(
+		`Sent prompt to CLI: ${prompt.substring(0, 100)}...`,
+	);
 }

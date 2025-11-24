@@ -13,7 +13,5 @@
 	"ignoreExportsUsedInFile": {
 		"interface": true,
 		"type": true
-	},
-	"entry": ["source/commands/**/*.{ts,tsx}"],
-	"project": ["source/**/*.{ts,tsx}"]
+	}
 }

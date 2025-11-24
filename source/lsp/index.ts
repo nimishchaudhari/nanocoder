@@ -7,25 +7,14 @@
  * - Diagnostics, completions, code actions, and formatting
  */
 
-export {LSPClient, type LSPServerConfig, type LSPClientEvents} from './lsp-client';
+export {type LSPServerConfig} from './lsp-client';
 
 export {
-	LSPManager,
 	getLSPManager,
-	resetLSPManager,
 	type LSPManagerConfig,
 	type LSPInitResult,
 	type DiagnosticsResult,
 } from './lsp-manager';
-
-export {
-	discoverLanguageServers,
-	getServerForLanguage,
-	getLanguageId,
-	getMissingServerHints,
-	findLocalServer,
-	getKnownServersStatus,
-} from './server-discovery';
 
 export {
 	type Diagnostic,
@@ -39,6 +28,4 @@ export {
 	type FormattingOptions,
 	type PublishDiagnosticsParams,
 	DiagnosticSeverity,
-	CompletionItemKind,
-	LSPMethods,
 } from './protocol';

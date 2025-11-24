@@ -37,12 +37,6 @@ export interface LSPServerConfig {
 	rootUri?: string;
 }
 
-export interface LSPClientEvents {
-	diagnostics: (params: PublishDiagnosticsParams) => void;
-	error: (error: Error) => void;
-	exit: (code: number | null) => void;
-}
-
 interface PendingRequest {
 	resolve: (result: unknown) => void;
 	reject: (error: Error) => void;
@@ -452,7 +446,9 @@ export class LSPClient extends EventEmitter {
 					| JsonRpcResponse
 					| JsonRpcNotification;
 				this.handleMessage(message);
-			} catch {}
+			} catch {
+				// Ignore malformed JSON messages
+			}
 		}
 	}
 

@@ -319,7 +319,10 @@ test('findLocalServer - returns null for non-existent server', t => {
 });
 
 test('findLocalServer - returns null for non-existent project root', t => {
-	const result = findLocalServer('/does/not/exist', 'typescript-language-server');
+	const result = findLocalServer(
+		'/does/not/exist',
+		'typescript-language-server',
+	);
 	t.is(result, null);
 });
 
