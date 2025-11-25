@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import TextInput from 'ink-text-input';
+import {Tabs, Tab} from 'ink-tab';
 import {
 	MCP_TEMPLATES,
 	type McpTemplate,
@@ -10,16 +11,16 @@ import {
 import {colors} from '@/config/index';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
-// Helper function to group templates by category
-const groupTemplatesByCategory = (templates: McpTemplate[]) => {
-	const localTemplates = templates.filter(
-		template => template.category === 'local',
-	);
-	const remoteTemplates = templates.filter(
-		template => template.category === 'remote',
-	);
-	return {localTemplates, remoteTemplates};
-};
+// Helper function to group templates by category (currently unused)
+// const groupTemplatesByCategory = (templates: McpTemplate[]) => {
+// 	const localTemplates = templates.filter(
+// 		template => template.category === 'local',
+// 	);
+// 	const remoteTemplates = templates.filter(
+// 		template => template.category === 'remote',
+// 	);
+// 	return {localTemplates, remoteTemplates};
+// };
 
 interface McpStepProps {
 	onComplete: (mcpServers: Record<string, McpServerConfig>) => void;
@@ -28,8 +29,7 @@ interface McpStepProps {
 }
 
 type Mode =
-	| 'local-servers'
-	| 'remote-servers'
+	| 'tabs'
 	| 'review'
 	| 'edit-selection'
 	| 'edit-or-delete'
@@ -49,7 +49,7 @@ export function McpStep({
 	const {isNarrow} = useResponsiveTerminal();
 	const [servers, setServers] =
 		useState<Record<string, McpServerConfig>>(existingServers);
-	const [mode, setMode] = useState<Mode>('local-servers');
+	const [mode, setMode] = useState<Mode>('tabs');
 	const [selectedTemplate, setSelectedTemplate] = useState<McpTemplate | null>(
 		null,
 	);
@@ -62,6 +62,7 @@ export function McpStep({
 	const [editingServerName, setEditingServerName] = useState<string | null>(
 		null,
 	);
+	const [activeTab, setActiveTab] = useState<'local' | 'remote'>('local');
 
 	const serverNames = Object.keys(servers);
 
@@ -73,49 +74,21 @@ export function McpStep({
 		template => template.category === 'remote',
 	);
 
-	// Create template options for current screen
+	// Create template options for current tab
 	const getTemplateOptions = (): TemplateOption[] => {
-		if (mode === 'local-servers') {
+		if (mode === 'tabs') {
 			const options: TemplateOption[] = [];
+			const templates = activeTab === 'local' ? localTemplates : remoteTemplates;
 			
-			// Add local templates
-			localTemplates.forEach(template => {
+			// Add templates for current tab
+			templates.forEach(template => {
 				options.push({
 					label: isNarrow
 						? `${template.name}`
 						: `${template.name} - ${template.description}`,
 					value: template.id,
-					category: 'local',
+					category: activeTab,
 				});
-			});
-			
-			// Add done option
-			options.push({
-				label: 'Done adding local servers',
-				value: 'done',
-			});
-			
-			return options;
-		}
-		
-		if (mode === 'remote-servers') {
-			const options: TemplateOption[] = [];
-			
-			// Add remote templates
-			remoteTemplates.forEach(template => {
-				options.push({
-					label: isNarrow
-						? `${template.name}`
-						: `${template.name} - ${template.description}`,
-					value: template.id,
-					category: 'remote',
-				});
-			});
-			
-			// Add done option
-			options.push({
-				label: 'Done adding remote servers',
-				value: 'done',
 			});
 			
 			return options;
@@ -124,29 +97,7 @@ export function McpStep({
 		return [];
 	};
 
-	const templateOptions = getTemplateOptions();
-
 	const handleTemplateSelect = (item: TemplateOption) => {
-		if (item.value === 'done') {
-			// Navigate to next screen
-			if (mode === 'local-servers') {
-				setMode('remote-servers');
-			} else if (mode === 'remote-servers') {
-				setMode('review');
-			}
-			return;
-		}
-
-		if (item.value === 'skip') {
-			// Navigate to next screen
-			if (mode === 'local-servers') {
-				setMode('remote-servers');
-			} else if (mode === 'remote-servers') {
-				setMode('review');
-			}
-			return;
-		}
-
 		// Adding new server
 		const template = MCP_TEMPLATES.find(t => t.id === item.value);
 		if (template) {
@@ -180,12 +131,7 @@ export function McpStep({
 			// Always go back to template selection after deleting
 			if (mode === 'edit-or-delete') {
 				// Determine which screen to go back to based on server category
-				const server = servers[editingServerName];
-				if (server?.transport === 'stdio') {
-					setMode('local-servers');
-				} else {
-					setMode('remote-servers');
-				}
+				setMode('tabs');
 			}
 			return;
 		}
@@ -305,7 +251,7 @@ export function McpStep({
 				setCurrentValue('');
 				setMultilineBuffer('');
 				setEditingServerName(null);
-				setMode('local-servers');
+				setMode('tabs');
 			} catch (err) {
 				setError(
 					err instanceof Error ? err.message : 'Failed to build configuration',
@@ -323,7 +269,7 @@ export function McpStep({
 
 	// Handle keyboard navigation
 	useInput((input, key) => {
-		// Handle Shift+Tab for going back
+		// Handle Shift+Tab for going back (but not regular Tab, let Tabs component handle it)
 		if (key.shift && key.tab) {
 			if (mode === 'field-input') {
 				// In field input mode, check if we can go back to previous field
@@ -338,18 +284,8 @@ export function McpStep({
 					setInputKey(prev => prev + 1); // Force remount to reset cursor position
 					setError(null);
 				} else {
-					// At first field, go back based on where we came from
-					if (editingServerName !== null) {
-						// Was editing, go back to edit-or-delete choice
-						setMode('edit-or-delete');
-					} else {
-						// Was adding, go back to template selection
-						if (selectedTemplate?.category === 'local') {
-							setMode('local-servers');
-						} else {
-							setMode('remote-servers');
-						}
-					}
+					// At first field, go back to template selection
+					setMode('tabs');
 					setSelectedTemplate(null);
 					setCurrentFieldIndex(0);
 					setFieldAnswers({});
@@ -362,22 +298,14 @@ export function McpStep({
 				setEditingServerName(null);
 				setMode('edit-selection');
 			} else if (mode === 'edit-selection') {
-				// In edit selection, go back to previous screen
-				const server = editingServerName ? servers[editingServerName] : null;
-				if (server?.transport === 'stdio') {
-					setMode('local-servers');
-				} else {
-					setMode('remote-servers');
-				}
-			} else if (mode === 'local-servers' && onBack) {
-				// At local servers screen, call parent's onBack
+				// In edit selection, go back to review screen
+				setMode('review');
+			} else if (mode === 'tabs' && onBack) {
+				// At tabs screen, call parent's onBack
 				onBack();
-			} else if (mode === 'remote-servers') {
-				// At remote servers screen, go back to local servers
-				setMode('local-servers');
 			} else if (mode === 'review') {
-				// At review screen, go back to remote servers
-				setMode('remote-servers');
+				// At review screen, go back to tabs
+				setMode('tabs');
 			}
 			return;
 		}
@@ -402,11 +330,7 @@ export function McpStep({
 					handleFieldSubmit();
 				} else if (key.escape) {
 					// Go back to template selection
-					if (selectedTemplate?.category === 'local') {
-						setMode('local-servers');
-					} else {
-						setMode('remote-servers');
-					}
+					setMode('tabs');
 					setSelectedTemplate(null);
 					setCurrentFieldIndex(0);
 					setFieldAnswers({});
@@ -418,12 +342,14 @@ export function McpStep({
 		}
 	});
 
-	if (mode === 'local-servers') {
+	if (mode === 'tabs') {
+		const templateOptions = getTemplateOptions();
+		
 		return (
 			<Box flexDirection="column">
 				<Box marginBottom={1}>
 					<Text bold color={colors.primary}>
-						Configure Local MCP Servers (STDIO):
+						Configure MCP Servers:
 					</Text>
 				</Box>
 				{Object.keys(servers).length > 0 && (
@@ -433,41 +359,33 @@ export function McpStep({
 						</Text>
 					</Box>
 				)}
+				<Tabs
+					onChange={name => setActiveTab(name as 'local' | 'remote')}
+					defaultValue={activeTab}
+					flexDirection="row"
+					colors={{
+						activeTab: {
+							color: colors.success,
+						},
+					}}
+				>
+					<Tab name="local">Local Servers (STDIO)</Tab>
+					<Tab name="remote">Remote Servers (HTTP/WebSocket)</Tab>
+				</Tabs>
+				<Box marginTop={1} marginBottom={1}>
+					<Text>
+						{activeTab === 'local' 
+							? 'Configure Local MCP Servers (STDIO):' 
+							: 'Configure Remote MCP Servers (HTTP/WebSocket):'}
+					</Text>
+				</Box>
 				<SelectInput
 					items={templateOptions}
 					onSelect={handleTemplateSelect}
 				/>
 				<Box marginTop={1}>
 					<Text color={colors.secondary}>
-						Press Enter to select an option | Shift+Tab to go back
-					</Text>
-				</Box>
-			</Box>
-		);
-	}
-
-	if (mode === 'remote-servers') {
-		return (
-			<Box flexDirection="column">
-				<Box marginBottom={1}>
-					<Text bold color={colors.primary}>
-						Configure Remote MCP Servers (HTTP/WebSocket):
-					</Text>
-				</Box>
-				{Object.keys(servers).length > 0 && (
-					<Box marginBottom={1}>
-						<Text color={colors.success}>
-							Added: {Object.keys(servers).join(', ')}
-						</Text>
-					</Box>
-				)}
-				<SelectInput
-					items={templateOptions}
-					onSelect={handleTemplateSelect}
-				/>
-				<Box marginTop={1}>
-					<Text color={colors.secondary}>
-						Press Enter to select an option | Shift+Tab to go back
+						Arrow keys: Navigate | Enter: Select | Tab/Shift+Tab: Switch tabs | Esc: Go back
 					</Text>
 				</Box>
 			</Box>
@@ -501,17 +419,14 @@ export function McpStep({
 					<SelectInput
 						items={[
 							{label: 'Edit existing servers', value: 'edit'},
-							{label: 'Add more local servers', value: 'add-local'},
-							{label: 'Add more remote servers', value: 'add-remote'},
+							{label: 'Add more servers', value: 'add-more'},
 							{label: 'Done configuring MCP servers', value: 'done'},
 						]}
 						onSelect={(item) => {
 							if (item.value === 'edit') {
 								setMode('edit-selection');
-							} else if (item.value === 'add-local') {
-								setMode('local-servers');
-							} else if (item.value === 'add-remote') {
-								setMode('remote-servers');
+							} else if (item.value === 'add-more') {
+								setMode('tabs');
 							} else if (item.value === 'done') {
 								onComplete(servers);
 							}

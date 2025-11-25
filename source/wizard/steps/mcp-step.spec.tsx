@@ -17,11 +17,13 @@ test('McpStep renders with initial local servers screen', t => {
 	t.regex(output!, /Configure Local MCP Servers \(STDIO\):/);
 });
 
-test('McpStep shows done option for local servers', t => {
+test('McpStep shows tabbed interface for MCP servers', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
-	t.regex(output!, /Done adding local servers/);
+	t.regex(output!, /Configure MCP Servers:/);
+	t.regex(output!, /Local Servers \(STDIO\)/);
+	t.regex(output!, /Remote Servers \(HTTP\/WebSocket\)/);
 });
 
 test('McpStep shows MCP server templates for local servers', t => {
@@ -225,13 +227,13 @@ test('McpStep handles optional existingServers prop', t => {
 	t.truthy(lastFrame());
 });
 
-test('McpStep renders SelectInput component for local servers', t => {
+test('McpStep renders SelectInput component for MCP servers', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
 	// SelectInput should render options
 	t.truthy(output);
-	t.regex(output!, /Done adding local servers/);
+	t.regex(output!, /Configure MCP Servers:/);
 });
 
 test('McpStep shows template descriptions on wide terminals', t => {
@@ -446,7 +448,7 @@ test('McpStep shows all available local templates', t => {
 	const output = lastFrame();
 	// Should show local template options
 	t.truthy(output);
-	t.regex(output!, /Done adding local servers/);
+	t.regex(output!, /Configure Local MCP Servers \(STDIO\):/);
 });
 
 // ============================================================================
