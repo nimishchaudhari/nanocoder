@@ -45,11 +45,13 @@
 		"test:lint:fix": "eslint . --fix",
 		"test:knip": "knip",
 		"format": "prettier --write .",
-		"prepublishOnly": "npm run build"
+		"build:vscode": "cd plugins/vscode && pnpm run build && pnpm exec vsce package --allow-missing-repository --skip-license --no-dependencies -o ../../assets/nanocoder-vscode.vsix",
+		"prepublishOnly": "pnpm run build && pnpm run build:vscode"
 	},
 	"files": [
 		"dist",
-		"source/app/prompts/main-prompt.md"
+		"source/app/prompts/main-prompt.md",
+		"assets/nanocoder-vscode.vsix"
 	],
 	"dependencies": {
 		"@ai-sdk/openai-compatible": "^1.0.24",
@@ -75,6 +77,7 @@
 		"systeminformation": "^5.27.10",
 		"tiktoken": "^1.0.22",
 		"undici": "^7.16.0",
+		"ws": "^8.18.0",
 		"xdg-basedir": "^5.1.0"
 	},
 	"devDependencies": {
@@ -83,6 +86,7 @@
 		"@types/ink-text-input": "^2.0.5",
 		"@types/node": "^24.3.0",
 		"@types/react": "^19.0.0",
+		"@types/ws": "^8.18.1",
 		"@vdemedes/prettier-config": "^2.0.1",
 		"ava": "^6.4.1",
 		"c8": "^10.1.3",

@@ -9,6 +9,11 @@ import {tool, jsonSchema} from '@/types/core';
 import {getColors} from '@/config/index';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import ToolMessage from '@/components/tool-message';
+import {
+	isVSCodeConnected,
+	sendFileChangeToVSCode,
+	closeDiffInVSCode,
+} from '@/vscode/index';
 
 interface DeleteLinesArgs {
 	path: string;
@@ -54,8 +59,10 @@ const executeDeleteLines = async (args: DeleteLinesArgs): Promise<string> => {
 	const newLines = [...lines];
 	newLines.splice(line_number - 1, linesToRemove);
 
-	// Write updated content
+	// Build new content
 	const newContent = newLines.join('\n');
+
+	// Write updated content
 	await writeFile(absPath, newContent, 'utf-8');
 
 	// Generate full file contents to show the model the current file state
@@ -377,11 +384,58 @@ async function formatDeleteLinesPreview(
 	}
 }
 
+// Track VS Code change IDs for cleanup
+const vscodeChangeIds = new Map<string, string>();
+
 const formatter = async (
 	args: DeleteLinesArgs,
 	result?: string,
 ): Promise<React.ReactElement> => {
 	const colors = getColors();
+	const {path} = args;
+	const absPath = resolve(path);
+
+	// Send diff to VS Code during preview phase (before execution)
+	if (result === undefined && isVSCodeConnected()) {
+		const {line_number, end_line} = args;
+		try {
+			const fileContent = await readFile(absPath, 'utf-8');
+			const lines = fileContent.split('\n');
+			const lineNumber = Number(line_number);
+			const endLine = Number(end_line) || lineNumber;
+
+			// Build new content for diff preview
+			const linesToRemove = endLine - lineNumber + 1;
+			const newLines = [...lines];
+			newLines.splice(lineNumber - 1, linesToRemove);
+			const newContent = newLines.join('\n');
+
+			const changeId = sendFileChangeToVSCode(
+				absPath,
+				fileContent,
+				newContent,
+				'delete_lines',
+				{
+					path,
+					line_number,
+					end_line: endLine,
+				},
+			);
+			if (changeId) {
+				vscodeChangeIds.set(absPath, changeId);
+			}
+		} catch {
+			// Silently ignore errors sending to VS Code
+		}
+	} else if (result !== undefined && isVSCodeConnected()) {
+		// Tool was executed (confirmed or rejected), close the diff
+		const changeId = vscodeChangeIds.get(absPath);
+		if (changeId) {
+			closeDiffInVSCode(changeId);
+			vscodeChangeIds.delete(absPath);
+		}
+	}
+
 	const preview = await formatDeleteLinesPreview(args, result, colors);
 	return <DeleteLinesFormatter preview={preview} />;
 };

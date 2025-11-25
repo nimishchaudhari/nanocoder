@@ -24,6 +24,7 @@ A local-first CLI coding agent that brings the power of agentic coding tools lik
   - [Custom Command System](#-custom-command-system)
   - [Enhanced User Experience](#-enhanced-user-experience)
   - [Developer Features](#️-developer-features)
+- [VS Code Extension](#vs-code-extension)
 - [Community](#community)
 
 ## FAQs
@@ -133,8 +134,8 @@ If you want to contribute or modify Nanocoder:
 
 **Prerequisites:**
 
-- Node.js 18+
-- npm
+- Node.js 20+
+- pnpm
 
 **Setup:**
 
@@ -143,25 +144,25 @@ If you want to contribute or modify Nanocoder:
 ```bash
 git clone [repo-url]
 cd nanocoder
-npm install
+pnpm install
 ```
 
 2. Build the project:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 3. Run locally:
 
 ```bash
-npm run start
+pnpm run start
 ```
 
 Or build and run in one command:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ## Configuration
@@ -548,6 +549,18 @@ Generate comprehensive unit tests for {{component}}. Include:
 - **Extensible architecture**: Plugin-style system for adding new capabilities
 - **Project-specific config**: Different settings per project via `agents.config.json`
 - **Error resilience**: Graceful handling of provider failures and network issues
+
+## VS Code Extension
+
+Nanocoder includes a VS Code extension that provides live diff previews of file changes directly in your editor. When the AI suggests file modifications, you can see exactly what will change before approving.
+
+To get started, run Nanocoder with the `--vscode` flag:
+
+```bash
+nanocoder --vscode
+```
+
+For full documentation including installation options, configuration, and troubleshooting, see the [VS Code Extension Guide](docs/vscode-extension.md).
 
 ## Community
 

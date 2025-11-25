@@ -63,11 +63,14 @@ jobs:
         with:
           version: latest
 
-      - name: Install dependencies
+      - name: Install dependencies (including VS Code extension)
         run: pnpm install --frozen-lockfile
 
       - name: Build project
         run: pnpm run build
+
+      - name: Build VS Code extension
+        run: pnpm run build:vscode
 
       - name: Run tests
         run: pnpm test:all
@@ -79,6 +82,11 @@ jobs:
             exit 1
           fi
           echo "✅ Build successful: dist/cli.js exists"
+          if [ ! -f "assets/nanocoder-vscode.vsix" ]; then
+            echo "❌ Build failed: VS Code extension not found"
+            exit 1
+          fi
+          echo "✅ VS Code extension built: assets/nanocoder-vscode.vsix exists"
 
       - name: Extract Changelog
         id: changelog
