@@ -389,4 +389,37 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 		category: 'remote',
 		transportType: 'http',
 	},
+	{
+		id: 'github-remote',
+		name: 'GitHub (Remote)',
+		description: 'Remote GitHub MCP server for repository management and operations',
+		command: '',
+		fields: [
+			{
+				name: 'serverName',
+				prompt: 'Server name',
+				required: true,
+				default: 'github-remote',
+			},
+			{
+				name: 'githubToken',
+				prompt: 'GitHub Personal Access Token (requires repo, read:org scopes)',
+				required: true,
+				sensitive: true,
+			},
+		],
+		buildConfig: answers => ({
+			name: answers.serverName || 'github-remote',
+			transport: 'http' as McpTransportType,
+			url: 'https://api.githubcopilot.com/mcp/',
+			description: 'Remote GitHub MCP server for repository management and operations',
+			tags: ['remote', 'github', 'git', 'repository', 'http'],
+			timeout: 30000,
+			headers: {
+				'Authorization': `Bearer ${answers.githubToken}`,
+			},
+		}),
+		category: 'remote',
+		transportType: 'http',
+	},
 ];
