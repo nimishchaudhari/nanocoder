@@ -270,8 +270,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 	},
 	{
 		id: 'deepwiki',
-		name: 'DeepWiki Remote',
-		description: 'Remote MCP server for wiki documentation and research',
+		name: 'DeepWiki',
+		description: 'DeepWiki provides up-to-date documentation you can talk to, for every repo in the world.',
 		command: '',
 		fields: [
 			{
@@ -291,7 +291,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			name: answers.serverName || 'deepwiki',
 			transport: 'http' as McpTransportType,
 			url: answers.url || 'https://mcp.deepwiki.com/mcp',
-			description: 'Remote MCP server for wiki documentation and research',
+			description: 'DeepWiki provides up-to-date documentation you can talk to, for every repo in the world.',
 			tags: ['remote', 'wiki', 'documentation', 'http'],
 			timeout: 30000,
 		}),
@@ -300,8 +300,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 	},
 	{
 		id: 'sequential-thinking',
-		name: 'Sequential Thinking Remote',
-		description: 'Remote MCP server for enhanced reasoning and analysis',
+		name: 'Sequential Thinking',
+		description: 'Dynamic and reflective problem-solving through thought sequences.',
 		command: '',
 		fields: [
 			{
@@ -322,7 +322,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			transport: 'http' as McpTransportType,
 			url:
 				answers.url || 'https://remote.mcpservers.org/sequentialthinking/mcp',
-			description: 'Remote MCP server for enhanced reasoning and analysis',
+			description: 'Dynamic and reflective problem-solving through thought sequences.',
 			tags: ['remote', 'reasoning', 'analysis', 'http'],
 			timeout: 30000,
 		}),
@@ -331,8 +331,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 	},
 	{
 		id: 'context7',
-		name: 'Context7 Remote',
-		description: 'Remote MCP server for contextual information retrieval',
+		name: 'Context7',
+		description: 'Up-to-date code documentation for LLMs and AI code editors.',
 		command: '',
 		fields: [
 			{
@@ -352,7 +352,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			name: answers.serverName || 'context7',
 			transport: 'http' as McpTransportType,
 			url: answers.url || 'https://mcp.context7.com/mcp',
-			description: 'Remote MCP server for contextual information retrieval',
+			description: 'Up-to-date code documentation for LLMs and AI code editors.',
 			tags: ['remote', 'context', 'information', 'http'],
 			timeout: 30000,
 		}),
@@ -361,8 +361,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 	},
 	{
 		id: 'remote-fetch',
-		name: 'Remote Fetch Server',
-		description: 'Remote MCP server for HTTP requests and web scraping',
+		name: 'Fetch',
+		description: 'Web content fetching and conversion for efficient LLM usage',
 		command: '',
 		fields: [
 			{
@@ -382,7 +382,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			name: answers.serverName || 'remote-fetch',
 			transport: 'http' as McpTransportType,
 			url: answers.url || 'https://remote.mcpservers.org/fetch/mcp',
-			description: 'Remote MCP server for HTTP requests and web scraping',
+			description: 'Web content fetching and conversion for efficient LLM usage',
 			tags: ['remote', 'http', 'scraping', 'fetch'],
 			timeout: 30000,
 		}),

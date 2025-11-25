@@ -9,13 +9,13 @@ import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 function getTransportIcon(transport: string): string {
 	switch (transport) {
 		case 'stdio':
-			return '💻';
+			return '[STDIO]'; // Full name for stdio transport
 		case 'http':
-			return '🌐';
+			return '[HTTP]'; // Full name for http transport
 		case 'websocket':
-			return '🔄';
+			return '[WEBSOCKET]'; // Full name for websocket transport
 		default:
-			return '❓';
+			return '[UNKNOWN]'; // Unknown transport
 	}
 }
 
@@ -217,7 +217,7 @@ export function SummaryStep({
 			{providers.length === 0 && (
 				<Box marginBottom={1}>
 					<Text color={colors.warning}>
-						⚠️{' '}
+						!{' '}
 						{isNarrow ? 'No providers!' : 'Warning: No providers configured.'}
 					</Text>
 				</Box>

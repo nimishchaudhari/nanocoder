@@ -91,6 +91,18 @@ export function McpStep({
 				});
 			});
 			
+			// Add skip option at the end
+			options.push({
+				label: 'Skip adding MCP servers',
+				value: 'skip',
+			});
+			
+			// Add "Done adding MCP servers" option after skip
+			options.push({
+				label: 'Done adding MCP servers',
+				value: 'done',
+			});
+			
 			return options;
 		}
 		
@@ -98,6 +110,18 @@ export function McpStep({
 	};
 
 	const handleTemplateSelect = (item: TemplateOption) => {
+		if (item.value === 'done') {
+			// Move directly to review screen
+			setMode('review');
+			return;
+		}
+
+		if (item.value === 'skip') {
+			// Skip adding MCPs and move to review
+			setMode('review');
+			return;
+		}
+
 		// Adding new server
 		const template = MCP_TEMPLATES.find(t => t.id === item.value);
 		if (template) {
@@ -386,6 +410,12 @@ export function McpStep({
 				<Box marginTop={1}>
 					<Text color={colors.secondary}>
 						Arrow keys: Navigate | Enter: Select | Tab/Shift+Tab: Switch tabs | Esc: Go back
+					</Text>
+					<Text color={colors.secondary}>
+						Select "Skip adding MCP servers" to continue without adding any MCP servers
+					</Text>
+					<Text color={colors.secondary}>
+						Select "Done adding MCP servers" to finish configuration and review
 					</Text>
 				</Box>
 			</Box>

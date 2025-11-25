@@ -552,7 +552,7 @@ test('SummaryStep displays stdio MCP server with transport icon and command', t 
 
 	const output = lastFrame();
 	// Should show transport icon
-	t.regex(output!, /filesystem.*💻/);
+	t.regex(output!, /filesystem.*\[STDIO\]/);
 	// Should show transport type
 	t.regex(output!, /Transport:\s*stdio/);
 	// Should show command details
@@ -586,7 +586,7 @@ test('SummaryStep displays HTTP MCP server with transport icon and URL', t => {
 
 	const output = lastFrame();
 	// Should show transport icon
-	t.regex(output!, /remoteServer.*🌐/);
+	t.regex(output!, /remoteServer.*\[HTTP\]/);
 	// Should show transport type
 	t.regex(output!, /Transport:\s*http/);
 	// Should show URL instead of command
@@ -619,7 +619,7 @@ test('SummaryStep displays WebSocket MCP server with transport icon and URL', t 
 
 	const output = lastFrame();
 	// Should show transport icon
-	t.regex(output!, /wsServer.*🔄/);
+	t.regex(output!, /wsServer.*\[WEBSOCKET\]/);
 	// Should show transport type
 	t.regex(output!, /Transport:\s*websocket/);
 	// Should show WebSocket URL
@@ -650,7 +650,7 @@ test('SummaryStep displays unknown transport with question mark icon', t => {
 
 	const output = lastFrame();
 	// Should show question mark icon for unknown transport
-	t.regex(output!, /unknownServer.*❓/);
+	t.regex(output!, /unknownServer.*\[UNKNOWN\]/);
 	// Should show transport type
 	t.regex(output!, /Transport:\s*unknown/);
 });
