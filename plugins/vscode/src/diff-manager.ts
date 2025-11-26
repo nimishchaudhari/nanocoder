@@ -90,7 +90,11 @@ export class DiffManager {
 	/**
 	 * Create a virtual URI for diff content (won't trigger linters)
 	 */
-	private createVirtualUri(id: string, type: 'original' | 'modified' | 'new', fileName: string): vscode.Uri {
+	private createVirtualUri(
+		id: string,
+		type: 'original' | 'modified' | 'new',
+		fileName: string,
+	): vscode.Uri {
 		// Include the file extension in the path for syntax highlighting
 		// but use our custom scheme so linters don't run
 		return vscode.Uri.parse(`${DIFF_SCHEME}:/${id}/${type}/${fileName}`);
