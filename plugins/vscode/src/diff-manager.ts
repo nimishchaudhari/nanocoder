@@ -3,24 +3,55 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {PendingChange, FileChangeMessage} from './protocol';
 
+// Custom URI scheme for virtual documents (won't trigger linters)
+const DIFF_SCHEME = 'nanocoder-diff';
+
+/**
+ * Content provider for virtual diff documents
+ * Using virtual documents prevents VS Code from running linters on them
+ */
+class DiffContentProvider implements vscode.TextDocumentContentProvider {
+	private contents: Map<string, string> = new Map();
+	private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+	readonly onDidChange = this._onDidChange.event;
+
+	setContent(uri: vscode.Uri, content: string): void {
+		this.contents.set(uri.toString(), content);
+		this._onDidChange.fire(uri);
+	}
+
+	removeContent(uri: vscode.Uri): void {
+		this.contents.delete(uri.toString());
+	}
+
+	provideTextDocumentContent(uri: vscode.Uri): string {
+		return this.contents.get(uri.toString()) || '';
+	}
+
+	dispose(): void {
+		this.contents.clear();
+		this._onDidChange.dispose();
+	}
+}
+
 /**
  * Manages file diffs and change previews
  */
 export class DiffManager {
 	private pendingChanges: Map<string, PendingChange> = new Map();
 	private openEditors: Map<string, vscode.Uri[]> = new Map();
-	private tempDir: string;
 	private onChangeCallbacks: Set<() => void> = new Set();
+	private contentProvider: DiffContentProvider;
 
 	constructor(private context: vscode.ExtensionContext) {
-		this.tempDir = path.join(context.globalStorageUri.fsPath, 'temp-diffs');
-		this.ensureTempDir();
-	}
-
-	private ensureTempDir(): void {
-		if (!fs.existsSync(this.tempDir)) {
-			fs.mkdirSync(this.tempDir, {recursive: true});
-		}
+		// Register the virtual document provider
+		this.contentProvider = new DiffContentProvider();
+		context.subscriptions.push(
+			vscode.workspace.registerTextDocumentContentProvider(
+				DIFF_SCHEME,
+				this.contentProvider,
+			),
+		);
 	}
 
 	/**
@@ -57,7 +88,18 @@ export class DiffManager {
 	}
 
 	/**
+	 * Create a virtual URI for diff content (won't trigger linters)
+	 */
+	private createVirtualUri(id: string, type: 'original' | 'modified' | 'new', fileName: string): vscode.Uri {
+		// Include the file extension in the path for syntax highlighting
+		// but use our custom scheme so linters don't run
+		return vscode.Uri.parse(`${DIFF_SCHEME}:/${id}/${type}/${fileName}`);
+	}
+
+	/**
 	 * Show diff preview for a pending change
+	 * Uses virtual documents to prevent linters from running
+	 * Preserves terminal focus by restoring it after showing the diff
 	 */
 	async showDiff(id: string): Promise<void> {
 		const change = this.pendingChanges.get(id);
@@ -66,15 +108,18 @@ export class DiffManager {
 			return;
 		}
 
+		// Remember the active terminal before showing diff
+		const activeTerminal = vscode.window.activeTerminal;
+
 		const fileName = path.basename(change.filePath);
 		const isNewFile = change.originalContent === '';
 
 		// For new files, show the content directly with syntax highlighting
 		if (isNewFile) {
-			const modifiedUri = vscode.Uri.file(
-				path.join(this.tempDir, `${id}-new-${fileName}`),
-			);
-			fs.writeFileSync(modifiedUri.fsPath, change.newContent, 'utf-8');
+			const modifiedUri = this.createVirtualUri(id, 'new', fileName);
+
+			// Set content in our virtual document provider
+			this.contentProvider.setContent(modifiedUri, change.newContent);
 
 			// Track this editor
 			this.openEditors.set(id, [modifiedUri]);
@@ -83,28 +128,30 @@ export class DiffManager {
 			const doc = await vscode.workspace.openTextDocument(modifiedUri);
 			await vscode.window.showTextDocument(doc, {
 				preview: true,
-				preserveFocus: false,
+				preserveFocus: true,
+				viewColumn: vscode.ViewColumn.Beside,
 			});
+
+			// Restore terminal focus
+			if (activeTerminal) {
+				await vscode.commands.executeCommand('workbench.action.terminal.focus');
+			}
 
 			return;
 		}
 
-		// For existing files, show diff
-		const originalUri = vscode.Uri.file(
-			path.join(this.tempDir, `${id}-original-${fileName}`),
-		);
-		const modifiedUri = vscode.Uri.file(
-			path.join(this.tempDir, `${id}-modified-${fileName}`),
-		);
+		// For existing files, show diff using virtual documents
+		const originalUri = this.createVirtualUri(id, 'original', fileName);
+		const modifiedUri = this.createVirtualUri(id, 'modified', fileName);
+
+		// Set content in our virtual document provider
+		this.contentProvider.setContent(originalUri, change.originalContent);
+		this.contentProvider.setContent(modifiedUri, change.newContent);
 
 		// Track these editors
 		this.openEditors.set(id, [originalUri, modifiedUri]);
 
-		// Write temp files for diff
-		fs.writeFileSync(originalUri.fsPath, change.originalContent, 'utf-8');
-		fs.writeFileSync(modifiedUri.fsPath, change.newContent, 'utf-8');
-
-		// Open diff editor
+		// Open diff editor (vscode.diff doesn't support preserveFocus)
 		const title = `Nanocoder: ${fileName} (${change.toolName})`;
 		await vscode.commands.executeCommand(
 			'vscode.diff',
@@ -113,6 +160,11 @@ export class DiffManager {
 			title,
 			{preview: true},
 		);
+
+		// Restore terminal focus after diff opens
+		if (activeTerminal) {
+			await vscode.commands.executeCommand('workbench.action.terminal.focus');
+		}
 	}
 
 	/**
@@ -140,18 +192,23 @@ export class DiffManager {
 			const input = tab.input;
 
 			if (input instanceof vscode.TabInputText) {
-				// Check if this is one of our temp files
-				shouldClose = uris.some(uri => uri.fsPath === input.uri.fsPath);
+				// Check if this is one of our virtual documents
+				shouldClose = uris.some(uri => uri.toString() === input.uri.toString());
 			} else if (input instanceof vscode.TabInputTextDiff) {
 				// Check if this is our diff editor
 				shouldClose =
-					uris.some(uri => uri.fsPath === input.original.fsPath) ||
-					uris.some(uri => uri.fsPath === input.modified.fsPath);
+					uris.some(uri => uri.toString() === input.original.toString()) ||
+					uris.some(uri => uri.toString() === input.modified.toString());
 			}
 
 			if (shouldClose) {
 				await vscode.window.tabGroups.close(tab);
 			}
+		}
+
+		// Clean up virtual document content
+		for (const uri of uris) {
+			this.contentProvider.removeContent(uri);
 		}
 
 		this.openEditors.delete(id);
@@ -238,29 +295,11 @@ export class DiffManager {
 	}
 
 	/**
-	 * Remove a pending change and clean up temp files
+	 * Remove a pending change from tracking
+	 * Note: Virtual document cleanup is handled in closeEditors()
 	 */
 	private removePendingChange(id: string): void {
-		const change = this.pendingChanges.get(id);
-		if (change) {
-			const fileName = path.basename(change.filePath);
-			const originalPath = path.join(
-				this.tempDir,
-				`${id}-original-${fileName}`,
-			);
-			const modifiedPath = path.join(
-				this.tempDir,
-				`${id}-modified-${fileName}`,
-			);
-
-			// Clean up temp files
-			try {
-				if (fs.existsSync(originalPath)) fs.unlinkSync(originalPath);
-				if (fs.existsSync(modifiedPath)) fs.unlinkSync(modifiedPath);
-			} catch {
-				// Ignore cleanup errors
-			}
-
+		if (this.pendingChanges.has(id)) {
 			this.pendingChanges.delete(id);
 			this.notifyChanges();
 		}
@@ -301,18 +340,9 @@ export class DiffManager {
 	}
 
 	/**
-	 * Cleanup all temp files
+	 * Cleanup virtual document provider
 	 */
 	dispose(): void {
-		try {
-			if (fs.existsSync(this.tempDir)) {
-				const files = fs.readdirSync(this.tempDir);
-				for (const file of files) {
-					fs.unlinkSync(path.join(this.tempDir, file));
-				}
-			}
-		} catch {
-			// Ignore cleanup errors
-		}
+		this.contentProvider.dispose();
 	}
 }

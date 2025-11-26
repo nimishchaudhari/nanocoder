@@ -315,6 +315,12 @@ export function useToolHandler({
 
 	// Handle tool confirmation cancel
 	const handleToolConfirmationCancel = () => {
+		// Close all VS Code diffs when user cancels
+		const vscodeServer = getVSCodeServer();
+		if (vscodeServer?.hasConnections()) {
+			vscodeServer.closeAllDiffs();
+		}
+
 		addToChatQueue(
 			<InfoMessage
 				key={`tool-cancelled-${componentKeyCounter}`}
