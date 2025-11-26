@@ -184,91 +184,6 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 		transportType: 'stdio',
 	},
 	{
-		id: 'custom',
-		name: 'Custom MCP Server',
-		description: 'Custom MCP server configuration',
-		command: '',
-		fields: [
-			{
-				name: 'transport',
-				prompt: 'Transport type (stdio, http, websocket)',
-				required: true,
-				default: 'stdio',
-			},
-			{
-				name: 'serverName',
-				prompt: 'Server name',
-				required: true,
-			},
-			{
-				name: 'url',
-				prompt: 'Server URL (for http/websocket transports)',
-				required: false,
-			},
-			{
-				name: 'command',
-				prompt: 'Command (for stdio transport)',
-				required: false,
-			},
-			{
-				name: 'args',
-				prompt: 'Arguments (space-separated, for stdio transport)',
-				required: false,
-			},
-			{
-				name: 'envVars',
-				prompt: 'Environment variables (KEY=VALUE, one per line, optional)',
-				required: false,
-			},
-		],
-		buildConfig: answers => {
-			const config: McpServerConfig = {
-				name: answers.serverName,
-				transport: (answers.transport || 'stdio') as McpTransportType,
-				description: 'Custom MCP server configuration',
-				tags: ['custom'],
-			};
-
-			// Configure based on transport type
-			const transport = answers.transport || 'stdio';
-			if (transport === 'stdio') {
-				if (!answers.command) {
-					throw new Error('Command is required for stdio transport');
-				}
-				config.command = answers.command;
-				config.args = answers.args
-					? answers.args
-							.split(' ')
-							.map(arg => arg.trim())
-							.filter(Boolean)
-					: [];
-			} else if (transport === 'http' || transport === 'websocket') {
-				if (!answers.url) {
-					throw new Error('URL is required for http/websocket transports');
-				}
-				config.url = answers.url;
-				config.timeout = 30000; // 30 seconds default timeout
-			}
-
-			if (answers.envVars) {
-				config.env = {};
-				const lines = answers.envVars.split('\n');
-				for (const line of lines) {
-					const trimmed = line.trim();
-					if (!trimmed) continue;
-					const [key, ...valueParts] = trimmed.split('=');
-					if (key && valueParts.length > 0) {
-						config.env[key.trim()] = valueParts.join('=').trim();
-					}
-				}
-			}
-
-			return config;
-		},
-		category: 'local', // Default to local, but can be remote based on transport
-		transportType: 'stdio', // Default to stdio, but can be http/websocket based on transport
-	},
-	{
 		id: 'deepwiki',
 		name: 'DeepWiki',
 		description:
@@ -565,5 +480,90 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 		}),
 		category: 'local',
 		transportType: 'stdio',
+	},
+	{
+		id: 'custom',
+		name: 'Custom MCP Server',
+		description: 'Custom MCP server configuration',
+		command: '',
+		fields: [
+			{
+				name: 'transport',
+				prompt: 'Transport type (stdio, http, websocket)',
+				required: true,
+				default: 'stdio',
+			},
+			{
+				name: 'serverName',
+				prompt: 'Server name',
+				required: true,
+			},
+			{
+				name: 'url',
+				prompt: 'Server URL (for http/websocket transports)',
+				required: false,
+			},
+			{
+				name: 'command',
+				prompt: 'Command (for stdio transport)',
+				required: false,
+			},
+			{
+				name: 'args',
+				prompt: 'Arguments (space-separated, for stdio transport)',
+				required: false,
+			},
+			{
+				name: 'envVars',
+				prompt: 'Environment variables (KEY=VALUE, one per line, optional)',
+				required: false,
+			},
+		],
+		buildConfig: answers => {
+			const config: McpServerConfig = {
+				name: answers.serverName,
+				transport: (answers.transport || 'stdio') as McpTransportType,
+				description: 'Custom MCP server configuration',
+				tags: ['custom'],
+			};
+
+			// Configure based on transport type
+			const transport = answers.transport || 'stdio';
+			if (transport === 'stdio') {
+				if (!answers.command) {
+					throw new Error('Command is required for stdio transport');
+				}
+				config.command = answers.command;
+				config.args = answers.args
+					? answers.args
+							.split(' ')
+							.map(arg => arg.trim())
+							.filter(Boolean)
+					: [];
+			} else if (transport === 'http' || transport === 'websocket') {
+				if (!answers.url) {
+					throw new Error('URL is required for http/websocket transports');
+				}
+				config.url = answers.url;
+				config.timeout = 30000; // 30 seconds default timeout
+			}
+
+			if (answers.envVars) {
+				config.env = {};
+				const lines = answers.envVars.split('\n');
+				for (const line of lines) {
+					const trimmed = line.trim();
+					if (!trimmed) continue;
+					const [key, ...valueParts] = trimmed.split('=');
+					if (key && valueParts.length > 0) {
+						config.env[key.trim()] = valueParts.join('=').trim();
+					}
+				}
+			}
+
+			return config;
+		},
+		category: 'local', // Default to local, but can be remote based on transport
+		transportType: 'stdio', // Default to stdio, but can be http/websocket based on transport
 	},
 ];
