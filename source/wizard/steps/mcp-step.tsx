@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import TextInput from 'ink-text-input';
@@ -11,17 +11,6 @@ import {
 import {colors} from '@/config/index';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
-// Helper function to group templates by category (currently unused)
-// const groupTemplatesByCategory = (templates: McpTemplate[]) => {
-// 	const localTemplates = templates.filter(
-// 		template => template.category === 'local',
-// 	);
-// 	const remoteTemplates = templates.filter(
-// 		template => template.category === 'remote',
-// 	);
-// 	return {localTemplates, remoteTemplates};
-// };
-
 interface McpStepProps {
 	onComplete: (mcpServers: Record<string, McpServerConfig>) => void;
 	onBack?: () => void;
@@ -29,8 +18,8 @@ interface McpStepProps {
 }
 
 type Mode =
+	| 'initial-menu'
 	| 'tabs'
-	| 'review'
 	| 'edit-selection'
 	| 'edit-or-delete'
 	| 'field-input';
@@ -49,7 +38,13 @@ export function McpStep({
 	const {isNarrow} = useResponsiveTerminal();
 	const [servers, setServers] =
 		useState<Record<string, McpServerConfig>>(existingServers);
-	const [mode, setMode] = useState<Mode>('tabs');
+
+	// Update servers when existingServers prop changes
+	useEffect(() => {
+		setServers(existingServers);
+	}, [existingServers]);
+
+	const [mode, setMode] = useState<Mode>('initial-menu');
 	const [selectedTemplate, setSelectedTemplate] = useState<McpTemplate | null>(
 		null,
 	);
@@ -64,7 +59,7 @@ export function McpStep({
 	);
 	const [activeTab, setActiveTab] = useState<'local' | 'remote'>('local');
 
-	const serverNames = Object.keys(servers);
+	const serverCount = Object.keys(servers).length;
 
 	// Filter templates by category
 	const localTemplates = MCP_TEMPLATES.filter(
@@ -73,6 +68,15 @@ export function McpStep({
 	const remoteTemplates = MCP_TEMPLATES.filter(
 		template => template.category === 'remote',
 	);
+
+	// Initial menu options
+	const initialOptions = [
+		{label: 'Add MCP servers', value: 'add'},
+		...(serverCount > 0
+			? [{label: 'Edit existing servers', value: 'edit'}]
+			: []),
+		{label: 'Skip MCP servers', value: 'skip'},
+	];
 
 	// Create template options for current tab
 	const getTemplateOptions = (): TemplateOption[] => {
@@ -92,13 +96,7 @@ export function McpStep({
 				});
 			});
 
-			// Add skip option at the end
-			options.push({
-				label: 'Skip adding MCP servers',
-				value: 'skip',
-			});
-
-			// Add "Done adding MCP servers" option after skip
+			// Add done option at the end
 			options.push({
 				label: 'Done adding MCP servers',
 				value: 'done',
@@ -110,16 +108,21 @@ export function McpStep({
 		return [];
 	};
 
+	const handleInitialSelect = (item: {value: string}) => {
+		if (item.value === 'add') {
+			setMode('tabs');
+		} else if (item.value === 'edit') {
+			setMode('edit-selection');
+		} else {
+			// Skip
+			onComplete(servers);
+		}
+	};
+
 	const handleTemplateSelect = (item: TemplateOption) => {
 		if (item.value === 'done') {
-			// Move directly to review screen
-			setMode('review');
-			return;
-		}
-
-		if (item.value === 'skip') {
-			// Skip adding MCPs and move to review
-			setMode('review');
+			// Done adding servers
+			onComplete(servers);
 			return;
 		}
 
@@ -140,8 +143,8 @@ export function McpStep({
 	const handleEditSelect = (item: TemplateOption) => {
 		// Store the server name and show edit/delete options
 		if (item.value.startsWith('edit-')) {
-			const serverName = item.value.replace('edit-', '');
-			setEditingServerName(serverName);
+			const serverKey = item.value.replace('edit-', '');
+			setEditingServerName(serverKey);
 			setMode('edit-or-delete');
 		}
 	};
@@ -153,19 +156,17 @@ export function McpStep({
 			delete newServers[editingServerName];
 			setServers(newServers);
 			setEditingServerName(null);
-			// Always go back to template selection after deleting
-			if (mode === 'edit-or-delete') {
-				// Determine which screen to go back to based on server category
-				setMode('tabs');
-			}
+			// Go back to initial menu after deleting
+			setMode('initial-menu');
 			return;
 		}
 
 		if (item.value === 'edit' && editingServerName !== null) {
 			const server = servers[editingServerName];
 			if (server) {
-				// Find matching template (or use custom based on command)
+				// Find matching template by server name or use custom
 				const template =
+					MCP_TEMPLATES.find(t => t.id === server.name) ||
 					MCP_TEMPLATES.find(t => t.id === editingServerName) ||
 					MCP_TEMPLATES.find(t => t.id === 'custom');
 
@@ -175,29 +176,39 @@ export function McpStep({
 
 					// Pre-populate field answers from existing server
 					const answers: Record<string, string> = {};
-					if (server.name) answers.name = server.name;
-					if (server.command) answers.command = server.command;
 
-					// Special handling for filesystem server - extract allowed directories
-					if (template.id === 'filesystem' && server.args) {
-						// Args format: ['-y', '@modelcontextprotocol/server-filesystem', '/path1', '/path2', ...]
-						// Extract everything after the package name
-						const packageIndex = server.args.findIndex(arg =>
-							arg.includes('@modelcontextprotocol/server-filesystem'),
-						);
-						if (packageIndex !== -1) {
-							const dirs = server.args.slice(packageIndex + 1);
-							answers.allowedDirs = dirs.join(', ');
+					// Map server properties to field names based on template fields
+					for (const field of template.fields) {
+						if (field.name === 'serverName' && server.name) {
+							answers.serverName = server.name;
+						} else if (field.name === 'url' && server.url) {
+							answers.url = server.url;
+						} else if (field.name === 'command' && server.command) {
+							answers.command = server.command;
+						} else if (field.name === 'allowedDirs' && server.args) {
+							// Special handling for filesystem server - extract allowed directories
+							const packageIndex = server.args.findIndex(arg =>
+								arg.includes('@modelcontextprotocol/server-filesystem'),
+							);
+							if (packageIndex !== -1) {
+								const dirs = server.args.slice(packageIndex + 1);
+								answers.allowedDirs = dirs.join(', ');
+							}
+						} else if (field.name === 'args' && server.args) {
+							answers.args = server.args.join(' ');
+						} else if (field.name === 'envVars' && server.env) {
+							answers.envVars = Object.entries(server.env)
+								.map(([key, value]) => `${key}=${value}`)
+								.join('\n');
+						} else if (field.name === 'apiKey' && server.env) {
+							// Try to find API key from env vars
+							const apiKeyEntry = Object.entries(server.env).find(
+								([key]) => key.includes('API_KEY') || key.includes('TOKEN'),
+							);
+							if (apiKeyEntry) {
+								answers.apiKey = apiKeyEntry[1];
+							}
 						}
-					} else if (server.args) {
-						// For other templates, join with space
-						answers.args = server.args.join(' ');
-					}
-
-					if (server.env) {
-						answers.envVars = Object.entries(server.env)
-							.map(([key, value]) => `${key}=${value}`)
-							.join('\n');
 					}
 
 					setFieldAnswers(answers);
@@ -286,9 +297,9 @@ export function McpStep({
 	};
 
 	const editOptions: TemplateOption[] = [
-		...serverNames.map((name, index) => ({
-			label: `${index + 1}. ${name}`,
-			value: `edit-${name}`,
+		...Object.entries(servers).map(([key, server], index) => ({
+			label: `${index + 1}. ${server.name}`,
+			value: `edit-${key}`,
 		})),
 	];
 
@@ -309,8 +320,14 @@ export function McpStep({
 					setInputKey(prev => prev + 1); // Force remount to reset cursor position
 					setError(null);
 				} else {
-					// At first field, go back to template selection
-					setMode('tabs');
+					// At first field, go back based on context
+					if (editingServerName !== null) {
+						// Was editing, go back to edit-or-delete choice
+						setMode('edit-or-delete');
+					} else {
+						// Was adding, go back to tabs
+						setMode('tabs');
+					}
 					setSelectedTemplate(null);
 					setCurrentFieldIndex(0);
 					setFieldAnswers({});
@@ -323,14 +340,14 @@ export function McpStep({
 				setEditingServerName(null);
 				setMode('edit-selection');
 			} else if (mode === 'edit-selection') {
-				// In edit selection, go back to review screen
-				setMode('review');
-			} else if (mode === 'tabs' && onBack) {
-				// At tabs screen, call parent's onBack
+				// In edit selection, go back to initial menu
+				setMode('initial-menu');
+			} else if (mode === 'tabs') {
+				// At tabs screen, go back to initial menu
+				setMode('initial-menu');
+			} else if (mode === 'initial-menu' && onBack) {
+				// At initial menu, call parent's onBack
 				onBack();
-			} else if (mode === 'review') {
-				// At review screen, go back to tabs
-				setMode('tabs');
 			}
 			return;
 		}
@@ -354,8 +371,12 @@ export function McpStep({
 				if (key.return) {
 					handleFieldSubmit();
 				} else if (key.escape) {
-					// Go back to template selection
-					setMode('tabs');
+					// Go back to tabs or initial menu
+					if (editingServerName !== null) {
+						setMode('edit-or-delete');
+					} else {
+						setMode('tabs');
+					}
 					setSelectedTemplate(null);
 					setCurrentFieldIndex(0);
 					setFieldAnswers({});
@@ -367,6 +388,34 @@ export function McpStep({
 		}
 	});
 
+	if (mode === 'initial-menu') {
+		return (
+			<Box flexDirection="column">
+				<Box marginBottom={1}>
+					<Text bold color={colors.primary}>
+						Configure MCP Servers
+					</Text>
+				</Box>
+				{serverCount > 0 && (
+					<Box flexDirection="column" marginBottom={1}>
+						<Text color={colors.success}>
+							{serverCount} MCP server(s) configured:
+						</Text>
+						{Object.values(servers).map((server, index) => (
+							<Text key={index} color={colors.secondary}>
+								• {server.name} ({server.transport})
+							</Text>
+						))}
+					</Box>
+				)}
+				<SelectInput
+					items={initialOptions}
+					onSelect={(item: {value: string}) => handleInitialSelect(item)}
+				/>
+			</Box>
+		);
+	}
+
 	if (mode === 'tabs') {
 		const templateOptions = getTemplateOptions();
 
@@ -374,13 +423,16 @@ export function McpStep({
 			<Box flexDirection="column">
 				<Box marginBottom={1}>
 					<Text bold color={colors.primary}>
-						Configure MCP Servers:
+						Add MCP Servers:
 					</Text>
 				</Box>
-				{Object.keys(servers).length > 0 && (
+				{serverCount > 0 && (
 					<Box marginBottom={1}>
 						<Text color={colors.success}>
-							Added: {Object.keys(servers).join(', ')}
+							Added:{' '}
+							{Object.values(servers)
+								.map(s => s.name)
+								.join(', ')}
 						</Text>
 					</Box>
 				)}
@@ -400,68 +452,15 @@ export function McpStep({
 				<Box marginTop={1} marginBottom={1}>
 					<Text>
 						{activeTab === 'local'
-							? 'Configure Local MCP Servers (STDIO):'
-							: 'Configure Remote MCP Servers (HTTP/WebSocket):'}
+							? 'Select a local MCP server to add:'
+							: 'Select a remote MCP server to add:'}
 					</Text>
 				</Box>
 				<SelectInput items={templateOptions} onSelect={handleTemplateSelect} />
 				<Box marginTop={1}>
 					<Text color={colors.secondary}>
-						Arrow keys: Navigate | Enter: Select | Tab/Shift+Tab: Switch tabs |
-						Esc: Go back
+						Arrow keys: Navigate | Tab: Switch tabs | Shift+Tab: Go back
 					</Text>
-					<Text color={colors.secondary}>
-						Select "Skip adding MCP servers" to continue without adding any MCP
-						servers
-					</Text>
-					<Text color={colors.secondary}>
-						Select "Done adding MCP servers" to finish configuration and review
-					</Text>
-				</Box>
-			</Box>
-		);
-	}
-
-	if (mode === 'review') {
-		return (
-			<Box flexDirection="column">
-				<Box marginBottom={1}>
-					<Text bold color={colors.primary}>
-						MCP Servers Configuration Review:
-					</Text>
-				</Box>
-				{Object.keys(servers).length > 0 ? (
-					<Box flexDirection="column">
-						{Object.entries(servers).map(([name, server], index) => (
-							<Box key={index} marginBottom={1}>
-								<Text>
-									{index + 1}. {name} ({server.transport})
-								</Text>
-							</Box>
-						))}
-					</Box>
-				) : (
-					<Box marginBottom={1}>
-						<Text>No MCP servers configured.</Text>
-					</Box>
-				)}
-				<Box marginTop={1}>
-					<SelectInput
-						items={[
-							{label: 'Edit existing servers', value: 'edit'},
-							{label: 'Add more servers', value: 'add-more'},
-							{label: 'Done configuring MCP servers', value: 'done'},
-						]}
-						onSelect={item => {
-							if (item.value === 'edit') {
-								setMode('edit-selection');
-							} else if (item.value === 'add-more') {
-								setMode('tabs');
-							} else if (item.value === 'done') {
-								onComplete(servers);
-							}
-						}}
-					/>
 				</Box>
 			</Box>
 		);
@@ -479,6 +478,9 @@ export function McpStep({
 					items={editOptions}
 					onSelect={(item: TemplateOption) => handleEditSelect(item)}
 				/>
+				<Box marginTop={1}>
+					<Text color={colors.secondary}>Shift+Tab: Go back</Text>
+				</Box>
 			</Box>
 		);
 	}
@@ -502,6 +504,9 @@ export function McpStep({
 					items={editOrDeleteOptions}
 					onSelect={(item: {value: string}) => handleEditOrDeleteChoice(item)}
 				/>
+				<Box marginTop={1}>
+					<Text color={colors.secondary}>Shift+Tab: Go back</Text>
+				</Box>
 			</Box>
 		);
 	}

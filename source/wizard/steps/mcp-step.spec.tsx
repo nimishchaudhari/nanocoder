@@ -9,29 +9,41 @@ import {McpStep} from './mcp-step.js';
 
 console.log(`\nmcp-step.spec.tsx – ${React.version}`);
 
-test('McpStep renders with initial local servers screen', t => {
+test('McpStep renders with initial menu', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
 	t.truthy(output);
-	t.regex(output!, /Configure Local MCP Servers \(STDIO\):/);
+	t.regex(output!, /Configure MCP Servers/);
+	t.regex(output!, /Add MCP servers/);
+	t.regex(output!, /Skip MCP servers/);
 });
 
-test('McpStep shows tabbed interface for MCP servers', t => {
+test('McpStep shows initial menu options', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
-	t.regex(output!, /Configure MCP Servers:/);
-	t.regex(output!, /Local Servers \(STDIO\)/);
-	t.regex(output!, /Remote Servers \(HTTP\/WebSocket\)/);
+	t.regex(output!, /Configure MCP Servers/);
+	t.regex(output!, /Add MCP servers/);
+	t.regex(output!, /Skip MCP servers/);
 });
 
-test('McpStep shows MCP server templates for local servers', t => {
-	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
+test('McpStep shows edit option when servers exist', t => {
+	const existingServers = {
+		filesystem: {
+			name: 'filesystem',
+			transport: 'stdio',
+			command: 'npx',
+			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
+		},
+	};
+
+	const {lastFrame} = render(
+		<McpStep onComplete={() => {}} existingServers={existingServers} />,
+	);
 
 	const output = lastFrame();
-	// Should show some local template names
-	t.regex(output!, /Filesystem|GitHub|PostgreSQL|Brave Search|Fetch|Custom/);
+	t.regex(output!, /Edit existing servers/);
 });
 
 test('McpStep renders without crashing when onBack is provided', t => {
@@ -74,12 +86,12 @@ test('McpStep renders with correct initial state', t => {
 	// Should have rendered at least one frame
 	t.true(frames.length > 0);
 
-	// First frame should show local servers screen
+	// First frame should show initial menu
 	const firstFrame = frames[0];
-	t.regex(firstFrame, /Configure Local MCP Servers \(STDIO\):/);
+	t.regex(firstFrame, /Configure MCP Servers/);
 });
 
-test('McpStep shows added servers when they exist', t => {
+test('McpStep shows configured servers when they exist', t => {
 	const existingServers = {
 		filesystem: {
 			name: 'filesystem',
@@ -101,17 +113,17 @@ test('McpStep shows added servers when they exist', t => {
 	);
 
 	const output = lastFrame();
-	t.regex(output!, /Added:/);
+	t.regex(output!, /2 MCP server\(s\) configured:/);
 	t.regex(output!, /filesystem/);
 	t.regex(output!, /github/);
 });
 
-test('McpStep does not show edit option on local servers screen when no servers exist', t => {
+test('McpStep does not show edit option when no servers exist', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
-	// Edit option should not be shown on local servers screen when no servers exist
-	t.notRegex(output!, /Edit existing MCP servers/);
+	// Edit option should not be shown when no servers exist
+	t.notRegex(output!, /Edit existing servers/);
 });
 
 test('McpStep handles empty existingServers object', t => {
@@ -121,11 +133,11 @@ test('McpStep handles empty existingServers object', t => {
 
 	const output = lastFrame();
 	t.truthy(output);
-	// Should not show added servers when none exist
-	t.notRegex(output!, /Added:/);
+	// Should not show configured servers when none exist
+	t.notRegex(output!, /MCP server\(s\) configured:/);
 });
 
-test('McpStep shows single added server', t => {
+test('McpStep shows single configured server', t => {
 	const existingServers = {
 		filesystem: {
 			name: 'filesystem',
@@ -140,10 +152,11 @@ test('McpStep shows single added server', t => {
 	);
 
 	const output = lastFrame();
-	t.regex(output!, /Added: filesystem/);
+	t.regex(output!, /1 MCP server\(s\) configured:/);
+	t.regex(output!, /filesystem/);
 });
 
-test('McpStep shows multiple added servers', t => {
+test('McpStep shows multiple configured servers', t => {
 	const existingServers = {
 		filesystem: {
 			name: 'filesystem',
@@ -170,7 +183,8 @@ test('McpStep shows multiple added servers', t => {
 	);
 
 	const output = lastFrame();
-	t.regex(output!, /Added: filesystem/);
+	t.regex(output!, /3 MCP server\(s\) configured:/);
+	t.regex(output!, /filesystem/);
 	t.regex(output!, /github/);
 	t.regex(output!, /postgres/);
 });
@@ -227,13 +241,13 @@ test('McpStep handles optional existingServers prop', t => {
 	t.truthy(lastFrame());
 });
 
-test('McpStep renders SelectInput component for MCP servers', t => {
+test('McpStep renders SelectInput component', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
 	// SelectInput should render options
 	t.truthy(output);
-	t.regex(output!, /Configure MCP Servers:/);
+	t.regex(output!, /Configure MCP Servers/);
 });
 
 test('McpStep shows template descriptions on wide terminals', t => {
@@ -434,21 +448,24 @@ test('McpStep handles server without env variables', t => {
 // Tests for McpStep Mode States
 // ============================================================================
 
-test('McpStep renders in local-servers mode initially', t => {
+test('McpStep renders in initial-menu mode initially', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
-	// Initial mode shows local servers screen
-	t.regex(output!, /Configure Local MCP Servers \(STDIO\):/);
+	// Initial mode shows initial menu
+	t.regex(output!, /Configure MCP Servers/);
+	t.regex(output!, /Add MCP servers/);
 });
 
-test('McpStep shows all available local templates', t => {
+test('McpStep shows available options in initial menu', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
-	// Should show local template options
+	// Should show initial menu options
 	t.truthy(output);
-	t.regex(output!, /Configure Local MCP Servers \(STDIO\):/);
+	t.regex(output!, /Configure MCP Servers/);
+	t.regex(output!, /Add MCP servers/);
+	t.regex(output!, /Skip MCP servers/);
 });
 
 // ============================================================================
@@ -459,8 +476,8 @@ test('McpStep initializes with empty servers when not provided', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
-	// Should not show "Added:" section when no servers exist
-	t.notRegex(output!, /Added:/);
+	// Should not show configured servers section when no servers exist
+	t.notRegex(output!, /MCP server\(s\) configured:/);
 });
 
 test('McpStep maintains existing servers', t => {
@@ -518,7 +535,7 @@ test('McpStep renders correctly on first render', t => {
 
 	t.true(frames.length > 0);
 	const firstFrame = frames[0];
-	t.regex(firstFrame, /Configure Local MCP Servers \(STDIO\):/);
+	t.regex(firstFrame, /Configure MCP Servers/);
 });
 
 test('McpStep handles complex server names', t => {
