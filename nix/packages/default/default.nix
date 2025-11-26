@@ -53,6 +53,7 @@ stdenv.mkDerivation (finalAttrs: {
     cp -r dist $out/lib/nanocoder/
     cp -r node_modules $out/lib/nanocoder/
     cp package.json $out/lib/nanocoder/
+    cp -r plugins $out/lib/nanocoder/
 
     # Create wrapper script
     cat > $out/bin/nanocoder <<EOF
