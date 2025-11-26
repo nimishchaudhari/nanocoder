@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import TextInput from 'ink-text-input';
+import {Tabs, Tab} from 'ink-tab';
 import {
 	MCP_TEMPLATES,
 	type McpTemplate,
@@ -10,6 +11,17 @@ import {
 import {colors} from '@/config/index';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
+// Helper function to group templates by category (currently unused)
+// const groupTemplatesByCategory = (templates: McpTemplate[]) => {
+// 	const localTemplates = templates.filter(
+// 		template => template.category === 'local',
+// 	);
+// 	const remoteTemplates = templates.filter(
+// 		template => template.category === 'remote',
+// 	);
+// 	return {localTemplates, remoteTemplates};
+// };
+
 interface McpStepProps {
 	onComplete: (mcpServers: Record<string, McpServerConfig>) => void;
 	onBack?: () => void;
@@ -17,15 +29,16 @@ interface McpStepProps {
 }
 
 type Mode =
-	| 'template-selection'
+	| 'tabs'
+	| 'review'
 	| 'edit-selection'
 	| 'edit-or-delete'
-	| 'field-input'
-	| 'done';
+	| 'field-input';
 
 interface TemplateOption {
 	label: string;
 	value: string;
+	category?: string;
 }
 
 export function McpStep({
@@ -36,7 +49,7 @@ export function McpStep({
 	const {isNarrow} = useResponsiveTerminal();
 	const [servers, setServers] =
 		useState<Record<string, McpServerConfig>>(existingServers);
-	const [mode, setMode] = useState<Mode>('template-selection');
+	const [mode, setMode] = useState<Mode>('tabs');
 	const [selectedTemplate, setSelectedTemplate] = useState<McpTemplate | null>(
 		null,
 	);
@@ -49,41 +62,64 @@ export function McpStep({
 	const [editingServerName, setEditingServerName] = useState<string | null>(
 		null,
 	);
+	const [activeTab, setActiveTab] = useState<'local' | 'remote'>('local');
 
 	const serverNames = Object.keys(servers);
 
-	const templateOptions: TemplateOption[] = [
-		...(serverNames.length > 0
-			? [{label: 'Edit existing MCP servers', value: 'edit'}]
-			: []),
-		...MCP_TEMPLATES.map(template => ({
-			// Hide descriptions on narrow terminals
-			label: isNarrow
-				? template.name
-				: `${template.name} - ${template.description}`,
-			value: template.id,
-		})),
-		{
-			label: `Done adding MCP servers`,
-			value: 'done',
-		},
-	];
+	// Filter templates by category
+	const localTemplates = MCP_TEMPLATES.filter(
+		template => template.category === 'local',
+	);
+	const remoteTemplates = MCP_TEMPLATES.filter(
+		template => template.category === 'remote',
+	);
 
-	const editOptions: TemplateOption[] = [
-		...serverNames.map((name, index) => ({
-			label: `${index + 1}. ${name}`,
-			value: `edit-${name}`,
-		})),
-	];
+	// Create template options for current tab
+	const getTemplateOptions = (): TemplateOption[] => {
+		if (mode === 'tabs') {
+			const options: TemplateOption[] = [];
+			const templates =
+				activeTab === 'local' ? localTemplates : remoteTemplates;
+
+			// Add templates for current tab
+			templates.forEach(template => {
+				options.push({
+					label: isNarrow
+						? `${template.name}`
+						: `${template.name} - ${template.description}`,
+					value: template.id,
+					category: activeTab,
+				});
+			});
+
+			// Add skip option at the end
+			options.push({
+				label: 'Skip adding MCP servers',
+				value: 'skip',
+			});
+
+			// Add "Done adding MCP servers" option after skip
+			options.push({
+				label: 'Done adding MCP servers',
+				value: 'done',
+			});
+
+			return options;
+		}
+
+		return [];
+	};
 
 	const handleTemplateSelect = (item: TemplateOption) => {
 		if (item.value === 'done') {
-			onComplete(servers);
+			// Move directly to review screen
+			setMode('review');
 			return;
 		}
 
-		if (item.value === 'edit') {
-			setMode('edit-selection');
+		if (item.value === 'skip') {
+			// Skip adding MCPs and move to review
+			setMode('review');
 			return;
 		}
 
@@ -118,7 +154,10 @@ export function McpStep({
 			setServers(newServers);
 			setEditingServerName(null);
 			// Always go back to template selection after deleting
-			setMode('template-selection');
+			if (mode === 'edit-or-delete') {
+				// Determine which screen to go back to based on server category
+				setMode('tabs');
+			}
 			return;
 		}
 
@@ -237,7 +276,7 @@ export function McpStep({
 				setCurrentValue('');
 				setMultilineBuffer('');
 				setEditingServerName(null);
-				setMode('template-selection');
+				setMode('tabs');
 			} catch (err) {
 				setError(
 					err instanceof Error ? err.message : 'Failed to build configuration',
@@ -246,8 +285,16 @@ export function McpStep({
 		}
 	};
 
+	const editOptions: TemplateOption[] = [
+		...serverNames.map((name, index) => ({
+			label: `${index + 1}. ${name}`,
+			value: `edit-${name}`,
+		})),
+	];
+
+	// Handle keyboard navigation
 	useInput((input, key) => {
-		// Handle Shift+Tab for going back
+		// Handle Shift+Tab for going back (but not regular Tab, let Tabs component handle it)
 		if (key.shift && key.tab) {
 			if (mode === 'field-input') {
 				// In field input mode, check if we can go back to previous field
@@ -262,14 +309,8 @@ export function McpStep({
 					setInputKey(prev => prev + 1); // Force remount to reset cursor position
 					setError(null);
 				} else {
-					// At first field, go back based on where we came from
-					if (editingServerName !== null) {
-						// Was editing, go back to edit-or-delete choice
-						setMode('edit-or-delete');
-					} else {
-						// Was adding, go back to template selection
-						setMode('template-selection');
-					}
+					// At first field, go back to template selection
+					setMode('tabs');
 					setSelectedTemplate(null);
 					setCurrentFieldIndex(0);
 					setFieldAnswers({});
@@ -282,13 +323,14 @@ export function McpStep({
 				setEditingServerName(null);
 				setMode('edit-selection');
 			} else if (mode === 'edit-selection') {
-				// In edit selection, go back to template selection
-				setMode('template-selection');
-			} else if (mode === 'template-selection') {
-				// At root level, call parent's onBack
-				if (onBack) {
-					onBack();
-				}
+				// In edit selection, go back to review screen
+				setMode('review');
+			} else if (mode === 'tabs' && onBack) {
+				// At tabs screen, call parent's onBack
+				onBack();
+			} else if (mode === 'review') {
+				// At review screen, go back to tabs
+				setMode('tabs');
 			}
 			return;
 		}
@@ -313,7 +355,7 @@ export function McpStep({
 					handleFieldSubmit();
 				} else if (key.escape) {
 					// Go back to template selection
-					setMode('template-selection');
+					setMode('tabs');
 					setSelectedTemplate(null);
 					setCurrentFieldIndex(0);
 					setFieldAnswers({});
@@ -325,12 +367,14 @@ export function McpStep({
 		}
 	});
 
-	if (mode === 'template-selection') {
+	if (mode === 'tabs') {
+		const templateOptions = getTemplateOptions();
+
 		return (
 			<Box flexDirection="column">
 				<Box marginBottom={1}>
 					<Text bold color={colors.primary}>
-						Add MCP servers to extend Nanocoder with additional tools:
+						Configure MCP Servers:
 					</Text>
 				</Box>
 				{Object.keys(servers).length > 0 && (
@@ -340,10 +384,85 @@ export function McpStep({
 						</Text>
 					</Box>
 				)}
-				<SelectInput
-					items={templateOptions}
-					onSelect={(item: TemplateOption) => handleTemplateSelect(item)}
-				/>
+				<Tabs
+					onChange={name => setActiveTab(name as 'local' | 'remote')}
+					defaultValue={activeTab}
+					flexDirection="row"
+					colors={{
+						activeTab: {
+							color: colors.success,
+						},
+					}}
+				>
+					<Tab name="local">Local Servers (STDIO)</Tab>
+					<Tab name="remote">Remote Servers (HTTP/WebSocket)</Tab>
+				</Tabs>
+				<Box marginTop={1} marginBottom={1}>
+					<Text>
+						{activeTab === 'local'
+							? 'Configure Local MCP Servers (STDIO):'
+							: 'Configure Remote MCP Servers (HTTP/WebSocket):'}
+					</Text>
+				</Box>
+				<SelectInput items={templateOptions} onSelect={handleTemplateSelect} />
+				<Box marginTop={1}>
+					<Text color={colors.secondary}>
+						Arrow keys: Navigate | Enter: Select | Tab/Shift+Tab: Switch tabs |
+						Esc: Go back
+					</Text>
+					<Text color={colors.secondary}>
+						Select "Skip adding MCP servers" to continue without adding any MCP
+						servers
+					</Text>
+					<Text color={colors.secondary}>
+						Select "Done adding MCP servers" to finish configuration and review
+					</Text>
+				</Box>
+			</Box>
+		);
+	}
+
+	if (mode === 'review') {
+		return (
+			<Box flexDirection="column">
+				<Box marginBottom={1}>
+					<Text bold color={colors.primary}>
+						MCP Servers Configuration Review:
+					</Text>
+				</Box>
+				{Object.keys(servers).length > 0 ? (
+					<Box flexDirection="column">
+						{Object.entries(servers).map(([name, server], index) => (
+							<Box key={index} marginBottom={1}>
+								<Text>
+									{index + 1}. {name} ({server.transport})
+								</Text>
+							</Box>
+						))}
+					</Box>
+				) : (
+					<Box marginBottom={1}>
+						<Text>No MCP servers configured.</Text>
+					</Box>
+				)}
+				<Box marginTop={1}>
+					<SelectInput
+						items={[
+							{label: 'Edit existing servers', value: 'edit'},
+							{label: 'Add more servers', value: 'add-more'},
+							{label: 'Done configuring MCP servers', value: 'done'},
+						]}
+						onSelect={item => {
+							if (item.value === 'edit') {
+								setMode('edit-selection');
+							} else if (item.value === 'add-more') {
+								setMode('tabs');
+							} else if (item.value === 'done') {
+								onComplete(servers);
+							}
+						}}
+					/>
+				</Box>
 			</Box>
 		);
 	}

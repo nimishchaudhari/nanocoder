@@ -37,6 +37,8 @@ export interface McpTemplate {
 	command: string;
 	fields: TemplateField[];
 	buildConfig: (answers: Record<string, string>) => McpServerConfig;
+	category?: 'local' | 'remote';
+	transportType: McpTransportType;
 }
 
 export const MCP_TEMPLATES: McpTemplate[] = [
@@ -67,6 +69,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description: 'Read/write files and directories',
 			tags: ['filesystem', 'local'],
 		}),
+		category: 'local',
+		transportType: 'stdio',
 	},
 	{
 		id: 'github',
@@ -92,6 +96,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description: 'Repository management and operations',
 			tags: ['github', 'git', 'repository', 'stdio'],
 		}),
+		category: 'local',
+		transportType: 'stdio',
 	},
 	{
 		id: 'postgres',
@@ -117,6 +123,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description: 'Database queries and management',
 			tags: ['database', 'postgres', 'sql'],
 		}),
+		category: 'local',
+		transportType: 'stdio',
 	},
 	{
 		id: 'brave-search',
@@ -142,6 +150,8 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description: 'Web search capabilities',
 			tags: ['search', 'web', 'brave'],
 		}),
+		category: 'local',
+		transportType: 'stdio',
 	},
 	{
 		id: 'fetch',
@@ -170,6 +180,306 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			}
 			return config;
 		},
+		category: 'local',
+		transportType: 'stdio',
+	},
+	{
+		id: 'deepwiki',
+		name: 'DeepWiki',
+		description:
+			'DeepWiki provides up-to-date documentation you can talk to, for every repo in the world.',
+		command: '',
+		fields: [
+			{
+				name: 'serverName',
+				prompt: 'Server name',
+				required: true,
+				default: 'deepwiki',
+			},
+			{
+				name: 'url',
+				prompt: 'Server URL',
+				required: true,
+				default: 'https://mcp.deepwiki.com/mcp',
+			},
+		],
+		buildConfig: answers => ({
+			name: answers.serverName || 'deepwiki',
+			transport: 'http' as McpTransportType,
+			url: answers.url || 'https://mcp.deepwiki.com/mcp',
+			description:
+				'DeepWiki provides up-to-date documentation you can talk to, for every repo in the world.',
+			tags: ['remote', 'wiki', 'documentation', 'http'],
+			timeout: 30000,
+		}),
+		category: 'remote',
+		transportType: 'http',
+	},
+	{
+		id: 'sequential-thinking',
+		name: 'Sequential Thinking',
+		description:
+			'Dynamic and reflective problem-solving through thought sequences.',
+		command: '',
+		fields: [
+			{
+				name: 'serverName',
+				prompt: 'Server name',
+				required: true,
+				default: 'sequential-thinking',
+			},
+			{
+				name: 'url',
+				prompt: 'Server URL',
+				required: true,
+				default: 'https://remote.mcpservers.org/sequentialthinking/mcp',
+			},
+		],
+		buildConfig: answers => ({
+			name: answers.serverName || 'sequential-thinking',
+			transport: 'http' as McpTransportType,
+			url:
+				answers.url || 'https://remote.mcpservers.org/sequentialthinking/mcp',
+			description:
+				'Dynamic and reflective problem-solving through thought sequences.',
+			tags: ['remote', 'reasoning', 'analysis', 'http'],
+			timeout: 30000,
+		}),
+		category: 'remote',
+		transportType: 'http',
+	},
+	{
+		id: 'context7',
+		name: 'Context7',
+		description: 'Up-to-date code documentation for LLMs and AI code editors.',
+		command: '',
+		fields: [
+			{
+				name: 'serverName',
+				prompt: 'Server name',
+				required: true,
+				default: 'context7',
+			},
+			{
+				name: 'url',
+				prompt: 'Server URL',
+				required: true,
+				default: 'https://mcp.context7.com/mcp',
+			},
+		],
+		buildConfig: answers => ({
+			name: answers.serverName || 'context7',
+			transport: 'http' as McpTransportType,
+			url: answers.url || 'https://mcp.context7.com/mcp',
+			description:
+				'Up-to-date code documentation for LLMs and AI code editors.',
+			tags: ['remote', 'context', 'information', 'http'],
+			timeout: 30000,
+		}),
+		category: 'remote',
+		transportType: 'http',
+	},
+	{
+		id: 'remote-fetch',
+		name: 'Fetch',
+		description: 'Web content fetching and conversion for efficient LLM usage',
+		command: '',
+		fields: [
+			{
+				name: 'serverName',
+				prompt: 'Server name',
+				required: true,
+				default: 'remote-fetch',
+			},
+			{
+				name: 'url',
+				prompt: 'Server URL',
+				required: true,
+				default: 'https://remote.mcpservers.org/fetch/mcp',
+			},
+		],
+		buildConfig: answers => ({
+			name: answers.serverName || 'remote-fetch',
+			transport: 'http' as McpTransportType,
+			url: answers.url || 'https://remote.mcpservers.org/fetch/mcp',
+			description:
+				'Web content fetching and conversion for efficient LLM usage',
+			tags: ['remote', 'http', 'scraping', 'fetch'],
+			timeout: 30000,
+		}),
+		category: 'remote',
+		transportType: 'http',
+	},
+	{
+		id: 'github-remote',
+		name: 'GitHub (Remote)',
+		description:
+			'Remote GitHub MCP server for repository management and operations',
+		command: '',
+		fields: [
+			{
+				name: 'serverName',
+				prompt: 'Server name',
+				required: true,
+				default: 'github-remote',
+			},
+			{
+				name: 'githubToken',
+				prompt: 'GitHub Personal Access Token (requires repo, read:org scopes)',
+				required: true,
+				sensitive: true,
+			},
+		],
+		buildConfig: answers => ({
+			name: answers.serverName || 'github-remote',
+			transport: 'http' as McpTransportType,
+			url: 'https://api.githubcopilot.com/mcp/',
+			description:
+				'Remote GitHub MCP server for repository management and operations',
+			tags: ['remote', 'github', 'git', 'repository', 'http'],
+			timeout: 30000,
+			headers: {
+				Authorization: `Bearer ${answers.githubToken}`,
+			},
+		}),
+		category: 'remote',
+		transportType: 'http',
+	},
+	{
+		id: 'gitlab',
+		name: 'GitLab',
+		description: 'GitLab MCP server for repository management and operations',
+		command: 'npx',
+		fields: [
+			{
+				name: 'gitlabToken',
+				prompt: 'GitLab Personal Access Token',
+				required: true,
+				sensitive: true,
+			},
+			{
+				name: 'gitlabApiUrl',
+				prompt: 'GitLab API URL (default: https://gitlab.com/api/v4)',
+				required: false,
+				default: 'https://gitlab.com/api/v4',
+			},
+		],
+		buildConfig: answers => ({
+			name: 'gitlab',
+			transport: 'stdio' as McpTransportType,
+			command: 'npx',
+			args: ['-y', '@zereight/mcp-gitlab'],
+			env: {
+				GITLAB_PERSONAL_ACCESS_TOKEN: answers.gitlabToken,
+				GITLAB_API_URL: answers.gitlabApiUrl || 'https://gitlab.com/api/v4',
+			},
+			description: 'GitLab MCP server for repository management and operations',
+			tags: ['gitlab', 'git', 'repository', 'stdio'],
+		}),
+		category: 'local',
+		transportType: 'stdio',
+	},
+	{
+		id: 'playwright',
+		name: 'Playwright',
+		description: 'Playwright MCP server for browser automation',
+		command: 'npx',
+		fields: [],
+		buildConfig: _answers => ({
+			name: 'playwright',
+			transport: 'stdio' as McpTransportType,
+			command: 'npx',
+			args: ['@playwright/mcp@latest'],
+			description: 'Playwright MCP server for browser automation',
+			tags: ['playwright', 'browser', 'automation', 'stdio'],
+		}),
+		category: 'local',
+		transportType: 'stdio',
+	},
+	{
+		id: 'chrome-devtools',
+		name: 'Chrome DevTools',
+		description: 'Chrome DevTools MCP server for browser automation',
+		command: 'npx',
+		fields: [
+			{
+				name: 'headless',
+				prompt: 'Run Chrome in headless mode? (true/false)',
+				required: false,
+				default: 'true',
+			},
+		],
+		buildConfig: answers => ({
+			name: 'chrome-devtools',
+			transport: 'stdio' as McpTransportType,
+			command: 'npx',
+			args: [
+				'-y',
+				'chrome-devtools-mcp@latest',
+				...(answers.headless === 'true' ? ['--headless=true'] : []),
+			],
+			description: 'Chrome DevTools MCP server for browser automation',
+			tags: ['chrome', 'devtools', 'browser', 'automation', 'stdio'],
+		}),
+		category: 'local',
+		transportType: 'stdio',
+	},
+	{
+		id: 'duckduckgo',
+		name: 'DuckDuckGo Search',
+		description: 'DuckDuckGo search MCP server',
+		command: 'uvx',
+		fields: [],
+		buildConfig: _answers => ({
+			name: 'duckduckgo',
+			transport: 'stdio' as McpTransportType,
+			command: 'uvx',
+			args: ['duckduckgo-mcp-server'],
+			description: 'DuckDuckGo search MCP server',
+			tags: ['duckduckgo', 'search', 'stdio'],
+		}),
+		category: 'local',
+		transportType: 'stdio',
+	},
+	{
+		id: 'git',
+		name: 'Git',
+		description: 'Git MCP server for local repository operations',
+		command: 'uvx',
+		fields: [
+			{
+				name: 'repositoryPath',
+				prompt: 'Path to Git repository',
+				required: true,
+			},
+		],
+		buildConfig: answers => ({
+			name: 'git',
+			transport: 'stdio' as McpTransportType,
+			command: 'uvx',
+			args: ['mcp-server-git', '--repository', answers.repositoryPath],
+			description: 'Git MCP server for local repository operations',
+			tags: ['git', 'repository', 'stdio'],
+		}),
+		category: 'local',
+		transportType: 'stdio',
+	},
+	{
+		id: 'memory',
+		name: 'Memory',
+		description: 'Memory MCP server for persistent storage',
+		command: 'npx',
+		fields: [],
+		buildConfig: _answers => ({
+			name: 'memory',
+			transport: 'stdio' as McpTransportType,
+			command: 'npx',
+			args: ['-y', '@modelcontextprotocol/server-memory'],
+			description: 'Memory MCP server for persistent storage',
+			tags: ['memory', 'storage', 'stdio'],
+		}),
+		category: 'local',
+		transportType: 'stdio',
 	},
 	{
 		id: 'custom',
@@ -253,118 +563,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 
 			return config;
 		},
-	},
-	{
-		id: 'deepwiki',
-		name: 'DeepWiki Remote',
-		description: 'Remote MCP server for wiki documentation and research',
-		command: '',
-		fields: [
-			{
-				name: 'serverName',
-				prompt: 'Server name',
-				required: true,
-				default: 'deepwiki',
-			},
-			{
-				name: 'url',
-				prompt: 'Server URL',
-				required: true,
-				default: 'https://mcp.deepwiki.com/mcp',
-			},
-		],
-		buildConfig: answers => ({
-			name: answers.serverName || 'deepwiki',
-			transport: 'http' as McpTransportType,
-			url: answers.url || 'https://mcp.deepwiki.com/mcp',
-			description: 'Remote MCP server for wiki documentation and research',
-			tags: ['remote', 'wiki', 'documentation', 'http'],
-			timeout: 30000,
-		}),
-	},
-	{
-		id: 'sequential-thinking',
-		name: 'Sequential Thinking Remote',
-		description: 'Remote MCP server for enhanced reasoning and analysis',
-		command: '',
-		fields: [
-			{
-				name: 'serverName',
-				prompt: 'Server name',
-				required: true,
-				default: 'sequential-thinking',
-			},
-			{
-				name: 'url',
-				prompt: 'Server URL',
-				required: true,
-				default: 'https://remote.mcpservers.org/sequentialthinking/mcp',
-			},
-		],
-		buildConfig: answers => ({
-			name: answers.serverName || 'sequential-thinking',
-			transport: 'http' as McpTransportType,
-			url:
-				answers.url || 'https://remote.mcpservers.org/sequentialthinking/mcp',
-			description: 'Remote MCP server for enhanced reasoning and analysis',
-			tags: ['remote', 'reasoning', 'analysis', 'http'],
-			timeout: 30000,
-		}),
-	},
-	{
-		id: 'context7',
-		name: 'Context7 Remote',
-		description: 'Remote MCP server for contextual information retrieval',
-		command: '',
-		fields: [
-			{
-				name: 'serverName',
-				prompt: 'Server name',
-				required: true,
-				default: 'context7',
-			},
-			{
-				name: 'url',
-				prompt: 'Server URL',
-				required: true,
-				default: 'https://mcp.context7.com/mcp',
-			},
-		],
-		buildConfig: answers => ({
-			name: answers.serverName || 'context7',
-			transport: 'http' as McpTransportType,
-			url: answers.url || 'https://mcp.context7.com/mcp',
-			description: 'Remote MCP server for contextual information retrieval',
-			tags: ['remote', 'context', 'information', 'http'],
-			timeout: 30000,
-		}),
-	},
-	{
-		id: 'remote-fetch',
-		name: 'Remote Fetch Server',
-		description: 'Remote MCP server for HTTP requests and web scraping',
-		command: '',
-		fields: [
-			{
-				name: 'serverName',
-				prompt: 'Server name',
-				required: true,
-				default: 'remote-fetch',
-			},
-			{
-				name: 'url',
-				prompt: 'Server URL',
-				required: true,
-				default: 'https://remote.mcpservers.org/fetch/mcp',
-			},
-		],
-		buildConfig: answers => ({
-			name: answers.serverName || 'remote-fetch',
-			transport: 'http' as McpTransportType,
-			url: answers.url || 'https://remote.mcpservers.org/fetch/mcp',
-			description: 'Remote MCP server for HTTP requests and web scraping',
-			tags: ['remote', 'http', 'scraping', 'fetch'],
-			timeout: 30000,
-		}),
+		category: 'local', // Default to local, but can be remote based on transport
+		transportType: 'stdio', // Default to stdio, but can be http/websocket based on transport
 	},
 ];

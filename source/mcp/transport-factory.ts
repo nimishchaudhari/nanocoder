@@ -110,7 +110,7 @@ export class TransportFactory {
 			);
 		}
 
-		// Note: The StreamableHTTPClientTransport doesn't directly support custom headers or auth in the current SDK
+		// Note: The StreamableHTTPClientTransport doesn't directly support custom headers in the current SDK
 		// This would need to be handled via the MCP client or additional transport configuration
 		const transport = new StreamableHTTPClientTransport(url);
 
@@ -118,6 +118,20 @@ export class TransportFactory {
 			console.warn(
 				`HTTP transport for server "${server.name}" has auth config, but current SDK doesn't support custom headers for HTTP transport`,
 			);
+		}
+
+		// Check if headers are specified but cannot be used
+		if (server.headers) {
+			const headerKeys = Object.keys(server.headers);
+			if (headerKeys.length > 0) {
+				console.warn(
+					`HTTP transport for server "${
+						server.name
+					}" has custom headers [${headerKeys.join(
+						', ',
+					)}], but current SDK doesn't support custom headers for HTTP transport. These headers will be ignored.`,
+				);
+			}
 		}
 
 		return transport;
@@ -167,6 +181,20 @@ export class TransportFactory {
 						errors.push('http URL is invalid');
 					}
 				}
+
+				// Warn if headers are specified but won't be used
+				if (server.headers) {
+					const headerKeys = Object.keys(server.headers);
+					if (headerKeys.length > 0) {
+						console.warn(
+							`HTTP transport for server "${
+								server.name
+							}" has custom headers [${headerKeys.join(
+								', ',
+							)}], but current SDK doesn't support custom headers for HTTP transport. These headers will be ignored.`,
+						);
+					}
+				}
 				break;
 		}
 
@@ -195,6 +223,7 @@ export class TransportFactory {
 					'Requires a ws:// or wss:// URL',
 					'Supports real-time bidirectional communication',
 					'Best for interactive remote services',
+					'Note: Custom headers are not currently supported by the SDK and will be ignored',
 				];
 
 			case 'http':
@@ -203,6 +232,7 @@ export class TransportFactory {
 					'Requires an http:// or https:// URL',
 					'Uses the StreamableHTTP protocol from MCP specification',
 					'Best for stateless remote services and APIs',
+					'Note: Custom headers are not currently supported by the SDK and will be ignored',
 				];
 
 			default:

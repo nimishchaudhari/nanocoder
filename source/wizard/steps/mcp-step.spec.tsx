@@ -9,26 +9,28 @@ import {McpStep} from './mcp-step.js';
 
 console.log(`\nmcp-step.spec.tsx – ${React.version}`);
 
-test('McpStep renders with initial template selection', t => {
+test('McpStep renders with initial local servers screen', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
 	t.truthy(output);
-	t.regex(output!, /Add MCP servers to extend Nanocoder/);
+	t.regex(output!, /Configure Local MCP Servers \(STDIO\):/);
 });
 
-test('McpStep shows done option', t => {
+test('McpStep shows tabbed interface for MCP servers', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
-	t.regex(output!, /Done adding MCP servers/);
+	t.regex(output!, /Configure MCP Servers:/);
+	t.regex(output!, /Local Servers \(STDIO\)/);
+	t.regex(output!, /Remote Servers \(HTTP\/WebSocket\)/);
 });
 
-test('McpStep shows MCP server templates', t => {
+test('McpStep shows MCP server templates for local servers', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
-	// Should show some template names
+	// Should show some local template names
 	t.regex(output!, /Filesystem|GitHub|PostgreSQL|Brave Search|Fetch|Custom/);
 });
 
@@ -52,6 +54,7 @@ test('McpStep accepts existingServers prop', t => {
 	const existingServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
 		},
@@ -71,24 +74,22 @@ test('McpStep renders with correct initial state', t => {
 	// Should have rendered at least one frame
 	t.true(frames.length > 0);
 
-	// First frame should show template selection
+	// First frame should show local servers screen
 	const firstFrame = frames[0];
-	t.regex(firstFrame, /Add MCP servers to extend Nanocoder/);
+	t.regex(firstFrame, /Configure Local MCP Servers \(STDIO\):/);
 });
-
-// ============================================================================
-// Tests for McpStep with Existing Servers
-// ============================================================================
 
 test('McpStep shows added servers when they exist', t => {
 	const existingServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
 		},
 		github: {
 			name: 'github',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-github'],
 			env: {GITHUB_PERSONAL_ACCESS_TOKEN: 'token'},
@@ -105,27 +106,11 @@ test('McpStep shows added servers when they exist', t => {
 	t.regex(output!, /github/);
 });
 
-test('McpStep shows edit option when servers exist', t => {
-	const existingServers = {
-		filesystem: {
-			name: 'filesystem',
-			command: 'npx',
-			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
-		},
-	};
-
-	const {lastFrame} = render(
-		<McpStep onComplete={() => {}} existingServers={existingServers} />,
-	);
-
-	const output = lastFrame();
-	t.regex(output!, /Edit existing MCP servers/);
-});
-
-test('McpStep does not show edit option when no servers exist', t => {
+test('McpStep does not show edit option on local servers screen when no servers exist', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
+	// Edit option should not be shown on local servers screen when no servers exist
 	t.notRegex(output!, /Edit existing MCP servers/);
 });
 
@@ -136,15 +121,15 @@ test('McpStep handles empty existingServers object', t => {
 
 	const output = lastFrame();
 	t.truthy(output);
-	// Should not show added servers or edit option when none exist
+	// Should not show added servers when none exist
 	t.notRegex(output!, /Added:/);
-	t.notRegex(output!, /Edit existing MCP servers/);
 });
 
 test('McpStep shows single added server', t => {
 	const existingServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
 		},
@@ -162,16 +147,19 @@ test('McpStep shows multiple added servers', t => {
 	const existingServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
 		},
 		github: {
 			name: 'github',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-github'],
 		},
 		postgres: {
 			name: 'postgres',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-postgres'],
 		},
@@ -182,12 +170,10 @@ test('McpStep shows multiple added servers', t => {
 	);
 
 	const output = lastFrame();
-	t.regex(output!, /Added: filesystem, github, postgres/);
+	t.regex(output!, /Added: filesystem/);
+	t.regex(output!, /github/);
+	t.regex(output!, /postgres/);
 });
-
-// ============================================================================
-// Tests for McpStep Callbacks
-// ============================================================================
 
 test('McpStep calls onComplete when provided', t => {
 	let completeCalled = false;
@@ -220,10 +206,6 @@ test('McpStep calls onBack when provided', t => {
 	t.false(backCalled); // Should not be called on render
 });
 
-// ============================================================================
-// Tests for McpStep Props Validation
-// ============================================================================
-
 test('McpStep requires onComplete prop', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
@@ -245,17 +227,13 @@ test('McpStep handles optional existingServers prop', t => {
 	t.truthy(lastFrame());
 });
 
-// ============================================================================
-// Tests for McpStep UI Elements
-// ============================================================================
-
-test('McpStep renders SelectInput component', t => {
+test('McpStep renders SelectInput component for MCP servers', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
 	// SelectInput should render options
 	t.truthy(output);
-	t.regex(output!, /Done adding MCP servers/);
+	t.regex(output!, /Configure MCP Servers:/);
 });
 
 test('McpStep shows template descriptions on wide terminals', t => {
@@ -272,24 +250,21 @@ test('McpStep handles multiple server configurations', t => {
 	const existingServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp', '/home'],
 		},
 		github: {
 			name: 'github',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-github'],
-			env: {
-				GITHUB_PERSONAL_ACCESS_TOKEN: 'secret-token',
-			},
 		},
 		postgres: {
 			name: 'postgres',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-postgres'],
-			env: {
-				POSTGRES_CONNECTION_STRING: 'postgresql://localhost/db',
-			},
 		},
 	};
 
@@ -312,6 +287,7 @@ test('McpStep handles filesystem server config', t => {
 	const existingServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: [
 				'-y',
@@ -334,6 +310,7 @@ test('McpStep handles github server config with env', t => {
 	const existingServers = {
 		github: {
 			name: 'github',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-github'],
 			env: {
@@ -354,10 +331,11 @@ test('McpStep handles postgres server config', t => {
 	const existingServers = {
 		postgres: {
 			name: 'postgres',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-postgres'],
 			env: {
-				POSTGRES_CONNECTION_STRING: 'postgresql://user:pass@localhost:5432/db',
+				POSTGRES_CONNECTION_STRING: 'postgresql://localhost/db',
 			},
 		},
 	};
@@ -374,6 +352,7 @@ test('McpStep handles brave-search server config', t => {
 	const existingServers = {
 		'brave-search': {
 			name: 'brave-search',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-brave-search'],
 			env: {
@@ -394,6 +373,7 @@ test('McpStep handles fetch server config', t => {
 	const existingServers = {
 		fetch: {
 			name: 'fetch',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-fetch'],
 			env: {
@@ -414,6 +394,7 @@ test('McpStep handles custom server config', t => {
 	const existingServers = {
 		'my-custom-server': {
 			name: 'my-custom-server',
+			transport: 'stdio',
 			command: 'node',
 			args: ['/path/to/server.js', '--port', '8080'],
 			env: {
@@ -435,6 +416,7 @@ test('McpStep handles server without env variables', t => {
 	const existingServers = {
 		fetch: {
 			name: 'fetch',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-fetch'],
 		},
@@ -452,21 +434,21 @@ test('McpStep handles server without env variables', t => {
 // Tests for McpStep Mode States
 // ============================================================================
 
-test('McpStep renders in template-selection mode initially', t => {
+test('McpStep renders in local-servers mode initially', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
-	// Initial mode shows template selection prompt
-	t.regex(output!, /Add MCP servers to extend Nanocoder/);
+	// Initial mode shows local servers screen
+	t.regex(output!, /Configure Local MCP Servers \(STDIO\):/);
 });
 
-test('McpStep shows all available templates', t => {
+test('McpStep shows all available local templates', t => {
 	const {lastFrame} = render(<McpStep onComplete={() => {}} />);
 
 	const output = lastFrame();
-	// Should show template options (though some may be truncated)
+	// Should show local template options
 	t.truthy(output);
-	t.regex(output!, /Done adding MCP servers/);
+	t.regex(output!, /Configure Local MCP Servers \(STDIO\):/);
 });
 
 // ============================================================================
@@ -485,11 +467,13 @@ test('McpStep maintains existing servers', t => {
 	const existingServers = {
 		test1: {
 			name: 'test1',
+			transport: 'stdio',
 			command: 'node',
 			args: ['server.js'],
 		},
 		test2: {
 			name: 'test2',
+			transport: 'stdio',
 			command: 'python',
 			args: ['server.py'],
 		},
@@ -512,6 +496,7 @@ test('McpStep renders without errors with all props', t => {
 	const existingServers = {
 		filesystem: {
 			name: 'filesystem',
+			transport: 'stdio',
 			command: 'npx',
 			args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
 		},
@@ -533,13 +518,14 @@ test('McpStep renders correctly on first render', t => {
 
 	t.true(frames.length > 0);
 	const firstFrame = frames[0];
-	t.regex(firstFrame, /Add MCP servers to extend Nanocoder/);
+	t.regex(firstFrame, /Configure Local MCP Servers \(STDIO\):/);
 });
 
 test('McpStep handles complex server names', t => {
 	const existingServers = {
 		'my-custom-mcp-server-v2': {
 			name: 'my-custom-mcp-server-v2',
+			transport: 'stdio',
 			command: 'node',
 			args: ['dist/index.js'],
 		},
@@ -557,6 +543,7 @@ test('McpStep handles servers with many arguments', t => {
 	const existingServers = {
 		complex: {
 			name: 'complex',
+			transport: 'stdio',
 			command: 'node',
 			args: [
 				'server.js',
@@ -582,6 +569,7 @@ test('McpStep handles servers with multiple env variables', t => {
 	const existingServers = {
 		envtest: {
 			name: 'envtest',
+			transport: 'stdio',
 			command: 'node',
 			args: ['server.js'],
 			env: {

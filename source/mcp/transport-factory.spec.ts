@@ -270,3 +270,128 @@ test('TransportFactory.getTransportTips: handles unknown transport', t => {
 	t.is(tips.length, 1);
 	t.is(tips[0], 'Unknown transport type');
 });
+
+// ============================================================================
+// Tests for Header Warning Functionality (New Feature)
+// ============================================================================
+
+test('TransportFactory.createTransport: warns about auth config for websocket transport', t => {
+	// Capture console.warn calls
+	const originalWarn = console.warn;
+	let warningMessage = '';
+	console.warn = (message: string) => {
+		warningMessage = message;
+	};
+
+	try {
+		const server: MCPServer = {
+			name: 'test-websocket-with-auth',
+			transport: 'websocket',
+			url: 'ws://localhost:3000/mcp',
+			auth: {
+				type: 'bearer',
+				token: 'token123',
+			},
+		};
+
+		const transport = TransportFactory.createTransport(server);
+
+		t.truthy(transport);
+		t.true(warningMessage.includes('auth config'));
+		t.true(warningMessage.includes('WebSocket transport'));
+	} finally {
+		// Restore original console.warn
+		console.warn = originalWarn;
+	}
+});
+
+test('TransportFactory.createTransport: warns about headers for http transport', t => {
+	// Capture console.warn calls
+	const originalWarn = console.warn;
+	let warningMessage = '';
+	console.warn = (message: string) => {
+		warningMessage = message;
+	};
+
+	try {
+		const server: MCPServer = {
+			name: 'test-http-with-headers',
+			transport: 'http',
+			url: 'https://example.com/mcp',
+			headers: {
+				Authorization: 'Bearer token123',
+			},
+		};
+
+		const transport = TransportFactory.createTransport(server);
+
+		t.truthy(transport);
+		t.true(warningMessage.includes('custom headers'));
+		t.true(warningMessage.includes('HTTP transport'));
+		t.true(warningMessage.includes('Authorization'));
+	} finally {
+		// Restore original console.warn
+		console.warn = originalWarn;
+	}
+});
+
+test('TransportFactory.createTransport: warns about auth config for http transport', t => {
+	// Capture console.warn calls
+	const originalWarn = console.warn;
+	let warningMessage = '';
+	console.warn = (message: string) => {
+		warningMessage = message;
+	};
+
+	try {
+		const server: MCPServer = {
+			name: 'test-http-with-auth',
+			transport: 'http',
+			url: 'https://example.com/mcp',
+			auth: {
+				type: 'bearer',
+				token: 'token123',
+			},
+		};
+
+		const transport = TransportFactory.createTransport(server);
+
+		t.truthy(transport);
+		t.true(warningMessage.includes('auth config'));
+		t.true(warningMessage.includes('HTTP transport'));
+	} finally {
+		// Restore original console.warn
+		console.warn = originalWarn;
+	}
+});
+
+test('TransportFactory.validateServerConfig: warns about headers for http transport', t => {
+	// Capture console.warn calls
+	const originalWarn = console.warn;
+	let warningMessage = '';
+	console.warn = (message: string) => {
+		warningMessage = message;
+	};
+
+	try {
+		const server: MCPServer = {
+			name: 'test-http-with-headers-validation',
+			transport: 'http',
+			url: 'https://example.com/mcp',
+			headers: {
+				'Custom-Header': 'value',
+			},
+		};
+
+		const result = TransportFactory.validateServerConfig(server);
+
+		t.true(result.valid);
+		t.is(result.errors.length, 0);
+		t.true(warningMessage.includes('custom headers'));
+		t.true(warningMessage.includes('HTTP transport'));
+		t.true(warningMessage.includes('Custom-Header'));
+	} finally {
+		// Restore original console.warn
+		console.warn = originalWarn;
+	}
+});
