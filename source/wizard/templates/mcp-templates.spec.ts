@@ -285,7 +285,7 @@ test('deepwiki template: builds correct HTTP config', t => {
 	t.is(config.timeout, 30000);
 	t.is(
 		config.description,
-		'Remote MCP server for wiki documentation and research',
+		'DeepWiki provides up-to-date documentation you can talk to, for every repo in the world.',
 	);
 	t.deepEqual(config.tags, ['remote', 'wiki', 'documentation', 'http']);
 });
@@ -302,7 +302,7 @@ test('sequential-thinking template: builds correct HTTP config', t => {
 	t.is(config.timeout, 30000);
 	t.is(
 		config.description,
-		'Remote MCP server for enhanced reasoning and analysis',
+		'Dynamic and reflective problem-solving through thought sequences.',
 	);
 	t.deepEqual(config.tags, ['remote', 'reasoning', 'analysis', 'http']);
 });
@@ -319,7 +319,7 @@ test('context7 template: builds correct HTTP config', t => {
 	t.is(config.timeout, 30000);
 	t.is(
 		config.description,
-		'Remote MCP server for contextual information retrieval',
+		'Up-to-date code documentation for LLMs and AI code editors.',
 	);
 	t.deepEqual(config.tags, ['remote', 'context', 'information', 'http']);
 });
@@ -336,9 +336,31 @@ test('remote-fetch template: builds correct HTTP config', t => {
 	t.is(config.timeout, 30000);
 	t.is(
 		config.description,
-		'Remote MCP server for HTTP requests and web scraping',
+		'Web content fetching and conversion for efficient LLM usage',
 	);
 	t.deepEqual(config.tags, ['remote', 'http', 'scraping', 'fetch']);
+});
+
+test('github-remote template: builds correct HTTP config with headers', t => {
+	const template = MCP_TEMPLATES.find(t => t.id === 'github-remote');
+	t.truthy(template);
+
+	const config = template!.buildConfig({
+		githubToken: 'ghp_test123',
+	});
+
+	t.is(config.name, 'github-remote');
+	t.is(config.transport, 'http');
+	t.is(config.url, 'https://api.githubcopilot.com/mcp/');
+	t.is(config.timeout, 30000);
+	t.is(
+		config.description,
+		'Remote GitHub MCP server for repository management and operations',
+	);
+	t.deepEqual(config.tags, ['remote', 'github', 'git', 'repository', 'http']);
+	t.deepEqual(config.headers, {
+		Authorization: 'Bearer ghp_test123',
+	});
 });
 
 test('remote templates: have no required fields', t => {
@@ -347,6 +369,7 @@ test('remote templates: have no required fields', t => {
 		'sequential-thinking',
 		'context7',
 		'remote-fetch',
+		'github-remote',
 	];
 
 	for (const templateId of remoteTemplates) {
@@ -416,6 +439,12 @@ test('local templates: use stdio transport', t => {
 		'postgres',
 		'brave-search',
 		'fetch',
+		'gitlab',
+		'playwright',
+		'chrome-devtools',
+		'duckduckgo',
+		'git',
+		'memory',
 	];
 
 	for (const templateId of localTemplates) {
@@ -425,7 +454,13 @@ test('local templates: use stdio transport', t => {
 		const answers: Record<string, string> = {};
 		for (const field of template!.fields) {
 			if (field.required) {
-				answers[field.name] = 'test-value';
+				if (field.name === 'repositoryPath') {
+					answers[field.name] = '/test/repo';
+				} else if (field.name === 'gitlabToken') {
+					answers[field.name] = 'test-token';
+				} else {
+					answers[field.name] = 'test-value';
+				}
 			}
 		}
 
@@ -444,6 +479,7 @@ test('remote templates: use http transport', t => {
 		'sequential-thinking',
 		'context7',
 		'remote-fetch',
+		'github-remote',
 	];
 
 	for (const templateId of remoteTemplates) {
@@ -458,3 +494,120 @@ test('remote templates: use http transport', t => {
 		);
 	}
 });
+
+// ============================================================================
+// Tests for New STDIO Server Templates
+// ============================================================================
+
+test('gitlab template: creates config with env', t => {
+	const template = MCP_TEMPLATES.find(t => t.id === 'gitlab');
+	t.truthy(template);
+
+	const config = template!.buildConfig({
+		gitlabToken: 'glpat-test123',
+		gitlabApiUrl: 'https://gitlab.example.com/api/v4',
+	});
+
+	t.is(config.name, 'gitlab');
+	t.deepEqual(config.args, ['-y', '@zereight/mcp-gitlab']);
+	t.deepEqual(config.env, {
+		GITLAB_PERSONAL_ACCESS_TOKEN: 'glpat-test123',
+		GITLAB_API_URL: 'https://gitlab.example.com/api/v4',
+	});
+});
+
+test('gitlab template: uses default API URL when not provided', t => {
+	const template = MCP_TEMPLATES.find(t => t.id === 'gitlab');
+	t.truthy(template);
+
+	const config = template!.buildConfig({
+		gitlabToken: 'glpat-test123',
+	});
+
+	t.is(config.name, 'gitlab');
+	t.deepEqual(config.args, ['-y', '@zereight/mcp-gitlab']);
+	t.deepEqual(config.env, {
+		GITLAB_PERSONAL_ACCESS_TOKEN: 'glpat-test123',
+		GITLAB_API_URL: 'https://gitlab.com/api/v4',
+	});
+});
+
+test('playwright template: creates config correctly', t => {
+	const template = MCP_TEMPLATES.find(t => t.id === 'playwright');
+	t.truthy(template);
+
+	const config = template!.buildConfig({});
+
+	t.is(config.name, 'playwright');
+	t.deepEqual(config.args, ['@playwright/mcp@latest']);
+	t.is(config.env, undefined);
+});
+
+test('chrome-devtools template: creates config without headless mode', t => {
+	const template = MCP_TEMPLATES.find(t => t.id === 'chrome-devtools');
+	t.truthy(template);
+
+	const config = template!.buildConfig({
+		headless: 'false',
+	});
+
+	t.is(config.name, 'chrome-devtools');
+	t.deepEqual(config.args, ['-y', 'chrome-devtools-mcp@latest']);
+	t.is(config.env, undefined);
+});
+
+test('chrome-devtools template: creates config with headless mode', t => {
+	const template = MCP_TEMPLATES.find(t => t.id === 'chrome-devtools');
+	t.truthy(template);
+
+	const config = template!.buildConfig({
+		headless: 'true',
+	});
+
+	t.is(config.name, 'chrome-devtools');
+	t.deepEqual(config.args, [
+		'-y',
+		'chrome-devtools-mcp@latest',
+		'--headless=true',
+	]);
+	t.is(config.env, undefined);
+});
+
+test('duckduckgo template: creates config correctly', t => {
+	const template = MCP_TEMPLATES.find(t => t.id === 'duckduckgo');
+	t.truthy(template);
+
+	const config = template!.buildConfig({});
+
+	t.is(config.name, 'duckduckgo');
+	t.deepEqual(config.args, ['duckduckgo-mcp-server']);
+	t.is(config.env, undefined);
+});
+
+test('git template: creates config with repository path', t => {
+	const template = MCP_TEMPLATES.find(t => t.id === 'git');
+	t.truthy(template);
+
+	const config = template!.buildConfig({
+		repositoryPath: '/path/to/repo',
+	});
+
+	t.is(config.name, 'git');
+	t.deepEqual(config.args, ['mcp-server-git', '--repository', '/path/to/repo']);
+	t.is(config.env, undefined);
+});
+
+test('memory template: creates config correctly', t => {
+	const template = MCP_TEMPLATES.find(t => t.id === 'memory');
+	t.truthy(template);
+
+	const config = template!.buildConfig({});
+
+	t.is(config.name, 'memory');
+	t.deepEqual(config.args, ['-y', '@modelcontextprotocol/server-memory']);
+	t.is(config.env, undefined);
+});
+
+// ============================================================================
+// Tests for Transport Field (New Feature)
+// ============================================================================

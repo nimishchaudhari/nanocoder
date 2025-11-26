@@ -78,8 +78,9 @@ export function McpStep({
 	const getTemplateOptions = (): TemplateOption[] => {
 		if (mode === 'tabs') {
 			const options: TemplateOption[] = [];
-			const templates = activeTab === 'local' ? localTemplates : remoteTemplates;
-			
+			const templates =
+				activeTab === 'local' ? localTemplates : remoteTemplates;
+
 			// Add templates for current tab
 			templates.forEach(template => {
 				options.push({
@@ -90,22 +91,22 @@ export function McpStep({
 					category: activeTab,
 				});
 			});
-			
+
 			// Add skip option at the end
 			options.push({
 				label: 'Skip adding MCP servers',
 				value: 'skip',
 			});
-			
+
 			// Add "Done adding MCP servers" option after skip
 			options.push({
 				label: 'Done adding MCP servers',
 				value: 'done',
 			});
-			
+
 			return options;
 		}
-		
+
 		return [];
 	};
 
@@ -368,7 +369,7 @@ export function McpStep({
 
 	if (mode === 'tabs') {
 		const templateOptions = getTemplateOptions();
-		
+
 		return (
 			<Box flexDirection="column">
 				<Box marginBottom={1}>
@@ -398,21 +399,20 @@ export function McpStep({
 				</Tabs>
 				<Box marginTop={1} marginBottom={1}>
 					<Text>
-						{activeTab === 'local' 
-							? 'Configure Local MCP Servers (STDIO):' 
+						{activeTab === 'local'
+							? 'Configure Local MCP Servers (STDIO):'
 							: 'Configure Remote MCP Servers (HTTP/WebSocket):'}
 					</Text>
 				</Box>
-				<SelectInput
-					items={templateOptions}
-					onSelect={handleTemplateSelect}
-				/>
+				<SelectInput items={templateOptions} onSelect={handleTemplateSelect} />
 				<Box marginTop={1}>
 					<Text color={colors.secondary}>
-						Arrow keys: Navigate | Enter: Select | Tab/Shift+Tab: Switch tabs | Esc: Go back
+						Arrow keys: Navigate | Enter: Select | Tab/Shift+Tab: Switch tabs |
+						Esc: Go back
 					</Text>
 					<Text color={colors.secondary}>
-						Select "Skip adding MCP servers" to continue without adding any MCP servers
+						Select "Skip adding MCP servers" to continue without adding any MCP
+						servers
 					</Text>
 					<Text color={colors.secondary}>
 						Select "Done adding MCP servers" to finish configuration and review
@@ -452,7 +452,7 @@ export function McpStep({
 							{label: 'Add more servers', value: 'add-more'},
 							{label: 'Done configuring MCP servers', value: 'done'},
 						]}
-						onSelect={(item) => {
+						onSelect={item => {
 							if (item.value === 'edit') {
 								setMode('edit-selection');
 							} else if (item.value === 'add-more') {

@@ -119,13 +119,17 @@ export class TransportFactory {
 				`HTTP transport for server "${server.name}" has auth config, but current SDK doesn't support custom headers for HTTP transport`,
 			);
 		}
-		
+
 		// Check if headers are specified but cannot be used
 		if (server.headers) {
 			const headerKeys = Object.keys(server.headers);
 			if (headerKeys.length > 0) {
 				console.warn(
-					`HTTP transport for server "${server.name}" has custom headers [${headerKeys.join(', ')}], but current SDK doesn't support custom headers for HTTP transport. These headers will be ignored.`,
+					`HTTP transport for server "${
+						server.name
+					}" has custom headers [${headerKeys.join(
+						', ',
+					)}], but current SDK doesn't support custom headers for HTTP transport. These headers will be ignored.`,
 				);
 			}
 		}
@@ -177,13 +181,17 @@ export class TransportFactory {
 						errors.push('http URL is invalid');
 					}
 				}
-				
+
 				// Warn if headers are specified but won't be used
 				if (server.headers) {
 					const headerKeys = Object.keys(server.headers);
 					if (headerKeys.length > 0) {
 						console.warn(
-							`HTTP transport for server "${server.name}" has custom headers [${headerKeys.join(', ')}], but current SDK doesn't support custom headers for HTTP transport. These headers will be ignored.`,
+							`HTTP transport for server "${
+								server.name
+							}" has custom headers [${headerKeys.join(
+								', ',
+							)}], but current SDK doesn't support custom headers for HTTP transport. These headers will be ignored.`,
 						);
 					}
 				}

@@ -217,8 +217,7 @@ export function SummaryStep({
 			{providers.length === 0 && (
 				<Box marginBottom={1}>
 					<Text color={colors.warning}>
-						!{' '}
-						{isNarrow ? 'No providers!' : 'Warning: No providers configured.'}
+						! {isNarrow ? 'No providers!' : 'Warning: No providers configured.'}
 					</Text>
 				</Box>
 			)}
