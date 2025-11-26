@@ -35,19 +35,7 @@ stdenv.mkDerivation (finalAttrs: {
     inherit (finalAttrs) pname version src;
     hash = "sha256-o2KDZMbXhoXy66We6oy3LA7BGRnBkM4Tbjv4iE8DxFI=";
     fetcherVersion = 2;
-
-    # Fix pnpm workspace error - add packages field to workspace file
-    postPatch = ''
-      echo "packages:" >> pnpm-workspace.yaml
-      echo "  - ." >> pnpm-workspace.yaml
-    '';
   };
-
-  # Fix pnpm workspace error in main build too
-  postPatch = ''
-    echo "packages:" >> pnpm-workspace.yaml
-    echo "  - ." >> pnpm-workspace.yaml
-  '';
 
   buildPhase = ''
     runHook preBuild
