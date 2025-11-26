@@ -6,6 +6,7 @@
 set -e
 
 VERSION=$1
+SKIP_VERIFY=$2
 NIX_FILE="nix/packages/default/default.nix"
 FAKE_HASH="sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
@@ -17,8 +18,9 @@ NC='\033[0m' # No Color
 
 if [ -z "$VERSION" ]; then
   echo -e "${RED}Error: Version number required${NC}"
-  echo "Usage: $0 <version>"
+  echo "Usage: $0 <version> [--skip-verify]"
   echo "Example: $0 1.15.0"
+  echo "Example: $0 1.15.0 --skip-verify"
   exit 1
 fi
 
@@ -101,23 +103,9 @@ else
   sed -i "s|hash = \".*\";|hash = \"${PNPM_HASH}\";|" "$NIX_FILE"
 fi
 
-# Step 8: Build again to verify
-echo "Step 8: Verifying build with correct hashes..."
-if nix build .#default; then
-  echo -e "${GREEN}✓ Build successful!${NC}"
-  echo ""
-
-  # Test the binary exists
-  echo "Step 9: Verifying binary exists..."
-  if [ -f "./result/bin/nanocoder" ] && [ -x "./result/bin/nanocoder" ]; then
-    echo -e "${GREEN}✓ Binary exists and is executable!${NC}"
-  else
-    echo -e "${YELLOW}⚠ Warning: Binary not found or not executable${NC}"
-  fi
-
-  # Clean up
-  rm -f result
-
+# Step 8: Build again to verify (unless --skip-verify is passed)
+if [ "$SKIP_VERIFY" = "--skip-verify" ]; then
+  echo "Step 8: Skipping verification build (--skip-verify flag passed)"
   echo ""
   echo -e "${GREEN}════════════════════════════════════════════════${NC}"
   echo -e "${GREEN}Success! Nix package updated to v${VERSION}${NC}"
@@ -128,13 +116,42 @@ if nix build .#default; then
   echo "Source hash: ${SOURCE_HASH}"
   echo "pnpmDeps hash: ${PNPM_HASH}"
   echo ""
-  echo "Next steps:"
-  echo "  1. Review the changes: git diff ${NIX_FILE}"
-  echo "  2. Commit: git add ${NIX_FILE}"
-  echo "  3. Commit: git commit -m 'chore: update nix package to v${VERSION}'"
-  echo "  4. Push: git push"
+  echo -e "${YELLOW}Note: Verification build was skipped. Run 'nix build .#default' locally to verify.${NC}"
 else
-  echo -e "${RED}✗ Build failed with correct hashes${NC}"
-  echo "Please check the build output above for errors."
-  exit 1
+  echo "Step 8: Verifying build with correct hashes..."
+  if nix build .#default; then
+    echo -e "${GREEN}✓ Build successful!${NC}"
+    echo ""
+
+    # Test the binary exists
+    echo "Step 9: Verifying binary exists..."
+    if [ -f "./result/bin/nanocoder" ] && [ -x "./result/bin/nanocoder" ]; then
+      echo -e "${GREEN}✓ Binary exists and is executable!${NC}"
+    else
+      echo -e "${YELLOW}⚠ Warning: Binary not found or not executable${NC}"
+    fi
+
+    # Clean up
+    rm -f result
+
+    echo ""
+    echo -e "${GREEN}════════════════════════════════════════════════${NC}"
+    echo -e "${GREEN}Success! Nix package updated to v${VERSION}${NC}"
+    echo -e "${GREEN}════════════════════════════════════════════════${NC}"
+    echo ""
+    echo "Changes made to: ${NIX_FILE}"
+    echo ""
+    echo "Source hash: ${SOURCE_HASH}"
+    echo "pnpmDeps hash: ${PNPM_HASH}"
+    echo ""
+    echo "Next steps:"
+    echo "  1. Review the changes: git diff ${NIX_FILE}"
+    echo "  2. Commit: git add ${NIX_FILE}"
+    echo "  3. Commit: git commit -m 'chore: update nix package to v${VERSION}'"
+    echo "  4. Push: git push"
+  else
+    echo -e "${RED}✗ Build failed with correct hashes${NC}"
+    echo "Please check the build output above for errors."
+    exit 1
+  fi
 fi

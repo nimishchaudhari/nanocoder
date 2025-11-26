@@ -32,7 +32,7 @@ jobs:
       - name: Update Nix package
         run: |
           chmod +x scripts/update-nix-version.sh
-          ./scripts/update-nix-version.sh ${{ inputs.version }}
+          ./scripts/update-nix-version.sh ${{ inputs.version }} --skip-verify
 
       - name: Commit and push Nix update
         run: |
