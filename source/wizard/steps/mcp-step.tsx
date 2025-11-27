@@ -139,7 +139,9 @@ export function McpStep({
 					setMode('tabs');
 				} catch (err) {
 					setError(
-						err instanceof Error ? err.message : 'Failed to build configuration',
+						err instanceof Error
+							? err.message
+							: 'Failed to build configuration',
 					);
 				}
 			} else {
