@@ -129,14 +129,30 @@ export function McpStep({
 		// Adding new server
 		const template = MCP_TEMPLATES.find(t => t.id === item.value);
 		if (template) {
-			setEditingServerName(null); // Not editing
-			setSelectedTemplate(template);
-			setCurrentFieldIndex(0);
-			setFieldAnswers({});
-			setCurrentValue(template.fields[0]?.default || '');
-			setMultilineBuffer('');
-			setError(null);
-			setMode('field-input');
+			// Check if template has no fields
+			if (template.fields.length === 0) {
+				// Automatically build config and add server when no fields are required
+				try {
+					const serverConfig = template.buildConfig({});
+					setServers({...servers, [serverConfig.name]: serverConfig});
+					// Stay in tabs mode to allow adding more servers
+					setMode('tabs');
+				} catch (err) {
+					setError(
+						err instanceof Error ? err.message : 'Failed to build configuration',
+					);
+				}
+			} else {
+				// Template has fields, proceed with normal flow
+				setEditingServerName(null); // Not editing
+				setSelectedTemplate(template);
+				setCurrentFieldIndex(0);
+				setFieldAnswers({});
+				setCurrentValue(template.fields[0]?.default || '');
+				setMultilineBuffer('');
+				setError(null);
+				setMode('field-input');
+			}
 		}
 	};
 
