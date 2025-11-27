@@ -305,34 +305,19 @@ test('TransportFactory.createTransport: warns about auth config for websocket tr
 	}
 });
 
-test('TransportFactory.createTransport: warns about headers for http transport', t => {
-	// Capture console.warn calls
-	const originalWarn = console.warn;
-	let warningMessage = '';
-	console.warn = (message: string) => {
-		warningMessage = message;
+test('TransportFactory.createTransport: creates http transport with headers', t => {
+	const server: MCPServer = {
+		name: 'test-http-with-headers',
+		transport: 'http',
+		url: 'https://example.com/mcp',
+		headers: {
+			Authorization: 'Bearer token123',
+		},
 	};
 
-	try {
-		const server: MCPServer = {
-			name: 'test-http-with-headers',
-			transport: 'http',
-			url: 'https://example.com/mcp',
-			headers: {
-				Authorization: 'Bearer token123',
-			},
-		};
+	const transport = TransportFactory.createTransport(server);
 
-		const transport = TransportFactory.createTransport(server);
-
-		t.truthy(transport);
-		t.true(warningMessage.includes('custom headers'));
-		t.true(warningMessage.includes('HTTP transport'));
-		t.true(warningMessage.includes('Authorization'));
-	} finally {
-		// Restore original console.warn
-		console.warn = originalWarn;
-	}
+	t.truthy(transport);
 });
 
 test('TransportFactory.createTransport: warns about auth config for http transport', t => {
@@ -365,33 +350,18 @@ test('TransportFactory.createTransport: warns about auth config for http transpo
 	}
 });
 
-test('TransportFactory.validateServerConfig: warns about headers for http transport', t => {
-	// Capture console.warn calls
-	const originalWarn = console.warn;
-	let warningMessage = '';
-	console.warn = (message: string) => {
-		warningMessage = message;
+test('TransportFactory.validateServerConfig: validates http config with headers', t => {
+	const server: MCPServer = {
+		name: 'test-http-with-headers-validation',
+		transport: 'http',
+		url: 'https://example.com/mcp',
+		headers: {
+			'Custom-Header': 'value',
+		},
 	};
 
-	try {
-		const server: MCPServer = {
-			name: 'test-http-with-headers-validation',
-			transport: 'http',
-			url: 'https://example.com/mcp',
-			headers: {
-				'Custom-Header': 'value',
-			},
-		};
+	const result = TransportFactory.validateServerConfig(server);
 
-		const result = TransportFactory.validateServerConfig(server);
-
-		t.true(result.valid);
-		t.is(result.errors.length, 0);
-		t.true(warningMessage.includes('custom headers'));
-		t.true(warningMessage.includes('HTTP transport'));
-		t.true(warningMessage.includes('Custom-Header'));
-	} finally {
-		// Restore original console.warn
-		console.warn = originalWarn;
-	}
+	t.true(result.valid);
+	t.is(result.errors.length, 0);
 });

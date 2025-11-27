@@ -110,9 +110,11 @@ export class TransportFactory {
 			);
 		}
 
-		// Note: The StreamableHTTPClientTransport doesn't directly support custom headers in the current SDK
-		// This would need to be handled via the MCP client or additional transport configuration
-		const transport = new StreamableHTTPClientTransport(url);
+		// Create transport with headers if provided
+		const transportOptions = server.headers
+			? {requestInit: {headers: server.headers}}
+			: undefined;
+		const transport = new StreamableHTTPClientTransport(url, transportOptions);
 
 		if (server.auth) {
 			console.warn(
@@ -124,13 +126,8 @@ export class TransportFactory {
 		if (server.headers) {
 			const headerKeys = Object.keys(server.headers);
 			if (headerKeys.length > 0) {
-				console.warn(
-					`HTTP transport for server "${
-						server.name
-					}" has custom headers [${headerKeys.join(
-						', ',
-					)}], but current SDK doesn't support custom headers for HTTP transport. These headers will be ignored.`,
-				);
+				// Headers are now being used, so don't show the warning anymore
+				// console.warn(...) - Commented out since headers are now supported
 			}
 		}
 
@@ -182,19 +179,8 @@ export class TransportFactory {
 					}
 				}
 
-				// Warn if headers are specified but won't be used
-				if (server.headers) {
-					const headerKeys = Object.keys(server.headers);
-					if (headerKeys.length > 0) {
-						console.warn(
-							`HTTP transport for server "${
-								server.name
-							}" has custom headers [${headerKeys.join(
-								', ',
-							)}], but current SDK doesn't support custom headers for HTTP transport. These headers will be ignored.`,
-						);
-					}
-				}
+				// Headers are now supported, so we don't need to warn about them being ignored
+				// The actual warning logic has been moved to the createHTTPTransport method
 				break;
 		}
 
@@ -232,7 +218,7 @@ export class TransportFactory {
 					'Requires an http:// or https:// URL',
 					'Uses the StreamableHTTP protocol from MCP specification',
 					'Best for stateless remote services and APIs',
-					'Note: Custom headers are not currently supported by the SDK and will be ignored',
+					'Custom headers are now supported for authentication',
 				];
 
 			default:

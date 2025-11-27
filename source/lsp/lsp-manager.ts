@@ -72,7 +72,7 @@ export class LSPManager extends EventEmitter {
 
 		// Auto-discover additional servers if enabled (default: true)
 		if (config.autoDiscover !== false) {
-			const discovered = discoverLanguageServers();
+			const discovered = await discoverLanguageServers();
 
 			// Only add discovered servers for languages not already covered
 			const coveredLanguages = new Set<string>();
