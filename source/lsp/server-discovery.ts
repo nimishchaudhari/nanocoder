@@ -29,6 +29,7 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		args: ['--stdio'],
 		languages: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs'],
 		checkCommand: 'typescript-language-server --version',
+		verificationMethod: 'version',
 		installHint: 'npm install -g typescript-language-server typescript',
 	},
 	// Python - Pyright (preferred)
@@ -48,6 +49,7 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		args: [],
 		languages: ['py', 'pyi'],
 		checkCommand: 'pylsp --version',
+		verificationMethod: 'version',
 		installHint: 'pip install python-lsp-server',
 	},
 	// Rust
@@ -57,6 +59,7 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		args: [],
 		languages: ['rs'],
 		checkCommand: 'rust-analyzer --version',
+		verificationMethod: 'version',
 		installHint: 'rustup component add rust-analyzer',
 	},
 	// Go
@@ -66,6 +69,7 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		args: ['serve'],
 		languages: ['go'],
 		checkCommand: 'gopls version',
+		verificationMethod: 'version',
 		installHint: 'go install golang.org/x/tools/gopls@latest',
 	},
 	// C/C++
@@ -75,6 +79,7 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		args: ['--background-index'],
 		languages: ['c', 'cpp', 'cc', 'cxx', 'h', 'hpp', 'hxx'],
 		checkCommand: 'clangd --version',
+		verificationMethod: 'version',
 		installHint: 'Install via system package manager (apt, brew, etc.)',
 	},
 	// JSON
@@ -124,6 +129,7 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		args: ['start'],
 		languages: ['sh', 'bash', 'zsh'],
 		checkCommand: 'bash-language-server --version',
+		verificationMethod: 'version',
 		installHint: 'npm install -g bash-language-server',
 	},
 	// Lua
@@ -133,6 +139,7 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		args: [],
 		languages: ['lua'],
 		checkCommand: 'lua-language-server --version',
+		verificationMethod: 'version',
 		installHint: 'Install from https://github.com/LuaLS/lua-language-server',
 	},
 ];
@@ -175,23 +182,26 @@ function verifyServer(checkCommand: string): boolean {
  * Verify an LSP server by attempting to start it with its required LSP arguments
  * and confirming that the process spawns successfully without immediate errors.
  */
-function verifyLSPServerWithCommunication(command: string, args: string[]): Promise<boolean> {
-	return new Promise((resolve) => {
+function verifyLSPServerWithCommunication(
+	command: string,
+	args: string[],
+): Promise<boolean> {
+	return new Promise(resolve => {
 		const child = spawn(command, args, {stdio: ['pipe', 'pipe', 'pipe']});
-		
+
 		// Set a timeout to prevent the process from hanging indefinitely
 		const timeout = setTimeout(() => {
 			child.kill();
 			resolve(false);
 		}, 2000);
-		
+
 		// Listen for errors during startup (e.g., command not found)
 		child.on('error', () => {
 			clearTimeout(timeout);
 			child.kill();
 			resolve(false);
 		});
-		
+
 		// If the process spawns successfully, we consider it valid.
 		// We can then kill it immediately.
 		child.on('spawn', () => {
@@ -199,9 +209,9 @@ function verifyLSPServerWithCommunication(command: string, args: string[]): Prom
 			child.kill(); // Clean up the successfully spawned process
 			resolve(true);
 		});
-		
+
 		// Handle cases where the process exits very quickly (either success or failure)
-		child.on('exit', (_code) => {
+		child.on('exit', _code => {
 			clearTimeout(timeout);
 			// A clean exit can also indicate success for some servers
 			// However, for LSP servers waiting for input, an immediate exit is often a failure
@@ -231,27 +241,33 @@ export async function discoverLanguageServers(): Promise<LSPServerConfig[]> {
 		// Verify server works based on verification method
 		// Use the resolved command path for verification
 		const verificationMethod = server.verificationMethod || 'version';
-		
+
 		let verified = true;
 		switch (verificationMethod) {
 			case 'version':
 				// Use the existing check command approach
 				if (server.checkCommand) {
-					const checkCmd = server.checkCommand.replace(server.command, commandPath);
+					const checkCmd = server.checkCommand.replace(
+						server.command,
+						commandPath,
+					);
 					verified = verifyServer(checkCmd);
 				}
 				break;
-				
+
 			case 'lsp':
 				// Use the new LSP verification approach
-				verified = await verifyLSPServerWithCommunication(commandPath, server.args);
+				verified = await verifyLSPServerWithCommunication(
+					commandPath,
+					server.args,
+				);
 				break;
-				
+
 			case 'none':
 				// Skip verification, only check if command exists
 				break;
 		}
-		
+
 		if (!verified) continue;
 
 		// Add to discovered servers with resolved command path

@@ -465,3 +465,41 @@ test('getServerForLanguage - handles empty extension', t => {
 	const result = getServerForLanguage(servers, '');
 	t.is(result, undefined);
 });
+
+// Tests for verificationMethod functionality
+test('getKnownServersStatus - all servers have proper structure', t => {
+	const result = getKnownServersStatus();
+
+	// Check that servers have proper structure
+	for (const server of result) {
+		t.truthy(server.name);
+		t.true(typeof server.available === 'boolean');
+		t.true(Array.isArray(server.languages));
+	}
+});
+
+test('getKnownServersStatus - key servers are present with correct names', t => {
+	const result = getKnownServersStatus();
+
+	// Check that key servers are present with their correct names
+	const keyServers = [
+		'typescript-language-server',
+		'pyright',
+		'pylsp',
+		'rust-analyzer',
+		'gopls',
+		'clangd',
+		'vscode-json-languageserver',
+		'vscode-html-languageserver',
+		'vscode-css-languageserver',
+		'yaml-language-server',
+		'bash-language-server',
+		'lua-language-server',
+	];
+
+	for (const serverName of keyServers) {
+		const server = result.find(s => s.name === serverName);
+		t.truthy(server, `Server ${serverName} should be present`);
+		t.is(server!.name, serverName);
+	}
+});
