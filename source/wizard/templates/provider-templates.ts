@@ -297,6 +297,38 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		}),
 	},
 	{
+		id: 'github-models',
+		name: 'GitHub Models',
+		fields: [
+			{
+				name: 'apiKey',
+				prompt: 'GitHub Token (PAT with models:read scope)',
+				required: true,
+				sensitive: true,
+			},
+			{
+				name: 'model',
+				prompt: 'Model name(s) (comma-separated)',
+				default: 'openai/gpt-4o-mini',
+				required: true,
+			},
+			{
+				name: 'providerName',
+				prompt: 'Provider name',
+				default: 'GitHub Models',
+			},
+		],
+		buildConfig: answers => ({
+			name: answers.providerName || 'GitHub Models',
+			baseUrl: 'https://models.github.ai/inference',
+			apiKey: answers.apiKey,
+			models: answers.model
+				.split(',')
+				.map(m => m.trim())
+				.filter(Boolean),
+		}),
+	},
+	{
 		id: 'custom',
 		name: 'Custom Provider',
 		fields: [
