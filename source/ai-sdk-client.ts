@@ -15,16 +15,19 @@ import {XMLToolCallParser} from '@/tool-calling/xml-parser';
 import {getModelContextLimit} from '@/models/index.js';
 
 /**
- * Parses API errors into user-friendly messages
+ * Parses API errors into user-friendly messages.
+ * Exported for testing purposes.
  */
-function parseAPIError(error: unknown): string {
+export function parseAPIError(error: unknown): string {
 	if (!(error instanceof Error)) {
 		return 'An unknown error occurred while communicating with the model';
 	}
 
 	const errorMessage = error.message;
 
-	// Extract status code and clean message from common error patterns
+	// Extract status code and clean message from common error patterns FIRST
+	// This ensures HTTP status codes are properly parsed before falling through
+	// to more generic pattern matching (like Ollama-specific errors)
 	const statusMatch = errorMessage.match(
 		/(?:Error: )?(\d{3})\s+(?:\d{3}\s+)?(?:Bad Request|[^:]+):\s*(.+)/i,
 	);
@@ -50,6 +53,26 @@ function parseAPIError(error: unknown): string {
 			default:
 				return `Request failed (${statusCode}): ${cleanMessage}`;
 		}
+	}
+
+	// Handle Ollama-specific unmarshal/JSON parsing errors
+	// This runs AFTER status code parsing to avoid misclassifying HTTP errors
+	// that happen to contain JSON parsing error text in their message
+	if (
+		errorMessage.includes('unmarshal') ||
+		(errorMessage.includes('invalid character') &&
+			errorMessage.includes('after top-level value'))
+	) {
+		return (
+			'Ollama server error: The model returned malformed JSON. ' +
+			'This usually indicates an issue with the Ollama server or model. ' +
+			'Try:\n' +
+			'  1. Restart Ollama: systemctl restart ollama (Linux) or restart the Ollama app\n' +
+			'  2. Re-pull the model: ollama pull <model-name>\n' +
+			'  3. Check Ollama logs for more details\n' +
+			'  4. Try a different model to see if the issue is model-specific\n' +
+			`Original error: ${errorMessage}`
+		);
 	}
 
 	// Handle timeout errors
@@ -138,12 +161,15 @@ export class AISDKClient implements LLMClient {
 	private providerConfig: AIProviderConfig;
 	private undiciAgent: Agent;
 	private cachedContextSize: number;
+	private maxRetries: number;
 
 	constructor(providerConfig: AIProviderConfig) {
 		this.providerConfig = providerConfig;
 		this.availableModels = providerConfig.models;
 		this.currentModel = providerConfig.models[0] || '';
 		this.cachedContextSize = 0;
+		// Default to 2 retries (same as AI SDK default), or use configured value
+		this.maxRetries = providerConfig.maxRetries ?? 2;
 
 		const {requestTimeout, socketTimeout, connectionPool} = this.providerConfig;
 		const resolvedSocketTimeout =
@@ -233,6 +259,10 @@ export class AISDKClient implements LLMClient {
 		return this.cachedContextSize;
 	}
 
+	getMaxRetries(): number {
+		return this.maxRetries;
+	}
+
 	getAvailableModels(): Promise<string[]> {
 		return Promise.resolve(this.availableModels);
 	}
@@ -263,6 +293,7 @@ export class AISDKClient implements LLMClient {
 				messages: modelMessages,
 				tools: aiTools,
 				abortSignal: signal,
+				maxRetries: this.maxRetries,
 			});
 
 			// Extract tool calls from result
@@ -384,6 +415,7 @@ export class AISDKClient implements LLMClient {
 				messages: modelMessages,
 				tools: aiTools,
 				abortSignal: signal,
+				maxRetries: this.maxRetries,
 			});
 
 			// Stream tokens
