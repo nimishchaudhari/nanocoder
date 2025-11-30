@@ -8,6 +8,12 @@
 				"models": ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"]
 			},
 			{
+				"name": "GitHub Models",
+				"baseUrl": "https://models.github.ai/inference",
+				"apiKey": "your-github-token-here",
+				"models": ["openai/gpt-4o-mini", "openai/gpt-4o"]
+			},
+			{
 				"name": "Local Ollama",
 				"baseUrl": "http://localhost:11434/v1",
 				"models": ["llama3.2", "qwen2.5-coder"]
