@@ -62,7 +62,10 @@ test('LSP command: shows no servers when none connected', t => {
 	t.truthy(output);
 	t.regex(output!, /No LSP servers connected/);
 	t.regex(output!, /agents\.config\.json/);
-	t.regex(output!, /LSP servers will auto-discover based on your project files/);
+	t.regex(
+		output!,
+		/LSP servers will auto-discover based on your project files/,
+	);
 });
 
 test('LSP command: displays server status correctly', t => {
