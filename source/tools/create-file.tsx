@@ -16,7 +16,6 @@ import {
 } from '@/vscode/index';
 import {getCurrentMode} from '@/context/mode-context';
 
-// Handler function - used by both Nanocoder and AI SDK tool
 const executeCreateFile = async (args: {
 	path: string;
 	content: string;
@@ -26,7 +25,6 @@ const executeCreateFile = async (args: {
 	return 'File written successfully';
 };
 
-// AI SDK v6 tool definition with execute function and needsApproval
 const createFileCoreTool = tool({
 	description:
 		'Create a new file with the specified content (overwrites if file exists)',
@@ -49,7 +47,9 @@ const createFileCoreTool = tool({
 		const mode = getCurrentMode();
 		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
 	},
-	execute: executeCreateFile, // v6 execute function
+	execute: async (args, _options) => {
+		return await executeCreateFile(args);
+	},
 });
 
 interface CreateFileArgs {

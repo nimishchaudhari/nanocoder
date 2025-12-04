@@ -287,7 +287,6 @@ export class AISDKClient implements LLMClient {
 			// Convert messages to AI SDK v5 ModelMessage format
 			const modelMessages = convertToModelMessages(messages);
 
-			// Use generateText with v6 multistep tool execution
 			// Tools with needsApproval: false auto-execute in the loop
 			// Tools with needsApproval: true cause interruptions for manual approval
 			// stopWhen controls when the tool loop stops (max 10 steps)
@@ -298,7 +297,26 @@ export class AISDKClient implements LLMClient {
 				abortSignal: signal,
 				maxRetries: this.maxRetries,
 				stopWhen: stepCountIs(10), // Allow up to 10 tool execution steps
+				// Can be used to add custom logging, metrics, or step tracking
+				onStepFinish() {
+					// Reserved for future monitoring/logging needs
+				},
+				prepareStep: ({messages}) => {
+					// If message history gets too long (>20 messages), compress it
+					// Keep system message + last 10 messages to maintain context
+					if (messages.length > 20) {
+						const systemMessages = messages.filter(m => m.role === 'system');
+						const recentMessages = messages.slice(-10);
+						return {
+							messages: [...systemMessages, ...recentMessages],
+						};
+					}
+					return {}; // No modifications needed
+				},
 			});
+
+			// Can inspect result.steps to see auto-executed tool calls and results
+			// const steps = result.steps;
 
 			// Extract tool calls from result
 			const toolCalls: ToolCall[] = [];
@@ -413,7 +431,6 @@ export class AISDKClient implements LLMClient {
 			// Convert messages to AI SDK v5 ModelMessage format
 			const modelMessages = convertToModelMessages(messages);
 
-			// Use streamText with v6 multistep tool execution
 			// Tools with needsApproval: false auto-execute in the loop
 			// Tools with needsApproval: true cause interruptions for manual approval
 			// stopWhen controls when the tool loop stops (max 10 steps)
@@ -424,6 +441,22 @@ export class AISDKClient implements LLMClient {
 				abortSignal: signal,
 				maxRetries: this.maxRetries,
 				stopWhen: stepCountIs(10), // Allow up to 10 tool execution steps
+				// Can be used to add custom logging, metrics, or step tracking
+				onStepFinish() {
+					// Reserved for future monitoring/logging needs
+				},
+				prepareStep: ({messages}) => {
+					// If message history gets too long (>20 messages), compress it
+					// Keep system message + last 10 messages to maintain context
+					if (messages.length > 20) {
+						const systemMessages = messages.filter(m => m.role === 'system');
+						const recentMessages = messages.slice(-10);
+						return {
+							messages: [...systemMessages, ...recentMessages],
+						};
+					}
+					return {}; // No modifications needed
+				},
 			});
 
 			// Stream tokens
@@ -435,6 +468,9 @@ export class AISDKClient implements LLMClient {
 
 			// Wait for completion to get tool calls
 			const toolCallsResult = await result.toolCalls;
+
+			// Can inspect result.steps to see auto-executed tool calls and results
+			// const steps = await result.steps;
 
 			// Extract tool calls
 			const toolCalls: ToolCall[] = [];

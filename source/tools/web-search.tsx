@@ -96,7 +96,6 @@ const executeWebSearch = async (args: SearchArgs): Promise<string> => {
 	}
 };
 
-// AI SDK v6 tool definition with execute function and needsApproval
 const webSearchCoreTool = tool({
 	description:
 		'Search the web for information (scrapes Brave Search, returns markdown)',
@@ -117,8 +116,9 @@ const webSearchCoreTool = tool({
 	}),
 	// Low risk: read-only operation, never requires approval
 	needsApproval: false,
-	// v6 execute function for potential auto-execution
-	execute: executeWebSearch,
+	execute: async (args, _options) => {
+		return await executeWebSearch(args);
+	},
 });
 
 // Create a component that will re-render when theme changes

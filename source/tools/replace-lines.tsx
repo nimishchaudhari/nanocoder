@@ -85,7 +85,6 @@ const executeReplaceLines = async (args: ReplaceLinesArgs): Promise<string> => {
 	}.${fileContext}`;
 };
 
-// AI SDK v6 tool definition with execute function and needsApproval
 const replaceLinesCoreTool = tool({
 	description:
 		'Replace lines in a file (single line or range) with new content',
@@ -118,7 +117,9 @@ const replaceLinesCoreTool = tool({
 		const mode = getCurrentMode();
 		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
 	},
-	execute: executeReplaceLines, // v6 execute function
+	execute: async (args, _options) => {
+		return await executeReplaceLines(args);
+	},
 });
 
 const ReplaceLinesFormatter = React.memo(

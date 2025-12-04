@@ -88,7 +88,6 @@ const executeDeleteLines = async (args: DeleteLinesArgs): Promise<string> => {
 	return `Successfully deleted ${rangeDesc}.${fileContext}`;
 };
 
-// AI SDK v6 tool definition with execute function and needsApproval
 const deleteLinesCoreTool = tool({
 	description: 'Delete a line or range of lines from a file',
 	inputSchema: jsonSchema<DeleteLinesArgs>({
@@ -115,7 +114,9 @@ const deleteLinesCoreTool = tool({
 		const mode = getCurrentMode();
 		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
 	},
-	execute: executeDeleteLines, // v6 execute function
+	execute: async (args, _options) => {
+		return await executeDeleteLines(args);
+	},
 });
 
 const DeleteLinesFormatter = React.memo(

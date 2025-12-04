@@ -8,7 +8,6 @@ import {tool, jsonSchema} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
 
-// Handler function - will be used both by Nanocoder and AI SDK tool
 const executeReadFile = async (args: {
 	path: string;
 	start_line?: number;
@@ -126,7 +125,6 @@ const executeReadFile = async (args: {
 	}
 };
 
-// AI SDK v6 tool definition with execute function and needsApproval
 const readFileCoreTool = tool({
 	description:
 		'Read file contents with line numbers. PROGRESSIVE DISCLOSURE: First call without line ranges returns metadata (size, lines, tokens). For files >300 lines, you MUST call again with start_line/end_line to read content. Small files (<300 lines) return content directly.',
@@ -156,8 +154,10 @@ const readFileCoreTool = tool({
 	}),
 	// Low risk: read-only operation, never requires approval
 	needsApproval: false,
-	// v6 execute function for potential auto-execution
-	execute: executeReadFile,
+	execute: async (args, _options) => {
+		// We don't currently use these but accepting them makes the code future-proof
+		return await executeReadFile(args);
+	},
 });
 
 // Create a component that will re-render when theme changes

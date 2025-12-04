@@ -67,7 +67,6 @@ const executeInsertLines = async (args: InsertLinesArgs): Promise<string> => {
 	} at line ${line_number}.${fileContext}`;
 };
 
-// AI SDK v6 tool definition with execute function and needsApproval
 const insertLinesCoreTool = tool({
 	description: 'Insert new lines at a specific line number in a file',
 	inputSchema: jsonSchema<InsertLinesArgs>({
@@ -95,7 +94,9 @@ const insertLinesCoreTool = tool({
 		const mode = getCurrentMode();
 		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
 	},
-	execute: executeInsertLines, // v6 execute function
+	execute: async (args, _options) => {
+		return await executeInsertLines(args);
+	},
 });
 
 const InsertLinesFormatter = React.memo(

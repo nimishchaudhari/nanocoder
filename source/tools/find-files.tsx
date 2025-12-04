@@ -168,7 +168,6 @@ const executeFindFiles = async (args: FindFilesArgs): Promise<string> => {
 	}
 };
 
-// AI SDK v6 tool definition with execute function and needsApproval
 const findFilesCoreTool = tool({
 	description:
 		'Find files and directories by path pattern or name. Use glob patterns like "*.tsx", "**/*.ts", "src/**/*.js", or "*.{ts,tsx}". Returns a list of matching file and directory paths. Does NOT search file contents - use search_file_contents for that.',
@@ -190,8 +189,9 @@ const findFilesCoreTool = tool({
 	}),
 	// Low risk: read-only operation, never requires approval
 	needsApproval: false,
-	// v6 execute function for potential auto-execution
-	execute: executeFindFiles,
+	execute: async (args, _options) => {
+		return await executeFindFiles(args);
+	},
 });
 
 interface FindFilesFormatterProps {
