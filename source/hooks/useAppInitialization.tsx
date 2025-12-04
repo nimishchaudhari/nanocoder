@@ -30,6 +30,7 @@ import {
 	setupConfigCommand,
 	statusCommand,
 	streamingCommand,
+	debuggingCommand,
 	themeCommand,
 	updateCommand,
 	usageCommand,
@@ -339,6 +340,7 @@ export function useAppInitialization({
 				statusCommand,
 				setupConfigCommand,
 				streamingCommand,
+				debuggingCommand,
 				usageCommand,
 			]);
 

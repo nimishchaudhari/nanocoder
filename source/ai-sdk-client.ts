@@ -2,6 +2,8 @@ import {createOpenAICompatible} from '@ai-sdk/openai-compatible';
 import {generateText, streamText, stepCountIs} from 'ai';
 import type {ModelMessage} from 'ai';
 import {Agent, fetch as undiciFetch} from 'undici';
+import {isDebuggingEnabled} from '@/config/preferences';
+import {logInfo} from '@/utils/message-queue';
 import type {
 	AIProviderConfig,
 	LLMChatResponse,
@@ -298,8 +300,33 @@ export class AISDKClient implements LLMClient {
 				maxRetries: this.maxRetries,
 				stopWhen: stepCountIs(10), // Allow up to 10 tool execution steps
 				// Can be used to add custom logging, metrics, or step tracking
-				onStepFinish() {
-					// Reserved for future monitoring/logging needs
+				onStepFinish(step) {
+					if (!isDebuggingEnabled()) return;
+
+					logInfo(
+						`[DEBUG] Step finished | Tool calls: ${step.toolCalls?.length || 0} | Tool results: ${step.toolResults?.length || 0}`,
+					);
+
+					if (step.toolCalls && step.toolCalls.length > 0) {
+						step.toolCalls.forEach((toolCall, idx) => {
+							const inputStr = JSON.stringify(toolCall.input).substring(0, 100);
+							logInfo(`[DEBUG] Tool ${idx + 1}: ${toolCall.toolName}(${inputStr})`);
+						});
+					}
+
+					if (step.toolResults && step.toolResults.length > 0) {
+						step.toolResults.forEach((result, idx) => {
+							const outputStr =
+								typeof result.output === 'string'
+									? result.output.substring(0, 100)
+									: JSON.stringify(result.output).substring(0, 100);
+							logInfo(`[DEBUG] Result ${idx + 1}: ${outputStr}...`);
+						});
+					}
+
+					if (step.text) {
+						logInfo(`[DEBUG] Text: ${step.text.substring(0, 100)}...`);
+					}
 				},
 				prepareStep: ({messages}) => {
 					// If message history gets too long (>20 messages), compress it
@@ -442,8 +469,33 @@ export class AISDKClient implements LLMClient {
 				maxRetries: this.maxRetries,
 				stopWhen: stepCountIs(10), // Allow up to 10 tool execution steps
 				// Can be used to add custom logging, metrics, or step tracking
-				onStepFinish() {
-					// Reserved for future monitoring/logging needs
+				onStepFinish(step) {
+					if (!isDebuggingEnabled()) return;
+
+					logInfo(
+						`[DEBUG] Step finished | Tool calls: ${step.toolCalls?.length || 0} | Tool results: ${step.toolResults?.length || 0}`,
+					);
+
+					if (step.toolCalls && step.toolCalls.length > 0) {
+						step.toolCalls.forEach((toolCall, idx) => {
+							const inputStr = JSON.stringify(toolCall.input).substring(0, 100);
+							logInfo(`[DEBUG] Tool ${idx + 1}: ${toolCall.toolName}(${inputStr})`);
+						});
+					}
+
+					if (step.toolResults && step.toolResults.length > 0) {
+						step.toolResults.forEach((result, idx) => {
+							const outputStr =
+								typeof result.output === 'string'
+									? result.output.substring(0, 100)
+									: JSON.stringify(result.output).substring(0, 100);
+							logInfo(`[DEBUG] Result ${idx + 1}: ${outputStr}...`);
+						});
+					}
+
+					if (step.text) {
+						logInfo(`[DEBUG] Text: ${step.text.substring(0, 100)}...`);
+					}
 				},
 				prepareStep: ({messages}) => {
 					// If message history gets too long (>20 messages), compress it

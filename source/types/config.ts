@@ -101,4 +101,5 @@ export interface UserPreferences {
 	selectedTheme?: ThemePreset;
 	trustedDirectories?: string[];
 	streamingEnabled?: boolean;
+	debuggingEnabled?: boolean;
 }

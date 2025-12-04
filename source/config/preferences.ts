@@ -61,3 +61,15 @@ export function setStreamingEnabled(enabled: boolean): void {
 	preferences.streamingEnabled = enabled;
 	savePreferences(preferences);
 }
+
+export function isDebuggingEnabled(): boolean {
+	const preferences = loadPreferences();
+	// Default to false if not set
+	return preferences.debuggingEnabled ?? false;
+}
+
+export function setDebuggingEnabled(enabled: boolean): void {
+	const preferences = loadPreferences();
+	preferences.debuggingEnabled = enabled;
+	savePreferences(preferences);
+}
