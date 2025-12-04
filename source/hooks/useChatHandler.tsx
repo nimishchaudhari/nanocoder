@@ -6,7 +6,6 @@ import {
 	ToolResult,
 } from '@/types/core';
 import {ToolManager} from '@/tools/tool-manager';
-import {toolDefinitions} from '@/tools/index';
 import {processPromptTemplate} from '@/utils/prompt-processor';
 import {parseToolCalls} from '@/tool-calling/index';
 import {ConversationStateManager} from '@/app/utils/conversationState';
@@ -327,10 +326,6 @@ export function useChatHandler({
 				const toolsToExecuteDirectly: ToolCall[] = [];
 
 				for (const toolCall of validToolCalls) {
-					const toolDef = toolDefinitions.find(
-						def => def.name === toolCall.function.name,
-					);
-
 					// Check if tool has a validator
 					let validationFailed = false;
 
@@ -358,12 +353,12 @@ export function useChatHandler({
 						}
 					}
 
-					// If validation failed OR tool doesn't require confirmation OR in auto-accept mode, execute directly
+					// If validation failed OR in auto-accept mode (except bash), execute directly
 					// EXCEPT: execute_bash always requires confirmation for security
+					// Note: Tool approval is now handled by AI SDK's needsApproval property
 					const isBashTool = toolCall.function.name === 'execute_bash';
 					if (
 						validationFailed ||
-						(toolDef && toolDef.requiresConfirmation === false) ||
 						(developmentMode === 'auto-accept' && !isBashTool)
 					) {
 						toolsToExecuteDirectly.push(toolCall);

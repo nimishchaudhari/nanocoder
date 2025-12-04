@@ -4,7 +4,7 @@ import {readFile, writeFile, access} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {highlight} from 'cli-highlight';
 import {Text, Box} from 'ink';
-import type {ToolDefinition, Colors} from '@/types/index';
+import type {Colors} from '@/types/index';
 import {tool, jsonSchema} from '@/types/core';
 import {getColors} from '@/config/index';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
@@ -394,7 +394,7 @@ async function formatDeleteLinesPreview(
 // Track VS Code change IDs for cleanup
 const vscodeChangeIds = new Map<string, string>();
 
-const formatter = async (
+const deleteLinesFormatter = async (
 	args: DeleteLinesArgs,
 	result?: string,
 ): Promise<React.ReactElement> => {
@@ -447,7 +447,7 @@ const formatter = async (
 	return <DeleteLinesFormatter preview={preview} />;
 };
 
-const validator = async (
+const deleteLinesValidator = async (
 	args: DeleteLinesArgs,
 ): Promise<{valid: true} | {valid: false; error: string}> => {
 	const {path, line_number, end_line} = args;
@@ -517,11 +517,9 @@ const validator = async (
 	return {valid: true};
 };
 
-// Nanocoder tool definition with AI SDK core tool + custom extensions
-export const deleteLinesTool: ToolDefinition = {
-	name: 'delete_lines',
-	tool: deleteLinesCoreTool, // Native AI SDK tool (no execute)
-	handler: executeDeleteLines,
-	formatter,
-	validator,
+export const deleteLinesTool = {
+	name: 'delete_lines' as const,
+	tool: deleteLinesCoreTool,
+	formatter: deleteLinesFormatter,
+	validator: deleteLinesValidator,
 };

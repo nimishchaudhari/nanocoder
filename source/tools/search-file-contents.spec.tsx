@@ -182,10 +182,10 @@ test.serial('search_file_contents respects .gitignore patterns', async t => {
 		try {
 			process.chdir(testDir);
 
-			const result = await searchFileContentsTool.handler({
+			const result = await searchFileContentsTool.tool.execute!({
 				query: 'testValue',
 				maxResults: 30,
-			});
+			}, { toolCallId: "test", messages: [] });
 
 			t.false(
 				result.includes('ignored-dir'),
@@ -237,10 +237,10 @@ test.serial(
 			try {
 				process.chdir(testDir);
 
-				const result = await searchFileContentsTool.handler({
+				const result = await searchFileContentsTool.tool.execute!({
 					query: 'searchTerm',
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 
 				t.false(
 					result.includes('node_modules'),
@@ -302,10 +302,10 @@ test.serial(
 			try {
 				process.chdir(testDir);
 
-				const result = await searchFileContentsTool.handler({
+				const result = await searchFileContentsTool.tool.execute!({
 					query: 'searchQuery',
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 
 				t.true(result.includes('src/app.ts'), 'Should include normal files');
 				t.false(result.includes('temp/'), 'Should ignore temp directory');
@@ -343,10 +343,10 @@ test.serial(
 			try {
 				process.chdir(testDir);
 
-				const result = await searchFileContentsTool.handler({
+				const result = await searchFileContentsTool.tool.execute!({
 					query: 'myvariable',
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 
 				// Should find both MyVariable and myvariable
 				t.true(result.includes('test.ts'), 'Should find matches');
@@ -381,11 +381,11 @@ test.serial(
 			try {
 				process.chdir(testDir);
 
-				const result = await searchFileContentsTool.handler({
+				const result = await searchFileContentsTool.tool.execute!({
 					query: 'MyVariable',
 					caseSensitive: true,
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 
 				// Should only find MyVariable, not myvariable
 				t.true(result.includes('MyVariable'), 'Should find exact case match');
@@ -421,10 +421,10 @@ test.serial(
 			try {
 				process.chdir(testDir);
 
-				const result = await searchFileContentsTool.handler({
+				const result = await searchFileContentsTool.tool.execute!({
 					query: 'target',
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 
 				// Should have file:line format
 				t.regex(result, /example\.ts:\d+/, 'Should have file:line format');
@@ -447,10 +447,10 @@ test.serial(
 		t.timeout(10000);
 		// Use a unique string that won't appear in source files
 		const uniqueQuery = `zzz${Date.now()}nonexistent${Math.random()}`;
-		const result = await searchFileContentsTool.handler({
+		const result = await searchFileContentsTool.tool.execute!({
 			query: uniqueQuery,
 			maxResults: 30,
-		});
+		}, { toolCallId: "test", messages: [] });
 
 		t.regex(result, /No matches found/);
 	},
@@ -465,11 +465,11 @@ test('search_file_contents tool has correct name', t => {
 });
 
 test('search_file_contents tool does not require confirmation', t => {
-	t.false(searchFileContentsTool.requiresConfirmation);
+	t.false(searchFileContentsTool.tool.needsApproval);
 });
 
 test('search_file_contents tool has handler function', t => {
-	t.is(typeof searchFileContentsTool.handler, 'function');
+	t.is(typeof searchFileContentsTool.tool.execute, 'function');
 });
 
 test('search_file_contents tool has formatter function', t => {
@@ -502,10 +502,10 @@ test.serial('search_file_contents enforces max cap of 100 results', async t => {
 			process.chdir(testDir);
 
 			// Request more than 100 results but should be capped at 100
-			const result = await searchFileContentsTool.handler({
+			const result = await searchFileContentsTool.tool.execute!({
 				query: 'searchTarget',
 				maxResults: 500, // Request 500, but should cap at 100
-			});
+			}, { toolCallId: "test", messages: [] });
 
 			// Check that the result doesn't exceed 100 matches
 			const firstLine = result.split('\n')[0];
@@ -529,10 +529,10 @@ test.serial(
 	'search_file_contents respects maxResults when less than cap',
 	async t => {
 		t.timeout(10000);
-		const result = await searchFileContentsTool.handler({
+		const result = await searchFileContentsTool.tool.execute!({
 			query: 'const',
 			maxResults: 5, // Request only 5
-		});
+		}, { toolCallId: "test", messages: [] });
 
 		// Should respect the lower limit
 		t.truthy(result);
@@ -563,17 +563,17 @@ test.serial(
 				process.chdir(testDir);
 
 				// Test parentheses
-				const result1 = await searchFileContentsTool.handler({
+				const result1 = await searchFileContentsTool.tool.execute!({
 					query: '(x)',
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 				t.true(result1.includes('(x) =>'), 'Should handle parentheses');
 
 				// Test brackets
-				const result2 = await searchFileContentsTool.handler({
+				const result2 = await searchFileContentsTool.tool.execute!({
 					query: '[1, 2, 3]',
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 				t.true(result2.includes('[1, 2, 3]'), 'Should handle brackets');
 			} finally {
 				process.chdir(originalCwd);
@@ -600,10 +600,10 @@ test.serial('search_file_contents handles multi-line matches', async t => {
 		try {
 			process.chdir(testDir);
 
-			const result = await searchFileContentsTool.handler({
+			const result = await searchFileContentsTool.tool.execute!({
 				query: 'searchTerm',
 				maxResults: 30,
-			});
+			}, { toolCallId: "test", messages: [] });
 
 			// Should find both occurrences
 			const lines = result
@@ -640,10 +640,10 @@ test.serial(
 			try {
 				process.chdir(testDir);
 
-				const result = await searchFileContentsTool.handler({
+				const result = await searchFileContentsTool.tool.execute!({
 					query: '世界',
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 
 				t.true(result.includes('世界'), 'Should handle Chinese characters');
 			} finally {
@@ -669,10 +669,10 @@ test.serial('search_file_contents handles very long lines', async t => {
 		try {
 			process.chdir(testDir);
 
-			const result = await searchFileContentsTool.handler({
+			const result = await searchFileContentsTool.tool.execute!({
 				query: 'searchTarget',
 				maxResults: 30,
-			});
+			}, { toolCallId: "test", messages: [] });
 
 			t.true(result.includes('test.ts'), 'Should handle very long lines');
 		} finally {
@@ -697,10 +697,10 @@ test.serial('search_file_contents handles empty files gracefully', async t => {
 		try {
 			process.chdir(testDir);
 
-			const result = await searchFileContentsTool.handler({
+			const result = await searchFileContentsTool.tool.execute!({
 				query: 'searchTerm',
 				maxResults: 30,
-			});
+			}, { toolCallId: "test", messages: [] });
 
 			// Empty files shouldn't crash the search
 			t.truthy(result);
@@ -733,10 +733,10 @@ test.serial(
 			try {
 				process.chdir(testDir);
 
-				const result = await searchFileContentsTool.handler({
+				const result = await searchFileContentsTool.tool.execute!({
 					query: 'searchTerm',
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 
 				t.false(
 					result.includes('whitespace.ts'),
@@ -766,10 +766,10 @@ test.serial('search_file_contents handles deeply nested files', async t => {
 		try {
 			process.chdir(testDir);
 
-			const result = await searchFileContentsTool.handler({
+			const result = await searchFileContentsTool.tool.execute!({
 				query: 'deepSearch',
 				maxResults: 30,
-			});
+			}, { toolCallId: "test", messages: [] });
 
 			t.true(
 				result.includes('deep.ts'),
@@ -804,10 +804,10 @@ test.serial('search_file_contents handles queries with quotes', async t => {
 			process.chdir(testDir);
 
 			// Search for string with double quotes
-			const result = await searchFileContentsTool.handler({
+			const result = await searchFileContentsTool.tool.execute!({
 				query: '"hello"',
 				maxResults: 30,
-			});
+			}, { toolCallId: "test", messages: [] });
 
 			t.true(result.includes('hello'), 'Should handle queries with quotes');
 		} finally {
@@ -837,10 +837,10 @@ test.serial(
 				process.chdir(testDir);
 
 				// Should not crash when encountering binary files
-				const result = await searchFileContentsTool.handler({
+				const result = await searchFileContentsTool.tool.execute!({
 					query: 'searchTerm',
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 
 				t.truthy(result);
 				t.false(result.includes('Error'));
@@ -892,10 +892,10 @@ test.serial(
 			try {
 				process.chdir(testDir);
 
-				const result = await searchFileContentsTool.handler({
+				const result = await searchFileContentsTool.tool.execute!({
 					query: 'searchTerm',
 					maxResults: 30,
-				});
+				}, { toolCallId: "test", messages: [] });
 
 				for (const dir of ignoreDirs) {
 					t.false(result.includes(`${dir}/`), `Should exclude ${dir}`);
@@ -929,10 +929,10 @@ test.serial('search_file_contents handles whitespace in query', async t => {
 		try {
 			process.chdir(testDir);
 
-			const result = await searchFileContentsTool.handler({
+			const result = await searchFileContentsTool.tool.execute!({
 				query: 'hello world',
 				maxResults: 30,
-			});
+			}, { toolCallId: "test", messages: [] });
 
 			t.true(
 				result.includes('hello world'),

@@ -1,7 +1,7 @@
 import React from 'react';
 import {Text, Box} from 'ink';
 import {resolve as resolvePath} from 'node:path';
-import type {ToolDefinition} from '@/types/index';
+
 import {tool, jsonSchema} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
@@ -266,17 +266,15 @@ const GetDiagnosticsFormatter = React.memo(
 	},
 );
 
-const formatter = (
+const getDiagnosticsFormatter = (
 	args: GetDiagnosticsArgs,
 	result?: string,
 ): React.ReactElement => {
 	return <GetDiagnosticsFormatter args={args} result={result} />;
 };
 
-export const getDiagnosticsTool: ToolDefinition = {
-	name: 'get_diagnostics',
+export const getDiagnosticsTool = {
+	name: 'lsp_get_diagnostics' as const,
 	tool: getDiagnosticsCoreTool,
-	handler: executeGetDiagnostics,
-	formatter,
-	requiresConfirmation: false,
+	formatter: getDiagnosticsFormatter,
 };

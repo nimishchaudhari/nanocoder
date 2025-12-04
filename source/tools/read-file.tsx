@@ -3,8 +3,8 @@ import {readFile, access} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import React from 'react';
 import {Text, Box} from 'ink';
-import type {ToolDefinition} from '@/types/index';
 import {tool, jsonSchema} from '@/types/core';
+import type {NanocoderToolExport} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
 
@@ -155,7 +155,6 @@ const readFileCoreTool = tool({
 	// Low risk: read-only operation, never requires approval
 	needsApproval: false,
 	execute: async (args, _options) => {
-		// We don't currently use these but accepting them makes the code future-proof
 		return await executeReadFile(args);
 	},
 });
@@ -234,7 +233,7 @@ const ReadFileFormatter = React.memo(
 	},
 );
 
-const formatter = async (
+const readFileFormatter = async (
 	args: {
 		path?: string;
 		file_path?: string;
@@ -303,7 +302,7 @@ const formatter = async (
 	return <ReadFileFormatter args={args} fileInfo={fileInfo} />;
 };
 
-const validator = async (args: {
+const readFileValidator = async (args: {
 	path: string;
 	start_line?: number;
 	end_line?: number;
@@ -367,12 +366,9 @@ const validator = async (args: {
 	}
 };
 
-// Nanocoder tool definition with native AI SDK tool + custom extensions
-export const readFileTool: ToolDefinition = {
-	name: 'read_file',
-	tool: readFileCoreTool, // Native AI SDK tool (no execute)
-	handler: executeReadFile, // Manual execution after confirmation
-	formatter,
-	validator,
-	requiresConfirmation: false,
+export const readFileTool: NanocoderToolExport = {
+	name: 'read_file' as const,
+	tool: readFileCoreTool,
+	formatter: readFileFormatter,
+	validator: readFileValidator,
 };

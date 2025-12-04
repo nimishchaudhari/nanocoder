@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import React from 'react';
 import ignore from 'ignore';
 import {Text, Box} from 'ink';
-import type {ToolDefinition} from '@/types/index';
+
 import {tool, jsonSchema} from '@/types/core';
 import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
@@ -240,7 +240,7 @@ const FindFilesFormatter = React.memo(
 	},
 );
 
-const formatter = (
+const findFilesFormatter = (
 	args: FindFilesFormatterProps['args'],
 	result?: string,
 ): React.ReactElement => {
@@ -250,10 +250,8 @@ const formatter = (
 	return <FindFilesFormatter args={args} result={result} />;
 };
 
-export const findFilesTool: ToolDefinition = {
-	name: 'find_files',
+export const findFilesTool = {
+	name: 'find_files' as const,
 	tool: findFilesCoreTool,
-	handler: executeFindFiles,
-	formatter,
-	requiresConfirmation: false,
+	formatter: findFilesFormatter,
 };
