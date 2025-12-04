@@ -11,6 +11,7 @@ type ClientTransport =
 import type {Tool, ToolParameterSchema, AISDKCoreTool} from '@/types/index';
 import {tool, jsonSchema} from '@/types/index';
 import {logInfo, logError} from '@/utils/message-queue';
+import {getCurrentMode} from '@/context/mode-context';
 import {TransportFactory} from './transport-factory.js';
 
 import type {MCPServer, MCPTool, MCPInitResult} from '@/types/index';
@@ -173,17 +174,26 @@ export class MCPClient {
 
 		for (const [serverName, serverTools] of this.serverTools.entries()) {
 			for (const mcpTool of serverTools) {
-				// Convert MCP tool to AI SDK's CoreTool format
+				// Convert MCP tool to AI SDK's CoreTool format with v6 execute + needsApproval
 				// Use the input schema directly - it should already be JSON Schema compatible
 				// MCP schemas are already in JSON Schema format, cast to unknown first for type safety
+				const toolName = mcpTool.name;
 				const coreTool = tool({
 					description: mcpTool.description
 						? `[MCP:${serverName}] ${mcpTool.description}`
 						: `MCP tool from ${serverName}`,
-					inputSchema: jsonSchema(
+					inputSchema: jsonSchema<Record<string, unknown>>(
 						(mcpTool.inputSchema as unknown) || {type: 'object'},
 					),
-					// No execute function - human-in-the-loop pattern
+					// Medium risk: MCP tools require approval except in auto-accept mode
+					needsApproval: () => {
+						const mode = getCurrentMode();
+						return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
+					},
+					// v6 execute function - calls MCP server (arrow function preserves 'this')
+					execute: async (args) => {
+						return await this.callTool(toolName, args);
+					},
 				});
 
 				nativeTools[mcpTool.name] = coreTool;

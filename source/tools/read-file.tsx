@@ -126,8 +126,7 @@ const executeReadFile = async (args: {
 	}
 };
 
-// AI SDK tool definition (WITHOUT execute to prevent auto-execution)
-// Execute will be called manually after user confirmation
+// AI SDK v6 tool definition with execute function and needsApproval
 const readFileCoreTool = tool({
 	description:
 		'Read file contents with line numbers. PROGRESSIVE DISCLOSURE: First call without line ranges returns metadata (size, lines, tokens). For files >300 lines, you MUST call again with start_line/end_line to read content. Small files (<300 lines) return content directly.',
@@ -155,7 +154,10 @@ const readFileCoreTool = tool({
 		},
 		required: ['path'],
 	}),
-	// NO execute function - prevents AI SDK auto-execution
+	// Low risk: read-only operation, never requires approval
+	needsApproval: false,
+	// v6 execute function for potential auto-execution
+	execute: executeReadFile,
 });
 
 // Create a component that will re-render when theme changes

@@ -195,7 +195,7 @@ const executeGetDiagnostics = async (
 	return lines.join('\n');
 };
 
-// AI SDK tool definition
+// AI SDK v6 tool definition with execute function and needsApproval
 const getDiagnosticsCoreTool = tool({
 	description:
 		'Get errors and warnings for a file or project from the language server. Returns type errors, linting issues, and other diagnostics. Use this to check for problems before or after making code changes.',
@@ -210,6 +210,10 @@ const getDiagnosticsCoreTool = tool({
 		},
 		required: [],
 	}),
+	// Low risk: read-only operation, never requires approval
+	needsApproval: false,
+	// v6 execute function for potential auto-execution
+	execute: executeGetDiagnostics,
 });
 
 // Formatter component

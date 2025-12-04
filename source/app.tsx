@@ -23,6 +23,7 @@ import {
 	VSCodeExtensionPrompt,
 	shouldPromptExtensionInstall,
 } from '@/components/vscode-extension-prompt';
+import {setCurrentMode as setCurrentModeContext} from '@/context/mode-context';
 
 // Import extracted hooks and utilities
 import {useAppState} from '@/hooks/useAppState';
@@ -51,6 +52,11 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 	const {exit} = useApp();
 	const {isTrusted, handleConfirmTrust, isTrustLoading, isTrustedError} =
 		useDirectoryTrust();
+
+	// Sync global mode context whenever development mode changes
+	React.useEffect(() => {
+		setCurrentModeContext(appState.developmentMode);
+	}, [appState.developmentMode]);
 
 	// VS Code extension installation prompt state
 	const [showExtensionPrompt, setShowExtensionPrompt] = React.useState(
@@ -224,7 +230,12 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 			];
 			const currentIndex = modes.indexOf(currentMode);
 			const nextIndex = (currentIndex + 1) % modes.length;
-			return modes[nextIndex];
+			const nextMode = modes[nextIndex];
+
+			// Sync global mode context for tool needsApproval logic
+			setCurrentModeContext(nextMode);
+
+			return nextMode;
 		});
 	}, [appState]);
 

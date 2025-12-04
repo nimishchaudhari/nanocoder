@@ -158,7 +158,7 @@ const executeSearchFileContents = async (
 	}
 };
 
-// AI SDK tool definition
+// AI SDK v6 tool definition with execute function and needsApproval
 const searchFileContentsCoreTool = tool({
 	description:
 		'Search for text or code INSIDE file contents. Returns file paths with line numbers and matching content. Use this to find where specific code, functions, variables, or text appears in the codebase.',
@@ -183,6 +183,10 @@ const searchFileContentsCoreTool = tool({
 		},
 		required: ['query'],
 	}),
+	// Low risk: read-only operation, never requires approval
+	needsApproval: false,
+	// v6 execute function for potential auto-execution
+	execute: executeSearchFileContents,
 });
 
 interface SearchFileContentsFormatterProps {

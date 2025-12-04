@@ -14,6 +14,7 @@ import {
 	sendFileChangeToVSCode,
 	closeDiffInVSCode,
 } from '@/vscode/index';
+import {getCurrentMode} from '@/context/mode-context';
 
 interface ReplaceLinesArgs {
 	path: string;
@@ -84,7 +85,7 @@ const executeReplaceLines = async (args: ReplaceLinesArgs): Promise<string> => {
 	}.${fileContext}`;
 };
 
-// AI SDK tool definition
+// AI SDK v6 tool definition with execute function and needsApproval
 const replaceLinesCoreTool = tool({
 	description:
 		'Replace lines in a file (single line or range) with new content',
@@ -112,7 +113,12 @@ const replaceLinesCoreTool = tool({
 		},
 		required: ['path', 'line_number', 'content'],
 	}),
-	// NO execute function - prevents AI SDK auto-execution
+	// Medium risk: file write operation, requires approval except in auto-accept mode
+	needsApproval: () => {
+		const mode = getCurrentMode();
+		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
+	},
+	execute: executeReplaceLines, // v6 execute function
 });
 
 const ReplaceLinesFormatter = React.memo(

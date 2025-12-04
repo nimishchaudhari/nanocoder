@@ -54,7 +54,7 @@ ${stdout}`;
 	});
 };
 
-// AI SDK tool definition
+// AI SDK v6 tool definition with execute function and needsApproval
 const executeBashCoreTool = tool({
 	description:
 		'Execute a bash command and return the output (use for running commands)',
@@ -68,7 +68,10 @@ const executeBashCoreTool = tool({
 		},
 		required: ['command'],
 	}),
-	// NO execute function - prevents AI SDK auto-execution
+	// High risk: bash commands always require approval in all modes
+	needsApproval: true,
+	// v6 execute function
+	execute: executeExecuteBash,
 });
 
 // Create a component that will re-render when theme changes

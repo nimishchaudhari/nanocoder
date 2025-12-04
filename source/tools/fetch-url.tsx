@@ -42,7 +42,7 @@ const executeFetchUrl = async (args: FetchArgs): Promise<string> => {
 	}
 };
 
-// AI SDK tool definition
+// AI SDK v6 tool definition with execute function and needsApproval
 const fetchUrlCoreTool = tool({
 	description: 'Fetch and parse markdown content from a URL',
 	inputSchema: jsonSchema<FetchArgs>({
@@ -55,7 +55,10 @@ const fetchUrlCoreTool = tool({
 		},
 		required: ['url'],
 	}),
-	// NO execute function - prevents AI SDK auto-execution
+	// Low risk: read-only operation, never requires approval
+	needsApproval: false,
+	// v6 execute function for potential auto-execution
+	execute: executeFetchUrl,
 });
 
 // Create a component that will re-render when theme changes

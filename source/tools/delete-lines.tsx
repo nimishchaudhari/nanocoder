@@ -14,6 +14,7 @@ import {
 	sendFileChangeToVSCode,
 	closeDiffInVSCode,
 } from '@/vscode/index';
+import {getCurrentMode} from '@/context/mode-context';
 
 interface DeleteLinesArgs {
 	path: string;
@@ -87,7 +88,7 @@ const executeDeleteLines = async (args: DeleteLinesArgs): Promise<string> => {
 	return `Successfully deleted ${rangeDesc}.${fileContext}`;
 };
 
-// AI SDK tool definition
+// AI SDK v6 tool definition with execute function and needsApproval
 const deleteLinesCoreTool = tool({
 	description: 'Delete a line or range of lines from a file',
 	inputSchema: jsonSchema<DeleteLinesArgs>({
@@ -109,7 +110,12 @@ const deleteLinesCoreTool = tool({
 		},
 		required: ['path', 'line_number'],
 	}),
-	// NO execute function - prevents AI SDK auto-execution
+	// Medium risk: file write operation, requires approval except in auto-accept mode
+	needsApproval: () => {
+		const mode = getCurrentMode();
+		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
+	},
+	execute: executeDeleteLines, // v6 execute function
 });
 
 const DeleteLinesFormatter = React.memo(

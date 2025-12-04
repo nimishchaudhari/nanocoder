@@ -14,6 +14,7 @@ import {
 	sendFileChangeToVSCode,
 	closeDiffInVSCode,
 } from '@/vscode/index';
+import {getCurrentMode} from '@/context/mode-context';
 
 interface InsertLinesArgs {
 	path: string;
@@ -66,7 +67,7 @@ const executeInsertLines = async (args: InsertLinesArgs): Promise<string> => {
 	} at line ${line_number}.${fileContext}`;
 };
 
-// AI SDK tool definition
+// AI SDK v6 tool definition with execute function and needsApproval
 const insertLinesCoreTool = tool({
 	description: 'Insert new lines at a specific line number in a file',
 	inputSchema: jsonSchema<InsertLinesArgs>({
@@ -89,7 +90,12 @@ const insertLinesCoreTool = tool({
 		},
 		required: ['path', 'line_number', 'content'],
 	}),
-	// NO execute function - prevents AI SDK auto-execution
+	// Medium risk: file write operation, requires approval except in auto-accept mode
+	needsApproval: () => {
+		const mode = getCurrentMode();
+		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
+	},
+	execute: executeInsertLines, // v6 execute function
 });
 
 const InsertLinesFormatter = React.memo(

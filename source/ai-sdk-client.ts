@@ -1,5 +1,5 @@
 import {createOpenAICompatible} from '@ai-sdk/openai-compatible';
-import {generateText, streamText} from 'ai';
+import {generateText, streamText, stepCountIs} from 'ai';
 import type {ModelMessage} from 'ai';
 import {Agent, fetch as undiciFetch} from 'undici';
 import type {
@@ -287,13 +287,17 @@ export class AISDKClient implements LLMClient {
 			// Convert messages to AI SDK v5 ModelMessage format
 			const modelMessages = convertToModelMessages(messages);
 
-			// Use generateText for non-streaming
+			// Use generateText with v6 multistep tool execution
+			// Tools with needsApproval: false auto-execute in the loop
+			// Tools with needsApproval: true cause interruptions for manual approval
+			// stopWhen controls when the tool loop stops (max 10 steps)
 			const result = await generateText({
 				model,
 				messages: modelMessages,
 				tools: aiTools,
 				abortSignal: signal,
 				maxRetries: this.maxRetries,
+				stopWhen: stepCountIs(10), // Allow up to 10 tool execution steps
 			});
 
 			// Extract tool calls from result
@@ -409,13 +413,17 @@ export class AISDKClient implements LLMClient {
 			// Convert messages to AI SDK v5 ModelMessage format
 			const modelMessages = convertToModelMessages(messages);
 
-			// Use streamText for streaming
+			// Use streamText with v6 multistep tool execution
+			// Tools with needsApproval: false auto-execute in the loop
+			// Tools with needsApproval: true cause interruptions for manual approval
+			// stopWhen controls when the tool loop stops (max 10 steps)
 			const result = streamText({
 				model,
 				messages: modelMessages,
 				tools: aiTools,
 				abortSignal: signal,
 				maxRetries: this.maxRetries,
+				stopWhen: stepCountIs(10), // Allow up to 10 tool execution steps
 			});
 
 			// Stream tokens
