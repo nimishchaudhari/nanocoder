@@ -136,6 +136,7 @@ export interface LLMChatResponse {
 export interface StreamCallbacks {
 	onToken?: (token: string) => void;
 	onToolCall?: (toolCall: ToolCall) => void;
+	onToolExecuted?: (toolCall: ToolCall, result: string) => void;
 	onFinish?: () => void;
 }
 

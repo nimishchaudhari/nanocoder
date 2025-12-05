@@ -159,6 +159,24 @@ export function useChatHandler({
 							accumulatedContent += token;
 							setStreamingContent(accumulatedContent);
 						},
+						onToolExecuted: (toolCall: ToolCall, result: string) => {
+							// Display formatter for auto-executed tools (after execution with results)
+							void (async () => {
+								const toolResult: ToolResult = {
+									tool_call_id: toolCall.id,
+									role: 'tool' as const,
+									name: toolCall.function.name,
+									content: result,
+								};
+								await displayToolResult(
+									toolCall,
+									toolResult,
+									toolManager,
+									addToChatQueue,
+									componentKeyCounter,
+								);
+							})();
+						},
 						onFinish: () => {
 							setIsStreaming(false);
 						},

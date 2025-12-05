@@ -304,13 +304,17 @@ export class AISDKClient implements LLMClient {
 					if (!isDebuggingEnabled()) return;
 
 					logInfo(
-						`[DEBUG] Step finished | Tool calls: ${step.toolCalls?.length || 0} | Tool results: ${step.toolResults?.length || 0}`,
+						`[DEBUG] Step finished | Tool calls: ${
+							step.toolCalls?.length || 0
+						} | Tool results: ${step.toolResults?.length || 0}`,
 					);
 
 					if (step.toolCalls && step.toolCalls.length > 0) {
 						step.toolCalls.forEach((toolCall, idx) => {
 							const inputStr = JSON.stringify(toolCall.input).substring(0, 100);
-							logInfo(`[DEBUG] Tool ${idx + 1}: ${toolCall.toolName}(${inputStr})`);
+							logInfo(
+								`[DEBUG] Tool ${idx + 1}: ${toolCall.toolName}(${inputStr})`,
+							);
 						});
 					}
 
@@ -470,31 +474,31 @@ export class AISDKClient implements LLMClient {
 				stopWhen: stepCountIs(10), // Allow up to 10 tool execution steps
 				// Can be used to add custom logging, metrics, or step tracking
 				onStepFinish(step) {
-					if (!isDebuggingEnabled()) return;
-
-					logInfo(
-						`[DEBUG] Step finished | Tool calls: ${step.toolCalls?.length || 0} | Tool results: ${step.toolResults?.length || 0}`,
-					);
-
-					if (step.toolCalls && step.toolCalls.length > 0) {
+					// Display formatters for auto-executed tools (after execution with results)
+					if (
+						step.toolCalls &&
+						step.toolResults &&
+						step.toolCalls.length === step.toolResults.length
+					) {
 						step.toolCalls.forEach((toolCall, idx) => {
-							const inputStr = JSON.stringify(toolCall.input).substring(0, 100);
-							logInfo(`[DEBUG] Tool ${idx + 1}: ${toolCall.toolName}(${inputStr})`);
+							const toolResult = step.toolResults[idx];
+							const tc: ToolCall = {
+								id:
+									toolCall.toolCallId ||
+									`tool_${Date.now()}_${Math.random()
+										.toString(36)
+										.substring(7)}`,
+								function: {
+									name: toolCall.toolName,
+									arguments: toolCall.input as Record<string, unknown>,
+								},
+							};
+							const resultStr =
+								typeof toolResult.output === 'string'
+									? toolResult.output
+									: JSON.stringify(toolResult.output);
+							callbacks.onToolExecuted?.(tc, resultStr);
 						});
-					}
-
-					if (step.toolResults && step.toolResults.length > 0) {
-						step.toolResults.forEach((result, idx) => {
-							const outputStr =
-								typeof result.output === 'string'
-									? result.output.substring(0, 100)
-									: JSON.stringify(result.output).substring(0, 100);
-							logInfo(`[DEBUG] Result ${idx + 1}: ${outputStr}...`);
-						});
-					}
-
-					if (step.text) {
-						logInfo(`[DEBUG] Text: ${step.text.substring(0, 100)}...`);
 					}
 				},
 				prepareStep: ({messages}) => {
@@ -540,7 +544,7 @@ export class AISDKClient implements LLMClient {
 						},
 					};
 					toolCalls.push(tc);
-					callbacks.onToolCall?.(tc);
+					// Note: onToolCall already fired in onStepFinish - no need to call again
 				}
 			}
 
