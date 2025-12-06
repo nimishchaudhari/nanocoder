@@ -120,6 +120,7 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 		toolManager: appState.toolManager,
 		messages: appState.messages,
 		setMessages: appState.updateMessages,
+		currentProvider: appState.currentProvider,
 		currentModel: appState.currentModel,
 		setIsCancelling: appState.setIsCancelling,
 		addToChatQueue: appState.addToChatQueue,

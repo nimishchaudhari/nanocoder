@@ -459,18 +459,6 @@ export class AISDKClient implements LLMClient {
 						m => !isEmptyAssistantMessage(m as unknown as TestableMessage),
 					);
 
-					// If message history gets too long (>20 messages), compress it
-					// Keep system message + last 10 messages to maintain context
-					if (filteredMessages.length > 20) {
-						const systemMessages = filteredMessages.filter(
-							m => m.role === 'system',
-						);
-						const recentMessages = filteredMessages.slice(-10);
-						return {
-							messages: [...systemMessages, ...recentMessages],
-						};
-					}
-
 					// Return filtered messages if any were removed, otherwise no changes
 					if (filteredMessages.length !== messages.length) {
 						return {messages: filteredMessages};

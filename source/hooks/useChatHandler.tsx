@@ -10,7 +10,11 @@ import {formatError} from '@/utils/error-formatter';
 import UserMessage from '@/components/user-message';
 import AssistantMessage from '@/components/assistant-message';
 import ErrorMessage from '@/components/error-message';
+import WarningMessage from '@/components/warning-message';
 import React from 'react';
+import {createTokenizer} from '@/tokenization/index';
+import {calculateTokenBreakdown} from '@/usage/calculator';
+import {getModelContextLimit} from '@/models/index';
 
 // Helper function to convert tool results to message format
 const toolResultsToMessages = (results: ToolResult[]): Message[] =>
@@ -80,6 +84,7 @@ interface UseChatHandlerProps {
 	toolManager: ToolManager | null;
 	messages: Message[];
 	setMessages: (messages: Message[]) => void;
+	currentProvider: string;
 	currentModel: string;
 	setIsCancelling: (cancelling: boolean) => void;
 
@@ -101,6 +106,7 @@ export function useChatHandler({
 	toolManager,
 	messages,
 	setMessages,
+	currentProvider,
 	currentModel,
 	setIsCancelling,
 	addToChatQueue,
@@ -158,6 +164,51 @@ export function useChatHandler({
 			conversationStateManager.current.reset();
 		}
 	}, [messages.length]);
+
+	// Helper to check context usage and display warning if needed
+	const checkContextUsage = React.useCallback(
+		async (allMessages: Message[], systemMessage: Message) => {
+			try {
+				const contextLimit = await getModelContextLimit(currentModel);
+				if (!contextLimit) return; // Unknown limit, skip check
+
+				const tokenizer = createTokenizer(currentProvider, currentModel);
+				const breakdown = calculateTokenBreakdown(
+					[systemMessage, ...allMessages],
+					tokenizer,
+				);
+
+				// Clean up tokenizer if needed
+				if (tokenizer.free) {
+					tokenizer.free();
+				}
+
+				const percentUsed = (breakdown.total / contextLimit) * 100;
+
+				// Show warning on every message once past 80%
+				if (percentUsed >= 95) {
+					addToChatQueue(
+						<WarningMessage
+							key={`context-warning-${componentKeyCounter}`}
+							message={`Context ${Math.round(percentUsed)}% full (${breakdown.total.toLocaleString()}/${contextLimit.toLocaleString()} tokens). Consider using /clear to start fresh.`}
+							hideBox={true}
+						/>,
+					);
+				} else if (percentUsed >= 80) {
+					addToChatQueue(
+						<WarningMessage
+							key={`context-warning-${componentKeyCounter}`}
+							message={`Context ${Math.round(percentUsed)}% full (${breakdown.total.toLocaleString()}/${contextLimit.toLocaleString()} tokens).`}
+							hideBox={true}
+						/>,
+					);
+				}
+			} catch {
+				// Silently ignore errors in context checking - it's not critical
+			}
+		},
+		[currentProvider, currentModel, addToChatQueue, componentKeyCounter],
+	);
 
 	// Process assistant response - handles the conversation loop with potential tool calls (for follow-ups)
 	const processAssistantResponse = async (
@@ -644,6 +695,9 @@ export function useChatHandler({
 				role: 'system',
 				content: systemPrompt,
 			};
+
+			// Check context usage and warn if approaching limit
+			await checkContextUsage(updatedMessages, systemMessage);
 
 			// Use the new conversation loop
 			await processAssistantResponse(systemMessage, updatedMessages);
