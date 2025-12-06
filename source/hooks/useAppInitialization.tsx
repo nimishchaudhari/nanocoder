@@ -29,7 +29,6 @@ import {
 	recommendationsCommand,
 	setupConfigCommand,
 	statusCommand,
-	streamingCommand,
 	debuggingCommand,
 	themeCommand,
 	updateCommand,
@@ -339,7 +338,6 @@ export function useAppInitialization({
 				recommendationsCommand,
 				statusCommand,
 				setupConfigCommand,
-				streamingCommand,
 				debuggingCommand,
 				usageCommand,
 			]);

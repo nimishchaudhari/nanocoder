@@ -1,16 +1,9 @@
-import {
-	LLMClient,
-	LLMChatResponse,
-	Message,
-	ToolCall,
-	ToolResult,
-} from '@/types/core';
+import {LLMClient, Message, ToolCall, ToolResult} from '@/types/core';
 import {ToolManager} from '@/tools/tool-manager';
 import {processPromptTemplate} from '@/utils/prompt-processor';
 import {parseToolCalls} from '@/tool-calling/index';
 import {ConversationStateManager} from '@/app/utils/conversationState';
 import {promptHistory} from '@/prompt-history';
-import {isStreamingEnabled} from '@/config/preferences';
 import {displayToolResult} from '@/utils/tool-result-display';
 import {parseToolArguments} from '@/utils/tool-args-parser';
 import {formatError} from '@/utils/error-formatter';
@@ -18,6 +11,15 @@ import UserMessage from '@/components/user-message';
 import AssistantMessage from '@/components/assistant-message';
 import ErrorMessage from '@/components/error-message';
 import React from 'react';
+
+// Helper function to convert tool results to message format
+const toolResultsToMessages = (results: ToolResult[]): Message[] =>
+	results.map(result => ({
+		role: 'tool' as const,
+		content: result.content || '',
+		tool_call_id: result.tool_call_id,
+		name: result.name,
+	}));
 
 // Helper function to filter out invalid tool calls and deduplicate by ID and function
 // Returns valid tool calls and error results for invalid ones
@@ -79,7 +81,6 @@ interface UseChatHandlerProps {
 	messages: Message[];
 	setMessages: (messages: Message[]) => void;
 	currentModel: string;
-	setIsThinking: (thinking: boolean) => void;
 	setIsCancelling: (cancelling: boolean) => void;
 
 	addToChatQueue: (component: React.ReactNode) => void;
@@ -101,7 +102,6 @@ export function useChatHandler({
 	messages,
 	setMessages,
 	currentModel,
-	setIsThinking,
 	setIsCancelling,
 	addToChatQueue,
 	componentKeyCounter,
@@ -116,6 +116,41 @@ export function useChatHandler({
 	// State for streaming message content
 	const [streamingContent, setStreamingContent] = React.useState<string>('');
 	const [isStreaming, setIsStreaming] = React.useState<boolean>(false);
+
+	// Helper to reset all streaming state
+	const resetStreamingState = React.useCallback(() => {
+		setIsCancelling(false);
+		setAbortController(null);
+		setIsStreaming(false);
+		setStreamingContent('');
+	}, [setIsCancelling, setAbortController]);
+
+	// Helper to display errors in chat queue
+	const displayError = React.useCallback(
+		(error: unknown, keyPrefix: string) => {
+			if (
+				error instanceof Error &&
+				error.message === 'Operation was cancelled'
+			) {
+				addToChatQueue(
+					<ErrorMessage
+						key={`${keyPrefix}-${componentKeyCounter}`}
+						message="Interrupted by user."
+						hideBox={true}
+					/>,
+				);
+			} else {
+				addToChatQueue(
+					<ErrorMessage
+						key={`${keyPrefix}-${componentKeyCounter}`}
+						message={formatError(error)}
+						hideBox={true}
+					/>,
+				);
+			}
+		},
+		[addToChatQueue, componentKeyCounter],
+	);
 
 	// Reset conversation state when messages are cleared
 	React.useEffect(() => {
@@ -139,58 +174,44 @@ export function useChatHandler({
 		}
 
 		try {
-			setIsThinking(true);
+			// Use streaming with callbacks
+			let accumulatedContent = '';
 
-			// Try to use streaming if available and enabled, otherwise fallback to non-streaming
-			let result: LLMChatResponse;
+			setIsStreaming(true);
+			setStreamingContent('');
 
-			if (client.chatStream && isStreamingEnabled()) {
-				// Use streaming with callbacks
-				let accumulatedContent = '';
-
-				setIsStreaming(true);
-				setStreamingContent('');
-
-				result = await client.chatStream(
-					[systemMessage, ...messages],
-					toolManager?.getAllTools() || {},
-					{
-						onToken: (token: string) => {
-							accumulatedContent += token;
-							setStreamingContent(accumulatedContent);
-						},
-						onToolExecuted: (toolCall: ToolCall, result: string) => {
-							// Display formatter for auto-executed tools (after execution with results)
-							void (async () => {
-								const toolResult: ToolResult = {
-									tool_call_id: toolCall.id,
-									role: 'tool' as const,
-									name: toolCall.function.name,
-									content: result,
-								};
-								await displayToolResult(
-									toolCall,
-									toolResult,
-									toolManager,
-									addToChatQueue,
-									componentKeyCounter,
-								);
-							})();
-						},
-						onFinish: () => {
-							setIsStreaming(false);
-						},
+			const result = await client.chat(
+				[systemMessage, ...messages],
+				toolManager?.getAllTools() || {},
+				{
+					onToken: (token: string) => {
+						accumulatedContent += token;
+						setStreamingContent(accumulatedContent);
 					},
-					controller.signal,
-				);
-			} else {
-				// Fallback to non-streaming (either client doesn't support it or user disabled it)
-				result = await client.chat(
-					[systemMessage, ...messages],
-					toolManager?.getAllTools() || {},
-					controller.signal,
-				);
-			}
+					onToolExecuted: (toolCall: ToolCall, result: string) => {
+						// Display formatter for auto-executed tools (after execution with results)
+						void (async () => {
+							const toolResult: ToolResult = {
+								tool_call_id: toolCall.id,
+								role: 'tool' as const,
+								name: toolCall.function.name,
+								content: result,
+							};
+							await displayToolResult(
+								toolCall,
+								toolResult,
+								toolManager,
+								addToChatQueue,
+								componentKeyCounter,
+							);
+						})();
+					},
+					onFinish: () => {
+						setIsStreaming(false);
+					},
+				},
+				controller.signal,
+			);
 
 			if (!result || !result.choices || result.choices.length === 0) {
 				throw new Error('No response received from model');
@@ -266,17 +287,10 @@ export function useChatHandler({
 				}
 
 				// Send error results back to model for self-correction
-				const toolMessages = errorResults.map(result => ({
-					role: 'tool' as const,
-					content: result.content || '',
-					tool_call_id: result.tool_call_id,
-					name: result.name,
-				}));
-
 				const updatedMessagesWithError = [
 					...messages,
 					assistantMsg,
-					...toolMessages,
+					...toolResultsToMessages(errorResults),
 				];
 				setMessages(updatedMessagesWithError);
 
@@ -322,17 +336,10 @@ export function useChatHandler({
 						}
 
 						// Continue conversation with error messages
-						const toolMessages = blockedToolErrors.map(result => ({
-							role: 'tool' as const,
-							content: result.content || '',
-							tool_call_id: result.tool_call_id,
-							name: result.name,
-						}));
-
 						const updatedMessagesWithError = [
 							...messages,
 							assistantMsg,
-							...toolMessages,
+							...toolResultsToMessages(blockedToolErrors),
 						];
 						setMessages(updatedMessagesWithError);
 
@@ -383,7 +390,13 @@ export function useChatHandler({
 					if (toolManager) {
 						const toolEntry = toolManager.getToolEntry(toolCall.function.name);
 						if (toolEntry?.tool) {
-							const needsApprovalProp = toolEntry.tool.needsApproval;
+							const needsApprovalProp = (
+								toolEntry.tool as unknown as {
+									needsApproval?:
+										| boolean
+										| ((args: unknown) => boolean | Promise<boolean>);
+								}
+							).needsApproval;
 							if (typeof needsApprovalProp === 'boolean') {
 								toolNeedsApproval = needsApprovalProp;
 							} else if (typeof needsApprovalProp === 'function') {
@@ -517,18 +530,10 @@ export function useChatHandler({
 
 					// If we have results, continue the conversation with them
 					if (directResults.length > 0) {
-						// Format tool results as standard tool messages
-						const toolMessages = directResults.map(result => ({
-							role: 'tool' as const,
-							content: result.content || '',
-							tool_call_id: result.tool_call_id,
-							name: result.name,
-						}));
-
 						const updatedMessagesWithTools = [
 							...messages,
 							assistantMsg,
-							...toolMessages,
+							...toolResultsToMessages(directResults),
 						];
 						setMessages(updatedMessagesWithTools);
 
@@ -589,34 +594,9 @@ export function useChatHandler({
 				return;
 			}
 		} catch (error) {
-			if (
-				error instanceof Error &&
-				error.message === 'Operation was cancelled'
-			) {
-				addToChatQueue(
-					<ErrorMessage
-						key={`cancelled-${componentKeyCounter}`}
-						message="Interrupted by user."
-						hideBox={true}
-					/>,
-				);
-			} else {
-				// Extract clean error message
-				const errorMsg = formatError(error);
-				addToChatQueue(
-					<ErrorMessage
-						hideBox={true}
-						key={`error-${componentKeyCounter}`}
-						message={errorMsg}
-					/>,
-				);
-			}
+			displayError(error, 'chat-error');
 		} finally {
-			setIsThinking(false);
-			setIsCancelling(false);
-			setAbortController(null);
-			setIsStreaming(false);
-			setStreamingContent('');
+			resetStreamingState();
 		}
 	};
 
@@ -652,9 +632,6 @@ export function useChatHandler({
 		const controller = new AbortController();
 		setAbortController(controller);
 
-		// Start thinking indicator and streaming
-		setIsThinking(true);
-
 		try {
 			// Load and process system prompt with dynamic tool documentation
 			// Note: We still need tool definitions (not just native tools) for documentation
@@ -671,33 +648,9 @@ export function useChatHandler({
 			// Use the new conversation loop
 			await processAssistantResponse(systemMessage, updatedMessages);
 		} catch (error) {
-			if (
-				error instanceof Error &&
-				error.message === 'Operation was cancelled'
-			) {
-				addToChatQueue(
-					<ErrorMessage
-						key={`cancelled-${componentKeyCounter}`}
-						message="Operation was cancelled by user"
-						hideBox={true}
-					/>,
-				);
-			} else {
-				// Extract clean error message
-				const errorMsg = formatError(error);
-				addToChatQueue(
-					<ErrorMessage
-						key={`error-${componentKeyCounter}`}
-						message={errorMsg}
-					/>,
-				);
-			}
+			displayError(error, 'chat-error');
 		} finally {
-			setIsThinking(false);
-			setIsCancelling(false);
-			setAbortController(null);
-			setIsStreaming(false);
-			setStreamingContent('');
+			resetStreamingState();
 		}
 	};
 

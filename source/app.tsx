@@ -9,7 +9,6 @@ import ChatQueue from '@/components/chat-queue';
 import ModelSelector from '@/components/model-selector';
 import ProviderSelector from '@/components/provider-selector';
 import ThemeSelector from '@/components/theme-selector';
-import ThinkingIndicator from '@/components/thinking-indicator';
 import CancellingIndicator from '@/components/cancelling-indicator';
 import ToolConfirmation from '@/components/tool-confirmation';
 import ToolExecutionIndicator from '@/components/tool-execution-indicator';
@@ -122,7 +121,6 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 		messages: appState.messages,
 		setMessages: appState.updateMessages,
 		currentModel: appState.currentModel,
-		setIsThinking: appState.setIsThinking,
 		setIsCancelling: appState.setIsCancelling,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
@@ -392,11 +390,7 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 					</Box>
 					{appState.startChat && (
 						<Box flexDirection="column" marginLeft={-1}>
-							{appState.isCancelling ? (
-								<CancellingIndicator />
-							) : appState.isThinking && !chatHandler.isStreaming ? (
-								<ThinkingIndicator />
-							) : null}
+							{appState.isCancelling && <CancellingIndicator />}
 							{/* Show streaming content while it's being streamed */}
 							{chatHandler.isStreaming && chatHandler.streamingContent && (
 								<Box flexDirection="column" marginBottom={1}>
@@ -470,7 +464,7 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 									)}
 									onSubmit={msg => void handleMessageSubmit(msg)}
 									disabled={
-										appState.isThinking ||
+										chatHandler.isStreaming ||
 										appState.isToolExecuting ||
 										appState.isBashExecuting
 									}

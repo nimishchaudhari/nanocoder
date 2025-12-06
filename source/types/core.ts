@@ -148,11 +148,6 @@ export interface LLMClient {
 	chat(
 		messages: Message[],
 		tools: Record<string, AISDKCoreTool>,
-		signal?: AbortSignal,
-	): Promise<LLMChatResponse>;
-	chatStream?(
-		messages: Message[],
-		tools: Record<string, AISDKCoreTool>,
 		callbacks: StreamCallbacks,
 		signal?: AbortSignal,
 	): Promise<LLMChatResponse>;
