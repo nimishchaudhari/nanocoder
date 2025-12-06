@@ -190,7 +190,9 @@ export function useChatHandler({
 					addToChatQueue(
 						<WarningMessage
 							key={`context-warning-${componentKeyCounter}`}
-							message={`Context ${Math.round(percentUsed)}% full (${breakdown.total.toLocaleString()}/${contextLimit.toLocaleString()} tokens). Consider using /clear to start fresh.`}
+							message={`Context ${Math.round(
+								percentUsed,
+							)}% full (${breakdown.total.toLocaleString()}/${contextLimit.toLocaleString()} tokens). Consider using /clear to start fresh.`}
 							hideBox={true}
 						/>,
 					);
@@ -198,7 +200,9 @@ export function useChatHandler({
 					addToChatQueue(
 						<WarningMessage
 							key={`context-warning-${componentKeyCounter}`}
-							message={`Context ${Math.round(percentUsed)}% full (${breakdown.total.toLocaleString()}/${contextLimit.toLocaleString()} tokens).`}
+							message={`Context ${Math.round(
+								percentUsed,
+							)}% full (${breakdown.total.toLocaleString()}/${contextLimit.toLocaleString()} tokens).`}
 							hideBox={true}
 						/>,
 					);
