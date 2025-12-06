@@ -43,9 +43,9 @@ const OLLAMA_MODEL_CONTEXT_LIMITS: Record<string, number> = {
 	mixtral: 32000,
 	'mixtral:8x7b': 32000,
 	'mixtral:8x22b': 64000,
-	ministral: 10000,
-	'ministral:3b': 10000,
-	'ministral:8b': 10000,
+	ministral: 128000,
+	'ministral:3b': 128000,
+	'ministral:8b': 128000,
 
 	// Qwen models
 	qwen: 32000,
