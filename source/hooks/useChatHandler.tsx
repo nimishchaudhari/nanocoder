@@ -230,16 +230,23 @@ export function useChatHandler({
 				toolManager,
 			);
 
-			// Add assistant message to conversation history
+			// Add assistant message to conversation history only if it has content or tool_calls
+			// Empty assistant messages cause API errors: "Assistant message must have either content or tool_calls"
 			const assistantMsg: Message = {
 				role: 'assistant',
 				content: cleanedContent,
 				tool_calls: validToolCalls.length > 0 ? validToolCalls : undefined,
 			};
-			setMessages([...messages, assistantMsg]);
 
-			// Update conversation state with assistant message
-			conversationStateManager.current.updateAssistantMessage(assistantMsg);
+			const hasValidAssistantMessage =
+				cleanedContent.trim() || validToolCalls.length > 0;
+
+			if (hasValidAssistantMessage) {
+				setMessages([...messages, assistantMsg]);
+
+				// Update conversation state with assistant message
+				conversationStateManager.current.updateAssistantMessage(assistantMsg);
+			}
 
 			// Clear streaming state after response is complete
 			setIsStreaming(false);
@@ -339,7 +346,7 @@ export function useChatHandler({
 				}
 
 				// Separate tools that need confirmation vs those that don't
-				// BUT: if a tool fails validation, execute directly (skip confirmation)
+				// Check tool's needsApproval property to determine if confirmation is needed
 				const toolsNeedingConfirmation: ToolCall[] = [];
 				const toolsToExecuteDirectly: ToolCall[] = [];
 
@@ -371,12 +378,44 @@ export function useChatHandler({
 						}
 					}
 
-					// If validation failed OR in auto-accept mode (except bash), execute directly
-					// EXCEPT: execute_bash always requires confirmation for security
-					// Note: Tool approval is now handled by AI SDK's needsApproval property
+					// Check tool's needsApproval property from the tool definition
+					let toolNeedsApproval = true; // Default to requiring approval for safety
+					if (toolManager) {
+						const toolEntry = toolManager.getToolEntry(toolCall.function.name);
+						if (toolEntry?.tool) {
+							const needsApprovalProp = toolEntry.tool.needsApproval;
+							if (typeof needsApprovalProp === 'boolean') {
+								toolNeedsApproval = needsApprovalProp;
+							} else if (typeof needsApprovalProp === 'function') {
+								// Evaluate function - our tools use getCurrentMode() internally
+								// and don't actually need the args parameter
+								try {
+									const parsedArgs = parseToolArguments(
+										toolCall.function.arguments,
+									);
+									// Cast to any to handle AI SDK type signature mismatch
+									// Our tool implementations don't use the second parameter
+									toolNeedsApproval = await (
+										needsApprovalProp as (
+											args: unknown,
+										) => boolean | Promise<boolean>
+									)(parsedArgs);
+								} catch {
+									// If evaluation fails, require approval for safety
+									toolNeedsApproval = true;
+								}
+							}
+						}
+					}
+
+					// Execute directly if:
+					// 1. Validation failed (need to send error back to model)
+					// 2. Tool has needsApproval: false
+					// 3. In auto-accept mode (except bash which always needs approval)
 					const isBashTool = toolCall.function.name === 'execute_bash';
 					if (
 						validationFailed ||
+						!toolNeedsApproval ||
 						(developmentMode === 'auto-accept' && !isBashTool)
 					) {
 						toolsToExecuteDirectly.push(toolCall);
@@ -521,36 +560,33 @@ export function useChatHandler({
 				const lastMessage = messages[messages.length - 1];
 				const hasRecentToolResults = lastMessage?.role === 'tool';
 
-				if (hasRecentToolResults) {
-					// Add a system-like nudge message to help model continue
-					const nudgeMessage: Message = {
-						role: 'user',
-						content:
-							'Please provide a summary or response based on the tool results above.',
-					};
+				// Add a continuation message to help the model respond
+				// For recent tool results, ask for a summary; otherwise, ask to continue
+				const nudgeContent = hasRecentToolResults
+					? 'Please provide a summary or response based on the tool results above.'
+					: 'Please continue with the task.';
 
-					const updatedMessagesWithNudge = [
-						...messages,
-						assistantMsg,
-						nudgeMessage,
-					];
-					setMessages(updatedMessagesWithNudge);
+				const nudgeMessage: Message = {
+					role: 'user',
+					content: nudgeContent,
+				};
 
-					// Continue the conversation loop with the nudge
-					await processAssistantResponse(
-						systemMessage,
-						updatedMessagesWithNudge,
-					);
-					return;
-				} else {
-					addToChatQueue(
-						<ErrorMessage
-							key={`empty-response-${componentKeyCounter}`}
-							message="The model returned an empty response. This may happen if the model is having issues or has finished processing. Try asking a follow-up question or saying 'continue' if you expected more output."
-							hideBox={true}
-						/>,
-					);
-				}
+				// Display a "continue" message in chat so user knows what happened
+				addToChatQueue(
+					<UserMessage
+						key={`auto-continue-${componentKeyCounter}`}
+						message="continue"
+					/>,
+				);
+
+				// Don't include the empty assistantMsg - it would cause API error
+				// "Assistant message must have either content or tool_calls"
+				const updatedMessagesWithNudge = [...messages, nudgeMessage];
+				setMessages(updatedMessagesWithNudge);
+
+				// Continue the conversation loop with the nudge
+				await processAssistantResponse(systemMessage, updatedMessagesWithNudge);
+				return;
 			}
 		} catch (error) {
 			if (
