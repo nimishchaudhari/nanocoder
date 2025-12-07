@@ -1005,7 +1005,10 @@ test.serial(
 				);
 
 				t.true(result.includes('const tools'), 'Should match lowercase tools');
-				t.true(result.includes('const Tools'), 'Should match capitalized Tools');
+				t.true(
+					result.includes('const Tools'),
+					'Should match capitalized Tools',
+				);
 				t.false(
 					result.includes('unrelated'),
 					'Should not match unrelated content',
@@ -1050,7 +1053,10 @@ test.serial(
 				);
 
 				t.true(result.includes('func myFunc'), 'Should match "func"');
-				t.true(result.includes('function myFunction'), 'Should match "function"');
+				t.true(
+					result.includes('function myFunction'),
+					'Should match "function"',
+				);
 			} finally {
 				process.chdir(originalCwd);
 			}
@@ -1125,7 +1131,10 @@ test.serial(
 					{toolCallId: 'test', messages: []},
 				);
 
-				t.true(result.includes('const test ='), 'Should match whole word "test"');
+				t.true(
+					result.includes('const test ='),
+					'Should match whole word "test"',
+				);
 				// Note: grep \b behavior may still match within lines containing "test"
 				// The key test is that the regex syntax is accepted
 				t.truthy(result, 'Should execute without error');
@@ -1164,7 +1173,10 @@ test.serial(
 					{toolCallId: 'test', messages: []},
 				);
 
-				t.true(result.includes('class MyClass'), 'Should match "class MyClass"');
+				t.true(
+					result.includes('class MyClass'),
+					'Should match "class MyClass"',
+				);
 				t.true(
 					result.includes('class  AnotherClass'),
 					'Should match "class  AnotherClass" with multiple spaces',

@@ -66,7 +66,7 @@ const filterValidToolCalls = (
 				tool_call_id: toolCall.id,
 				role: 'tool' as const,
 				name: toolCall.function.name,
-				content: `Error: Unknown tool: ${toolCall.function.name}. This tool does not exist. Please use only the tools that are available in the system.`,
+				content: `This tool does not exist. Please use only the tools that are available in the system.`,
 			});
 			continue;
 		}
@@ -292,9 +292,46 @@ export function useChatHandler({
 			// Parse any tool calls from content for non-tool-calling models
 			const parseResult = parseToolCalls(fullContent);
 
-			// Check for malformed tool calls and throw error to let model retry
+			// Check for malformed tool calls and send error back to model for self-correction
 			if (!parseResult.success) {
-				throw new Error(`${parseResult.error}\n\n${parseResult.examples}`);
+				const errorContent = `${parseResult.error}\n\n${parseResult.examples}`;
+
+				// Display error to user
+				addToChatQueue(
+					<ErrorMessage
+						key={`malformed-tool-${Date.now()}`}
+						message={errorContent}
+						hideBox={true}
+					/>,
+				);
+
+				// Create assistant message with the malformed content (so model knows what it said)
+				const assistantMsgWithError: Message = {
+					role: 'assistant',
+					content: fullContent,
+				};
+
+				// Create a user message with the error feedback for the model
+				const errorFeedbackMessage: Message = {
+					role: 'user',
+					content: `Your previous response contained a malformed tool call. ${errorContent}\n\nPlease try again using the correct format.`,
+				};
+
+				// Update messages and continue conversation loop for self-correction
+				const updatedMessagesWithError = [
+					...messages,
+					assistantMsgWithError,
+					errorFeedbackMessage,
+				];
+				setMessages(updatedMessagesWithError);
+
+				// Clear streaming state before recursing
+				setIsStreaming(false);
+				setStreamingContent('');
+
+				// Continue the main conversation loop with error message as context
+				await processAssistantResponse(systemMessage, updatedMessagesWithError);
+				return;
 			}
 
 			const parsedToolCalls = parseResult.toolCalls;

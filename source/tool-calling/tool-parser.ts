@@ -62,7 +62,8 @@ export function parseToolCalls(content: string): ParseResult {
 	const strippedContent = stripThinkTags(content);
 
 	// 1. Check for malformed XML patterns first (before validating with hasToolCalls)
-	const xmlMalformed = XMLToolCallParser.detectMalformedToolCall(strippedContent);
+	const xmlMalformed =
+		XMLToolCallParser.detectMalformedToolCall(strippedContent);
 	if (xmlMalformed) {
 		return {
 			success: false,
