@@ -161,3 +161,18 @@ export const DEVELOPMENT_MODE_LABELS: Record<DevelopmentMode, string> = {
 	'auto-accept': '⏵⏵ auto-accept mode on',
 	plan: '⏸ plan mode on',
 };
+
+// Connection status types for MCP and LSP servers
+export type ConnectionStatus = 'connected' | 'failed' | 'pending';
+
+export interface MCPConnectionStatus {
+	name: string;
+	status: ConnectionStatus;
+	errorMessage?: string;
+}
+
+export interface LSPConnectionStatus {
+	name: string;
+	status: ConnectionStatus;
+	errorMessage?: string;
+}

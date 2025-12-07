@@ -10,16 +10,18 @@ import {
  * Normalize whitespace in content to remove excessive blank lines and spacing
  */
 function normalizeWhitespace(content: string): string {
-	return content
-		// Remove trailing whitespace from each line
-		.replace(/[ \t]+$/gm, '')
-		// Collapse multiple spaces (but not at start of line for indentation)
-		.replace(/([^ \t\n]) {2,}/g, '$1 ')
-		// Remove lines that are only whitespace
-		.replace(/^[ \t]+$/gm, '')
-		// Collapse 3+ consecutive newlines to exactly 2 (one blank line)
-		.replace(/\n{3,}/g, '\n\n')
-		.trim();
+	return (
+		content
+			// Remove trailing whitespace from each line
+			.replace(/[ \t]+$/gm, '')
+			// Collapse multiple spaces (but not at start of line for indentation)
+			.replace(/([^ \t\n]) {2,}/g, '$1 ')
+			// Remove lines that are only whitespace
+			.replace(/^[ \t]+$/gm, '')
+			// Collapse 3+ consecutive newlines to exactly 2 (one blank line)
+			.replace(/\n{3,}/g, '\n\n')
+			.trim()
+	);
 }
 
 /**
