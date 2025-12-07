@@ -299,3 +299,97 @@ test('parseToolCalls: deduplicates identical tool calls', t => {
 		t.is(result.toolCalls.length, 1);
 	}
 });
+
+// Think Tag Tests (models like GLM-4 emit these for chain-of-thought)
+
+test('parseToolCalls: strips complete <think>...</think> tags', t => {
+	const content = `<think>
+Let me think about this...
+I should read the file first.
+</think>
+
+Here is my response to your question.`;
+
+	const result = parseToolCalls(content);
+
+	t.true(result.success);
+	if (result.success) {
+		t.is(result.toolCalls.length, 0);
+		t.notRegex(result.cleanedContent, /<think>/);
+		t.notRegex(result.cleanedContent, /<\/think>/);
+		t.regex(result.cleanedContent, /Here is my response/);
+	}
+});
+
+test('parseToolCalls: strips orphaned closing </think> tags', t => {
+	const content = `</think>
+
+Here is my response after some thinking.`;
+
+	const result = parseToolCalls(content);
+
+	t.true(result.success);
+	if (result.success) {
+		t.notRegex(result.cleanedContent, /<\/think>/);
+		t.regex(result.cleanedContent, /Here is my response/);
+	}
+});
+
+test('parseToolCalls: strips incomplete opening <think> tags (streaming)', t => {
+	const content = `Here is my response.
+
+<think>
+I'm still thinking about this...`;
+
+	const result = parseToolCalls(content);
+
+	t.true(result.success);
+	if (result.success) {
+		t.notRegex(result.cleanedContent, /<think>/);
+		t.regex(result.cleanedContent, /Here is my response/);
+		// The incomplete thinking content should be removed
+		t.notRegex(result.cleanedContent, /still thinking/);
+	}
+});
+
+test('parseToolCalls: handles think tags with tool calls', t => {
+	const content = `<think>
+Let me analyze this request...
+I'll need to read the file first.
+</think>
+
+<read_file>
+  <path>/path/to/file.txt</path>
+</read_file>`;
+
+	const result = parseToolCalls(content);
+
+	t.true(result.success);
+	if (result.success) {
+		t.is(result.toolCalls.length, 1);
+		t.is(result.toolCalls[0].function.name, 'read_file');
+		t.notRegex(result.cleanedContent, /<think>/);
+		t.notRegex(result.cleanedContent, /<\/think>/);
+	}
+});
+
+test('parseToolCalls: handles case-insensitive think tags', t => {
+	const content = `<THINK>
+Some thinking...
+</THINK>
+
+<Think>
+More thinking...
+</Think>
+
+The actual response.`;
+
+	const result = parseToolCalls(content);
+
+	t.true(result.success);
+	if (result.success) {
+		t.notRegex(result.cleanedContent, /<think>/i);
+		t.notRegex(result.cleanedContent, /<\/think>/i);
+		t.regex(result.cleanedContent, /The actual response/);
+	}
+});
