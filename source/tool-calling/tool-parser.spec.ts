@@ -38,7 +38,7 @@ I want to read the file at /path/to/file.txt
 	t.false(result.success);
 	if (!result.success) {
 		t.regex(result.error, /Invalid syntax/i);
-		t.regex(result.examples, /Correct format/i);
+		t.regex(result.examples, /native tool calling/i);
 	}
 });
 
