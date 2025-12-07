@@ -450,7 +450,7 @@ You can override this directory using `NANOCODER_DATA_DIR`.
 - `/model` - Switch between available models
 - `/provider` - Switch between configured AI providers
 - `/status` - Display current status (CWD, provider, model, theme, available updates, AGENTS setup)
-- `/recommendations` - Get AI model recommendations based on your system capabilities (RAM, GPU, network)
+- `/model-database` - Browse coding models from OpenRouter (searchable, filterable by open/proprietary)
 - `/mcp` - Show connected MCP servers and their tools
 - `/custom-commands` - List all custom commands
 - `/exit` - Exit the application
@@ -586,6 +586,5 @@ Nanocoder could benefit from help all across the board. Such as:
 - Reporting bugs or suggesting features
 - Marketing and getting the word out
 - Design and building more great software
-- Model cards for our recommendations database
 
 All contributions and community participation are welcome!

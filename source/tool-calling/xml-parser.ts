@@ -243,9 +243,7 @@ export class XMLToolCallParser {
 				error:
 					'Invalid syntax: [tool_use: name] or [Tool: name] format is not supported',
 				hint: (match: string) => {
-					const toolName = match.match(
-						/\[(?:tool_use|Tool):\s*(\w+)\]/i,
-					)?.[1];
+					const toolName = match.match(/\[(?:tool_use|Tool):\s*(\w+)\]/i)?.[1];
 					return `Use XML tags: <${toolName}><param>value</param></${toolName}> instead of [Tool: ${toolName}]`;
 				},
 			},

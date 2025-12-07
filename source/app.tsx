@@ -16,7 +16,7 @@ import BashExecutionIndicator from '@/components/bash-execution-indicator';
 import {setGlobalMessageQueue} from '@/utils/message-queue';
 import Spinner from 'ink-spinner';
 import SecurityDisclaimer from '@/components/security-disclaimer';
-import {RecommendationsDisplay} from '@/commands/recommendations';
+import {ModelDatabaseDisplay} from '@/commands/model-database';
 import {ConfigWizard} from '@/wizard/config-wizard';
 import {
 	VSCodeExtensionPrompt,
@@ -200,7 +200,7 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 		setIsModelSelectionMode: appState.setIsModelSelectionMode,
 		setIsProviderSelectionMode: appState.setIsProviderSelectionMode,
 		setIsThemeSelectionMode: appState.setIsThemeSelectionMode,
-		setIsRecommendationsMode: appState.setIsRecommendationsMode,
+		setIsModelDatabaseMode: appState.setIsModelDatabaseMode,
 		setIsConfigWizardMode: appState.setIsConfigWizardMode,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
@@ -260,7 +260,7 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 				onEnterModelSelectionMode: modeHandlers.enterModelSelectionMode,
 				onEnterProviderSelectionMode: modeHandlers.enterProviderSelectionMode,
 				onEnterThemeSelectionMode: modeHandlers.enterThemeSelectionMode,
-				onEnterRecommendationsMode: modeHandlers.enterRecommendationsMode,
+				onEnterModelDatabaseMode: modeHandlers.enterModelDatabaseMode,
 				onEnterConfigWizardMode: modeHandlers.enterConfigWizardMode,
 				onShowStatus: handleShowStatus,
 				onHandleChatMessage: chatHandler.handleChatMessage,
@@ -285,7 +285,7 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 			modeHandlers.enterModelSelectionMode,
 			modeHandlers.enterProviderSelectionMode,
 			modeHandlers.enterThemeSelectionMode,
-			modeHandlers.enterRecommendationsMode,
+			modeHandlers.enterModelDatabaseMode,
 			modeHandlers.enterConfigWizardMode,
 			handleShowStatus,
 			chatHandler.handleChatMessage,
@@ -425,9 +425,9 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 									onThemeSelect={modeHandlers.handleThemeSelect}
 									onCancel={modeHandlers.handleThemeSelectionCancel}
 								/>
-							) : appState.isRecommendationsMode ? (
-								<RecommendationsDisplay
-									onCancel={modeHandlers.handleRecommendationsCancel}
+							) : appState.isModelDatabaseMode ? (
+								<ModelDatabaseDisplay
+									onCancel={modeHandlers.handleModelDatabaseCancel}
 								/>
 							) : appState.isConfigWizardMode ? (
 								<ConfigWizard
