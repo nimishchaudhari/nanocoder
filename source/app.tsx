@@ -180,6 +180,8 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 		setStartChat: appState.setStartChat,
 		setMcpInitialized: appState.setMcpInitialized,
 		setUpdateInfo: appState.setUpdateInfo,
+		setMcpServersStatus: appState.setMcpServersStatus,
+		setLspServersStatus: appState.setLspServersStatus,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 		customCommandCache: appState.customCommandCache,
@@ -246,6 +248,8 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 				model={appState.currentModel}
 				theme={appState.currentTheme}
 				updateInfo={appState.updateInfo}
+				mcpServersStatus={appState.mcpServersStatus}
+				lspServersStatus={appState.lspServersStatus}
 			/>,
 		);
 	}, [appState]);
@@ -313,6 +317,8 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 				model={appState.currentModel}
 				theme={appState.currentTheme}
 				updateInfo={appState.updateInfo}
+				mcpServersStatus={appState.mcpServersStatus}
+				lspServersStatus={appState.lspServersStatus}
 			/>,
 		],
 		[
@@ -320,6 +326,8 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 			appState.currentModel,
 			appState.currentTheme,
 			appState.updateInfo,
+			appState.mcpServersStatus,
+			appState.lspServersStatus,
 		],
 	);
 
