@@ -18,6 +18,7 @@ export interface MessageSubmissionOptions {
 	onShowStatus: () => void;
 	onHandleChatMessage: (message: string) => Promise<void>;
 	onAddToChatQueue: (component: React.ReactNode) => void;
+	onCommandComplete?: () => void;
 	componentKeyCounter: number;
 	setMessages: (messages: Message[]) => void;
 	messages: Message[];
