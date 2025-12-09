@@ -183,6 +183,7 @@ This will open an interactive chat session where you can:
 - Chat with the AI about your code
 - Use slash commands (e.g., `/help`, `/model`, `/status`)
 - Execute bash commands with `!`
+- Tag files with `@`
 - Review and approve tool executions
 - Switch between different models and providers
 
@@ -218,6 +219,7 @@ nanocoder run "refactor the database connection to use a connection pool"
 - Exits automatically when the task is complete
 
 **Note:** When using non-interactive mode with VS Code integration, place any flags (like `--vscode` or `--vscode-port`) before the `run` command:
+
 ```bash
 nanocoder --vscode run "your prompt"
 ```

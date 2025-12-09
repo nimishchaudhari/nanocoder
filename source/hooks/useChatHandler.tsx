@@ -662,11 +662,8 @@ export function useChatHandler({
 						const toolNames = toolsNeedingConfirmation
 							.map(tc => tc.function.name)
 							.join(', ');
-						const errorMsg = `Tool approval required for: ${toolNames}`;
-						console.error(
-							`${errorMsg}. Exiting non-interactive mode.`,
-						);
-						
+						const errorMsg = `Tool approval required for: ${toolNames}. Exiting non-interactive mode`;
+
 						// Add error message to UI
 						addToChatQueue(
 							<ErrorMessage
@@ -675,14 +672,14 @@ export function useChatHandler({
 								hideBox={true}
 							/>,
 						);
-						
+
 						// Add error to messages array so exit detection can find it
 						const errorMessage: Message = {
 							role: 'assistant',
 							content: errorMsg,
 						};
 						setMessages([...messages, assistantMsg, errorMessage]);
-						
+
 						// Signal completion to trigger exit
 						if (onConversationComplete) {
 							onConversationComplete();

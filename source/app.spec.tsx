@@ -62,7 +62,10 @@ test('Non-interactive mode: exits when AI finishes processing prompt', t => {
 		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: true,
-		messages: [{role: 'user', content: 'test'}, {role: 'assistant', content: 'response'}],
+		messages: [
+			{role: 'user', content: 'test'},
+			{role: 'assistant', content: 'response'},
+		],
 	};
 
 	const startTime = Date.now();
@@ -76,7 +79,10 @@ test('Non-interactive mode: exits when AI finishes processing prompt', t => {
 
 	t.true(shouldExit, 'Should exit when AI has finished processing');
 	t.is(reason, 'complete', 'Exit reason should be complete');
-	t.true(appStateComplete.isConversationComplete, 'Conversation should be marked complete');
+	t.true(
+		appStateComplete.isConversationComplete,
+		'Conversation should be marked complete',
+	);
 });
 
 test('Non-interactive mode: does NOT exit while AI is still processing', t => {
@@ -110,7 +116,10 @@ test('Non-interactive mode: does NOT exit while tools are executing', t => {
 		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: false,
-		messages: [{role: 'user', content: 'test'}, {role: 'assistant', content: 'response'}],
+		messages: [
+			{role: 'user', content: 'test'},
+			{role: 'assistant', content: 'response'},
+		],
 	};
 
 	const startTime = Date.now();
@@ -133,7 +142,10 @@ test('Non-interactive mode: does NOT exit when conversation is incomplete', t =>
 		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: false, // Conversation not finished yet
-		messages: [{role: 'user', content: 'test'}, {role: 'assistant', content: 'response'}],
+		messages: [
+			{role: 'user', content: 'test'},
+			{role: 'assistant', content: 'response'},
+		],
 	};
 
 	const startTime = Date.now();
@@ -146,7 +158,10 @@ test('Non-interactive mode: does NOT exit when conversation is incomplete', t =>
 	);
 
 	t.false(shouldExit, 'Should NOT exit when conversation is incomplete');
-	t.false(appStateIncompleteConversation.isConversationComplete, 'Conversation is not complete');
+	t.false(
+		appStateIncompleteConversation.isConversationComplete,
+		'Conversation is not complete',
+	);
 });
 
 // ============================================================================
@@ -199,7 +214,7 @@ test('Non-interactive mode: exits with tool-approval reason when tool approval r
 		isConversationComplete: true,
 		messages: [
 			{role: 'user', content: 'test'},
-			{role: 'error', content: 'Tool approval required for: execute_bash'},
+			{role: 'error', content: 'Tool approval required for: `execute_bash`'},
 		],
 	};
 

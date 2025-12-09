@@ -24,14 +24,14 @@ export async function handleMessageSubmission(
 		onEnterConfigWizardMode,
 		onShowStatus,
 		onHandleChatMessage,
-	onAddToChatQueue,
-	onCommandComplete,
-	componentKeyCounter,
-	setMessages,
-	messages,
-	setIsBashExecuting,
-	setCurrentBashCommand,
-} = options;	// Parse the input to determine its type
+		onAddToChatQueue,
+		onCommandComplete,
+		componentKeyCounter,
+		setMessages,
+		messages,
+		setIsBashExecuting,
+		setCurrentBashCommand,
+	} = options; // Parse the input to determine its type
 	const parsedInput = parseInput(message);
 
 	// Handle bash commands (prefixed with !)
@@ -92,7 +92,7 @@ ${result.fullOutput || '(No output)'}`;
 			// Clear bash execution state
 			setIsBashExecuting(false);
 			setCurrentBashCommand('');
-			
+
 			// Signal completion for non-interactive mode
 			onCommandComplete?.();
 			return;

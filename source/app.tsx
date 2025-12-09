@@ -72,7 +72,7 @@ export function isNonInteractiveModeComplete(
 		!appState.isToolExecuting &&
 		!appState.isBashExecuting &&
 		!appState.isToolConfirmationMode;
-	const hasMessages = appState.messages.length > 0;
+	const _hasMessages = appState.messages.length > 0;
 	const hasTimedOut = Date.now() - startTime > maxExecutionTimeMs;
 
 	// Check for error messages in the messages array
@@ -259,6 +259,8 @@ export default function App({
 		setUpdateInfo: appState.setUpdateInfo,
 		setMcpServersStatus: appState.setMcpServersStatus,
 		setLspServersStatus: appState.setLspServersStatus,
+		setPreferencesLoaded: appState.setPreferencesLoaded,
+		setCustomCommandsCount: appState.setCustomCommandsCount,
 		addToChatQueue: appState.addToChatQueue,
 		componentKeyCounter: appState.componentKeyCounter,
 		customCommandCache: appState.customCommandCache,
@@ -327,6 +329,8 @@ export default function App({
 				updateInfo={appState.updateInfo}
 				mcpServersStatus={appState.mcpServersStatus}
 				lspServersStatus={appState.lspServersStatus}
+				preferencesLoaded={appState.preferencesLoaded}
+				customCommandsCount={appState.customCommandsCount}
 			/>,
 		);
 	}, [appState]);
@@ -335,7 +339,7 @@ export default function App({
 		async (message: string) => {
 			// Reset conversation completion flag when starting a new message
 			appState.setIsConversationComplete(false);
-			
+
 			await handleMessageSubmission(message, {
 				customCommandCache: appState.customCommandCache,
 				customCommandLoader: appState.customCommandLoader,
@@ -363,10 +367,7 @@ export default function App({
 			});
 		},
 		[
-			appState.customCommandCache,
-			appState.customCommandLoader,
-			appState.customCommandExecutor,
-			appState.setIsConversationComplete,
+			appState,
 			clearMessages,
 			modeHandlers.enterModelSelectionMode,
 			modeHandlers.enterProviderSelectionMode,
@@ -375,17 +376,6 @@ export default function App({
 			modeHandlers.enterConfigWizardMode,
 			handleShowStatus,
 			chatHandler.handleChatMessage,
-			appState.addToChatQueue,
-			appState.componentKeyCounter,
-			appState.updateMessages,
-			appState.messages,
-			appState.setIsBashExecuting,
-			appState.setCurrentBashCommand,
-			appState.currentProvider,
-			appState.currentModel,
-			appState.currentTheme,
-			appState.updateInfo,
-			appState.getMessageTokens,
 		],
 	);
 
@@ -439,7 +429,9 @@ export default function App({
 				}
 				// Wait a bit to ensure all output is flushed
 				const timer = setTimeout(() => {
-					process.exit(reason === 'error' || reason === 'tool-approval' ? 1 : 0);
+					process.exit(
+						reason === 'error' || reason === 'tool-approval' ? 1 : 0,
+					);
 				}, OUTPUT_FLUSH_DELAY_MS);
 
 				return () => clearTimeout(timer);
@@ -448,11 +440,7 @@ export default function App({
 	}, [
 		nonInteractivePrompt,
 		nonInteractiveSubmitted,
-		appState.isToolExecuting,
-		appState.isBashExecuting,
-		appState.isToolConfirmationMode,
-		appState.isConversationComplete,
-		appState.messages,
+		appState,
 		startTime,
 		exit,
 	]);
@@ -465,6 +453,11 @@ export default function App({
 			return null;
 		}
 
+		// Don't show loading message when conversation is complete (about to exit)
+		if (appState.isConversationComplete) {
+			return null;
+		}
+
 		if (!appState.mcpInitialized || !appState.client) {
 			return 'Waiting for MCP servers...';
 		}
@@ -474,16 +467,17 @@ export default function App({
 			appState.isToolConfirmationMode ||
 			pendingToolCallCount > 0
 		) {
-			return 'Waiting for Tooling...';
+			return 'Waiting for tooling...';
 		}
 
 		if (appState.isBashExecuting) {
-			return 'Waiting for Bash execution...';
+			return 'Waiting for bash execution...';
 		}
 
-		return 'Waiting for Chat to complete...';
+		return 'Waiting for chat to complete...';
 	}, [
 		nonInteractivePrompt,
+		appState.isConversationComplete,
 		appState.mcpInitialized,
 		appState.client,
 		appState.isToolExecuting,
@@ -511,6 +505,8 @@ export default function App({
 				updateInfo={appState.updateInfo}
 				mcpServersStatus={appState.mcpServersStatus}
 				lspServersStatus={appState.lspServersStatus}
+				preferencesLoaded={appState.preferencesLoaded}
+				customCommandsCount={appState.customCommandsCount}
 			/>,
 		);
 		return components;
@@ -522,6 +518,8 @@ export default function App({
 		appState.updateInfo,
 		appState.mcpServersStatus,
 		appState.lspServersStatus,
+		appState.preferencesLoaded,
+		appState.customCommandsCount,
 	]);
 
 	// Handle loading state for directory trust check
@@ -529,7 +527,7 @@ export default function App({
 		return (
 			<Box flexDirection="column" padding={1}>
 				<Text color={themeContextValue.colors.secondary}>
-					<Spinner type="dots2" /> Checking directory trust...
+					<Spinner type="dots" /> Checking directory trust...
 				</Text>
 			</Box>
 		);
@@ -678,9 +676,14 @@ export default function App({
 								/>
 							) : appState.mcpInitialized && !appState.client ? (
 								<></>
+							) : nonInteractivePrompt && !nonInteractiveLoadingMessage ? (
+								// Show completion message when non-interactive mode is done
+								<Text color={themeContextValue.colors.secondary}>
+									Completed. Exiting.
+								</Text>
 							) : (
 								<Text color={themeContextValue.colors.secondary}>
-									<Spinner type="dots2" /> {loadingLabel}
+									<Spinner type="dots" /> {loadingLabel}
 								</Text>
 							)}
 						</Box>

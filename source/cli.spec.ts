@@ -92,14 +92,30 @@ test('CLI parsing: filters out --vscode-port flag and value after run command', 
 });
 
 test('CLI parsing: filters out both --vscode and --vscode-port flags after run command', t => {
-	const args = ['run', 'create', 'a', 'file', '--vscode', '--vscode-port', '3000'];
+	const args = [
+		'run',
+		'create',
+		'a',
+		'file',
+		'--vscode',
+		'--vscode-port',
+		'3000',
+	];
 	const prompt = parsePrompt(args);
 
 	t.is(prompt, 'create a file');
 });
 
 test('CLI parsing: filters out flags mixed with prompt words', t => {
-	const args = ['run', 'create', '--vscode', 'a', '--vscode-port', '3000', 'file'];
+	const args = [
+		'run',
+		'create',
+		'--vscode',
+		'a',
+		'--vscode-port',
+		'3000',
+		'file',
+	];
 	const prompt = parsePrompt(args);
 
 	t.is(prompt, 'create a file');
