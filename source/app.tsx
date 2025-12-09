@@ -439,6 +439,43 @@ export default function App({
 	]);
 
 	const shouldShowWelcome = shouldRenderWelcome(nonInteractiveMode);
+	const pendingToolCallCount = appState.pendingToolCalls.length;
+
+	const nonInteractiveLoadingMessage = React.useMemo(() => {
+		if (!nonInteractivePrompt) {
+			return null;
+		}
+
+		if (!appState.mcpInitialized || !appState.client) {
+			return 'Waiting for MCP servers...';
+		}
+
+		if (
+			appState.isToolExecuting ||
+			appState.isToolConfirmationMode ||
+			pendingToolCallCount > 0
+		) {
+			return 'Waiting for Tooling...';
+		}
+
+		if (appState.isBashExecuting) {
+			return 'Waiting for Bash execution...';
+		}
+
+		return 'Waiting for Chat to complete...';
+	}, [
+		nonInteractivePrompt,
+		appState.mcpInitialized,
+		appState.client,
+		appState.isToolExecuting,
+		appState.isToolConfirmationMode,
+		pendingToolCallCount,
+		appState.isBashExecuting,
+	]);
+
+	const loadingLabel = nonInteractivePrompt
+		? (nonInteractiveLoadingMessage ?? 'Loading...')
+		: 'Loading...';
 
 	// Memoize static components to prevent unnecessary re-renders
 	const staticComponents = React.useMemo(() => {
@@ -624,7 +661,7 @@ export default function App({
 								<></>
 							) : (
 								<Text color={themeContextValue.colors.secondary}>
-									<Spinner type="dots2" /> Loading...
+									<Spinner type="dots2" /> {loadingLabel}
 								</Text>
 							)}
 						</Box>
