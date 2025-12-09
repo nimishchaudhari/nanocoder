@@ -43,9 +43,67 @@ import {UIStateProvider} from '@/hooks/useUIState';
 interface AppProps {
 	vscodeMode?: boolean;
 	vscodePort?: number;
+	nonInteractivePrompt?: string;
+	nonInteractiveMode?: boolean;
 }
 
-export default function App({vscodeMode = false, vscodePort}: AppProps) {
+export function shouldRenderWelcome(nonInteractiveMode?: boolean) {
+	return !nonInteractiveMode;
+}
+
+/**
+ * Helper function to determine if non-interactive mode processing is complete
+ */
+export function isNonInteractiveModeComplete(
+	appState: {
+		isToolExecuting: boolean;
+		isBashExecuting: boolean;
+		isToolConfirmationMode: boolean;
+		isConversationComplete: boolean;
+		messages: Array<{role: string; content: string}>;
+	},
+	startTime: number,
+	maxExecutionTimeMs: number,
+): {
+	shouldExit: boolean;
+	reason: 'complete' | 'timeout' | 'error' | null;
+} {
+	const isComplete =
+		!appState.isToolExecuting &&
+		!appState.isBashExecuting &&
+		!appState.isToolConfirmationMode;
+	const hasMessages = appState.messages.length > 0;
+	const hasTimedOut = Date.now() - startTime > maxExecutionTimeMs;
+
+	// Check for error messages in the messages array
+	const hasErrorMessages = appState.messages.some(
+		(message: {role: string; content: string}) =>
+			message.role === 'error' ||
+			(typeof message.content === 'string' &&
+				message.content.toLowerCase().includes('error')),
+	);
+
+	if (hasTimedOut) {
+		return {shouldExit: true, reason: 'timeout'};
+	}
+
+	if (hasErrorMessages) {
+		return {shouldExit: true, reason: 'error'};
+	}
+
+	if (isComplete && hasMessages && appState.isConversationComplete) {
+		return {shouldExit: true, reason: 'complete'};
+	}
+
+	return {shouldExit: false, reason: null};
+}
+
+export default function App({
+	vscodeMode = false,
+	vscodePort,
+	nonInteractivePrompt,
+	nonInteractiveMode = false,
+}: AppProps) {
 	// Use extracted hooks
 	const appState = useAppState();
 	const {exit} = useApp();
@@ -143,6 +201,10 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 				systemMessage,
 			});
 			appState.setIsToolConfirmationMode(true);
+		},
+		onConversationComplete: () => {
+			// Signal that the conversation has completed
+			appState.setIsConversationComplete(true);
 		},
 	});
 
@@ -256,6 +318,9 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 
 	const handleMessageSubmit = React.useCallback(
 		async (message: string) => {
+			// Reset conversation completion flag when starting a new message
+			appState.setIsConversationComplete(false);
+			
 			await handleMessageSubmission(message, {
 				customCommandCache: appState.customCommandCache,
 				customCommandLoader: appState.customCommandLoader,
@@ -285,6 +350,7 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 			appState.customCommandCache,
 			appState.customCommandLoader,
 			appState.customCommandExecutor,
+			appState.setIsConversationComplete,
 			clearMessages,
 			modeHandlers.enterModelSelectionMode,
 			modeHandlers.enterProviderSelectionMode,
@@ -307,10 +373,80 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 		],
 	);
 
+	// Handle non-interactive mode - automatically submit prompt and exit when done
+	const [nonInteractiveSubmitted, setNonInteractiveSubmitted] =
+		React.useState(false);
+	React.useEffect(() => {
+		if (
+			nonInteractivePrompt &&
+			appState.mcpInitialized &&
+			appState.client &&
+			!nonInteractiveSubmitted
+		) {
+			setNonInteractiveSubmitted(true);
+			// Set auto-accept mode for non-interactive execution
+			appState.setDevelopmentMode('auto-accept');
+			// Submit the prompt
+			void handleMessageSubmit(nonInteractivePrompt);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		nonInteractivePrompt,
+		appState.mcpInitialized,
+		appState.client,
+		nonInteractiveSubmitted,
+		handleMessageSubmit,
+		appState.setDevelopmentMode,
+	]);
+
+	// Exit in non-interactive mode when all processing is complete
+	const OUTPUT_FLUSH_DELAY_MS = 1000;
+	const MAX_EXECUTION_TIME_MS = 300000; // 5 minutes
+	const [startTime] = React.useState(Date.now());
+
+	React.useEffect(() => {
+		if (nonInteractivePrompt && nonInteractiveSubmitted) {
+			const {shouldExit, reason} = isNonInteractiveModeComplete(
+				appState,
+				startTime,
+				MAX_EXECUTION_TIME_MS,
+			);
+
+			if (shouldExit) {
+				if (reason === 'timeout') {
+					console.error('Non-interactive mode timed out');
+				} else if (reason === 'error') {
+					console.error('Non-interactive mode encountered errors');
+				}
+				// Wait a bit to ensure all output is flushed
+				const timer = setTimeout(() => {
+					exit();
+				}, OUTPUT_FLUSH_DELAY_MS);
+
+				return () => clearTimeout(timer);
+			}
+		}
+	}, [
+		nonInteractivePrompt,
+		nonInteractiveSubmitted,
+		appState.isToolExecuting,
+		appState.isBashExecuting,
+		appState.isToolConfirmationMode,
+		appState.isConversationComplete,
+		appState.messages,
+		startTime,
+		exit,
+	]);
+
+	const shouldShowWelcome = shouldRenderWelcome(nonInteractiveMode);
+
 	// Memoize static components to prevent unnecessary re-renders
-	const staticComponents = React.useMemo(
-		() => [
-			<WelcomeMessage key="welcome" />,
+	const staticComponents = React.useMemo(() => {
+		const components: React.ReactNode[] = [];
+		if (shouldShowWelcome) {
+			components.push(<WelcomeMessage key="welcome" />);
+		}
+		components.push(
 			<Status
 				key="status"
 				provider={appState.currentProvider}
@@ -320,16 +456,17 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 				mcpServersStatus={appState.mcpServersStatus}
 				lspServersStatus={appState.lspServersStatus}
 			/>,
-		],
-		[
-			appState.currentProvider,
-			appState.currentModel,
-			appState.currentTheme,
-			appState.updateInfo,
-			appState.mcpServersStatus,
-			appState.lspServersStatus,
-		],
-	);
+		);
+		return components;
+	}, [
+		shouldShowWelcome,
+		appState.currentProvider,
+		appState.currentModel,
+		appState.currentTheme,
+		appState.updateInfo,
+		appState.mcpServersStatus,
+		appState.lspServersStatus,
+	]);
 
 	// Handle loading state for directory trust check
 	if (isTrustLoading) {
@@ -466,7 +603,9 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 								/>
 							) : appState.isBashExecuting ? (
 								<BashExecutionIndicator command={appState.currentBashCommand} />
-							) : appState.mcpInitialized && appState.client ? (
+							) : appState.mcpInitialized &&
+							  appState.client &&
+							  !nonInteractivePrompt ? (
 								<UserInput
 									customCommands={Array.from(
 										appState.customCommandCache.keys(),

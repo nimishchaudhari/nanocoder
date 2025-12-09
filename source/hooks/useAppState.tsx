@@ -62,6 +62,8 @@ export function useAppState() {
 
 	// Cancelling indicator state
 	const [isCancelling, setIsCancelling] = useState<boolean>(false);
+	const [isConversationComplete, setIsConversationComplete] =
+		useState<boolean>(false);
 
 	// Cancellation state
 	const [abortController, setAbortController] =
@@ -196,6 +198,7 @@ export function useAppState() {
 		mcpServersStatus,
 		lspServersStatus,
 		isCancelling,
+		isConversationComplete,
 		abortController,
 		isModelSelectionMode,
 		isProviderSelectionMode,
@@ -233,6 +236,7 @@ export function useAppState() {
 		setMcpServersStatus,
 		setLspServersStatus,
 		setIsCancelling,
+		setIsConversationComplete,
 		setAbortController,
 		setIsModelSelectionMode,
 		setIsProviderSelectionMode,

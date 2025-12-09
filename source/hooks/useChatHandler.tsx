@@ -112,6 +112,7 @@ interface UseChatHandlerProps {
 		assistantMsg: Message,
 		systemMessage: Message,
 	) => void;
+	onConversationComplete?: () => void;
 }
 
 export function useChatHandler({
@@ -128,6 +129,7 @@ export function useChatHandler({
 	setAbortController,
 	developmentMode = 'normal',
 	onStartToolConfirmationFlow,
+	onConversationComplete,
 }: UseChatHandlerProps) {
 	// Conversation state manager for enhanced context
 	const conversationStateManager = React.useRef(new ConversationStateManager());
@@ -697,6 +699,10 @@ export function useChatHandler({
 				// Continue the conversation loop with the nudge
 				await processAssistantResponse(systemMessage, updatedMessagesWithNudge);
 				return;
+			}
+
+			if (validToolCalls.length === 0 && cleanedContent.trim()) {
+				onConversationComplete?.();
 			}
 		} catch (error) {
 			displayError(error, 'chat-error');
