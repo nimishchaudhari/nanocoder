@@ -458,7 +458,7 @@ You can override this directory using `NANOCODER_DATA_DIR`.
 #### Built-in Commands
 
 - `/help` - Show available commands
-- `/init` - Initialize project with intelligent analysis, create AGENTS.md and configuration files
+- `/init` - Initialize project with intelligent analysis, create AGENTS.md and configuration files. Use `/init --force` to regenerate AGENTS.md if it already exists.
 - `/setup-config` - Interactive wizard for configuring AI providers and MCP servers with templates
 - `/clear` - Clear chat history
 - `/model` - Switch between available models
