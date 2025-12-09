@@ -453,6 +453,7 @@ You can override this directory using `NANOCODER_DATA_DIR`.
 - `/model-database` - Browse coding models from OpenRouter (searchable, filterable by open/proprietary)
 - `/mcp` - Show connected MCP servers and their tools
 - `/custom-commands` - List all custom commands
+- `/checkpoint` - Save and restore conversation snapshots (see [Checkpointing](#checkpointing) section)
 - `/exit` - Exit the application
 - `/export` - Export current session to markdown file
 - `/theme` - Select a theme for the Nanocoder CLI
@@ -461,6 +462,66 @@ You can override this directory using `NANOCODER_DATA_DIR`.
 - `/lsp` – List connected LSP servers
 - `!command` - Execute bash commands directly without leaving Nanocoder (output becomes context for the LLM)
 - `@file` - Include file contents in messages automatically via fuzzy search as you type
+
+#### Checkpointing
+
+Nanocoder supports conversation checkpointing, allowing you to save snapshots of your coding sessions and restore them later. This is perfect for experimenting with different approaches or preserving important milestones.
+
+**Checkpoint Commands:**
+
+- `/checkpoint create [name]` - Create a checkpoint with optional custom name
+
+  - Auto-generates timestamp-based name if not provided
+  - Captures conversation history, modified files, and AI model configuration
+  - Example: `/checkpoint create feature-auth-v1`
+
+- `/checkpoint list` - List all available checkpoints
+
+  - Shows checkpoint name, creation time, message count, and files changed
+  - Sorted by creation date (newest first)
+
+- `/checkpoint load [name]` - Restore files from a checkpoint
+
+  - **Without name**: Shows interactive list to select checkpoint
+  - **With name**: Directly loads the specified checkpoint
+  - Prompts "Create backup before loading? (Y/n)" if current session has messages
+  - Press Y (or Enter) to auto-backup, N to skip, Esc to cancel
+  - Note: Conversation history restore requires restarting Nanocoder
+  - Example: `/checkpoint load` (interactive) or `/checkpoint load feature-auth-v1`
+
+- `/checkpoint delete <name>` - Delete a checkpoint permanently
+  - Removes checkpoint and all associated data
+  - Example: `/checkpoint delete old-checkpoint`
+
+**What gets saved:**
+
+- Complete conversation history
+- Modified files with their content (detected via git)
+- Active provider and model configuration
+- Timestamp and metadata
+
+**Storage location:**
+
+- Checkpoints are stored in `.nanocoder/checkpoints/` directory
+- Automatically excluded from git (added to `.gitignore`)
+- Located in your user config directory (see [Configuration](#configuration))
+
+**Example workflow:**
+
+```bash
+# Create a checkpoint before trying a new approach
+/checkpoint create before-refactor
+
+# Make some experimental changes...
+# If things go wrong, restore the checkpoint
+/checkpoint load before-refactor --confirm
+
+# Or if things went well, create a new checkpoint
+/checkpoint create after-refactor
+
+# List all checkpoints to see your progress
+/checkpoint list
+```
 
 #### Custom Commands
 
