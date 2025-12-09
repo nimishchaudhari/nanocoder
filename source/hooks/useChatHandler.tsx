@@ -106,6 +106,7 @@ interface UseChatHandlerProps {
 	abortController: AbortController | null;
 	setAbortController: (controller: AbortController | null) => void;
 	developmentMode?: 'normal' | 'auto-accept' | 'plan';
+	nonInteractiveMode?: boolean;
 	onStartToolConfirmationFlow: (
 		toolCalls: ToolCall[],
 		updatedMessages: Message[],
@@ -128,6 +129,7 @@ export function useChatHandler({
 	abortController,
 	setAbortController,
 	developmentMode = 'normal',
+	nonInteractiveMode = false,
 	onStartToolConfirmationFlow,
 	onConversationComplete,
 }: UseChatHandlerProps) {
@@ -655,6 +657,39 @@ export function useChatHandler({
 
 				// Start confirmation flow only for tools that need it
 				if (toolsNeedingConfirmation.length > 0) {
+					// In non-interactive mode, exit when tool approval is required
+					if (nonInteractiveMode) {
+						const toolNames = toolsNeedingConfirmation
+							.map(tc => tc.function.name)
+							.join(', ');
+						const errorMsg = `Tool approval required for: ${toolNames}`;
+						console.error(
+							`${errorMsg}. Exiting non-interactive mode.`,
+						);
+						
+						// Add error message to UI
+						addToChatQueue(
+							<ErrorMessage
+								key={`tool-approval-required-${Date.now()}`}
+								message={errorMsg}
+								hideBox={true}
+							/>,
+						);
+						
+						// Add error to messages array so exit detection can find it
+						const errorMessage: Message = {
+							role: 'assistant',
+							content: errorMsg,
+						};
+						setMessages([...messages, assistantMsg, errorMessage]);
+						
+						// Signal completion to trigger exit
+						if (onConversationComplete) {
+							onConversationComplete();
+						}
+						return;
+					}
+
 					onStartToolConfirmationFlow(
 						toolsNeedingConfirmation,
 						messages,

@@ -66,7 +66,7 @@ export function isNonInteractiveModeComplete(
 	maxExecutionTimeMs: number,
 ): {
 	shouldExit: boolean;
-	reason: 'complete' | 'timeout' | 'error' | null;
+	reason: 'complete' | 'timeout' | 'error' | 'tool-approval' | null;
 } {
 	const isComplete =
 		!appState.isToolExecuting &&
@@ -83,8 +83,19 @@ export function isNonInteractiveModeComplete(
 				message.content.toLowerCase().includes('error')),
 	);
 
+	// Check for tool approval required messages
+	const hasToolApprovalRequired = appState.messages.some(
+		(message: {role: string; content: string}) =>
+			typeof message.content === 'string' &&
+			message.content.includes('Tool approval required'),
+	);
+
 	if (hasTimedOut) {
 		return {shouldExit: true, reason: 'timeout'};
+	}
+
+	if (hasToolApprovalRequired) {
+		return {shouldExit: true, reason: 'tool-approval'};
 	}
 
 	if (hasErrorMessages) {
@@ -189,6 +200,7 @@ export default function App({
 		abortController: appState.abortController,
 		setAbortController: appState.setAbortController,
 		developmentMode: appState.developmentMode,
+		nonInteractiveMode,
 		onStartToolConfirmationFlow: (
 			toolCalls,
 			updatedMessages,
@@ -421,10 +433,13 @@ export default function App({
 					console.error('Non-interactive mode timed out');
 				} else if (reason === 'error') {
 					console.error('Non-interactive mode encountered errors');
+				} else if (reason === 'tool-approval') {
+					// Exit with error code when tool approval is required
+					// Error message already printed by useChatHandler
 				}
 				// Wait a bit to ensure all output is flushed
 				const timer = setTimeout(() => {
-					process.exit(reason === 'error' ? 1 : 0);
+					process.exit(reason === 'error' || reason === 'tool-approval' ? 1 : 0);
 				}, OUTPUT_FLUSH_DELAY_MS);
 
 				return () => clearTimeout(timer);

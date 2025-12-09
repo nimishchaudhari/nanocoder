@@ -189,6 +189,33 @@ test('Non-interactive mode: CLI parsing with complex prompt', t => {
 	t.is(prompt, 'create a new file with content');
 });
 
+test('Non-interactive mode: exits with tool-approval reason when tool approval required', t => {
+	// Test that we exit with tool-approval reason when a message indicates tool approval is required
+	const appStateToolApprovalRequired = {
+		isThinking: false,
+		isToolExecuting: false,
+		isBashExecuting: false,
+		isToolConfirmationMode: false,
+		isConversationComplete: true,
+		messages: [
+			{role: 'user', content: 'test'},
+			{role: 'error', content: 'Tool approval required for: execute_bash'},
+		],
+	};
+
+	const startTime = Date.now();
+	const maxExecutionTimeMs = 300000;
+
+	const {shouldExit, reason} = isNonInteractiveModeComplete(
+		appStateToolApprovalRequired,
+		startTime,
+		maxExecutionTimeMs,
+	);
+
+	t.true(shouldExit, 'Should exit when tool approval is required');
+	t.is(reason, 'tool-approval', 'Exit reason should be tool-approval');
+});
+
 test('Non-interactive mode: CLI parsing without run command', t => {
 	// Test that the CLI correctly handles cases without run command
 	const args = ['--vscode', '--vscode-port', '3000'];
