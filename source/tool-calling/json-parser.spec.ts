@@ -21,7 +21,7 @@ test('detectMalformedJSONToolCall: detects missing arguments field', t => {
 	t.truthy(result);
 	if (result) {
 		t.regex(result.error, /missing "arguments" field/i);
-		t.regex(result.examples, /Correct format/i);
+		t.regex(result.examples, /native tool calling format/i);
 	}
 });
 
@@ -39,7 +39,7 @@ test('detectMalformedJSONToolCall: detects missing name field', t => {
 	t.truthy(result);
 	if (result) {
 		t.regex(result.error, /missing "name" field/i);
-		t.regex(result.examples, /Correct format/i);
+		t.regex(result.examples, /native tool calling format/i);
 	}
 });
 
@@ -56,7 +56,7 @@ test('detectMalformedJSONToolCall: detects string arguments instead of object', 
 	t.truthy(result);
 	if (result) {
 		t.regex(result.error, /"arguments" must be an object/i);
-		t.regex(result.examples, /Correct format/i);
+		t.regex(result.examples, /native tool calling format/i);
 	}
 });
 
@@ -83,15 +83,15 @@ test('detectMalformedJSONToolCall: returns null for plain text', t => {
 	t.is(result, null);
 });
 
-test('detectMalformedJSONToolCall: includes helpful examples in error', t => {
+test('detectMalformedJSONToolCall: includes helpful guidance in error', t => {
 	const content = '{"name": "test"}';
 
 	const result = detectMalformedJSONToolCall(content);
 
 	t.truthy(result);
 	if (result) {
-		t.regex(result.examples, /"name":\s*"tool_name"/);
-		t.regex(result.examples, /"arguments":\s*\{/);
+		t.regex(result.examples, /native tool calling format/i);
+		t.regex(result.examples, /function calling interface/i);
 	}
 });
 

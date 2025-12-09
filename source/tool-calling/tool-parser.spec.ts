@@ -122,7 +122,7 @@ test('parseToolCalls: detects malformed JSON missing arguments field', t => {
 	t.false(result.success);
 	if (!result.success) {
 		t.regex(result.error, /missing "arguments" field/i);
-		t.regex(result.examples, /Correct format/i);
+		t.regex(result.examples, /native tool calling format/i);
 	}
 });
 
@@ -140,7 +140,7 @@ test('parseToolCalls: detects malformed JSON missing name field', t => {
 	t.false(result.success);
 	if (!result.success) {
 		t.regex(result.error, /missing "name" field/i);
-		t.regex(result.examples, /Correct format/i);
+		t.regex(result.examples, /native tool calling format/i);
 	}
 });
 
@@ -157,7 +157,7 @@ test('parseToolCalls: detects malformed JSON with string arguments', t => {
 	t.false(result.success);
 	if (!result.success) {
 		t.regex(result.error, /"arguments" must be an object/i);
-		t.regex(result.examples, /Correct format/i);
+		t.regex(result.examples, /native tool calling format/i);
 	}
 });
 

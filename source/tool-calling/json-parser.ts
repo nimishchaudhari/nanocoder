@@ -50,16 +50,8 @@ export function detectMalformedJSONToolCall(
 /**
  * Generates correct format examples for JSON error messages
  */
-function getCorrectJSONFormatExamples(specificHint: string): string {
-	return `${specificHint}
-
-Correct format:
-{
-  "name": "tool_name",
-  "arguments": {
-    "param": "value"
-  }
-}`;
+function getCorrectJSONFormatExamples(_specificHint: string): string {
+	return `Please use the native tool calling format provided by the system. The tools are already available to you - call them directly using the function calling interface.`;
 }
 
 /**
