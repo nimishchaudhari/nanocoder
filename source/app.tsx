@@ -474,7 +474,7 @@ export default function App({
 	]);
 
 	const loadingLabel = nonInteractivePrompt
-		? (nonInteractiveLoadingMessage ?? 'Loading...')
+		? nonInteractiveLoadingMessage ?? 'Loading...'
 		: 'Loading...';
 
 	// Memoize static components to prevent unnecessary re-renders
