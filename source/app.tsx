@@ -424,7 +424,7 @@ export default function App({
 				}
 				// Wait a bit to ensure all output is flushed
 				const timer = setTimeout(() => {
-					exit();
+					process.exit(reason === 'error' ? 1 : 0);
 				}, OUTPUT_FLUSH_DELAY_MS);
 
 				return () => clearTimeout(timer);

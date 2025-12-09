@@ -706,6 +706,8 @@ export function useChatHandler({
 			}
 		} catch (error) {
 			displayError(error, 'chat-error');
+			// Signal completion on error to avoid hanging in non-interactive mode
+			onConversationComplete?.();
 		} finally {
 			resetStreamingState();
 		}
