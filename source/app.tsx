@@ -91,7 +91,10 @@ export function isNonInteractiveModeComplete(
 		return {shouldExit: true, reason: 'error'};
 	}
 
-	if (isComplete && hasMessages && appState.isConversationComplete) {
+	// Exit when conversation is complete and either:
+	// - We have messages in history (for chat/bash commands), OR
+	// - Conversation is marked complete (for display-only commands like /mcp)
+	if (isComplete && appState.isConversationComplete) {
 		return {shouldExit: true, reason: 'complete'};
 	}
 
@@ -334,6 +337,7 @@ export default function App({
 				onShowStatus: handleShowStatus,
 				onHandleChatMessage: chatHandler.handleChatMessage,
 				onAddToChatQueue: appState.addToChatQueue,
+				onCommandComplete: () => appState.setIsConversationComplete(true),
 				componentKeyCounter: appState.componentKeyCounter,
 				setMessages: appState.updateMessages,
 				messages: appState.messages,
