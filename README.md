@@ -237,6 +237,18 @@ Nanocoder looks for configuration in the following order (first found wins):
 				"baseUrl": "https://api.z.ai/api/coding/paas/v4/",
 				"apiKey": "your-z.ai-coding-api-key",
 				"models": ["glm-4.6", "glm-4.5", "glm-4.5-air"]
+			},
+			{
+				"name": "GitHub Models",
+				"baseUrl": "https://models.github.ai/inference",
+				"apiKey": "your-github-pat",
+				"models": ["openai/gpt-4o-mini", "meta/llama-3.1-70b-instruct"]
+			},
+			{
+				"name": "Poe",
+				"baseUrl": "https://api.poe.com/v1",
+				"apiKey": "your-poe-api-key",
+				"models": ["Claude-Sonnet-4", "GPT-4o", "Gemini-2.5-Pro"]
 			}
 		]
 	}
@@ -253,6 +265,8 @@ Nanocoder looks for configuration in the following order (first found wins):
 - **vLLM**: `"baseUrl": "http://localhost:8000/v1"`
 - **LocalAI**: `"baseUrl": "http://localhost:8080/v1"`
 - **OpenAI**: `"baseUrl": "https://api.openai.com/v1"`
+- **Poe**: `"baseUrl": "https://api.poe.com/v1"` (get API key from [poe.com/api_key](https://poe.com/api_key))
+- **GitHub Models**: `"baseUrl": "https://models.github.ai/inference"` (requires PAT with `models:read` scope)
 - **Z.ai**: `"baseUrl": "https://api.z.ai/api/paas/v4/"`
 - **Z.ai Coding**: `"baseUrl": "https://api.z.ai/api/coding/paas/v4/"`
 
