@@ -1,3 +1,13 @@
+# 1.19.0
+
+- Added non-interactive mode for running Nanocoder in CI/CD pipelines and scripts. Pass commands via CLI arguments and Nanocoder will execute and exit automatically. Thanks to @namar0x0309.
+
+- Added `--force` flag to `/init` command for regenerating AGENTS.md without prompting.
+
+- Added Poe.com as a provider template in the configuration wizard. Closes issue #74.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 # 1.18.0
 
 - Upgraded to AI SDK v6 beta to improve model and tool calling performance and introduce multi-step tool calls support. Thanks to @DenizOkcu.
