@@ -109,6 +109,10 @@ AGENTS.md
 component.md
 refactor.md
 
+# Nanocoder checkpoints (user data)
+# These contain conversation snapshots and should not be committed
+**/checkpoints/
+
 # Heap snapshots
 .heap-snapshots
 

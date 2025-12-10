@@ -7,6 +7,7 @@ import {
 	MCPConnectionStatus,
 	LSPConnectionStatus,
 } from '@/types/core';
+import type {CheckpointListItem} from '@/types/checkpoint';
 import {ToolManager} from '@/tools/tool-manager';
 import {CustomCommandLoader} from '@/custom-commands/loader';
 import {CustomCommandExecutor} from '@/custom-commands/executor';
@@ -83,6 +84,12 @@ export function useAppState() {
 	const [isModelDatabaseMode, setIsModelDatabaseMode] =
 		useState<boolean>(false);
 	const [isConfigWizardMode, setIsConfigWizardMode] = useState<boolean>(false);
+	const [isCheckpointLoadMode, setIsCheckpointLoadMode] =
+		useState<boolean>(false);
+	const [checkpointLoadData, setCheckpointLoadData] = useState<{
+		checkpoints: CheckpointListItem[];
+		currentMessageCount: number;
+	} | null>(null);
 	const [isToolConfirmationMode, setIsToolConfirmationMode] =
 		useState<boolean>(false);
 	const [isToolExecuting, setIsToolExecuting] = useState<boolean>(false);
@@ -211,6 +218,8 @@ export function useAppState() {
 		isThemeSelectionMode,
 		isModelDatabaseMode,
 		isConfigWizardMode,
+		isCheckpointLoadMode,
+		checkpointLoadData,
 		isToolConfirmationMode,
 		isToolExecuting,
 		isBashExecuting,
@@ -251,6 +260,8 @@ export function useAppState() {
 		setIsThemeSelectionMode,
 		setIsModelDatabaseMode,
 		setIsConfigWizardMode,
+		setIsCheckpointLoadMode,
+		setCheckpointLoadData,
 		setIsToolConfirmationMode,
 		setIsToolExecuting,
 		setIsBashExecuting,

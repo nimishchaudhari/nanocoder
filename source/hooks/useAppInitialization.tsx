@@ -37,6 +37,7 @@ import {
 	themeCommand,
 	updateCommand,
 	usageCommand,
+	checkpointCommand,
 } from '@/commands/index';
 import ErrorMessage from '@/components/error-message';
 import InfoMessage from '@/components/info-message';
@@ -380,6 +381,7 @@ export function useAppInitialization({
 				setupConfigCommand,
 				debuggingCommand,
 				usageCommand,
+				checkpointCommand,
 			]);
 
 			// Now start with the properly initialized objects (excluding MCP)

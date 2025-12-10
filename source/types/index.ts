@@ -9,3 +9,4 @@ export * from '@/types/utils';
 export * from '@/types/components';
 export * from '@/types/hooks';
 export * from '@/types/system';
+export * from '@/types/checkpoint';
