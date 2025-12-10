@@ -6,15 +6,20 @@ import InfoMessage from '@/components/info-message';
 import WarningMessage from '@/components/warning-message';
 import {CheckpointListDisplay} from '@/components/checkpoint-display';
 import {CheckpointManager} from '@/services/checkpoint-manager';
+import {addToMessageQueue} from '@/utils/message-queue';
 
-// Global checkpoint manager instance
-let checkpointManager: CheckpointManager | null = null;
+// Default checkpoint manager instance (lazy-initialized)
+let defaultCheckpointManager: CheckpointManager | null = null;
 
-function getCheckpointManager(): CheckpointManager {
-	if (!checkpointManager) {
-		checkpointManager = new CheckpointManager();
+/**
+ * Get or create the default checkpoint manager.
+ * For testing, use createCheckpointCommand() with a custom manager.
+ */
+function getDefaultCheckpointManager(): CheckpointManager {
+	if (!defaultCheckpointManager) {
+		defaultCheckpointManager = new CheckpointManager();
 	}
-	return checkpointManager;
+	return defaultCheckpointManager;
 }
 
 /**
@@ -59,7 +64,7 @@ async function createCheckpoint(
 	metadata: {provider: string; model: string},
 ): Promise<React.ReactElement> {
 	try {
-		const manager = getCheckpointManager();
+		const manager = getDefaultCheckpointManager();
 		const name = args.length > 0 ? args.join(' ') : undefined;
 
 		if (messages.length === 0) {
@@ -107,7 +112,7 @@ async function createCheckpoint(
  */
 async function listCheckpoints(): Promise<React.ReactElement> {
 	try {
-		const manager = getCheckpointManager();
+		const manager = getDefaultCheckpointManager();
 		const checkpoints = await manager.listCheckpoints();
 
 		return React.createElement(CheckpointListDisplay, {
@@ -134,8 +139,8 @@ async function loadCheckpoint(
 	metadata: {provider: string; model: string},
 ): Promise<React.ReactElement> {
 	try {
-		const manager = getCheckpointManager();
-		const checkpointName = args.filter(arg => arg !== '--confirm').join(' ');
+		const manager = getDefaultCheckpointManager();
+		const checkpointName = args.join(' ');
 
 		if (checkpointName) {
 			if (!manager.checkpointExists(checkpointName)) {
@@ -153,30 +158,23 @@ async function loadCheckpoint(
 			await manager.restoreFiles(checkpointData);
 
 			return React.createElement(
-				'div',
-				{
-					key: `load-success-${Date.now()}`,
-				},
-				[
-					React.createElement(SuccessMessage, {
-						key: 'success',
-						message: `✓ Checkpoint '${checkpointName}' files restored successfully`,
-						hideBox: true,
-					}),
-					React.createElement(InfoMessage, {
-						key: 'details',
-						message: `Restored checkpoint:
+				React.Fragment,
+				{key: `load-success-${Date.now()}`},
+				React.createElement(SuccessMessage, {
+					key: 'success',
+					message: `✓ Checkpoint '${checkpointName}' files restored successfully`,
+					hideBox: true,
+				}),
+				React.createElement(InfoMessage, {
+					key: 'details',
+					message: `Restored checkpoint:
   • ${checkpointData.fileSnapshots.size} file(s) restored to workspace
   • Provider: ${checkpointData.metadata.provider.name} (${
-							checkpointData.metadata.provider.model
-						})
-  • Created: ${new Date(checkpointData.metadata.timestamp).toLocaleString()}
-  
-Note: Conversation history restore requires restarting Nanocoder.
-The checkpoint contained ${checkpointData.metadata.messageCount} message(s).`,
-						hideBox: true,
-					}),
-				],
+						checkpointData.metadata.provider.model
+					})
+  • Created: ${new Date(checkpointData.metadata.timestamp).toLocaleString()}`,
+					hideBox: true,
+				}),
 			);
 		}
 
@@ -195,35 +193,69 @@ The checkpoint contained ${checkpointData.metadata.messageCount} message(s).`,
 			await import('@/components/checkpoint-selector')
 		).default;
 
+		const handleError = (error: Error) => {
+			addToMessageQueue(
+				React.createElement(ErrorMessage, {
+					key: `restore-error-${Date.now()}`,
+					message: `Failed to restore checkpoint: ${error.message}`,
+					hideBox: true,
+				}),
+			);
+		};
+
 		return React.createElement(CheckpointSelector, {
 			key: `selector-${Date.now()}`,
 			checkpoints,
 			currentMessageCount: messages.length,
 			onSelect: (selectedName: string, createBackup: boolean) => {
 				void (async () => {
-					if (createBackup) {
-						try {
-							await manager.saveCheckpoint(
-								`backup-${new Date().toISOString().replace(/[:.]/g, '-')}`,
-								messages,
-								metadata.provider,
-								metadata.model,
-							);
-						} catch (error) {
-							console.error('Failed to create backup:', error);
+					try {
+						if (createBackup) {
+							try {
+								await manager.saveCheckpoint(
+									`backup-${new Date().toISOString().replace(/[:.]/g, '-')}`,
+									messages,
+									metadata.provider,
+									metadata.model,
+								);
+							} catch (error) {
+								// Show backup error but continue with restore
+								addToMessageQueue(
+									React.createElement(WarningMessage, {
+										key: `backup-warning-${Date.now()}`,
+										message: `Warning: Failed to create backup: ${
+											error instanceof Error ? error.message : 'Unknown error'
+										}`,
+										hideBox: true,
+									}),
+								);
+							}
 						}
+
+						const checkpointData = await manager.loadCheckpoint(selectedName, {
+							validateIntegrity: true,
+						});
+
+						await manager.restoreFiles(checkpointData);
+
+						addToMessageQueue(
+							React.createElement(SuccessMessage, {
+								key: `restore-success-${Date.now()}`,
+								message: `✓ Checkpoint '${selectedName}' restored successfully`,
+								hideBox: true,
+							}),
+						);
+					} catch (error) {
+						handleError(
+							error instanceof Error ? error : new Error('Unknown error'),
+						);
 					}
-
-					const checkpointData = await manager.loadCheckpoint(selectedName, {
-						validateIntegrity: true,
-					});
-
-					await manager.restoreFiles(checkpointData);
 				})();
 			},
 			onCancel: () => {
 				// Nothing to do, component will unmount
 			},
+			onError: handleError,
 		});
 	} catch (error) {
 		return React.createElement(ErrorMessage, {
@@ -250,7 +282,7 @@ async function deleteCheckpoint(args: string[]): Promise<React.ReactElement> {
 			});
 		}
 
-		const manager = getCheckpointManager();
+		const manager = getDefaultCheckpointManager();
 		const checkpointName = args.join(' ');
 
 		if (!manager.checkpointExists(checkpointName)) {
@@ -261,36 +293,15 @@ async function deleteCheckpoint(args: string[]): Promise<React.ReactElement> {
 			});
 		}
 
-		// Get checkpoint details for display
-		const checkpointMetadata = await manager.getCheckpointMetadata(
-			checkpointName,
-		);
-
 		// Actually delete the checkpoint
 		await manager.deleteCheckpoint(checkpointName);
 
 		// Show success with what was deleted
-		return React.createElement(
-			'div',
-			{
-				key: `delete-success-${Date.now()}`,
-			},
-			[
-				React.createElement(SuccessMessage, {
-					key: 'success',
-					message: `✓ Checkpoint '${checkpointName}' deleted successfully`,
-					hideBox: true,
-				}),
-				React.createElement(InfoMessage, {
-					key: 'details',
-					message: `Deleted checkpoint contained:
-  • ${checkpointMetadata.messageCount} messages
-  • ${checkpointMetadata.filesChanged.length} files
-  • Created: ${new Date(checkpointMetadata.timestamp).toLocaleString()}`,
-					hideBox: true,
-				}),
-			],
-		);
+		return React.createElement(SuccessMessage, {
+			key: `delete-success-${Date.now()}`,
+			message: `✓ Checkpoint '${checkpointName}' deleted successfully`,
+			hideBox: true,
+		});
 	} catch (error) {
 		return React.createElement(ErrorMessage, {
 			key: `error-${Date.now()}`,

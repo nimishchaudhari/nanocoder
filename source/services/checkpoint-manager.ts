@@ -1,8 +1,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import {existsSync} from 'fs';
-import {getConfigPath} from '@/config/paths';
 import {FileSnapshotService} from './file-snapshot';
+import {validateCheckpointName} from '@/utils/checkpoint-utils';
 import type {Message} from '@/types/core';
 import type {
 	CheckpointMetadata,
@@ -14,14 +14,15 @@ import type {
 } from '@/types/checkpoint';
 
 /**
- * Service for managing conversation checkpoints
+ * Service for managing conversation checkpoints.
+ * Checkpoints are stored in .nanocoder/checkpoints/ within the workspace root.
  */
 export class CheckpointManager {
 	private readonly checkpointsDir: string;
 	private readonly fileSnapshotService: FileSnapshotService;
 
-	constructor(workspaceRoot?: string) {
-		this.checkpointsDir = path.join(getConfigPath(), 'checkpoints');
+	constructor(workspaceRoot: string = process.cwd()) {
+		this.checkpointsDir = path.join(workspaceRoot, '.nanocoder', 'checkpoints');
 		this.fileSnapshotService = new FileSnapshotService(workspaceRoot);
 	}
 
@@ -55,15 +56,12 @@ export class CheckpointManager {
 	}
 
 	/**
-	 * Validate checkpoint name
+	 * Validate checkpoint name using shared utility
 	 */
-	private validateCheckpointName(name: string): void {
-		const invalidChars = /[<>:"/\\|?*]/;
-		if (invalidChars.test(name)) {
-			throw new Error(`Checkpoint name contains invalid characters: ${name}`);
-		}
-		if (name.length === 0 || name.length > 100) {
-			throw new Error('Checkpoint name must be between 1 and 100 characters');
+	private validateName(name: string): void {
+		const result = validateCheckpointName(name);
+		if (!result.valid) {
+			throw new Error(result.error || 'Invalid checkpoint name');
 		}
 	}
 
@@ -97,7 +95,7 @@ export class CheckpointManager {
 
 		// Generate name if not provided
 		const checkpointName = name || this.generateCheckpointName();
-		this.validateCheckpointName(checkpointName);
+		this.validateName(checkpointName);
 
 		const checkpointDir = this.getCheckpointDir(checkpointName);
 
@@ -108,7 +106,7 @@ export class CheckpointManager {
 
 		// Get modified files if not provided
 		const filesToSnapshot =
-			modifiedFiles || (await this.fileSnapshotService.getModifiedFiles());
+			modifiedFiles || this.fileSnapshotService.getModifiedFiles();
 
 		// Capture file snapshots
 		const fileSnapshots = await this.fileSnapshotService.captureFiles(
@@ -189,13 +187,14 @@ export class CheckpointManager {
 		// Load metadata
 		const metadataPath = path.join(checkpointDir, 'metadata.json');
 		const metadataContent = await fs.readFile(metadataPath, 'utf-8');
-		const metadata: CheckpointMetadata = JSON.parse(metadataContent);
+		const metadata = JSON.parse(metadataContent) as CheckpointMetadata;
 
 		// Load conversation
 		const conversationPath = path.join(checkpointDir, 'conversation.json');
 		const conversationContent = await fs.readFile(conversationPath, 'utf-8');
-		const conversation: CheckpointConversation =
-			JSON.parse(conversationContent);
+		const conversation = JSON.parse(
+			conversationContent,
+		) as CheckpointConversation;
 
 		// Load file snapshots
 		const fileSnapshots = new Map<string, string>();
@@ -243,7 +242,9 @@ export class CheckpointManager {
 						const metadataPath = path.join(checkpointDir, 'metadata.json');
 						if (existsSync(metadataPath)) {
 							const metadataContent = await fs.readFile(metadataPath, 'utf-8');
-							const metadata: CheckpointMetadata = JSON.parse(metadataContent);
+							const metadata = JSON.parse(
+								metadataContent,
+							) as CheckpointMetadata;
 
 							// Calculate directory size
 							const sizeBytes = await this.calculateDirectorySize(
@@ -325,7 +326,7 @@ export class CheckpointManager {
 		} else {
 			try {
 				const metadataContent = await fs.readFile(metadataPath, 'utf-8');
-				const metadata: CheckpointMetadata = JSON.parse(metadataContent);
+				const metadata = JSON.parse(metadataContent) as CheckpointMetadata;
 
 				// Validate metadata structure
 				if (
@@ -354,8 +355,9 @@ export class CheckpointManager {
 					conversationPath,
 					'utf-8',
 				);
-				const conversation: CheckpointConversation =
-					JSON.parse(conversationContent);
+				const conversation = JSON.parse(
+					conversationContent,
+				) as CheckpointConversation;
 
 				// Validate conversation structure
 				if (!Array.isArray(conversation.messages)) {
@@ -448,6 +450,6 @@ export class CheckpointManager {
 
 		const metadataPath = path.join(checkpointDir, 'metadata.json');
 		const metadataContent = await fs.readFile(metadataPath, 'utf-8');
-		return JSON.parse(metadataContent);
+		return JSON.parse(metadataContent) as CheckpointMetadata;
 	}
 }

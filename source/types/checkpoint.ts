@@ -17,8 +17,8 @@ export interface CheckpointConversation {
 	messages: Message[];
 	toolExecutions?: Array<{
 		tool: string;
-		args: Record<string, any>;
-		result: any;
+		args: Record<string, unknown>;
+		result: unknown;
 		timestamp: string;
 	}>;
 }

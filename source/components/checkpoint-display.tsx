@@ -1,4 +1,3 @@
-import React from 'react';
 import {Box, Text} from 'ink';
 import {useTheme} from '@/hooks/useTheme';
 import {formatRelativeTime} from '@/utils/checkpoint-utils';
@@ -120,84 +119,6 @@ export function CheckpointListDisplay({
 							</Box>
 						))}
 					</Box>
-				</Box>
-			</Box>
-		</Box>
-	);
-}
-
-interface CheckpointSummaryProps {
-	name: string;
-	messageCount: number;
-	filesChanged: string[];
-	provider: {name: string; model: string};
-	timestamp: string;
-	description?: string;
-}
-
-export function CheckpointSummary({
-	name,
-	messageCount,
-	filesChanged,
-	provider,
-	timestamp,
-	description,
-}: CheckpointSummaryProps) {
-	const {colors} = useTheme();
-
-	return (
-		<Box flexDirection="column" marginY={1}>
-			<Box
-				borderStyle="round"
-				borderColor={colors.primary}
-				paddingX={2}
-				paddingY={1}
-			>
-				<Box flexDirection="column">
-					<Text bold color={colors.primary}>
-						Checkpoint: {name}
-					</Text>
-
-					{description && (
-						<Box marginTop={1}>
-							<Text color={colors.secondary}>{description}</Text>
-						</Box>
-					)}
-
-					<Box marginTop={1} flexDirection="column">
-						<Text color={colors.white}>
-							<Text color={colors.info}>Created:</Text>{' '}
-							{new Date(timestamp).toLocaleString()}
-						</Text>
-						<Text color={colors.white}>
-							<Text color={colors.info}>Messages:</Text> {messageCount}
-						</Text>
-						<Text color={colors.white}>
-							<Text color={colors.info}>Files:</Text> {filesChanged.length}
-						</Text>
-						<Text color={colors.white}>
-							<Text color={colors.info}>Provider:</Text> {provider.name} (
-							{provider.model})
-						</Text>
-					</Box>
-
-					{filesChanged.length > 0 && (
-						<Box marginTop={1} flexDirection="column">
-							<Text color={colors.info}>Files that will be restored:</Text>
-							{filesChanged.slice(0, 5).map(file => (
-								<Box key={file} marginLeft={2}>
-									<Text color={colors.secondary}>• {file}</Text>
-								</Box>
-							))}
-							{filesChanged.length > 5 && (
-								<Box marginLeft={2}>
-									<Text color={colors.secondary}>
-										... and {filesChanged.length - 5} more
-									</Text>
-								</Box>
-							)}
-						</Box>
-					)}
 				</Box>
 			</Box>
 		</Box>

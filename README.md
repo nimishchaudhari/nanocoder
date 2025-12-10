@@ -502,9 +502,9 @@ Nanocoder supports conversation checkpointing, allowing you to save snapshots of
 
 **Storage location:**
 
-- Checkpoints are stored in `.nanocoder/checkpoints/` directory
-- Automatically excluded from git (added to `.gitignore`)
-- Located in your user config directory (see [Configuration](#configuration))
+- Checkpoints are stored in `.nanocoder/checkpoints/` in your project directory
+- Each project has its own checkpoints
+- Consider adding `.nanocoder/checkpoints` to your `.gitignore`
 
 **Example workflow:**
 
@@ -514,7 +514,7 @@ Nanocoder supports conversation checkpointing, allowing you to save snapshots of
 
 # Make some experimental changes...
 # If things go wrong, restore the checkpoint
-/checkpoint load before-refactor --confirm
+/checkpoint load before-refactor
 
 # Or if things went well, create a new checkpoint
 /checkpoint create after-refactor

@@ -1,6 +1,13 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import {existsSync} from 'fs';
+import {execSync} from 'child_process';
+
+/**
+ * Maximum number of files to capture in a checkpoint.
+ * This limit prevents excessive memory usage and storage for large workspaces.
+ */
+const MAX_CHECKPOINT_FILES = 50;
 
 /**
  * Service for capturing and restoring file snapshots for checkpoints
@@ -67,10 +74,8 @@ export class FileSnapshotService {
 	 * Get list of modified files in the workspace
 	 * Uses git to detect modified files if available, otherwise returns empty array
 	 */
-	async getModifiedFiles(): Promise<string[]> {
+	getModifiedFiles(): string[] {
 		try {
-			const {execSync} = await import('child_process');
-
 			const modifiedOutput = execSync('git diff --name-only HEAD', {
 				cwd: this.workspaceRoot,
 				encoding: 'utf-8',
@@ -117,20 +122,17 @@ export class FileSnapshotService {
 				});
 			});
 
-			if (filtered.length > 50) {
+			if (filtered.length > MAX_CHECKPOINT_FILES) {
 				console.warn(
-					`Warning: ${filtered.length} modified files detected. Limiting to first 50 files.`,
+					`Warning: ${filtered.length} modified files detected. Limiting to first ${MAX_CHECKPOINT_FILES} files.`,
 				);
-				return filtered.slice(0, 50);
+				return filtered.slice(0, MAX_CHECKPOINT_FILES);
 			}
 
 			return filtered;
 		} catch {
 			console.warn(
-				'Git not available for file tracking. No files will be automatically captured.',
-			);
-			console.warn(
-				'You can manually specify files when creating checkpoints in the future.',
+				'Git not available for file tracking. No files will be captured.',
 			);
 			return [];
 		}

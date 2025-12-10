@@ -22,8 +22,17 @@ function getNextKey(): string {
 	return `global-msg-${componentKeyCounter}`;
 }
 
-// Add message to chat queue
-function addMessageToQueue(
+// Add a React component directly to the queue
+export function addToMessageQueue(component: React.ReactNode) {
+	if (!globalAddToChatQueue) {
+		console.log('[message-queue] Queue not available, component not added');
+		return;
+	}
+	globalAddToChatQueue(component);
+}
+
+// Add typed message to chat queue (internal helper)
+function addTypedMessage(
 	type: MessageType,
 	message: string,
 	hideBox: boolean = true,
@@ -64,18 +73,18 @@ function addMessageToQueue(
 
 // Convenience functions for each message type
 export function logInfo(message: string, hideBox: boolean = true) {
-	addMessageToQueue('info', message, hideBox);
+	addTypedMessage('info', message, hideBox);
 }
 
 export function logError(message: string, hideBox: boolean = true) {
-	addMessageToQueue('error', message, hideBox);
+	addTypedMessage('error', message, hideBox);
 }
 
 // Temporarily ingored in `knip.json`. We do want this. We just haven't used it yet.
 export function logSuccess(message: string, hideBox: boolean = true) {
-	addMessageToQueue('success', message, hideBox);
+	addTypedMessage('success', message, hideBox);
 }
 
 export function logWarning(message: string, hideBox: boolean = true) {
-	addMessageToQueue('warning', message, hideBox);
+	addTypedMessage('warning', message, hideBox);
 }

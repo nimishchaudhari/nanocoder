@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import {useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
@@ -11,6 +11,7 @@ interface CheckpointSelectorProps {
 	checkpoints: CheckpointListItem[];
 	onSelect: (checkpointName: string, createBackup: boolean) => void;
 	onCancel: () => void;
+	onError?: (error: Error) => void;
 	currentMessageCount: number;
 }
 

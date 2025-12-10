@@ -4,6 +4,7 @@ import {CustomCommandExecutor} from '@/custom-commands/executor';
 import type {Message} from './core';
 import type {UpdateInfo} from './utils';
 import type {CustomCommand} from './commands';
+import type {CheckpointListItem} from './checkpoint';
 
 export interface MessageSubmissionOptions {
 	customCommandCache: Map<string, CustomCommand>;
@@ -15,6 +16,10 @@ export interface MessageSubmissionOptions {
 	onEnterThemeSelectionMode: () => void;
 	onEnterModelDatabaseMode: () => void;
 	onEnterConfigWizardMode: () => void;
+	onEnterCheckpointLoadMode: (
+		checkpoints: CheckpointListItem[],
+		currentMessageCount: number,
+	) => void;
 	onShowStatus: () => void;
 	onHandleChatMessage: (message: string) => Promise<void>;
 	onAddToChatQueue: (component: React.ReactNode) => void;

@@ -7,6 +7,7 @@ import ToolMessage from '@/components/tool-message';
 import ErrorMessage from '@/components/error-message';
 import type {MessageSubmissionOptions, Message} from '@/types/index';
 import type {LLMClient} from '@/types/core';
+import {CheckpointManager} from '@/services/checkpoint-manager';
 
 export async function handleMessageSubmission(
 	message: string,
@@ -22,6 +23,7 @@ export async function handleMessageSubmission(
 		onEnterThemeSelectionMode,
 		onEnterModelDatabaseMode,
 		onEnterConfigWizardMode,
+		onEnterCheckpointLoadMode,
 		onShowStatus,
 		onHandleChatMessage,
 		onAddToChatQueue,
@@ -162,6 +164,46 @@ ${result.fullOutput || '(No output)'}`;
 			} else if (commandName === 'status') {
 				onShowStatus();
 				return;
+			}
+
+			// Handle checkpoint load specially for interactive mode
+			const commandParts = message.slice(1).trim().split(/\s+/);
+			if (
+				commandParts[0] === 'checkpoint' &&
+				(commandParts[1] === 'load' || commandParts[1] === 'restore') &&
+				commandParts.length === 2
+			) {
+				// Interactive checkpoint load - no specific checkpoint name provided
+				try {
+					const manager = new CheckpointManager();
+					const checkpoints = await manager.listCheckpoints();
+
+					if (checkpoints.length === 0) {
+						onAddToChatQueue(
+							React.createElement(InfoMessage, {
+								key: `checkpoint-info-${componentKeyCounter}`,
+								message:
+									'No checkpoints available. Create one with /checkpoint create [name]',
+								hideBox: true,
+							}),
+						);
+						return;
+					}
+
+					onEnterCheckpointLoadMode(checkpoints, messages.length);
+					return;
+				} catch (error) {
+					onAddToChatQueue(
+						React.createElement(ErrorMessage, {
+							key: `checkpoint-error-${componentKeyCounter}`,
+							message: `Failed to list checkpoints: ${
+								error instanceof Error ? error.message : 'Unknown error'
+							}`,
+							hideBox: true,
+						}),
+					);
+					return;
+				}
 			}
 
 			// Execute built-in command

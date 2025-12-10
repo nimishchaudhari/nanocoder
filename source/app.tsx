@@ -9,15 +9,20 @@ import ChatQueue from '@/components/chat-queue';
 import ModelSelector from '@/components/model-selector';
 import ProviderSelector from '@/components/provider-selector';
 import ThemeSelector from '@/components/theme-selector';
+import CheckpointSelector from '@/components/checkpoint-selector';
 import CancellingIndicator from '@/components/cancelling-indicator';
 import ToolConfirmation from '@/components/tool-confirmation';
 import ToolExecutionIndicator from '@/components/tool-execution-indicator';
 import BashExecutionIndicator from '@/components/bash-execution-indicator';
-import {setGlobalMessageQueue} from '@/utils/message-queue';
+import {setGlobalMessageQueue, addToMessageQueue} from '@/utils/message-queue';
 import Spinner from 'ink-spinner';
 import SecurityDisclaimer from '@/components/security-disclaimer';
 import {ModelDatabaseDisplay} from '@/commands/model-database';
 import {ConfigWizard} from '@/wizard/config-wizard';
+import {CheckpointManager} from '@/services/checkpoint-manager';
+import SuccessMessage from '@/components/success-message';
+import WarningMessage from '@/components/warning-message';
+import ErrorMessage from '@/components/error-message';
 import {
 	VSCodeExtensionPrompt,
 	shouldPromptExtensionInstall,
@@ -254,6 +259,80 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 		);
 	}, [appState]);
 
+	// Checkpoint selection handlers
+	const handleCheckpointSelect = React.useCallback(
+		async (checkpointName: string, createBackup: boolean) => {
+			try {
+				const manager = new CheckpointManager();
+
+				if (createBackup) {
+					try {
+						await manager.saveCheckpoint(
+							`backup-${new Date().toISOString().replace(/[:.]/g, '-')}`,
+							appState.messages,
+							appState.currentProvider,
+							appState.currentModel,
+						);
+					} catch (error) {
+						addToMessageQueue(
+							<WarningMessage
+								key={`backup-warning-${Date.now()}`}
+								message={`Warning: Failed to create backup: ${
+									error instanceof Error ? error.message : 'Unknown error'
+								}`}
+								hideBox={true}
+							/>,
+						);
+					}
+				}
+
+				const checkpointData = await manager.loadCheckpoint(checkpointName, {
+					validateIntegrity: true,
+				});
+
+				await manager.restoreFiles(checkpointData);
+
+				addToMessageQueue(
+					<SuccessMessage
+						key={`restore-success-${Date.now()}`}
+						message={`✓ Checkpoint '${checkpointName}' restored successfully`}
+						hideBox={true}
+					/>,
+				);
+			} catch (error) {
+				addToMessageQueue(
+					<ErrorMessage
+						key={`restore-error-${Date.now()}`}
+						message={`Failed to restore checkpoint: ${
+							error instanceof Error ? error.message : 'Unknown error'
+						}`}
+						hideBox={true}
+					/>,
+				);
+			} finally {
+				appState.setIsCheckpointLoadMode(false);
+				appState.setCheckpointLoadData(null);
+			}
+		},
+		[appState],
+	);
+
+	const handleCheckpointCancel = React.useCallback(() => {
+		appState.setIsCheckpointLoadMode(false);
+		appState.setCheckpointLoadData(null);
+	}, [appState]);
+
+	const enterCheckpointLoadMode = React.useCallback(
+		(
+			checkpoints: import('@/types/checkpoint').CheckpointListItem[],
+			currentMessageCount: number,
+		) => {
+			appState.setCheckpointLoadData({checkpoints, currentMessageCount});
+			appState.setIsCheckpointLoadMode(true);
+		},
+		[appState],
+	);
+
 	const handleMessageSubmit = React.useCallback(
 		async (message: string) => {
 			await handleMessageSubmission(message, {
@@ -266,6 +345,7 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 				onEnterThemeSelectionMode: modeHandlers.enterThemeSelectionMode,
 				onEnterModelDatabaseMode: modeHandlers.enterModelDatabaseMode,
 				onEnterConfigWizardMode: modeHandlers.enterConfigWizardMode,
+				onEnterCheckpointLoadMode: enterCheckpointLoadMode,
 				onShowStatus: handleShowStatus,
 				onHandleChatMessage: chatHandler.handleChatMessage,
 				onAddToChatQueue: appState.addToChatQueue,
@@ -291,6 +371,7 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 			modeHandlers.enterThemeSelectionMode,
 			modeHandlers.enterModelDatabaseMode,
 			modeHandlers.enterConfigWizardMode,
+			enterCheckpointLoadMode,
 			handleShowStatus,
 			chatHandler.handleChatMessage,
 			appState.addToChatQueue,
@@ -444,6 +525,18 @@ export default function App({vscodeMode = false, vscodePort}: AppProps) {
 										void modeHandlers.handleConfigWizardComplete(configPath)
 									}
 									onCancel={modeHandlers.handleConfigWizardCancel}
+								/>
+							) : appState.isCheckpointLoadMode &&
+							  appState.checkpointLoadData ? (
+								<CheckpointSelector
+									checkpoints={appState.checkpointLoadData.checkpoints}
+									currentMessageCount={
+										appState.checkpointLoadData.currentMessageCount
+									}
+									onSelect={(name, backup) =>
+										void handleCheckpointSelect(name, backup)
+									}
+									onCancel={handleCheckpointCancel}
 								/>
 							) : appState.isToolConfirmationMode &&
 							  appState.pendingToolCalls[appState.currentToolIndex] ? (
