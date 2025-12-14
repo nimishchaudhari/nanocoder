@@ -149,9 +149,9 @@ test('createLogMethod handles logger method errors with fallback', t => {
 		},
 	};
 
-	const originalConsole = console.log;
+	const originalConsole = console.info;
 	let consoleCalled = false;
-	console.log = (...args: unknown[]) => {
+	console.info = (...args: unknown[]) => {
 		consoleCalled = true;
 		originalConsole(...args);
 	};
@@ -194,9 +194,9 @@ test('createLogMethods with contextPrefix adds prefix to all methods', t => {
 
 	const logs = mockLogger.getLogs();
 	t.is(logs.length, 3);
-	t.true(String(logs[0].args[0]).includes('[TEST]'));
-	t.true(String(logs[1].args[0]).includes('[TEST]'));
-	t.true(String(logs[2].args[0]).includes('[TEST]'));
+	t.true(String(logs[0].args[0]).includes('[INFO]'));
+	t.true(String(logs[1].args[0]).includes('[ERROR]'));
+	t.true(String(logs[2].args[0]).includes('[WARN]'));
 });
 
 test('createLogMethods with transformArgs transforms arguments for all methods', t => {
@@ -450,7 +450,10 @@ test('createLogMethod maps trace level to console.log', t => {
 		originalConsole(...args);
 	};
 
-	const logMethod = createLogMethod(console, 'trace', {consolePrefix: 'TEST'});
+	const logMethod = createLogMethod(console, 'trace', {
+		consolePrefix: 'TEST',
+		consoleMethod: 'log',
+	});
 
 	logMethod('trace message');
 

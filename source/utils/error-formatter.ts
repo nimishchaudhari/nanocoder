@@ -12,8 +12,6 @@ import {
 	withNewCorrelationContext,
 	getLogger,
 } from '@/utils/logging';
-import type {Logger} from '@/utils/logging';
-
 // Get logger instance to avoid circular dependencies
 const logger = getLogger();
 
@@ -34,7 +32,7 @@ export interface ErrorInfo {
 	timestamp: string;
 	correlationId?: string;
 	cause?: unknown;
-	context?: Record<string, any>;
+	context?: Record<string, unknown>;
 }
 
 /**
@@ -47,7 +45,6 @@ export interface ErrorInfo {
  * ```
  *
  * @param error - Error of any type (Error instance, string, object, etc.)
- * @param context - Additional context information for logging
  * @returns Formatted error message string
  *
  * @example
@@ -58,10 +55,7 @@ export interface ErrorInfo {
  *   console.error(message);
  * }
  */
-export function formatError(
-	error: unknown,
-	context?: Record<string, any>,
-): string {
+export function formatError(error: unknown): string {
 	if (error instanceof Error) {
 		return error.message;
 	}
@@ -78,7 +72,7 @@ export function formatError(
  */
 export function createErrorInfo(
 	error: unknown,
-	context?: Record<string, any>,
+	context?: Record<string, unknown>,
 	correlationId?: string,
 ): ErrorInfo {
 	const timestamp = new Date().toISOString();
@@ -148,7 +142,7 @@ export function createErrorInfo(
  */
 export function logError(
 	error: unknown,
-	context?: Record<string, any>,
+	context?: Record<string, unknown>,
 	level: 'error' | 'warn' | 'fatal' = 'error',
 ): string {
 	const errorInfo = createErrorInfo(error, context);
@@ -203,7 +197,7 @@ export function logError(
 export function formatErrorForDisplay(
 	error: unknown,
 	includeStack: boolean = false,
-	context?: Record<string, any>,
+	context?: Record<string, unknown>,
 ): string {
 	const errorInfo = createErrorInfo(error, context);
 
@@ -245,7 +239,7 @@ export function formatErrorForDisplay(
  */
 export function createUserFriendlyMessage(
 	error: unknown,
-	context?: Record<string, any>,
+	context?: Record<string, unknown>,
 ): string {
 	const errorInfo = createErrorInfo(error, context);
 

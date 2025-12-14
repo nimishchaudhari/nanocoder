@@ -215,7 +215,7 @@ export function getCurrentCorrelationContext(): CorrelationContext | null {
  * Note: AsyncLocalStorage doesn't support direct setting, use withCorrelationContext instead
  * @deprecated Use withCorrelationContext or withNewCorrelationContext
  */
-export function setCorrelationContext(context: CorrelationContext): void {
+export function setCorrelationContext(_context: CorrelationContext): void {
 	// This function is deprecated - AsyncLocalStorage requires running within a context
 	console.warn(
 		'⚠️  setCorrelationContext is DEPRECATED and will be removed in future versions.' +
@@ -399,7 +399,7 @@ export function createCorrelationFromHeaders(
  * Note: Creates a new context with updated metadata since AsyncLocalStorage is immutable
  * @deprecated Use withNewCorrelationContext with metadata parameter
  */
-export function addCorrelationMetadata(key: string, value: unknown): void {
+export function addCorrelationMetadata(_key: string, _value: unknown): void {
 	// This function is deprecated - use withNewCorrelationContext with metadata instead
 	console.warn(
 		'⚠️  addCorrelationMetadata is DEPRECATED. ' +

@@ -129,7 +129,7 @@ function _createPinoLogMethod(
 			logWithContext(logger, level, msg || '', [obj], redactionRules);
 		} else {
 			// String first: (msg: string, ...args: unknown[]) => void
-			const msg = msgOrObj as string;
+			const msg = msgOrObj;
 			logWithContext(
 				logger,
 				level,

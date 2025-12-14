@@ -3,8 +3,6 @@
  * Used across different logger implementations to reduce code duplication
  */
 
-import type {ConsoleArguments} from './types.js';
-
 // Type guard to check if a logger has a specific level method
 function hasLevelMethod(logger: any, level: string): boolean {
 	return logger && typeof logger[level] === 'function';
@@ -51,7 +49,7 @@ export function createLogMethod<T = any>(
 					(console as any)[consoleMethod](`[${consolePrefix}]`, msg || '', obj);
 				} else {
 					// String first: (msg: string, ...args: unknown[]) => void
-					const msg = msgOrObj as string;
+					const msg = msgOrObj;
 					const restArgs = args.slice(1);
 					(console as any)[consoleMethod](
 						`[${consolePrefix}]`,
@@ -84,7 +82,7 @@ export function createLogMethod<T = any>(
 				}
 			} else {
 				// String first: (msg: string, ...args: unknown[]) => void
-				const msg = msgOrObj as string;
+				const msg = msgOrObj;
 
 				// Add context prefix if specified
 				const finalMsg = contextPrefix ? `[${contextPrefix}] ${msg}` : msg;

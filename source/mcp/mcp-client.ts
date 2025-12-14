@@ -11,7 +11,6 @@ type ClientTransport =
 import type {Tool, ToolParameterSchema, AISDKCoreTool} from '@/types/index';
 import {jsonSchema} from '@/types/index';
 import {dynamicTool} from 'ai';
-import {logInfo, logError} from '@/utils/message-queue';
 import {getCurrentMode} from '@/context/mode-context';
 import {TransportFactory} from './transport-factory.js';
 import {
@@ -20,9 +19,7 @@ import {
 	generateCorrelationId,
 	startMetrics,
 	endMetrics,
-	calculateMemoryDelta,
 	formatMemoryUsage,
-	getCorrelationId,
 } from '@/utils/logging';
 
 import type {MCPServer, MCPTool, MCPInitResult} from '@/types/index';
@@ -58,7 +55,7 @@ export class MCPClient {
 		const correlationId = generateCorrelationId();
 		const metrics = startMetrics();
 
-		return await withNewCorrelationContext(async context => {
+		return await withNewCorrelationContext(async () => {
 			// Normalize server configuration for backward compatibility
 			const normalizedServer = this.normalizeServerConfig(server);
 
@@ -131,32 +128,27 @@ export class MCPClient {
 				this.serverTools.set(normalizedServer.name, tools);
 
 				const finalMetrics = endMetrics(metrics);
-				const memoryDelta = calculateMemoryDelta(
-					metrics.memoryUsage!,
-					finalMetrics.memoryUsage!,
-				);
 
 				this.logger.info('MCP server connection completed', {
 					serverName: normalizedServer.name,
 					toolCount: tools.length,
 					duration: `${finalMetrics.duration.toFixed(2)}ms`,
-					memoryDelta: formatMemoryUsage(finalMetrics.memoryUsage!),
+					memoryDelta: formatMemoryUsage(
+						finalMetrics.memoryUsage || process.memoryUsage(),
+					),
 					correlationId,
 				});
 			} catch (error) {
 				const finalMetrics = endMetrics(metrics);
-				const memoryDelta = calculateMemoryDelta(
-					metrics.memoryUsage!,
-					finalMetrics.memoryUsage!,
-				);
-
 				this.logger.error('Failed to connect to MCP server', {
 					serverName: normalizedServer.name,
 					transport: normalizedServer.transport,
 					error: error instanceof Error ? error.message : error,
 					errorName: error instanceof Error ? error.name : 'Unknown',
 					duration: `${finalMetrics.duration.toFixed(2)}ms`,
-					memoryDelta: formatMemoryUsage(finalMetrics.memoryUsage!),
+					memoryDelta: formatMemoryUsage(
+						finalMetrics.memoryUsage || process.memoryUsage(),
+					),
 					correlationId,
 				});
 
@@ -179,7 +171,7 @@ export class MCPClient {
 			correlationId,
 		});
 
-		return await withNewCorrelationContext(async context => {
+		return await withNewCorrelationContext(async () => {
 			// Connect to servers in parallel for better performance
 			const connectionPromises = servers.map(async server => {
 				try {
@@ -441,7 +433,7 @@ export class MCPClient {
 		const correlationId = generateCorrelationId();
 		const metrics = startMetrics();
 
-		return await withNewCorrelationContext(async context => {
+		return await withNewCorrelationContext(async () => {
 			this.logger.info('Executing MCP tool', {
 				toolName,
 				argumentCount: Object.keys(args).length,
@@ -543,7 +535,7 @@ export class MCPClient {
 			correlationId,
 		});
 
-		return await withNewCorrelationContext(async context => {
+		return await withNewCorrelationContext(async () => {
 			let successfulDisconnections = 0;
 			let failedDisconnections = 0;
 

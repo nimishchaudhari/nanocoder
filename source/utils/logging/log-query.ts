@@ -254,7 +254,7 @@ class LogStorage {
 
 		return {
 			entries: paginatedEntries,
-			totalCount: this.entries.length,
+			totalCount: this.count,
 			filteredCount,
 			queryTime,
 			hasMore: offset + limit < filteredEntries.length,
@@ -410,11 +410,8 @@ class LogStorage {
 		if (query.endTime && new Date(entry.timestamp) > query.endTime)
 			return false;
 
-		// Level filtering - use index for quick lookup
-		if (query.levels) {
-			const levelIndex = this.indexes.get('level');
-			if (!levelIndex || !levelIndex.has(entry.level)) return false;
-		}
+		// Level filtering
+		if (query.levels && !query.levels.includes(entry.level)) return false;
 		if (query.excludeLevels && query.excludeLevels.includes(entry.level))
 			return false;
 
@@ -431,12 +428,10 @@ class LogStorage {
 		if (query.messageEndsWith && !entry.message.endsWith(query.messageEndsWith))
 			return false;
 
-		// Correlation and request filtering - use index
+		// Correlation and request filtering
 		if (query.correlationIds) {
 			if (!entry.correlationId) return false;
-			const correlationIndex = this.indexes.get('correlationId');
-			if (!correlationIndex || !correlationIndex.has(entry.correlationId))
-				return false;
+			if (!query.correlationIds.includes(entry.correlationId)) return false;
 		}
 		if (
 			query.requestIds &&
@@ -453,11 +448,10 @@ class LogStorage {
 		)
 			return false;
 
-		// Source filtering - use index
+		// Source filtering
 		if (query.sources) {
 			if (!entry.source) return false;
-			const sourceIndex = this.indexes.get('source');
-			if (!sourceIndex || !sourceIndex.has(entry.source)) return false;
+			if (!query.sources.includes(entry.source)) return false;
 		}
 		if (
 			query.excludeSources &&

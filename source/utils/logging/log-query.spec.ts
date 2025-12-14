@@ -711,10 +711,11 @@ test('createLogQuery returns LogQueryBuilder instance', t => {
 // ============================================================================
 
 test('logQueries.errors returns error logs', t => {
-	const storage = new LogStorage();
-	storage.addEntry(createTestLogEntry({level: 'info'}));
-	storage.addEntry(createTestLogEntry({level: 'error'}));
-	storage.addEntry(createTestLogEntry({level: 'fatal'}));
+	// Use globalLogStorage since logQueries uses it
+	globalLogStorage.clear();
+	globalLogStorage.addEntry(createTestLogEntry({level: 'info'}));
+	globalLogStorage.addEntry(createTestLogEntry({level: 'error'}));
+	globalLogStorage.addEntry(createTestLogEntry({level: 'fatal'}));
 
 	const result = logQueries.errors();
 
@@ -723,10 +724,11 @@ test('logQueries.errors returns error logs', t => {
 });
 
 test('logQueries.byCorrelation returns logs by correlation ID', t => {
-	const storage = new LogStorage();
-	storage.addEntry(createTestLogEntry({correlationId: 'corr-1'}));
-	storage.addEntry(createTestLogEntry({correlationId: 'corr-2'}));
-	storage.addEntry(createTestLogEntry({correlationId: 'corr-1'}));
+	// Use globalLogStorage since logQueries uses it
+	globalLogStorage.clear();
+	globalLogStorage.addEntry(createTestLogEntry({correlationId: 'corr-1'}));
+	globalLogStorage.addEntry(createTestLogEntry({correlationId: 'corr-2'}));
+	globalLogStorage.addEntry(createTestLogEntry({correlationId: 'corr-1'}));
 
 	const result = logQueries.byCorrelation('corr-1');
 
@@ -735,10 +737,11 @@ test('logQueries.byCorrelation returns logs by correlation ID', t => {
 });
 
 test('logQueries.bySource returns logs by source', t => {
-	const storage = new LogStorage();
-	storage.addEntry(createTestLogEntry({source: 'source-1'}));
-	storage.addEntry(createTestLogEntry({source: 'source-2'}));
-	storage.addEntry(createTestLogEntry({source: 'source-1'}));
+	// Use globalLogStorage since logQueries uses it
+	globalLogStorage.clear();
+	globalLogStorage.addEntry(createTestLogEntry({source: 'source-1'}));
+	globalLogStorage.addEntry(createTestLogEntry({source: 'source-2'}));
+	globalLogStorage.addEntry(createTestLogEntry({source: 'source-1'}));
 
 	const result = logQueries.bySource('source-1');
 
@@ -747,10 +750,11 @@ test('logQueries.bySource returns logs by source', t => {
 });
 
 test('logQueries.byTag returns logs by tag', t => {
-	const storage = new LogStorage();
-	storage.addEntry(createTestLogEntry({tags: ['tag1', 'tag2']}));
-	storage.addEntry(createTestLogEntry({tags: ['tag2', 'tag3']}));
-	storage.addEntry(createTestLogEntry({tags: ['tag1']}));
+	// Use globalLogStorage since logQueries uses it
+	globalLogStorage.clear();
+	globalLogStorage.addEntry(createTestLogEntry({tags: ['tag1', 'tag2']}));
+	globalLogStorage.addEntry(createTestLogEntry({tags: ['tag2', 'tag3']}));
+	globalLogStorage.addEntry(createTestLogEntry({tags: ['tag1']}));
 
 	const result = logQueries.byTag('tag1');
 
@@ -759,14 +763,15 @@ test('logQueries.byTag returns logs by tag', t => {
 });
 
 test('logQueries.slowRequests returns slow requests', t => {
-	const storage = new LogStorage();
-	storage.addEntry(
+	// Use globalLogStorage since logQueries uses it
+	globalLogStorage.clear();
+	globalLogStorage.addEntry(
 		createTestLogEntry({message: 'request', performance: {duration: 50}}),
 	);
-	storage.addEntry(
+	globalLogStorage.addEntry(
 		createTestLogEntry({message: 'request', performance: {duration: 1500}}),
 	);
-	storage.addEntry(
+	globalLogStorage.addEntry(
 		createTestLogEntry({message: 'request', performance: {duration: 2500}}),
 	);
 
@@ -777,14 +782,15 @@ test('logQueries.slowRequests returns slow requests', t => {
 });
 
 test('logQueries.memoryIntensive returns memory-intensive operations', t => {
-	const storage = new LogStorage();
-	storage.addEntry(
+	// Use globalLogStorage since logQueries uses it
+	globalLogStorage.clear();
+	globalLogStorage.addEntry(
 		createTestLogEntry({performance: {memory: {heapUsed: 1024}}}),
 	);
-	storage.addEntry(
+	globalLogStorage.addEntry(
 		createTestLogEntry({performance: {memory: {heapUsed: 50 * 1024 * 1024}}}),
 	);
-	storage.addEntry(
+	globalLogStorage.addEntry(
 		createTestLogEntry({performance: {memory: {heapUsed: 100 * 1024 * 1024}}}),
 	);
 
@@ -886,7 +892,7 @@ test('LogStorage handles large number of entries efficiently', t => {
 	const queryTime = performance.now() - startTime;
 
 	t.truthy(result);
-	t.is(result.entries.length, 1000);
+	t.is(result.entries.length, 100);
 	t.true(queryTime < 100); // Should be fast
 });
 

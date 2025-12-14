@@ -29,13 +29,8 @@ import {
 } from '@/components/vscode-extension-prompt';
 import {setCurrentMode as setCurrentModeContext} from '@/context/mode-context';
 import {
-	getLogger,
 	withNewCorrelationContext,
 	generateCorrelationId,
-	startMetrics,
-	endMetrics,
-	calculateMemoryDelta,
-	formatMemoryUsage,
 } from '@/utils/logging';
 
 // Import extracted hooks and utilities
@@ -375,6 +370,7 @@ export default function App({
 		appState.isToolConfirmationMode,
 		appState.isConfigWizardMode,
 		appState.pendingToolCalls.length,
+		logger,
 		appState.developmentMode,
 		chatHandler.isStreaming,
 		appState.isBashExecuting,
@@ -489,7 +485,7 @@ export default function App({
 				customCommandsCount={appState.customCommandsCount}
 			/>,
 		);
-	}, [appState]);
+	}, [appState, logger]);
 
 	// Checkpoint selection handlers
 	const handleCheckpointSelect = React.useCallback(

@@ -4,10 +4,9 @@
  */
 
 import {loadavg} from 'os';
-import type {PerformanceMetrics, CorrelationContext} from './types.js';
+import type {PerformanceMetrics} from './types.js';
 import {
 	generateCorrelationId,
-	withNewCorrelationContext,
 	createCorrelationContext,
 	type Logger,
 } from './index.js';

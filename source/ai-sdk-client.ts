@@ -18,7 +18,6 @@ import {
 	withNewCorrelationContext,
 	startMetrics,
 	endMetrics,
-	calculateMemoryDelta,
 	formatMemoryUsage,
 	getCorrelationId,
 	generateCorrelationId,
@@ -439,7 +438,7 @@ export class AISDKClient implements LLMClient {
 			provider: this.providerConfig.name,
 		});
 
-		return await withNewCorrelationContext(async context => {
+		return await withNewCorrelationContext(async _context => {
 			try {
 				// Get the language model instance from the provider
 				const model = this.provider(this.currentModel);
@@ -641,17 +640,15 @@ export class AISDKClient implements LLMClient {
 
 				// Calculate performance metrics
 				const finalMetrics = endMetrics(metrics);
-				const memoryDelta = calculateMemoryDelta(
-					metrics.memoryUsage!,
-					finalMetrics.memoryUsage!,
-				);
 
 				logger.info('Chat request completed successfully', {
 					model: this.currentModel,
 					duration: `${finalMetrics.duration.toFixed(2)}ms`,
 					responseLength: content.length,
 					toolCallsFound: toolCalls.length,
-					memoryDelta: formatMemoryUsage(finalMetrics.memoryUsage!),
+					memoryDelta: formatMemoryUsage(
+						finalMetrics.memoryUsage || process.memoryUsage(),
+					),
 					correlationId,
 					provider: this.providerConfig.name,
 				});
@@ -672,10 +669,6 @@ export class AISDKClient implements LLMClient {
 			} catch (error) {
 				// Calculate performance metrics even for errors
 				const finalMetrics = endMetrics(metrics);
-				const memoryDelta = calculateMemoryDelta(
-					metrics.memoryUsage!,
-					finalMetrics.memoryUsage!,
-				);
 
 				// Check if this was a user-initiated cancellation
 				if (error instanceof Error && error.name === 'AbortError') {
@@ -696,7 +689,9 @@ export class AISDKClient implements LLMClient {
 					errorName: error instanceof Error ? error.name : 'Unknown',
 					correlationId,
 					provider: this.providerConfig.name,
-					memoryDelta: formatMemoryUsage(finalMetrics.memoryUsage!),
+					memoryDelta: formatMemoryUsage(
+						finalMetrics.memoryUsage || process.memoryUsage(),
+					),
 				});
 
 				// AI SDK wraps errors in NoOutputGeneratedError with no useful cause
@@ -724,7 +719,7 @@ export class AISDKClient implements LLMClient {
 		}, correlationId); // End of withNewCorrelationContext
 	}
 
-	async clearContext(): Promise<void> {
+	clearContext(): Promise<void> {
 		const logger = getLogger();
 
 		logger.debug('AI SDK client context cleared', {
@@ -733,5 +728,6 @@ export class AISDKClient implements LLMClient {
 		});
 
 		// No internal state to clear
+		return Promise.resolve();
 	}
 }

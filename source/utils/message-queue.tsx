@@ -47,7 +47,7 @@ export interface MessageMetadata {
 	correlationId?: string;
 	duration?: number;
 	source?: string;
-	context?: Record<string, any>;
+	context?: Record<string, unknown>;
 	performanceMetrics?: {
 		duration: number;
 		memoryDelta: number;
@@ -94,7 +94,7 @@ function addTypedMessage(
 	options?: {
 		correlationId?: string;
 		source?: string;
-		context?: Record<string, any>;
+		context?: Record<string, unknown>;
 		error?: unknown;
 	},
 ) {

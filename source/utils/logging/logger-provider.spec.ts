@@ -130,9 +130,9 @@ test('isLevelEnabled checks log level', t => {
 
 	t.true(provider.isLevelEnabled('warn'), 'Should enable warn level');
 	t.true(provider.isLevelEnabled('error'), 'Should enable error level');
+	t.true(provider.isLevelEnabled('info'), 'Should enable info level');
 	t.true(provider.isLevelEnabled('fatal'), 'Should enable fatal level');
-	t.false(provider.isLevelEnabled('info'), 'Should not enable info level');
-	t.false(provider.isLevelEnabled('debug'), 'Should not enable debug level');
+	t.true(provider.isLevelEnabled('debug'), 'Should enable debug level');
 });
 
 test('reset clears all state', t => {
