@@ -234,6 +234,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_tools: "Bash,Write,Read,Glob"
           prompt: |
             Read the CHANGELOG.md file and extract the entry for version ${{ needs.check-version.outputs.package-version }}.
 
