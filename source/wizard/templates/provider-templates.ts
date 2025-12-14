@@ -231,6 +231,38 @@ export const PROVIDER_TEMPLATES: ProviderTemplate[] = [
 		}),
 	},
 	{
+		id: 'mistral',
+		name: 'Mistral AI',
+		fields: [
+			{
+				name: 'apiKey',
+				prompt: 'API Key',
+				required: true,
+				sensitive: true,
+			},
+			{
+				name: 'model',
+				prompt: 'Model name(s) (comma-separated)',
+				default: 'devstral-latest',
+				required: true,
+			},
+			{
+				name: 'providerName',
+				prompt: 'Provider name',
+				default: 'Mistral',
+			},
+		],
+		buildConfig: answers => ({
+			name: answers.providerName || 'Mistral',
+			baseUrl: 'https://api.mistral.ai/v1',
+			apiKey: answers.apiKey,
+			models: answers.model
+				.split(',')
+				.map(m => m.trim())
+				.filter(Boolean),
+		}),
+	},
+	{
 		id: 'z-ai',
 		name: 'Z.ai',
 		fields: [
