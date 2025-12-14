@@ -169,7 +169,7 @@ jobs:
   update-nix:
     needs: [check-version, publish]
     if: needs.check-version.outputs.should-publish == 'true'
-    uses: ./.github/workflows/reusable-update-nix.yml
+    uses: ./.github/workflows/update-nix.yml
     with:
       version: ${{ needs.check-version.outputs.package-version }}
     secrets:
@@ -178,7 +178,7 @@ jobs:
   update-homebrew:
     needs: [check-version, publish, update-nix]
     if: needs.check-version.outputs.should-publish == 'true'
-    uses: ./.github/workflows/reusable-update-homebrew.yml
+    uses: ./.github/workflows/update-homebrew.yml
     with:
       version: ${{ needs.check-version.outputs.package-version }}
     secrets:
@@ -187,7 +187,7 @@ jobs:
   generate-release-content:
     needs: [check-version, update-homebrew]
     if: needs.check-version.outputs.should-publish == 'true'
-    uses: ./.github/workflows/reusable-generate-content.yml
+    uses: ./.github/workflows/generate-release-content.yml
     with:
       version: ${{ needs.check-version.outputs.package-version }}
     secrets:

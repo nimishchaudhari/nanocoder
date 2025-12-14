@@ -1,6 +1,15 @@
-name: Update Homebrew Formula (Reusable)
+name: Update Homebrew Formula
 
 on:
+  # Manual trigger from Actions UI
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to update to (e.g., 1.15.0)'
+        required: true
+        type: string
+
+  # Called by other workflows
   workflow_call:
     inputs:
       version:
@@ -41,4 +50,3 @@ jobs:
       - name: Summary
         run: |
           echo "✅ Homebrew formula updated to v${{ inputs.version }}"
-          echo "Check the commit: https://github.com/${{ github.repository }}/commits/main"
