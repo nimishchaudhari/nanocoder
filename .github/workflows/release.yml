@@ -169,99 +169,29 @@ jobs:
   update-nix:
     needs: [check-version, publish]
     if: needs.check-version.outputs.should-publish == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-          token: ${{ secrets.PAT_TOKEN }}
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@v26
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-
-      - name: Update Nix package
-        run: |
-          chmod +x scripts/update-nix-version.sh
-          ./scripts/update-nix-version.sh ${{ needs.check-version.outputs.package-version }}
-
-      - name: Commit and push Nix update
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add nix/packages/default/default.nix
-          git commit -m "chore: update nix package to v${{ needs.check-version.outputs.package-version }}" || echo "No changes to commit"
-          git push origin main
+    uses: ./.github/workflows/reusable-update-nix.yml
+    with:
+      version: ${{ needs.check-version.outputs.package-version }}
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
   update-homebrew:
     needs: [check-version, publish, update-nix]
     if: needs.check-version.outputs.should-publish == 'true'
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-          token: ${{ secrets.PAT_TOKEN }}
-
-      - name: Update Homebrew formula
-        run: |
-          chmod +x scripts/update-homebrew-formula.sh
-          ./scripts/update-homebrew-formula.sh ${{ needs.check-version.outputs.package-version }}
-
-      - name: Commit and push formula
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/nanocoder.rb
-          git commit -m "chore: update homebrew formula to v${{ needs.check-version.outputs.package-version }}" || echo "No changes to commit"
-          git push origin main
+    uses: ./.github/workflows/reusable-update-homebrew.yml
+    with:
+      version: ${{ needs.check-version.outputs.package-version }}
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
   generate-release-content:
     needs: [check-version, update-homebrew]
     if: needs.check-version.outputs.should-publish == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Generate release content with Claude Code
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: "--max-turns 10 --allowedTools Bash Write Read Glob"
-          prompt: |
-            Read the CHANGELOG.md file and extract the entry for version ${{ needs.check-version.outputs.package-version }}.
-
-            Create a directory called `release-content/` and generate THREE markdown files inside it:
-
-            1. `release-content/blog-post.md` - A full blog post (300-500 words) announcing the release.
-               - Professional but approachable tone
-               - Highlight the key features and improvements
-               - Include code examples if relevant
-               - End with a call to action to try the new version
-
-            2. `release-content/x-post.md` - A short X/Twitter post (under 280 characters).
-               - Punchy and engaging
-               - Include the key highlight
-               - Use placeholder {{RELEASE_URL}} for the release link
-
-            3. `release-content/reddit-post.md` - A medium-length Reddit post (150-250 words).
-               - Conversational tone suitable for r/programming or r/commandline
-               - Explain what's new and why it matters
-               - Include the version number in the title
-
-      - name: Upload release content
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-content-v${{ needs.check-version.outputs.package-version }}
-          path: release-content/
-          retention-days: 90
+    uses: ./.github/workflows/reusable-generate-content.yml
+    with:
+      version: ${{ needs.check-version.outputs.package-version }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
   notify:
     needs: [check-version, publish, update-nix, update-homebrew, generate-release-content]
