@@ -1,21 +1,21 @@
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
-import {WebSocketClientTransport} from '@modelcontextprotocol/sdk/client/websocket.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import {WebSocketClientTransport} from '@modelcontextprotocol/sdk/client/websocket.js';
 
 // Union type for all supported client transports
 type ClientTransport =
 	| StdioClientTransport
 	| WebSocketClientTransport
 	| StreamableHTTPClientTransport;
-import type {Tool, ToolParameterSchema, AISDKCoreTool} from '@/types/index';
-import {jsonSchema} from '@/types/index';
-import {dynamicTool} from 'ai';
-import {logInfo, logError} from '@/utils/message-queue';
 import {getCurrentMode} from '@/context/mode-context';
+import type {AISDKCoreTool, Tool, ToolParameterSchema} from '@/types/index';
+import {jsonSchema} from '@/types/index';
+import {logError, logInfo} from '@/utils/message-queue';
+import {dynamicTool} from 'ai';
 import {TransportFactory} from './transport-factory.js';
 
-import type {MCPServer, MCPTool, MCPInitResult} from '@/types/index';
+import type {MCPInitResult, MCPServer, MCPTool} from '@/types/index';
 
 export class MCPClient {
 	private clients: Map<string, Client> = new Map();

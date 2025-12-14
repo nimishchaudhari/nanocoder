@@ -1,11 +1,11 @@
+import path from 'node:path';
 import test from 'ava';
 import {
-	parseFileMentions,
 	isValidFilePath,
-	resolveFilePath,
+	parseFileMentions,
 	parseLineRange,
+	resolveFilePath,
 } from './file-mention-parser.js';
-import path from 'node:path';
 
 console.log(`\nfile-mention-parser.spec.ts`);
 

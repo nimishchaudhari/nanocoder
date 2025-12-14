@@ -1,23 +1,23 @@
-import {useState, useCallback, useMemo, useEffect} from 'react';
-import {
-	LLMClient,
-	Message,
-	DevelopmentMode,
-	ToolCall,
-	MCPConnectionStatus,
-	LSPConnectionStatus,
-} from '@/types/core';
-import type {CheckpointListItem} from '@/types/checkpoint';
-import {ToolManager} from '@/tools/tool-manager';
-import {CustomCommandLoader} from '@/custom-commands/loader';
-import {CustomCommandExecutor} from '@/custom-commands/executor';
 import {loadPreferences} from '@/config/preferences';
 import {defaultTheme} from '@/config/themes';
-import type {ThemePreset} from '@/types/ui';
-import type {UpdateInfo, ToolResult} from '@/types/index';
-import type {CustomCommand} from '@/types/commands';
+import {CustomCommandExecutor} from '@/custom-commands/executor';
+import {CustomCommandLoader} from '@/custom-commands/loader';
 import {createTokenizer} from '@/tokenization/index.js';
+import {ToolManager} from '@/tools/tool-manager';
+import type {CheckpointListItem} from '@/types/checkpoint';
+import type {CustomCommand} from '@/types/commands';
+import {
+	DevelopmentMode,
+	LLMClient,
+	LSPConnectionStatus,
+	MCPConnectionStatus,
+	Message,
+	ToolCall,
+} from '@/types/core';
+import type {ToolResult, UpdateInfo} from '@/types/index';
 import type {Tokenizer} from '@/types/tokenization.js';
+import type {ThemePreset} from '@/types/ui';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import React from 'react';
 
 export interface ConversationContext {

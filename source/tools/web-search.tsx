@@ -1,12 +1,12 @@
-import {fetch} from 'undici';
 import * as cheerio from 'cheerio';
+import {Box, Text} from 'ink';
 import React from 'react';
-import {Text, Box} from 'ink';
+import {fetch} from 'undici';
 
-import {tool, jsonSchema} from '@/types/core';
-import type {NanocoderToolExport} from '@/types/core';
-import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
+import {ThemeContext} from '@/hooks/useTheme';
+import {jsonSchema, tool} from '@/types/core';
+import type {NanocoderToolExport} from '@/types/core';
 
 interface SearchArgs {
 	query: string;

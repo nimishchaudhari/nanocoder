@@ -36,7 +36,7 @@ export async function handleFileMention(
 	const placeholder = lineRange
 		? `[@${filePath}:${lineRange.start}${
 				lineRange.end ? `-${lineRange.end}` : ''
-		  }]`
+			}]`
 		: `[@${filePath}]`;
 
 	// Create file placeholder content

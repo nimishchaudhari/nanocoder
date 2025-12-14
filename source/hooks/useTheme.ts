@@ -1,5 +1,5 @@
-import {useContext, createContext} from 'react';
 import type {Colors, ThemePreset} from '@/types/ui';
+import {createContext, useContext} from 'react';
 
 interface ThemeContextType {
 	currentTheme: ThemePreset;

@@ -1,10 +1,10 @@
 import test from 'ava';
-import React from 'react';
 import {render} from 'ink-testing-library';
-import {LSP, lspCommand} from './lsp';
-import {getLSPManager, type LSPInitResult} from '../lsp/lsp-manager';
-import {ThemeContext} from '../hooks/useTheme';
+import React from 'react';
 import {themes} from '../config/themes';
+import {ThemeContext} from '../hooks/useTheme';
+import {type LSPInitResult, getLSPManager} from '../lsp/lsp-manager';
+import {LSP, lspCommand} from './lsp';
 
 console.log(`\nlsp-command.spec.tsx`);
 

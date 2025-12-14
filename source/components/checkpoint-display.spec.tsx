@@ -1,8 +1,8 @@
+import {renderWithTheme} from '@/test-utils/render-with-theme';
+import type {CheckpointListItem} from '@/types/checkpoint';
 import test from 'ava';
 import React from 'react';
-import {renderWithTheme} from '@/test-utils/render-with-theme';
 import {CheckpointListDisplay} from './checkpoint-display';
-import type {CheckpointListItem} from '@/types/checkpoint';
 
 const createMockCheckpoint = (
 	name: string,

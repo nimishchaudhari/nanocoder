@@ -5,10 +5,10 @@
  * This script runs after npm/pnpm install to ensure fresh model metadata
  */
 
-import {request} from 'undici';
-import {xdgCache} from 'xdg-basedir';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import {request} from 'undici';
+import {xdgCache} from 'xdg-basedir';
 
 const MODELS_DEV_API_URL = 'https://models.dev/api.json';
 const CACHE_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days

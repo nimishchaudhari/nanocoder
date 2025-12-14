@@ -1,12 +1,12 @@
 import test from 'ava';
+import type {LSPServerConfig} from './lsp-client';
 import {
-	getServerForLanguage,
-	getLanguageId,
-	getMissingServerHints,
 	findLocalServer,
 	getKnownServersStatus,
+	getLanguageId,
+	getMissingServerHints,
+	getServerForLanguage,
 } from './server-discovery';
-import type {LSPServerConfig} from './lsp-client';
 
 console.log(`\nserver-discovery.spec.ts`);
 

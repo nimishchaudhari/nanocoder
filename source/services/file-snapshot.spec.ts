@@ -1,7 +1,7 @@
+import {existsSync} from 'fs';
+import * as path from 'path';
 import test from 'ava';
 import * as fs from 'fs/promises';
-import * as path from 'path';
-import {existsSync} from 'fs';
 import {FileSnapshotService} from './file-snapshot';
 
 // Helper to create a temporary directory for tests

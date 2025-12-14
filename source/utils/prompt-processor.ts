@@ -1,6 +1,6 @@
-import {readFileSync, existsSync} from 'fs';
+import {existsSync, readFileSync} from 'fs';
+import {homedir, platform, release} from 'os';
 import {join} from 'path';
-import {platform, homedir, release} from 'os';
 import {promptPath} from '../config/index';
 import type {InputState} from '../types/hooks';
 import {PlaceholderType} from '../types/hooks';

@@ -1,11 +1,11 @@
-import React from 'react';
+import {mkdirSync, rmSync, writeFileSync} from 'node:fs';
+import {join} from 'node:path';
 import test from 'ava';
 import {render} from 'ink-testing-library';
-import {mkdirSync, writeFileSync, rmSync} from 'node:fs';
-import {join} from 'node:path';
-import {searchFileContentsTool} from './search-file-contents';
-import {ThemeContext} from '../hooks/useTheme';
+import React from 'react';
 import {themes} from '../config/themes';
+import {ThemeContext} from '../hooks/useTheme';
+import {searchFileContentsTool} from './search-file-contents';
 
 // ============================================================================
 // Test Helpers

@@ -1,8 +1,8 @@
 import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {Text, Box} from 'ink';
+import {Box, Text} from 'ink';
 
-import {useTheme} from '@/hooks/useTheme';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
 
 export default function SuccessMessage({
 	message,

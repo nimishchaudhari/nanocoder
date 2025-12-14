@@ -1,7 +1,7 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import {existsSync} from 'fs';
 import {execSync} from 'child_process';
+import {existsSync} from 'fs';
+import * as path from 'path';
+import * as fs from 'fs/promises';
 
 /**
  * Maximum number of files to capture in a checkpoint.

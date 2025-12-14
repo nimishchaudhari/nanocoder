@@ -1,10 +1,10 @@
-import type {ToolCall} from '@/types/index';
-import {XMLToolCallParser} from '@/tool-calling/xml-parser';
 import {
-	parseJSONToolCalls,
 	cleanJSONToolCalls,
 	detectMalformedJSONToolCall,
+	parseJSONToolCalls,
 } from '@/tool-calling/json-parser';
+import {XMLToolCallParser} from '@/tool-calling/xml-parser';
+import type {ToolCall} from '@/types/index';
 
 /**
  * Strip <think>...</think> tags from content (some models output thinking that shouldn't be shown)

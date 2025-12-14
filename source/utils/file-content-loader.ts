@@ -1,5 +1,5 @@
-import {resolve} from 'node:path';
 import {readFile, stat} from 'node:fs/promises';
+import {resolve} from 'node:path';
 
 interface FileContentResult {
 	success: boolean;
@@ -172,7 +172,7 @@ export function formatFileForContext(result: FileContentResult): string {
 	const stats = lineRange
 		? `Lines: ${lineRange.start}${
 				lineRange.end ? `-${lineRange.end}` : ''
-		  } (${lineCount} lines, ~${tokens} tokens)`
+			} (${lineCount} lines, ~${tokens} tokens)`
 		: `Lines: ${lineCount}, ~${tokens} tokens`;
 
 	return `${header}\n${stats}\n\n${result.content}\n${footer}`;

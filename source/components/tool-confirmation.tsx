@@ -1,17 +1,17 @@
-import React from 'react';
-import {Box, Text, useInput} from 'ink';
-import SelectInput from 'ink-select-input';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
+import {getToolManager} from '@/message-handler';
+import {toolFormatters} from '@/tools/index';
+import type {ToolCall} from '@/types/core';
+import {formatError} from '@/utils/error-formatter';
+import {parseToolArguments} from '@/utils/tool-args-parser';
 import {
 	TitledBox as _TitledBox,
 	titleStyles as _titleStyles,
 } from '@mishieck/ink-titled-box';
-import {useTheme} from '@/hooks/useTheme';
-import type {ToolCall} from '@/types/core';
-import {toolFormatters} from '@/tools/index';
-import {useTerminalWidth} from '@/hooks/useTerminalWidth';
-import {getToolManager} from '@/message-handler';
-import {parseToolArguments} from '@/utils/tool-args-parser';
-import {formatError} from '@/utils/error-formatter';
+import {Box, Text, useInput} from 'ink';
+import SelectInput from 'ink-select-input';
+import React from 'react';
 
 interface ToolConfirmationProps {
 	toolCall: ToolCall;
@@ -158,7 +158,7 @@ export default function ToolConfirmation({
 											mcpInfo.isMCPTool
 												? `MCP tool "${toolCall.function.name}" from server "${mcpInfo.serverName}"`
 												: `tool "${toolCall.function.name}"`
-									  }?`}
+										}?`}
 							</Text>
 						</Box>
 

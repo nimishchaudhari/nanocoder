@@ -1,7 +1,7 @@
 import {exec} from 'node:child_process';
-import {promisify} from 'node:util';
-import {readFileSync, existsSync} from 'node:fs';
+import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {promisify} from 'node:util';
 import ignore from 'ignore';
 import {fuzzyScoreFilePath} from './fuzzy-matching';
 

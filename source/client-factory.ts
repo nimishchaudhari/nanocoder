@@ -1,9 +1,9 @@
+import {existsSync} from 'fs';
+import {join} from 'path';
 import {AISDKClient} from '@/ai-sdk-client';
 import {appConfig, getClosestConfigFile} from '@/config/index';
 import {loadPreferences} from '@/config/preferences';
-import type {LLMClient, AIProviderConfig} from '@/types/index';
-import {existsSync} from 'fs';
-import {join} from 'path';
+import type {AIProviderConfig, LLMClient} from '@/types/index';
 
 // Custom error class for configuration errors that need special UI handling
 export class ConfigurationError extends Error {

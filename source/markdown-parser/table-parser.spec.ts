@@ -1,6 +1,6 @@
 import test from 'ava';
-import {parseMarkdownTable} from './table-parser';
 import type {Colors} from '../types/markdown-parser';
+import {parseMarkdownTable} from './table-parser';
 
 console.log(`\ntable-parser.spec.ts`);
 

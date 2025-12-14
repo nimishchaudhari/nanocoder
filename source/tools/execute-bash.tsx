@@ -1,12 +1,12 @@
 import {spawn} from 'node:child_process';
 import {highlight} from 'cli-highlight';
+import {Box, Text} from 'ink';
 import React from 'react';
-import {Text, Box} from 'ink';
 
-import {tool, jsonSchema} from '@/types/core';
-import type {NanocoderToolExport} from '@/types/core';
-import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
+import {ThemeContext} from '@/hooks/useTheme';
+import {jsonSchema, tool} from '@/types/core';
+import type {NanocoderToolExport} from '@/types/core';
 
 const executeExecuteBash = async (args: {command: string}): Promise<string> => {
 	return new Promise((resolve, reject) => {
@@ -41,7 +41,7 @@ ${stdout}`;
 			const llmContext =
 				fullOutput.length > 2000
 					? fullOutput.substring(0, 2000) +
-					  '\n... [Output truncated. Use more specific commands to see full output]'
+						'\n... [Output truncated. Use more specific commands to see full output]'
 					: fullOutput;
 
 			// Return ONLY the llmContext to avoid sending massive outputs to the model

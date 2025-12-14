@@ -1,11 +1,11 @@
-import React from 'react';
 import test from 'ava';
 import {render} from 'ink-testing-library';
-import {UsageDisplay} from './usage-display.js';
-import {ThemeContext} from '../../hooks/useTheme.js';
+import React from 'react';
 import {themes} from '../../config/themes.js';
+import {ThemeContext} from '../../hooks/useTheme.js';
 import type {Message} from '../../types/core.js';
 import type {TokenBreakdown} from '../../types/usage.js';
+import {UsageDisplay} from './usage-display.js';
 
 console.log(`\nusage-display.spec.tsx – ${React.version}`);
 

@@ -1,6 +1,6 @@
 import test from 'ava';
-import {parseMarkdown} from './index.js';
 import type {Colors} from '../types/markdown-parser.js';
+import {parseMarkdown} from './index.js';
 
 console.log(`\nindex.spec.ts`);
 

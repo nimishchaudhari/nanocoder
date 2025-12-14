@@ -1,10 +1,10 @@
-import React from 'react';
 import test from 'ava';
 import {render} from 'ink-testing-library';
-import {ThemeContext} from '../hooks/useTheme.js';
+import React from 'react';
 import {themes} from '../config/themes.js';
-import {modelDatabaseCommand, ModelDatabaseDisplay} from './model-database.js';
+import {ThemeContext} from '../hooks/useTheme.js';
 import {clearModelCache} from '../model-database/model-fetcher.js';
+import {ModelDatabaseDisplay, modelDatabaseCommand} from './model-database.js';
 
 console.log(`\nmodel-database.spec.tsx – ${React.version}`);
 

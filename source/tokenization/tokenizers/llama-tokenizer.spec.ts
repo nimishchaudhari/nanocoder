@@ -2,9 +2,9 @@
  * Tests for llama-tokenizer.ts
  */
 
+import type {Message} from '@/types/core.js';
 import test from 'ava';
 import {LlamaTokenizer} from './llama-tokenizer.js';
-import type {Message} from '@/types/core.js';
 
 console.log(`\nllama-tokenizer.spec.ts`);
 

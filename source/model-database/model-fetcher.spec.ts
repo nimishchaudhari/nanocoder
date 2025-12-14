@@ -1,5 +1,5 @@
 import test from 'ava';
-import {fetchModels, clearModelCache, isModelsCached} from './model-fetcher';
+import {clearModelCache, fetchModels, isModelsCached} from './model-fetcher';
 
 console.log(`\nmodel-fetcher.spec.ts`);
 

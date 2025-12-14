@@ -2,9 +2,9 @@
  * Tests for anthropic-tokenizer.ts
  */
 
+import type {Message} from '@/types/core.js';
 import test from 'ava';
 import {AnthropicTokenizer} from './anthropic-tokenizer.js';
-import type {Message} from '@/types/core.js';
 
 console.log(`\nantrhopic-tokenizer.spec.ts`);
 

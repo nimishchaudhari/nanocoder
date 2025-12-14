@@ -1,8 +1,8 @@
 import test from 'ava';
-import React from 'react';
 import {render} from 'ink-testing-library';
+import React from 'react';
 import Status from '../components/status';
-import type {MCPConnectionStatus, LSPConnectionStatus} from '../types/core';
+import type {LSPConnectionStatus, MCPConnectionStatus} from '../types/core';
 
 test('Status component with MCP status renders', async t => {
 	const mcpStatus: MCPConnectionStatus[] = [

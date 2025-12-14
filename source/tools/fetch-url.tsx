@@ -1,10 +1,10 @@
 import {convertToMarkdown} from '@nanocollective/get-md';
+import {Box, Text} from 'ink';
 import React from 'react';
-import {Text, Box} from 'ink';
 
-import {tool, jsonSchema} from '@/types/core';
-import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
+import {ThemeContext} from '@/hooks/useTheme';
+import {jsonSchema, tool} from '@/types/core';
 
 interface FetchArgs {
 	url: string;

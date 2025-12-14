@@ -1,12 +1,12 @@
-import {resolve} from 'node:path';
-import {readFile, access} from 'node:fs/promises';
 import {constants} from 'node:fs';
-import React from 'react';
-import {Text, Box} from 'ink';
-import {tool, jsonSchema} from '@/types/core';
-import type {NanocoderToolExport} from '@/types/core';
-import {ThemeContext} from '@/hooks/useTheme';
+import {access, readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
 import ToolMessage from '@/components/tool-message';
+import {ThemeContext} from '@/hooks/useTheme';
+import {jsonSchema, tool} from '@/types/core';
+import type {NanocoderToolExport} from '@/types/core';
+import {Box, Text} from 'ink';
+import React from 'react';
 
 const executeReadFile = async (args: {
 	path: string;

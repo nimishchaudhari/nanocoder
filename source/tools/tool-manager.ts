@@ -1,21 +1,21 @@
+import {MCPClient} from '@/mcp/mcp-client';
+import {
+	nativeToolsRegistry as staticNativeToolsRegistry,
+	toolFormatters as staticToolFormatters,
+	toolRegistry as staticToolRegistry,
+	toolValidators as staticToolValidators,
+} from '@/tools/index';
+import {ToolRegistry} from '@/tools/tool-registry';
 import type {
-	ToolEntry,
-	ToolHandler,
-	ToolFormatter,
-	ToolValidator,
+	AISDKCoreTool,
 	MCPInitResult,
 	MCPServer,
 	MCPTool,
-	AISDKCoreTool,
+	ToolEntry,
+	ToolFormatter,
+	ToolHandler,
+	ToolValidator,
 } from '@/types/index';
-import {
-	toolRegistry as staticToolRegistry,
-	toolFormatters as staticToolFormatters,
-	toolValidators as staticToolValidators,
-	nativeToolsRegistry as staticNativeToolsRegistry,
-} from '@/tools/index';
-import {MCPClient} from '@/mcp/mcp-client';
-import {ToolRegistry} from '@/tools/tool-registry';
 
 /**
  * Manages both static tools and dynamic MCP tools

@@ -1,11 +1,11 @@
 import test from 'ava';
-import {
-	handleAtomicDeletion,
-	findPlaceholderAtPosition,
-	wouldPartiallyDeletePlaceholder,
-} from './atomic-deletion';
 import type {InputState, PastePlaceholderContent} from '../types/hooks';
 import {PlaceholderType} from '../types/hooks';
+import {
+	findPlaceholderAtPosition,
+	handleAtomicDeletion,
+	wouldPartiallyDeletePlaceholder,
+} from './atomic-deletion';
 
 console.log(`\natomic-deletion.spec.ts`);
 

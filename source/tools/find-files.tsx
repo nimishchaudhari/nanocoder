@@ -1,14 +1,14 @@
 import {exec} from 'node:child_process';
-import {promisify} from 'node:util';
-import {readFileSync, existsSync} from 'node:fs';
+import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import React from 'react';
+import {promisify} from 'node:util';
 import ignore from 'ignore';
-import {Text, Box} from 'ink';
+import {Box, Text} from 'ink';
+import React from 'react';
 
-import {tool, jsonSchema} from '@/types/core';
-import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
+import {ThemeContext} from '@/hooks/useTheme';
+import {jsonSchema, tool} from '@/types/core';
 
 const execAsync = promisify(exec);
 

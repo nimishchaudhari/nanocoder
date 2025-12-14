@@ -7,15 +7,15 @@ import {EventEmitter} from 'events';
 import {extname} from 'path';
 import {readFile} from 'fs/promises';
 import {LSPClient, LSPServerConfig} from './lsp-client';
-import {discoverLanguageServers, getLanguageId} from './server-discovery';
 import {
-	Diagnostic,
-	PublishDiagnosticsParams,
-	CompletionItem,
 	CodeAction,
-	TextEdit,
+	CompletionItem,
+	Diagnostic,
 	FormattingOptions,
+	PublishDiagnosticsParams,
+	TextEdit,
 } from './protocol';
+import {discoverLanguageServers, getLanguageId} from './server-discovery';
 
 export interface LSPManagerConfig {
 	/** Working directory / root URI for language servers */

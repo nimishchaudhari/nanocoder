@@ -1,7 +1,7 @@
 import test from 'ava';
 import {
-	detectInstallationMethod,
 	detectFromPath,
+	detectInstallationMethod,
 } from './installation-detector';
 
 console.log(`\ninstallation-detector.spec.ts`);

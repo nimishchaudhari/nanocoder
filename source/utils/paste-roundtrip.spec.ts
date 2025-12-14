@@ -1,8 +1,8 @@
 import test from 'ava';
 import type {
 	InputState,
-	PlaceholderContent,
 	PastePlaceholderContent,
+	PlaceholderContent,
 } from '../types/hooks';
 import {PlaceholderType} from '../types/hooks';
 

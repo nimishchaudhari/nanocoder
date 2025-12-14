@@ -2,8 +2,8 @@
  * ASCII progress bar component for usage visualization
  */
 
-import React from 'react';
 import {Text} from 'ink';
+import React from 'react';
 
 interface ProgressBarProps {
 	percent: number;

@@ -1,18 +1,18 @@
-import {createOpenAICompatible} from '@ai-sdk/openai-compatible';
-import {generateText, stepCountIs, RetryError, APICallError} from 'ai';
-import type {ModelMessage} from 'ai';
-import {Agent, fetch as undiciFetch} from 'undici';
+import {getModelContextLimit} from '@/models/index.js';
+import {XMLToolCallParser} from '@/tool-calling/xml-parser';
 import type {
 	AIProviderConfig,
+	AISDKCoreTool,
 	LLMChatResponse,
 	LLMClient,
 	Message,
-	ToolCall,
-	AISDKCoreTool,
 	StreamCallbacks,
+	ToolCall,
 } from '@/types/index';
-import {XMLToolCallParser} from '@/tool-calling/xml-parser';
-import {getModelContextLimit} from '@/models/index.js';
+import {createOpenAICompatible} from '@ai-sdk/openai-compatible';
+import {APICallError, RetryError, generateText, stepCountIs} from 'ai';
+import type {ModelMessage} from 'ai';
+import {Agent, fetch as undiciFetch} from 'undici';
 
 /**
  * Message type used for testing the empty assistant message filter.
@@ -291,8 +291,8 @@ export class AISDKClient implements LLMClient {
 			socketTimeout === -1
 				? 0
 				: socketTimeout || requestTimeout === -1
-				? 0
-				: requestTimeout || 120000;
+					? 0
+					: requestTimeout || 120000;
 
 		this.undiciAgent = new Agent({
 			connect: {

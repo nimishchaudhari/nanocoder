@@ -2,22 +2,22 @@
  * WebSocket server for VS Code extension communication
  */
 
-import {WebSocketServer, WebSocket} from 'ws';
 import {randomUUID} from 'crypto';
 import * as fs from 'fs';
+import {WebSocket, WebSocketServer} from 'ws';
 import {
-	ServerMessage,
-	ClientMessage,
-	FileChangeMessage,
 	AssistantMessage,
-	StatusMessage,
-	ConnectionAckMessage,
-	DiagnosticsRequestMessage,
+	ClientMessage,
 	CloseDiffMessage,
-	DiagnosticInfo,
-	PROTOCOL_VERSION,
+	ConnectionAckMessage,
 	DEFAULT_PORT,
+	DiagnosticInfo,
+	DiagnosticsRequestMessage,
+	FileChangeMessage,
+	PROTOCOL_VERSION,
 	PendingChange,
+	ServerMessage,
+	StatusMessage,
 } from './protocol';
 
 // Get version from package.json

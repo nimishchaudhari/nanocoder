@@ -3,9 +3,9 @@
  * Uses @anthropic-ai/tokenizer package
  */
 
+import type {Message} from '@/types/core';
 import {countTokens as anthropicCountTokens} from '@anthropic-ai/tokenizer';
 import type {Tokenizer} from '../../types/tokenization';
-import type {Message} from '@/types/core';
 
 /**
  * Anthropic tokenizer for Claude models

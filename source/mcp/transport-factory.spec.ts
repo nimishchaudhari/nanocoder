@@ -1,6 +1,6 @@
 import test from 'ava';
-import {TransportFactory} from './transport-factory';
 import type {MCPServer, MCPTransportType} from '../types/mcp';
+import {TransportFactory} from './transport-factory';
 
 console.log(`\ntransport-factory.spec.ts`);
 

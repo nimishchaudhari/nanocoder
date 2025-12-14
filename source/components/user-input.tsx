@@ -1,21 +1,21 @@
-import {Box, Text, useFocus, useInput} from 'ink';
-import TextInput from 'ink-text-input';
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {useTheme} from '@/hooks/useTheme';
-import {promptHistory} from '@/prompt-history';
 import {commandRegistry} from '@/commands';
-import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
-import {useUIStateContext} from '@/hooks/useUIState';
 import {useInputState} from '@/hooks/useInputState';
-import {assemblePrompt} from '@/utils/prompt-processor';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
+import {useUIStateContext} from '@/hooks/useUIState';
+import {promptHistory} from '@/prompt-history';
+import {DEVELOPMENT_MODE_LABELS, DevelopmentMode} from '@/types/core';
 import {Completion} from '@/types/index';
-import {DevelopmentMode, DEVELOPMENT_MODE_LABELS} from '@/types/core';
 import {
 	getCurrentFileMention,
 	getFileCompletions,
 } from '@/utils/file-autocomplete';
 import {handleFileMention} from '@/utils/file-mention-handler';
+import {assemblePrompt} from '@/utils/prompt-processor';
+import {Box, Text, useFocus, useInput} from 'ink';
 import Spinner from 'ink-spinner';
+import TextInput from 'ink-text-input';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 
 interface ChatProps {
 	onSubmit?: (message: string) => void;
@@ -520,8 +520,8 @@ export default function UserInput({
 						developmentMode === 'normal'
 							? colors.secondary
 							: developmentMode === 'auto-accept'
-							? colors.info
-							: colors.warning
+								? colors.info
+								: colors.warning
 					}
 				>
 					<Text bold>{DEVELOPMENT_MODE_LABELS[developmentMode]}</Text>{' '}

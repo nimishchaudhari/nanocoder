@@ -1,8 +1,8 @@
+import {renderWithTheme} from '@/test-utils/render-with-theme';
+import type {Message} from '@/types/core';
 import test from 'ava';
 import React from 'react';
-import {renderWithTheme} from '@/test-utils/render-with-theme';
 import {checkpointCommand} from './checkpoint';
-import type {Message} from '@/types/core';
 
 // Helper to create mock messages
 function createMockMessages(count: number): Message[] {

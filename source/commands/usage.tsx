@@ -3,18 +3,18 @@
  * Displays token usage statistics
  */
 
-import React from 'react';
+import {UsageDisplay} from '@/components/usage/usage-display';
+import {getToolManager} from '@/message-handler';
+import {getModelContextLimit} from '@/models/index';
+import {createTokenizer} from '@/tokenization/index';
 import type {Command} from '@/types/commands';
 import type {Message} from '@/types/core';
-import {UsageDisplay} from '@/components/usage/usage-display';
 import {
 	calculateTokenBreakdown,
 	calculateToolDefinitionsTokens,
 } from '@/usage/calculator';
-import {getModelContextLimit} from '@/models/index';
-import {createTokenizer} from '@/tokenization/index';
-import {getToolManager} from '@/message-handler';
 import {processPromptTemplate} from '@/utils/prompt-processor';
+import React from 'react';
 
 export const usageCommand: Command = {
 	name: 'usage',
@@ -73,7 +73,7 @@ export const usageCommand: Command = {
 		const toolDefinitions = toolManager
 			? calculateToolDefinitionsTokens(
 					Object.keys(toolManager.getToolRegistry()).length,
-			  )
+				)
 			: 0;
 
 		const breakdown = {

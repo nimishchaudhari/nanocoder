@@ -1,16 +1,16 @@
-import {LLMClient, Message} from '@/types/core';
 import {createLLMClient} from '@/client-factory';
-import {
-	updateLastUsed,
-	savePreferences,
-	loadPreferences,
-} from '@/config/preferences';
-import {reloadAppConfig} from '@/config/index';
-import {getToolManager} from '@/message-handler';
-import SuccessMessage from '@/components/success-message';
 import ErrorMessage from '@/components/error-message';
-import React from 'react';
+import SuccessMessage from '@/components/success-message';
+import {reloadAppConfig} from '@/config/index';
+import {
+	loadPreferences,
+	savePreferences,
+	updateLastUsed,
+} from '@/config/preferences';
+import {getToolManager} from '@/message-handler';
+import {LLMClient, Message} from '@/types/core';
 import type {ThemePreset} from '@/types/ui';
+import React from 'react';
 
 interface UseModeHandlersProps {
 	client: LLMClient | null;
@@ -98,9 +98,8 @@ export function useModeHandlers({
 		if (selectedProvider !== currentProvider) {
 			try {
 				// Create new client for the selected provider
-				const {client: newClient, actualProvider} = await createLLMClient(
-					selectedProvider,
-				);
+				const {client: newClient, actualProvider} =
+					await createLLMClient(selectedProvider);
 
 				// Check if we got the provider we requested
 				if (actualProvider !== selectedProvider) {

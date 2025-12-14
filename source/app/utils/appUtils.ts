@@ -1,13 +1,13 @@
-import React from 'react';
-import {commandRegistry} from '@/commands';
 import {parseInput} from '@/command-parser';
-import {toolRegistry} from '@/tools/index';
+import {commandRegistry} from '@/commands';
+import ErrorMessage from '@/components/error-message';
 import InfoMessage from '@/components/info-message';
 import ToolMessage from '@/components/tool-message';
-import ErrorMessage from '@/components/error-message';
-import type {MessageSubmissionOptions, Message} from '@/types/index';
-import type {LLMClient} from '@/types/core';
 import {CheckpointManager} from '@/services/checkpoint-manager';
+import {toolRegistry} from '@/tools/index';
+import type {LLMClient} from '@/types/core';
+import type {Message, MessageSubmissionOptions} from '@/types/index';
+import React from 'react';
 
 export async function handleMessageSubmission(
 	message: string,

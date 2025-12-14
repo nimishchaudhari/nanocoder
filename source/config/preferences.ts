@@ -1,6 +1,6 @@
 import {readFileSync, writeFileSync} from 'fs';
-import {logError} from '@/utils/message-queue';
 import {getClosestConfigFile} from '@/config/index';
+import {logError} from '@/utils/message-queue';
 
 import type {UserPreferences} from '@/types/index';
 

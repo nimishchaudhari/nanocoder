@@ -1,5 +1,5 @@
-import test from 'ava';
 import type {ToolCall} from '@/types/index';
+import test from 'ava';
 import {createCancellationResults} from './tool-cancellation';
 
 console.log(`\ntool-cancellation.spec.ts`);

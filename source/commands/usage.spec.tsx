@@ -1,9 +1,9 @@
-import React from 'react';
 import test from 'ava';
 import {render} from 'ink-testing-library';
-import type {Message} from '../types/core.js';
-import {ThemeContext} from '../hooks/useTheme.js';
+import React from 'react';
 import {themes} from '../config/themes.js';
+import {ThemeContext} from '../hooks/useTheme.js';
+import type {Message} from '../types/core.js';
 import {usageCommand} from './usage.js';
 
 console.log(`\nusage.spec.tsx – ${React.version}`);

@@ -2,15 +2,15 @@
  * Usage display component for /usage command
  */
 
-import React from 'react';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
-import {Box, Text} from 'ink';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
-import {ProgressBar} from './progress-bar.js';
 import type {Message} from '@/types/core.js';
 import type {TokenBreakdown} from '@/types/usage.js';
 import {formatTokenCount, getUsageStatusColor} from '@/usage/calculator.js';
+import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
+import {Box, Text} from 'ink';
+import React from 'react';
+import {ProgressBar} from './progress-bar.js';
 
 interface UsageDisplayProps {
 	provider: string;
@@ -46,8 +46,8 @@ export function UsageDisplay({
 		statusColor === 'success'
 			? colors.success
 			: statusColor === 'warning'
-			? colors.warning
-			: colors.error;
+				? colors.warning
+				: colors.error;
 
 	// Calculate category percentages for breakdown bars
 	const systemPercent = currentTokens

@@ -1,6 +1,6 @@
 import {readFileSync} from 'fs';
-import {logError} from '@/utils/message-queue';
 import type {CustomCommandMetadata, ParsedCustomCommand} from '@/types/index';
+import {logError} from '@/utils/message-queue';
 
 /**
  * Enhanced YAML frontmatter parser with support for multi-line strings and nested objects

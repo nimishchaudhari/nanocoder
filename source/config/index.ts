@@ -1,14 +1,14 @@
-import type {AppConfig, Colors} from '@/types/index';
-import {existsSync, readFileSync, mkdirSync, writeFileSync} from 'fs';
-import {join, dirname} from 'path';
-import {fileURLToPath} from 'url';
+import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'fs';
 import {homedir} from 'os';
-import {config as loadEnv} from 'dotenv';
-import {logError} from '@/utils/message-queue';
-import {loadPreferences} from '@/config/preferences';
-import {getThemeColors, defaultTheme} from '@/config/themes';
+import {dirname, join} from 'path';
+import {fileURLToPath} from 'url';
 import {substituteEnvVars} from '@/config/env-substitution';
 import {getConfigPath} from '@/config/paths';
+import {loadPreferences} from '@/config/preferences';
+import {defaultTheme, getThemeColors} from '@/config/themes';
+import type {AppConfig, Colors} from '@/types/index';
+import {logError} from '@/utils/message-queue';
+import {config as loadEnv} from 'dotenv';
 
 // Load .env file from working directory (shell environment takes precedence)
 // Suppress dotenv console output by temporarily redirecting stdout

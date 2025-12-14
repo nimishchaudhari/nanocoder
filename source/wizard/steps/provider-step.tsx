@@ -1,14 +1,14 @@
-import {useState, useEffect} from 'react';
+import {colors} from '@/config/index';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import TextInput from 'ink-text-input';
+import {useEffect, useState} from 'react';
 import type {ProviderConfig} from '../../types/config';
 import {
 	PROVIDER_TEMPLATES,
 	type ProviderTemplate,
 } from '../templates/provider-templates';
-import {colors} from '@/config/index';
-import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
 interface ProviderStepProps {
 	onComplete: (providers: ProviderConfig[]) => void;
@@ -410,9 +410,8 @@ export function ProviderStep({
 				<Box>
 					<Text>
 						{currentField.prompt}
-						{currentField.required && (
-							<Text color={colors.error}> *</Text>
-						)}: {currentField.sensitive && '****'}
+						{currentField.required && <Text color={colors.error}> *</Text>}:{' '}
+						{currentField.sensitive && '****'}
 					</Text>
 				</Box>
 

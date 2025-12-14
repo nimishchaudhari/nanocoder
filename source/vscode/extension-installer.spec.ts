@@ -1,9 +1,9 @@
 import test from 'ava';
 import {
-	isVSCodeCliAvailable,
-	isExtensionInstalled,
-	installExtension,
 	getVsixPath,
+	installExtension,
+	isExtensionInstalled,
+	isVSCodeCliAvailable,
 } from './extension-installer.js';
 
 // ============================================================================

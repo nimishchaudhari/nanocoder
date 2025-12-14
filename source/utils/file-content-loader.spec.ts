@@ -1,8 +1,8 @@
-import test from 'ava';
-import {loadFileContent, formatFileForContext} from './file-content-loader.js';
-import {writeFile, mkdir, rm} from 'node:fs/promises';
-import {join} from 'node:path';
+import {mkdir, rm, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import test from 'ava';
+import {formatFileForContext, loadFileContent} from './file-content-loader.js';
 
 console.log(`\nfile-content-loader.spec.ts`);
 

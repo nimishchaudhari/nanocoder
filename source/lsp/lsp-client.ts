@@ -3,29 +3,29 @@
  * Manages connections to language servers via JSON-RPC over stdio
  */
 
-import {spawn, ChildProcess} from 'child_process';
+import {ChildProcess, spawn} from 'child_process';
 import {EventEmitter} from 'events';
 import {
-	JsonRpcRequest,
-	JsonRpcResponse,
-	JsonRpcNotification,
-	InitializeParams,
-	InitializeResult,
-	ServerCapabilities,
-	PublishDiagnosticsParams,
-	Diagnostic,
-	LSPMethods,
-	TextDocumentItem,
-	TextDocumentIdentifier,
-	Position,
-	CompletionItem,
-	CompletionList,
 	CodeAction,
 	CodeActionParams,
-	TextEdit,
+	CompletionItem,
+	CompletionList,
+	CompletionTriggerKind,
+	Diagnostic,
 	DocumentFormattingParams,
 	FormattingOptions,
-	CompletionTriggerKind,
+	InitializeParams,
+	InitializeResult,
+	JsonRpcNotification,
+	JsonRpcRequest,
+	JsonRpcResponse,
+	LSPMethods,
+	Position,
+	PublishDiagnosticsParams,
+	ServerCapabilities,
+	TextDocumentIdentifier,
+	TextDocumentItem,
+	TextEdit,
 } from './protocol';
 
 export interface LSPServerConfig {

@@ -1,6 +1,6 @@
 import test from 'ava';
-import {updateCommand, hasCommandFailed} from './update.js';
 import {toolRegistry} from '../tools/index.js';
+import {hasCommandFailed, updateCommand} from './update.js';
 
 console.log(`\nupdate.spec.tsx`);
 

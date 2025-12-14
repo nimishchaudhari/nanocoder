@@ -3,12 +3,12 @@
  * Tracks current session usage
  */
 
+import {getModelContextLimit} from '@/models/index';
 import type {Message} from '@/types/core';
 import type {Tokenizer} from '@/types/tokenization';
+import type {CurrentSessionStats, SessionUsage} from '../types/usage';
 import {calculateTokenBreakdown} from './calculator';
 import {addSession} from './storage';
-import {getModelContextLimit} from '@/models/index';
-import type {SessionUsage, CurrentSessionStats} from '../types/usage';
 
 export class SessionTracker {
 	private sessionId: string;

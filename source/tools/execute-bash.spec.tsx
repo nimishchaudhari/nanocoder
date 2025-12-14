@@ -1,9 +1,9 @@
-import React from 'react';
 import test from 'ava';
 import {render} from 'ink-testing-library';
-import {executeBashTool} from './execute-bash';
-import {ThemeContext} from '../hooks/useTheme';
+import React from 'react';
 import {themes} from '../config/themes';
+import {ThemeContext} from '../hooks/useTheme';
+import {executeBashTool} from './execute-bash';
 
 // ============================================================================
 // Test Helpers

@@ -1,9 +1,9 @@
 import {readFileSync} from 'fs';
-import {join, dirname} from 'path';
+import {dirname, join} from 'path';
 import {fileURLToPath} from 'url';
 import {loadPreferences, savePreferences} from '@/config/preferences';
-import {logError} from '@/utils/message-queue';
 import type {NpmRegistryResponse, UpdateInfo} from '@/types/index';
+import {logError} from '@/utils/message-queue';
 import {detectInstallationMethod} from './installation-detector';
 
 const UPDATE_COMMANDS = {

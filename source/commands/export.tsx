@@ -1,8 +1,8 @@
-import {Command, Message} from '@/types/index';
-import React from 'react';
-import SuccessMessage from '@/components/success-message';
-import fs from 'fs/promises';
 import path from 'path';
+import SuccessMessage from '@/components/success-message';
+import {Command, Message} from '@/types/index';
+import fs from 'fs/promises';
+import React from 'react';
 
 const formatMessageContent = (message: Message) => {
 	let content = '';

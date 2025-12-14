@@ -7,10 +7,10 @@ import {
 	createTokenizer,
 	createTokenizerForProvider,
 } from './tokenizer-factory.js';
-import {OpenAITokenizer} from './tokenizers/openai-tokenizer.js';
 import {AnthropicTokenizer} from './tokenizers/anthropic-tokenizer.js';
-import {LlamaTokenizer} from './tokenizers/llama-tokenizer.js';
 import {FallbackTokenizer} from './tokenizers/fallback-tokenizer.js';
+import {LlamaTokenizer} from './tokenizers/llama-tokenizer.js';
+import {OpenAITokenizer} from './tokenizers/openai-tokenizer.js';
 
 console.log(`\ntokenizer-factory.spec.ts`);
 
