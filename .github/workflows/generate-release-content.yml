@@ -30,7 +30,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          allowed_tools: "Bash,Write,Read,Glob"
+          claude_args: "--max-turns 10 --allowedTools Bash Write Read Glob"
           prompt: |
             Read the CHANGELOG.md file and extract the entry for version ${{ steps.version.outputs.version }}.
 
@@ -51,7 +51,6 @@ jobs:
                - Conversational tone suitable for r/programming or r/commandline
                - Explain what's new and why it matters
                - Include the version number in the title
-          claude_args: "--max-turns 10"
 
       - name: Upload release content
         uses: actions/upload-artifact@v4
