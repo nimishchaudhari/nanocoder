@@ -1010,5 +1010,3 @@ export function healthCheckMiddleware() {
 		}
 	};
 }
-
-export default HealthMonitor;

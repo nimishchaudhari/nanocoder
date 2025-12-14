@@ -91,7 +91,7 @@ test('end-to-end logging workflow', async t => {
 
 	// Test redactLogEntry with proper redaction rules
 	const rules = createRedactionRules(['apiKey', 'password']);
-	const redactedData = redactLogEntry(sensitiveData, rules);
+	const redactedData = redactLogEntry(sensitiveData, rules) as any;
 	t.is(
 		redactedData.username,
 		'testuser',

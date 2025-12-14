@@ -46,6 +46,7 @@ export function getCorrelationMonitoring(): typeof correlationMonitoring {
 /**
  * Log correlation context monitoring metrics
  * Useful for periodic logging of system health
+ * @internal
  */
 export function logCorrelationMonitoring(
 	level: 'debug' | 'info' | 'warn' | 'error' = 'info',

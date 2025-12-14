@@ -12,8 +12,6 @@ export type LogLevel =
 	| 'debug'
 	| 'trace';
 
-export type LogLevelNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
-
 export interface LoggerConfig {
 	level: LogLevel;
 	destination?: string;
@@ -56,35 +54,6 @@ export interface EnhancedTransportOptions {
 	levelFirst?: boolean;
 	singleLine?: boolean;
 	colorize?: boolean;
-	[key: string]: unknown;
-}
-
-// Error handling
-export interface SerializedError {
-	name?: string;
-	message: string;
-	stack?: string;
-	code?: string | number;
-	statusCode?: number;
-	status?: number;
-	[key: string]: unknown;
-}
-
-// Performance tracking types
-export interface PerformanceData {
-	functionName: string;
-	duration: string;
-	durationMs: number;
-	correlationId: string;
-	source: string;
-	memoryDelta?: Record<string, number>;
-	memoryDeltaFormatted?: Record<string, string>;
-	currentMemory?: Record<string, string>;
-	cpuPercent?: string;
-	cpuUsageRaw?: number;
-	argCount?: number;
-	argTypes?: string[];
-	thresholdWarnings?: string[];
 	[key: string]: unknown;
 }
 

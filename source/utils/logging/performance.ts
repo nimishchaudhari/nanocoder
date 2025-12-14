@@ -4,13 +4,36 @@
  */
 
 import {loadavg} from 'os';
-import type {PerformanceMetrics} from './types.js';
-import {
-	generateCorrelationId,
-	createCorrelationContext,
-	type Logger,
-} from './index.js';
+import type {PerformanceMetrics, Logger} from './types.js';
+import {generateCorrelationId} from './index.js';
+
+// Create correlation context function
+function createCorrelationContext() {
+	const id = generateCorrelationId();
+	return {
+		id,
+		getId: () => id,
+	};
+}
 import {correlationStorage} from './correlation.js';
+
+// Private CPU usage functions (used internally)
+function getCpuUsage(): NodeJS.CpuUsage {
+	return process.cpuUsage();
+}
+
+function calculateCpuUsage(
+	startUsage: NodeJS.CpuUsage,
+	endUsage: NodeJS.CpuUsage,
+	timeDelta: number,
+): number {
+	const userDelta = endUsage.user - startUsage.user;
+	const systemDelta = endUsage.system - startUsage.system;
+	const totalDelta = userDelta + systemDelta;
+
+	// Convert to percentage (microseconds to seconds)
+	return (totalDelta / (timeDelta * 1000)) * 100;
+}
 
 // Lazy logger initialization to avoid circular dependency
 let _logger: Logger | null = null;
@@ -138,29 +161,6 @@ export function formatBytes(bytes: number): string {
 }
 
 /**
- * Get current CPU usage
- */
-export function getCpuUsage(): NodeJS.CpuUsage {
-	return process.cpuUsage();
-}
-
-/**
- * Calculate CPU usage percentage between two measurements
- */
-export function calculateCpuUsage(
-	startUsage: NodeJS.CpuUsage,
-	endUsage: NodeJS.CpuUsage,
-	timeDelta: number,
-): number {
-	const userDelta = endUsage.user - startUsage.user;
-	const systemDelta = endUsage.system - startUsage.system;
-	const totalDelta = userDelta + systemDelta;
-
-	// Convert to percentage (microseconds to seconds)
-	return (totalDelta / (timeDelta * 1000)) * 100;
-}
-
-/**
  * Performance tracking decorator with structured logging integration
  */
 export function trackPerformance<T extends (...args: unknown[]) => unknown>(
@@ -188,7 +188,7 @@ export function trackPerformance<T extends (...args: unknown[]) => unknown>(
 
 	return (async (...args: Parameters<T>) => {
 		const metrics = startMetrics();
-		const cpuStart = getCpuUsage();
+		const cpuStart = process.cpuUsage();
 
 		// Create new correlation context for this performance tracking
 		const context = createCorrelationContext();
@@ -199,12 +199,17 @@ export function trackPerformance<T extends (...args: unknown[]) => unknown>(
 				const result = await fn(...args);
 
 				const end = endMetrics(metrics);
-				const cpuEnd = getCpuUsage();
+				const cpuEnd = process.cpuUsage();
 				const memoryDelta = calculateMemoryDelta(
 					metrics.memoryUsage || process.memoryUsage(),
 					end.memoryUsage || process.memoryUsage(),
 				);
-				const cpuPercent = calculateCpuUsage(cpuStart, cpuEnd, end.duration);
+
+				// Calculate CPU usage percentage
+				const userDelta = cpuEnd.user - cpuStart.user;
+				const systemDelta = cpuEnd.system - cpuStart.system;
+				const totalDelta = userDelta + systemDelta;
+				const cpuPercent = (totalDelta / (end.duration * 1000)) * 100;
 
 				// Prepare performance data
 				const perfData: Record<string, unknown> = {
@@ -340,7 +345,7 @@ export async function measureTime<T>(
 
 	const start = performance.now();
 	const memoryStart = process.memoryUsage();
-	const cpuStart = trackCpu ? getCpuUsage() : undefined;
+	const cpuStart = trackCpu ? process.cpuUsage() : undefined;
 
 	// Create new correlation context for this measurement
 	const context = createCorrelationContext();
@@ -351,7 +356,7 @@ export async function measureTime<T>(
 			const result = await fn();
 			const duration = performance.now() - start;
 			const memoryEnd = process.memoryUsage();
-			const cpuEnd = trackCpu ? getCpuUsage() : undefined;
+			const cpuEnd = trackCpu ? process.cpuUsage() : undefined;
 
 			let memoryDelta: Record<string, number> | undefined;
 			let cpuUsage: number | undefined;
@@ -361,7 +366,11 @@ export async function measureTime<T>(
 			}
 
 			if (trackCpu && cpuStart && cpuEnd) {
-				cpuUsage = calculateCpuUsage(cpuStart, cpuEnd, duration);
+				// Calculate CPU usage percentage
+				const userDelta = cpuEnd.user - cpuStart.user;
+				const systemDelta = cpuEnd.system - cpuStart.system;
+				const totalDelta = userDelta + systemDelta;
+				cpuUsage = (totalDelta / (duration * 1000)) * 100;
 			}
 
 			if (logPerformance) {
@@ -618,137 +627,9 @@ function formatUptime(seconds: number): string {
 }
 
 /**
- * Performance statistics over time
+ * Performance monitor class for ongoing tracking (used internally)
  */
-export interface PerformanceStats {
-	totalOperations: number;
-	averageDuration: number;
-	minDuration: number;
-	maxDuration: number;
-	totalDuration: number;
-	averageMemoryDelta: {
-		heapUsed: number;
-		heapTotal: number;
-		external: number;
-		rss: number;
-	};
-	maxMemoryUsage: {
-		heapUsed: number;
-		heapTotal: number;
-		external: number;
-		rss: number;
-	};
-	errorCount: number;
-	errorRate: number;
-	timestamp: string;
-}
-
-/**
- * Calculate performance statistics from measurements
- */
-export function calculatePerformanceStats(
-	measurements: Array<{
-		duration: number;
-		memoryDelta?: Record<string, number>;
-		memoryUsage?: NodeJS.MemoryUsage;
-		error?: boolean;
-	}>,
-): PerformanceStats {
-	if (measurements.length === 0) {
-		return {
-			totalOperations: 0,
-			averageDuration: 0,
-			minDuration: 0,
-			maxDuration: 0,
-			totalDuration: 0,
-			averageMemoryDelta: {heapUsed: 0, heapTotal: 0, external: 0, rss: 0},
-			maxMemoryUsage: {heapUsed: 0, heapTotal: 0, external: 0, rss: 0},
-			errorCount: 0,
-			errorRate: 0,
-			timestamp: new Date().toISOString(),
-		};
-	}
-
-	const durations = measurements.map(m => m.duration);
-	const errorCount = measurements.filter(m => m.error).length;
-	const memoryDeltas = measurements
-		.filter(
-			(m): m is typeof m & {memoryDelta: Record<string, number>} =>
-				m.memoryDelta !== undefined,
-		)
-		.map(m => m.memoryDelta);
-	const memoryUsages = measurements
-		.filter(
-			(m): m is typeof m & {memoryUsage: NodeJS.MemoryUsage} =>
-				m.memoryUsage !== undefined,
-		)
-		.map(m => m.memoryUsage);
-
-	const totalDuration = durations.reduce((sum, d) => sum + d, 0);
-	const averageDuration = totalDuration / durations.length;
-	const minDuration = Math.min(...durations);
-	const maxDuration = Math.max(...durations);
-
-	// Calculate average memory delta
-	const averageMemoryDelta = {
-		heapUsed:
-			memoryDeltas.length > 0
-				? memoryDeltas.reduce((sum, d) => sum + d.heapUsedDelta, 0) /
-				  memoryDeltas.length
-				: 0,
-		heapTotal:
-			memoryDeltas.length > 0
-				? memoryDeltas.reduce((sum, d) => sum + d.heapTotalDelta, 0) /
-				  memoryDeltas.length
-				: 0,
-		external:
-			memoryDeltas.length > 0
-				? memoryDeltas.reduce((sum, d) => sum + d.externalDelta, 0) /
-				  memoryDeltas.length
-				: 0,
-		rss:
-			memoryDeltas.length > 0
-				? memoryDeltas.reduce((sum, d) => sum + d.rssDelta, 0) /
-				  memoryDeltas.length
-				: 0,
-	};
-
-	// Find maximum memory usage
-	const maxMemoryUsage = {
-		heapUsed:
-			memoryUsages.length > 0
-				? Math.max(...memoryUsages.map(m => m.heapUsed))
-				: 0,
-		heapTotal:
-			memoryUsages.length > 0
-				? Math.max(...memoryUsages.map(m => m.heapTotal))
-				: 0,
-		external:
-			memoryUsages.length > 0
-				? Math.max(...memoryUsages.map(m => m.external))
-				: 0,
-		rss:
-			memoryUsages.length > 0 ? Math.max(...memoryUsages.map(m => m.rss)) : 0,
-	};
-
-	return {
-		totalOperations: measurements.length,
-		averageDuration,
-		minDuration,
-		maxDuration,
-		totalDuration,
-		averageMemoryDelta,
-		maxMemoryUsage,
-		errorCount,
-		errorRate: errorCount / measurements.length,
-		timestamp: new Date().toISOString(),
-	};
-}
-
-/**
- * Performance monitor class for ongoing tracking
- */
-export class PerformanceMonitor {
+class PerformanceMonitor {
 	private measurements: Map<string, (PerformanceMetrics & {id?: string})[]> =
 		new Map();
 	private readonly maxMeasurements: number;

@@ -29,6 +29,7 @@ export const DEFAULT_REDACT_PATHS = [
 
 /**
  * Patterns for detecting sensitive data
+ * @internal
  */
 export const SENSITIVE_PATTERNS: RegExp[] = [
 	// API keys (common patterns)

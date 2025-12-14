@@ -139,26 +139,23 @@ process.on('unhandledRejection', (reason, promise) => {
 // Re-export all modules for external use
 export type {Logger, LoggerConfig, LogLevel} from './types.js';
 
+// Export for testing purposes only
+export {
+	/** @internal */
+	createCorrelationFromHeaders,
+	/** @internal */
+	extractCorrelationId,
+	/** @internal */
+	formatCorrelationForLog,
+	/** @internal */
+	correlationMiddleware,
+} from './correlation.js';
+
 // Export correlation utilities
 export {
 	generateCorrelationId,
-	generateShortCorrelationId,
-	createCorrelationContext,
-	getCurrentCorrelationContext,
-	setCorrelationContext,
-	clearCorrelationContext,
-	withCorrelationContext,
 	withNewCorrelationContext,
 	getCorrelationId,
-	isCorrelationEnabled,
-	getCorrelationHeader,
-	extractCorrelationId,
-	createCorrelationFromHeaders,
-	addCorrelationMetadata,
-	getCorrelationMetadata,
-	formatCorrelationForLog,
-	correlationMiddleware,
-	withCorrelation,
 } from './correlation.js';
 
 // Export performance utilities
@@ -167,96 +164,70 @@ export {
 	endMetrics,
 	calculateMemoryDelta,
 	formatMemoryUsage,
+	/** @internal */
 	formatBytes,
-	getCpuUsage,
-	calculateCpuUsage,
-	trackPerformance,
-	measureTime,
-	checkMemoryThresholds,
-	PerformanceMonitor,
+	/** @internal */
 	globalPerformanceMonitor,
 } from './performance.js';
 
 // Export configuration utilities
 export {
+	/** @internal */
 	getDefaultLogDirectory,
-	createDevelopmentConfig,
-	createProductionConfig,
-	createTestConfig,
+	/** @internal */
 	getEnvironmentConfig,
+	/** @internal */
 	validateLogLevel,
+	/** @internal */
 	normalizeLogLevel,
+	/** @internal */
 	createConfig,
 } from './config.js';
 
-// Export transport utilities
-export {
-	createDevelopmentTransport,
-	createProductionTransport,
-	createTestTransport,
-	createCustomTransport,
-	createMultiTransport,
-	createBufferedTransport,
-	createErrorTransport,
-	createAuditTransport,
-	getTransportFromEnvironment,
-	validateTransport,
-	createSafeTransport,
-} from './transports.js';
+// Export transport utilities (used internally only)
+// No exports from transports.js as they are only used internally
 
-// Export console facade for backward compatibility
-export {
-	StructuredConsole,
-	ConsoleInterceptor,
-	globalConsoleInterceptor,
-	useStructuredConsole,
-	createModuleConsole,
-	ConsoleUsageTracker,
-} from './console-facade.js';
+// Console facade exports (only used in tests)
+// No exports from console-facade.js as they are only used internally and in tests
 
-// Export request tracking utilities
-export {
-	// RequestTracker,  // This is a default export
-	// RequestMetadata,  // Interface - exported from request-tracker.ts directly
-	// RequestStats,  // Interface - exported from request-tracker.ts directly
-	globalRequestTracker,
-	trackRequest,
-	httpTracker,
-	aiTracker,
-	mcpTracker,
-} from './request-tracker.js';
+// Export request tracking utilities (specific instances used by other modules)
+export {healthChecks} from './health-monitor.js';
 
-// Import default export separately
-import RequestTracker from './request-tracker.js';
-export {RequestTracker};
+// Internal exports that knip should ignore
+/** @internal */
+export {httpTracker} from './request-tracker.js';
 
-// Export log query interface
-export {
-	// LogStorage,  // This is a default export
-	// LogEntry,  // Already exported from types.ts
-	// LogQuery,  // Interface - exported from log-query.ts directly
-	// QueryResult,  // Interface - exported from log-query.ts directly
-	// AggregationOptions,  // Interface - exported from log-query.ts directly
-	// AggregationResult,  // Interface - exported from log-query.ts directly
-	LogQueryBuilder,
-	globalLogStorage,
-	createLogQuery,
-	logQueries,
-} from './log-query.js';
+/** @internal */
+export {aiTracker} from './request-tracker.js';
 
-// Import default export separately
-import LogStorage from './log-query.js';
-export {LogStorage};
+/** @internal */
+export {mcpTracker} from './request-tracker.js';
+
+export {globalRequestTracker} from './request-tracker.js';
+
+// Export log storage for tests
+export {globalLogStorage} from './log-query.js';
+
+// RequestTracker is only used internally as default export
+// No export needed here
+
+// Log query exports (not used in main codebase)
+// No exports from log-query.js as they are not used
 
 // Export health monitoring
 export {
-	HealthMonitor,
-	globalHealthMonitor,
-	healthChecks,
-	initializeHealthMonitoring,
-	healthCheckMiddleware,
 	type HealthCheckResult,
 	type HealthCheck,
 	type SystemMetrics,
 	type HealthCheckConfig,
 } from './health-monitor.js';
+
+// Internal exports that knip should ignore
+/** @internal */
+export {globalHealthMonitor} from './health-monitor.js';
+
+/** @internal */
+export {initializeHealthMonitoring} from './health-monitor.js';
+
+/** @internal */
+export {healthCheckMiddleware} from './health-monitor.js';

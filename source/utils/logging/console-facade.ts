@@ -135,7 +135,7 @@ function createConsoleMethod(
  * Console replacement that routes to structured logging
  * Maintains the same API as global console but adds structured logging benefits
  */
-export const StructuredConsole = {
+const StructuredConsole = {
 	/**
 	 * Replacement for console.log - routes to logger.info
 	 * Accepts any number of arguments and formats them appropriately
@@ -242,8 +242,9 @@ export const globalConsoleInterceptor = new ConsoleInterceptor();
 
 /**
  * Decorator to automatically route console calls in a function to structured logging
+ * @internal
  */
-export function useStructuredConsole(
+export function useStructuredConsoleDecorator(
 	target: unknown,
 	propertyName: string,
 	descriptor: PropertyDescriptor,
@@ -376,5 +377,8 @@ export class ConsoleUsageTracker {
 	}
 }
 
-// Export for easy access
-export default StructuredConsole;
+// Export for testing purposes only
+export {
+	StructuredConsole,
+	useStructuredConsoleDecorator as useStructuredConsole,
+};
