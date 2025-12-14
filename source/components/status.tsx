@@ -2,7 +2,7 @@ import {Box, Text} from 'ink';
 import {memo} from 'react';
 import {existsSync} from 'fs';
 
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
+import {TitledBox} from '@/components/ui/titled-box';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import {confDirMap} from '@/config/index';
 import {themes, getThemeColors} from '@/config/themes';
@@ -144,10 +144,7 @@ export default memo(function Status({
 			) : (
 				/* Normal/Wide terminal: full layout with TitledBox */
 				<TitledBox
-					key={colors.primary}
-					borderStyle="round"
-					titles={['Status']}
-					titleStyles={titleStyles.pill}
+					title="Status"
 					width={boxWidth}
 					borderColor={colors.info}
 					paddingX={2}

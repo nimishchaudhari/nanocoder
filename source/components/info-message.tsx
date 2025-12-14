@@ -1,6 +1,6 @@
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTheme} from '@/hooks/useTheme';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 
@@ -34,10 +34,7 @@ export default function InfoMessage({
 				</Box>
 			) : (
 				<TitledBox
-					key={colors.primary}
-					borderStyle="round"
-					titles={['Info']}
-					titleStyles={titleStyles.pill}
+					title="Info"
 					width={boxWidth}
 					borderColor={colors.info}
 					paddingX={2}

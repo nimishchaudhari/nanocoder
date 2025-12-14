@@ -4,8 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import React from 'react';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 
@@ -26,10 +26,7 @@ function Help({
 	const {colors} = useTheme();
 	return (
 		<TitledBox
-			key={colors.primary}
-			borderStyle="round"
-			titles={['/help']}
-			titleStyles={titleStyles.pill}
+			title="/help"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

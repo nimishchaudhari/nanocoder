@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTheme} from '@/hooks/useTheme';
 import {LLMClient} from '@/types/core';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
@@ -77,10 +77,7 @@ export default function ModelSelector({
 	if (loading) {
 		return (
 			<TitledBox
-				key={colors.primary}
-				borderStyle="round"
-				titles={['Model Selection']}
-				titleStyles={titleStyles.pill}
+				title="Model Selection"
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
@@ -95,9 +92,7 @@ export default function ModelSelector({
 	if (error) {
 		return (
 			<TitledBox
-				borderStyle="round"
-				titles={['Model Selection - Error']}
-				titleStyles={titleStyles.pill}
+				title="Model Selection - Error"
 				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}
@@ -119,9 +114,7 @@ export default function ModelSelector({
 
 	return (
 		<TitledBox
-			borderStyle="round"
-			titles={['Select a Model']}
-			titleStyles={titleStyles.pill}
+			title="Select a Model"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

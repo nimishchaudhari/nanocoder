@@ -3,8 +3,8 @@
  */
 
 import React from 'react';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {ProgressBar} from './progress-bar.js';
@@ -86,10 +86,7 @@ export function UsageDisplay({
 
 	return (
 		<TitledBox
-			key={colors.primary}
-			borderStyle="round"
-			titles={['Context Usage']}
-			titleStyles={titleStyles.pill}
+			title="Context Usage"
 			width={boxWidth}
 			borderColor={colors.info}
 			paddingX={2}

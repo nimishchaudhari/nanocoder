@@ -1,6 +1,6 @@
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTheme} from '@/hooks/useTheme';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 
@@ -34,10 +34,7 @@ export default function SuccessMessage({
 				</Box>
 			) : (
 				<TitledBox
-					key={colors.primary}
-					borderStyle="round"
-					titles={['Success']}
-					titleStyles={titleStyles.pill}
+					title="Success"
 					width={boxWidth}
 					borderColor={colors.success}
 					paddingX={2}

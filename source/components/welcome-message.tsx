@@ -1,7 +1,7 @@
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
 import {memo} from 'react';
 
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTheme} from '@/hooks/useTheme';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
@@ -59,10 +59,7 @@ export default memo(function WelcomeMessage() {
 					</Gradient>
 
 					<TitledBox
-						key={colors.primary}
-						borderStyle="round"
-						titles={[`✻ Welcome to Nanocoder ${packageJson.version}`]}
-						titleStyles={titleStyles.pill}
+						title={`✻ Welcome to Nanocoder ${packageJson.version}`}
 						width={boxWidth}
 						borderColor={colors.primary}
 						paddingX={2}

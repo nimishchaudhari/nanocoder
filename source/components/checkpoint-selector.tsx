@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTheme} from '@/hooks/useTheme';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import type {CheckpointListItem} from '@/types/checkpoint';
@@ -68,9 +68,7 @@ export default function CheckpointSelector({
 
 		return (
 			<TitledBox
-				borderStyle="round"
-				titles={['Checkpoint Load - Backup Confirmation']}
-				titleStyles={titleStyles.pill}
+				title="Checkpoint Load - Backup Confirmation"
 				width={boxWidth}
 				borderColor={colors.warning}
 				paddingX={2}
@@ -134,9 +132,7 @@ export default function CheckpointSelector({
 	if (options.length === 0) {
 		return (
 			<TitledBox
-				borderStyle="round"
-				titles={['No Checkpoints Available']}
-				titleStyles={titleStyles.pill}
+				title="No Checkpoints Available"
 				width={boxWidth}
 				borderColor={colors.secondary}
 				paddingX={2}
@@ -157,9 +153,7 @@ export default function CheckpointSelector({
 
 	return (
 		<TitledBox
-			borderStyle="round"
-			titles={['Select Checkpoint to Load']}
-			titleStyles={titleStyles.pill}
+			title="Select Checkpoint to Load"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

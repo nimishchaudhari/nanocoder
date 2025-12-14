@@ -1,7 +1,7 @@
 import {useState, useMemo} from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTheme} from '@/hooks/useTheme';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {themes} from '@/config/themes';
@@ -69,10 +69,7 @@ export default function ThemeSelector({
 			</Gradient>
 
 			<TitledBox
-				key={colors.primary}
-				borderStyle="round"
-				titles={[`✻ Try out different themes!`]}
-				titleStyles={titleStyles.pill}
+				title="✻ Try out different themes!"
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}

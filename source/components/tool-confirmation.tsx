@@ -1,10 +1,6 @@
 import React from 'react';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
-import {
-	TitledBox as _TitledBox,
-	titleStyles as _titleStyles,
-} from '@mishieck/ink-titled-box';
 import {useTheme} from '@/hooks/useTheme';
 import type {ToolCall} from '@/types/core';
 import {toolFormatters} from '@/tools/index';
