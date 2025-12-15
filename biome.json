@@ -28,7 +28,42 @@
 		"enabled": true
 	},
 	"linter": {
-		"enabled": false
+		"enabled": true,
+		"rules": {
+			"recommended": false,
+			"style": {
+				"noDefaultExport": "off",
+				"useBlockStatements": "off",
+				"noNonNullAssertion": "off",
+				"noParameterAssign": "off",
+				"useConst": "off",
+				"useImportType": "off",
+				"useTemplate": "off"
+			},
+			"complexity": {
+				"noForEach": "off",
+				"useLiteralKeys": "off",
+				"useArrowFunction": "off",
+				"noBannedTypes": "off"
+			},
+			"suspicious": {
+				"noExplicitAny": "off",
+				"noArrayIndexKey": "off",
+				"noConsoleLog": "off",
+				"noGlobalIsNan": "off",
+				"noRedeclare": "off",
+				"noUnsafeDeclarationMerging": "off",
+				"noShadowRestrictedNames": "off",
+				"noAssignInExpressions": "off",
+				"noControlCharactersInRegex": "off"
+			},
+			"correctness": {
+				"useExhaustiveDependencies": "warn",
+				"noUnusedVariables": "warn",
+				"noUnusedImports": "warn",
+				"noUndeclaredVariables": "off"
+			}
+		}
 	},
 	"javascript": {
 		"formatter": {
