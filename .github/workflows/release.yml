@@ -184,17 +184,8 @@ jobs:
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
-  generate-release-content:
-    needs: [check-version, update-homebrew]
-    if: needs.check-version.outputs.should-publish == 'true'
-    uses: ./.github/workflows/generate-release-content.yml
-    with:
-      version: ${{ needs.check-version.outputs.package-version }}
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-
   notify:
-    needs: [check-version, publish, update-nix, update-homebrew, generate-release-content]
+    needs: [check-version, publish, update-nix, update-homebrew]
     if: always()
     runs-on: ubuntu-latest
     steps:
