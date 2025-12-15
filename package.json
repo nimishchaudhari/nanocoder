@@ -109,9 +109,11 @@
 		"typescript-eslint": "^8.46.2"
 	},
 	"lint-staged": {
-		"*.{js,ts,jsx,tsx,json,md}": [
+		"*.{js,ts,jsx,tsx}": [
+			"eslint --max-warnings=0",
 			"biome check --write --no-errors-on-unmatched"
-		]
+		],
+		"*.{json,md}": ["biome check --write --no-errors-on-unmatched"]
 	},
 	"ava": {
 		"extensions": {
