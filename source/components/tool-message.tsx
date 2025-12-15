@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Text, Box} from 'ink';
 
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTheme} from '@/hooks/useTheme';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 
@@ -29,7 +29,6 @@ export default memo(function ToolMessage({
 		);
 
 	const borderColor = colors.tool;
-	const borderStyle = 'round';
 
 	return (
 		<>
@@ -49,7 +48,7 @@ export default memo(function ToolMessage({
 				</Box>
 			) : hideTitle ? (
 				<Box
-					borderStyle={borderStyle}
+					borderStyle="round"
 					width={boxWidth}
 					borderColor={borderColor}
 					paddingX={2}
@@ -65,10 +64,7 @@ export default memo(function ToolMessage({
 				</Box>
 			) : (
 				<TitledBox
-					key={colors.primary}
-					borderStyle={borderStyle}
-					titles={[title || 'Tool Message']}
-					titleStyles={titleStyles.pill}
+					title={title || 'Tool Message'}
 					width={boxWidth}
 					borderColor={borderColor}
 					paddingX={2}

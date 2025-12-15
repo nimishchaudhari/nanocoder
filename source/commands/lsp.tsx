@@ -1,8 +1,8 @@
 import type {Command} from '@/types/index';
 import {getLSPManager} from '@/lsp/lsp-manager';
 import React from 'react';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 
@@ -20,10 +20,7 @@ export function LSP({status}: LSPProps) {
 
 	return (
 		<TitledBox
-			key={colors.primary}
-			borderStyle="round"
-			titles={['/lsp']}
-			titleStyles={titleStyles.pill}
+			title="/lsp"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

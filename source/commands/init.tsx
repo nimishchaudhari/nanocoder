@@ -1,7 +1,7 @@
 import {Command} from '@/types/index';
 import React from 'react';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
+import {TitledBox} from '@/components/ui/titled-box';
 import {colors} from '@/config/index';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import ErrorMessage from '@/components/error-message';
@@ -26,9 +26,7 @@ function InitSuccess({
 	const boxWidth = useTerminalWidth();
 	return (
 		<TitledBox
-			borderStyle="round"
-			titles={['Project Initialized']}
-			titleStyles={titleStyles.pill}
+			title="Project Initialized"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

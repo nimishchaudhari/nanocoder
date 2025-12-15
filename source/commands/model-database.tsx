@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {Box, Text, useInput, useFocus} from 'ink';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Tabs, Tab} from 'ink-tab';
+import {TitledBox} from '@/components/ui/titled-box';
 import {Command, Colors, ModelEntry} from '@/types/index';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
@@ -148,9 +148,7 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 	if (loading) {
 		return (
 			<TitledBox
-				borderStyle="round"
-				titles={['/model-database']}
-				titleStyles={titleStyles.pill}
+				title="/model-database"
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
@@ -164,9 +162,7 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 	if (error) {
 		return (
 			<TitledBox
-				borderStyle="round"
-				titles={['/model-database']}
-				titleStyles={titleStyles.pill}
+				title="/model-database"
 				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}
@@ -179,9 +175,7 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 
 	return (
 		<TitledBox
-			borderStyle="round"
-			titles={['/model-database']}
-			titleStyles={titleStyles.pill}
+			title="/model-database"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
