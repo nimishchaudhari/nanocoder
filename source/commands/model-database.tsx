@@ -113,8 +113,8 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 	});
 
 	// Reset index when switching tabs
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Reset state when activeTab changes is intentional
 	useEffect(() => {
-		// eslint-disable-next-line react-hooks/set-state-in-effect -- Reset state when activeTab changes is intentional
 		setCurrentModelIndex(0);
 	}, [activeTab]);
 

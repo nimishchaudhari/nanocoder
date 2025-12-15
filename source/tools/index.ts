@@ -42,11 +42,11 @@ export const toolRegistry: Record<string, ToolHandler> = Object.fromEntries(
 	allTools.map(t => [
 		t.name,
 		// Extract the execute function from the AI SDK tool
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 		async (args: any) => {
 			// Call the tool's execute function with a dummy options object
 			// The actual options will be provided by AI SDK during automatic execution
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 			return await (t.tool as any).execute(args, {
 				toolCallId: 'manual',
 				messages: [],
@@ -59,7 +59,7 @@ export const toolRegistry: Record<string, ToolHandler> = Object.fromEntries(
 export const toolFormatters: Record<
 	string,
 	(
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 		args: any,
 	) =>
 		| string
@@ -76,7 +76,7 @@ export const toolFormatters: Record<
 	{} as Record<
 		string,
 		(
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 			args: any,
 		) =>
 			| string
@@ -89,7 +89,7 @@ export const toolFormatters: Record<
 // Export validator registry
 export const toolValidators: Record<
 	string,
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 	(args: any) => Promise<{valid: true} | {valid: false; error: string}>
 > = allTools.reduce(
 	(acc, t) => {
@@ -100,7 +100,7 @@ export const toolValidators: Record<
 	},
 	{} as Record<
 		string,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 		(args: any) => Promise<{valid: true} | {valid: false; error: string}>
 	>,
 );

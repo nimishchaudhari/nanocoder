@@ -98,7 +98,7 @@ export default function ToolConfirmation({
 	}, [toolCall, toolManager, colors.error]);
 
 	// Handle escape key to cancel
-	useInput((inputChar, key) => {
+	useInput((_inputChar, key) => {
 		if (key.escape) {
 			onCancel();
 		}

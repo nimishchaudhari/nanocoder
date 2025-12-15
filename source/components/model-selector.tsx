@@ -4,7 +4,7 @@ import {useTheme} from '@/hooks/useTheme';
 import {LLMClient} from '@/types/core';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 interface ModelSelectorProps {
 	client: LLMClient | null;

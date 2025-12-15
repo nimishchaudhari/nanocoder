@@ -4,7 +4,6 @@ import {
 	checkpointCommand,
 	clearCommand,
 	commandsCommand,
-	debuggingCommand,
 	exitCommand,
 	exportCommand,
 	helpCommand,
@@ -292,7 +291,7 @@ export function useAppInitialization({
 	};
 
 	const start = async (
-		newToolManager: ToolManager,
+		_newToolManager: ToolManager,
 		newCustomCommandLoader: CustomCommandLoader,
 		preferences: UserPreferences,
 	): Promise<void> => {
@@ -338,6 +337,7 @@ export function useAppInitialization({
 		}
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Initialization effect should only run once on mount
 	useEffect(() => {
 		const initializeApp = async () => {
 			setClient(null);
@@ -379,7 +379,6 @@ export function useAppInitialization({
 				modelDatabaseCommand,
 				statusCommand,
 				setupConfigCommand,
-				debuggingCommand,
 				usageCommand,
 				checkpointCommand,
 			]);
@@ -407,7 +406,6 @@ export function useAppInitialization({
 		};
 
 		void initializeApp();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	return {

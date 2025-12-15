@@ -4,6 +4,7 @@
  */
 
 // Type guard to check if a logger has a specific level method
+// biome-ignore lint/suspicious/noExplicitAny: Generic logger type
 function hasLevelMethod(logger: any, level: string): boolean {
 	return logger && typeof logger[level] === 'function';
 }
@@ -17,6 +18,7 @@ function hasLevelMethod(logger: any, level: string): boolean {
  * @param options - Optional configuration for the log method
  * @returns An overloaded log method that accepts both string-first and object-first signatures
  */
+// biome-ignore lint/suspicious/noExplicitAny: Generic logger type parameter
 export function createLogMethod<T = any>(
 	logger: T,
 	level: string,
@@ -25,6 +27,7 @@ export function createLogMethod<T = any>(
 		consolePrefix?: string;
 		consoleMethod?: keyof Console;
 		transformArgs?: (args: unknown[], msg?: string) => unknown[];
+		// biome-ignore lint/suspicious/noExplicitAny: Generic result type
 		transformResult?: (result: any) => void;
 	},
 ) {
@@ -46,11 +49,15 @@ export function createLogMethod<T = any>(
 					// Object first: (obj: object, msg?: string) => void
 					const obj = msgOrObj;
 					const msg = args[0] as string | undefined;
+					// biome-ignore lint/suspicious/noExplicitAny: Dynamic console method access
+					// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 					(console as any)[consoleMethod](`[${consolePrefix}]`, msg || '', obj);
 				} else {
 					// String first: (msg: string, ...args: unknown[]) => void
 					const msg = msgOrObj;
 					const restArgs = args.slice(1);
+					// biome-ignore lint/suspicious/noExplicitAny: Dynamic console method access
+					// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 					(console as any)[consoleMethod](
 						`[${consolePrefix}]`,
 						msg,
@@ -75,6 +82,8 @@ export function createLogMethod<T = any>(
 
 				// Call the logger with object and optional message
 				if (hasLevelMethod(logger, level)) {
+					// biome-ignore lint/suspicious/noExplicitAny: Dynamic logger method access
+					// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 					const result = (logger as any)[level](msg || '', obj);
 					if (transformResult) {
 						transformResult(result);
@@ -89,6 +98,8 @@ export function createLogMethod<T = any>(
 
 				// Call the logger with message and additional args
 				if (hasLevelMethod(logger, level)) {
+					// biome-ignore lint/suspicious/noExplicitAny: Dynamic logger method access
+					// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 					const result = (logger as any)[level](finalMsg, ...transformedArgs);
 					if (transformResult) {
 						transformResult(result);
@@ -99,6 +110,7 @@ export function createLogMethod<T = any>(
 			// Fallback to console if logger method fails
 			const fallbackLevel = level === 'trace' ? 'log' : level;
 			const consoleMethod = console[fallbackLevel as keyof Console] as (
+				// biome-ignore lint/suspicious/noExplicitAny: Variadic fallback console arguments
 				...args: any[]
 			) => void;
 			if (typeof consoleMethod === 'function') {
@@ -124,6 +136,7 @@ export function createLogMethod<T = any>(
  * @param options - Optional configuration for all log methods
  * @returns An object containing log methods for all standard levels
  */
+// biome-ignore lint/suspicious/noExplicitAny: Generic logger type parameter
 export function createLogMethods<T = any>(
 	logger: T,
 	options?: {
@@ -133,6 +146,7 @@ export function createLogMethods<T = any>(
 			level?: string,
 			msg?: string,
 		) => unknown[];
+		// biome-ignore lint/suspicious/noExplicitAny: Generic result type
 		transformResult?: (result: any, level?: string) => void;
 		consolePrefix?: string;
 		consoleMethod?: keyof Console;
@@ -157,6 +171,7 @@ export function createLogMethods<T = any>(
 	};
 
 	const createResultTransformer = (level: string) => {
+		// biome-ignore lint/suspicious/noExplicitAny: Generic result type
 		return (result: any) => {
 			if (transformResult) {
 				transformResult(result, level);

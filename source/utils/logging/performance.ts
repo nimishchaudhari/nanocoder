@@ -71,6 +71,7 @@ const logger: Logger = new Proxy({} as Logger, {
 			typeof loggerInstance === 'object' &&
 			prop in loggerInstance
 		) {
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic property access
 			const value = (loggerInstance as any)[prop];
 			return typeof value === 'function' ? value.bind(loggerInstance) : value;
 		}

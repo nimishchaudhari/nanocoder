@@ -46,7 +46,7 @@ export class LoggerProvider {
 		// The real Pino logger will be loaded asynchronously when needed
 		this._createPinoLogger = () => this.createFallbackLogger();
 		this._createConfig = (config?: Partial<LoggerConfig>) => ({
-			level: 'info',
+			level: 'silent', // Default to silent for production CLI usage
 			pretty: false,
 			redact: [],
 			correlation: false,
@@ -87,19 +87,25 @@ export class LoggerProvider {
 	private async loadRealDependencies() {
 		// Skip if already loaded to prevent duplicate loading
 		if (this._dependenciesLoaded) {
-			this.createFallbackLogger().debug('Real dependencies already loaded', {
-				source: 'logger-provider',
-				status: 'already-loaded',
-			});
+			// Only log in development mode to avoid noise for end users
+			if (process.env.NODE_ENV === 'development') {
+				this.createFallbackLogger().debug('Real dependencies already loaded', {
+					source: 'logger-provider',
+					status: 'already-loaded',
+				});
+			}
 			return;
 		}
 
 		const startTime = Date.now();
-		this.createFallbackLogger().info('Loading real Pino dependencies', {
-			source: 'logger-provider',
-			method: 'dynamic-import',
-			status: 'starting',
-		});
+		// Only log in development mode to avoid noise for end users
+		if (process.env.NODE_ENV === 'development') {
+			this.createFallbackLogger().info('Loading real Pino dependencies', {
+				source: 'logger-provider',
+				method: 'dynamic-import',
+				status: 'starting',
+			});
+		}
 
 		try {
 			// Load dependencies dynamically to avoid circular imports
@@ -122,14 +128,17 @@ export class LoggerProvider {
 			if (this._logger && this._config) {
 				try {
 					this._logger = this._createPinoLogger(this._config);
-					this.createFallbackLogger().info(
-						'Logger reinitialized with real Pino instance',
-						{
-							source: 'logger-provider',
-							status: 'reinitialized',
-							duration: Date.now() - startTime,
-						},
-					);
+					// Only log in development mode
+					if (process.env.NODE_ENV === 'development') {
+						this.createFallbackLogger().info(
+							'Logger reinitialized with real Pino instance',
+							{
+								source: 'logger-provider',
+								status: 'reinitialized',
+								duration: Date.now() - startTime,
+							},
+						);
+					}
 				} catch (reinitError) {
 					this.createFallbackLogger().warn(
 						'Failed to reinitialize logger, keeping fallback',
@@ -142,15 +151,18 @@ export class LoggerProvider {
 				}
 			}
 
-			this.createFallbackLogger().info(
-				'Real dependencies loaded successfully',
-				{
-					source: 'logger-provider',
-					status: 'success',
-					duration: Date.now() - startTime,
-					modules: ['pino-logger', 'config'],
-				},
-			);
+			// Only log in development mode
+			if (process.env.NODE_ENV === 'development') {
+				this.createFallbackLogger().info(
+					'Real dependencies loaded successfully',
+					{
+						source: 'logger-provider',
+						status: 'success',
+						duration: Date.now() - startTime,
+						modules: ['pino-logger', 'config'],
+					},
+				);
+			}
 		} catch (error) {
 			try {
 				const fallbackLogger = this.createFallbackLogger();
@@ -181,6 +193,29 @@ export class LoggerProvider {
 	 * Create fallback logger when dependencies fail to load
 	 */
 	private createFallbackLogger(): Logger {
+		// Check current config level - default to silent for production
+		const configLevel = this._config?.level || 'silent';
+		const isSilent = configLevel === 'silent';
+
+		// If silent, return a no-op logger
+		if (isSilent) {
+			const noOp = () => {};
+			return {
+				fatal: noOp,
+				error: noOp,
+				warn: noOp,
+				info: noOp,
+				http: noOp,
+				debug: noOp,
+				trace: noOp,
+				child: (_bindings: Record<string, unknown>) =>
+					this.createFallbackLogger(),
+				isLevelEnabled: (_level: string) => false,
+				flush: async () => Promise.resolve(),
+				end: async () => Promise.resolve(),
+			};
+		}
+
 		const fallbackConsole = console; // Use console as the logger
 
 		// Create all log methods using the factory
@@ -216,7 +251,7 @@ export class LoggerProvider {
 				? 'silent'
 				: isDev
 					? 'debug'
-					: (process.env.NANOCODER_LOG_LEVEL as LogLevel) || 'info',
+					: (process.env.NANOCODER_LOG_LEVEL as LogLevel) || 'silent', // Default to silent for production/CLI usage
 			pretty: isDev,
 			redact: ['apiKey', 'token', 'password', 'secret'],
 			correlation: true,

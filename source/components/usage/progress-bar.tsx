@@ -3,7 +3,6 @@
  */
 
 import {Text} from 'ink';
-import React from 'react';
 
 interface ProgressBarProps {
 	percent: number;

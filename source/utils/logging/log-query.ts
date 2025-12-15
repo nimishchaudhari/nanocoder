@@ -21,6 +21,7 @@ export interface LogEntry {
 	userId?: string;
 	sessionId?: string;
 	tags?: string[];
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic log filter
 	metadata?: Record<string, any>;
 	error?: {
 		name?: string;
@@ -30,6 +31,7 @@ export interface LogEntry {
 	};
 	performance?: {
 		duration?: number;
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic log filter
 		memory?: Record<string, any>;
 		cpu?: number;
 	};
@@ -77,6 +79,7 @@ export interface LogQuery {
 
 	// Metadata filtering
 	metadataKey?: string;
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic filter type
 	metadataValue?: any;
 	metadataExists?: string;
 
@@ -233,7 +236,9 @@ class LogStorage {
 		// Apply sorting
 		if (query.sortBy) {
 			filteredEntries.sort((a, b) => {
+				// biome-ignore lint/style/noNonNullAssertion: sortBy guaranteed to exist in this block
 				const aValue = this.getSortValue(a, query.sortBy!);
+				// biome-ignore lint/style/noNonNullAssertion: sortBy guaranteed to exist in this block
 				const bValue = this.getSortValue(b, query.sortBy!);
 				const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
 				return query.sortOrder === 'desc' ? -comparison : comparison;
@@ -274,12 +279,15 @@ class LogStorage {
 			entries = entries.filter(entry => {
 				const entryTime = new Date(entry.timestamp);
 				return (
+					// biome-ignore lint/style/noNonNullAssertion: timeRange existence checked in if condition above
 					entryTime >= options.timeRange!.startTime &&
+					// biome-ignore lint/style/noNonNullAssertion: timeRange existence checked in if condition above
 					entryTime <= options.timeRange!.endTime
 				);
 			});
 		}
 
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic log bindings
 		const groups: Record<string, any> = {};
 
 		for (const entry of entries) {
@@ -317,9 +325,11 @@ class LogStorage {
 		}
 
 		// Calculate aggregations
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic log bindings
 		const result: Record<string, any> = {};
 
 		for (const [groupKey, group] of Object.entries(groups)) {
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic value type
 			const groupResult: any = {count: group.count};
 
 			if (
@@ -463,12 +473,12 @@ class LogStorage {
 		// Tag filtering
 		if (query.hasTags && (!entry.tags || entry.tags.length === 0)) return false;
 		if (query.tags && entry.tags) {
-			const hasAnyTag = query.tags.some(tag => entry.tags!.includes(tag));
+			const hasAnyTag = query.tags.some(tag => entry.tags?.includes(tag));
 			if (!hasAnyTag) return false;
 		}
 		if (query.excludeTags && entry.tags) {
 			const hasExcludedTag = query.excludeTags.some(tag =>
-				entry.tags!.includes(tag),
+				entry.tags?.includes(tag),
 			);
 			if (hasExcludedTag) return false;
 		}
@@ -480,7 +490,7 @@ class LogStorage {
 		)
 			return false;
 		if (query.metadataKey && query.metadataValue !== undefined) {
-			if (entry.metadata![query.metadataKey] !== query.metadataValue)
+			if (entry.metadata?.[query.metadataKey] !== query.metadataValue)
 				return false;
 		}
 		if (
@@ -550,6 +560,7 @@ class LogStorage {
 		return true;
 	}
 
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic sort value type
 	private getSortValue(entry: LogEntry, sortBy: string): any {
 		switch (sortBy) {
 			case 'timestamp':
@@ -642,6 +653,7 @@ class LogStorage {
 			if (!this.indexes.has('correlationId')) {
 				this.indexes.set('correlationId', new Set());
 			}
+			// biome-ignore lint/style/noNonNullAssertion: Index exists after set above
 			const index = this.indexes.get('correlationId')!;
 			if (add) {
 				index.add(entry.correlationId);
@@ -655,6 +667,7 @@ class LogStorage {
 			if (!this.indexes.has('source')) {
 				this.indexes.set('source', new Set());
 			}
+			// biome-ignore lint/style/noNonNullAssertion: Index exists after set above
 			const index = this.indexes.get('source')!;
 			if (add) {
 				index.add(entry.source);
@@ -667,6 +680,7 @@ class LogStorage {
 		if (!this.indexes.has('level')) {
 			this.indexes.set('level', new Set());
 		}
+		// biome-ignore lint/style/noNonNullAssertion: Index exists after set above
 		const levelIndex = this.indexes.get('level')!;
 		if (add) {
 			levelIndex.add(entry.level);

@@ -11,8 +11,6 @@ import type {EnhancedLoggerConfig, LogLevel, LoggerConfig} from './types.js';
  * Get the default log directory based on platform
  */
 export function getDefaultLogDirectory(): string {
-	const _env = process.env.NODE_ENV || 'development';
-
 	if (process.env.NANOCODER_LOG_DIR) {
 		return process.env.NANOCODER_LOG_DIR;
 	}
@@ -54,13 +52,11 @@ export function createDevelopmentConfig(): EnhancedLoggerConfig {
  * Create production configuration
  */
 export function createProductionConfig(): EnhancedLoggerConfig {
-	const _logDir = getDefaultLogDirectory();
-
 	// Check if file logging is explicitly disabled
 	const disableFileLogging = process.env.NANOCODER_LOG_DISABLE_FILE === 'true';
 
 	const baseConfig = {
-		level: (process.env.NANOCODER_LOG_LEVEL as LogLevel) || 'debug', // Changed from 'info' to 'debug'
+		level: (process.env.NANOCODER_LOG_LEVEL as LogLevel) || 'silent', // Production users shouldn't see internal logs
 		pretty: false,
 		redact: ['apiKey', 'token', 'password', 'email', 'userId', 'secret'],
 		correlation: true,
@@ -123,17 +119,22 @@ export function createTestConfig(): EnhancedLoggerConfig {
 
 /**
  * Get configuration based on current environment
+ *
+ * For CLI tools, we default to production (silent) behavior when NODE_ENV is not set.
+ * This gives users a clean experience. Developers working on nanocoder itself should
+ * explicitly set NODE_ENV=development to see debug logs.
  */
 export function getEnvironmentConfig(): EnhancedLoggerConfig {
-	const env = process.env.NODE_ENV || 'development';
+	const env = process.env.NODE_ENV;
 
 	switch (env) {
-		case 'production':
-			return createProductionConfig();
+		case 'development':
+			return createDevelopmentConfig();
 		case 'test':
 			return createTestConfig();
 		default:
-			return createDevelopmentConfig();
+			// Default to production (silent) for normal CLI usage
+			return createProductionConfig();
 	}
 }
 

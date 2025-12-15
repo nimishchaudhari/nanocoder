@@ -4,7 +4,7 @@ import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {Tab, Tabs} from 'ink-tab';
 import TextInput from 'ink-text-input';
-import React, {useState, useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {
 	MCP_TEMPLATES,
 	type McpServerConfig,

@@ -422,7 +422,6 @@ test('LSPClient - exit event with non-zero code', t => {
 		receivedCode = code;
 	});
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	(client.emit as any)('exit', 1);
 	t.is(receivedCode, 1);
 });

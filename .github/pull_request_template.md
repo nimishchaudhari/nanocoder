@@ -30,3 +30,4 @@ Brief description of what this PR does
 - [ ] Self-review completed
 - [ ] Documentation updated (if needed)
 - [ ] No breaking changes (or clearly documented)
+- [ ] Appropriate logging added using structured logging (see [CONTRIBUTING.md](../CONTRIBUTING.md#logging))

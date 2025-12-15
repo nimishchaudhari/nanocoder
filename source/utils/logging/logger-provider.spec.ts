@@ -194,7 +194,7 @@ test('createDefaultConfig handles environments correctly', t => {
 	const prodLogger = provider.initializeLogger();
 	const prodConfig = provider.getLoggerConfig();
 	if (prodConfig) {
-		t.is(prodConfig.level, 'info');
+		t.is(prodConfig.level, 'silent');
 		t.false(prodConfig.pretty);
 	} else {
 		t.fail('Production config should not be null');

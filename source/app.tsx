@@ -665,13 +665,7 @@ export default function App({
 				return () => clearTimeout(timer);
 			}
 		}
-	}, [
-		nonInteractivePrompt,
-		nonInteractiveSubmitted,
-		appState,
-		startTime,
-		exit,
-	]);
+	}, [nonInteractivePrompt, nonInteractiveSubmitted, appState, startTime]);
 
 	const shouldShowWelcome = shouldRenderWelcome(nonInteractiveMode);
 	const pendingToolCallCount = appState.pendingToolCalls.length;

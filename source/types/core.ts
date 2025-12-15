@@ -7,7 +7,7 @@ export {tool, jsonSchema};
 // Type for AI SDK tools (return type of tool() function)
 // Tool<PARAMETERS, RESULT> is AI SDK's actual tool type
 // We use 'any' for generics since we don't auto-execute tools (human-in-the-loop)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 export type AISDKCoreTool = AISDKTool<any, any>;
 
 // Current Nanocoder message format (OpenAI-compatible)
@@ -55,7 +55,7 @@ export interface Tool {
 }
 
 // Tool handlers accept dynamic args from LLM, so any is appropriate here
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
+// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required -- Tool arguments are dynamically typed
 export type ToolHandler = (input: any) => Promise<string>;
 
 /**
@@ -63,7 +63,7 @@ export type ToolHandler = (input: any) => Promise<string>;
  * Formats tool arguments and results for display in the CLI
  */
 export type ToolFormatter = (
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required -- Tool arguments are dynamically typed
 	args: any,
 	result?: string,
 ) =>
@@ -77,7 +77,7 @@ export type ToolFormatter = (
  * Returns validation result with optional error message
  */
 export type ToolValidator = (
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tool arguments are dynamically typed
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required -- Tool arguments are dynamically typed
 	args: any,
 ) => Promise<{valid: true} | {valid: false; error: string}>;
 

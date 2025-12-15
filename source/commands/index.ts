@@ -13,6 +13,5 @@ export * from '@/commands/update';
 export * from '@/commands/model-database';
 export * from '@/commands/status';
 export * from '@/commands/setup-config';
-export * from '@/commands/debugging';
 export * from '@/commands/usage';
 export * from '@/commands/checkpoint';

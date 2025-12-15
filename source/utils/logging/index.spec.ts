@@ -18,6 +18,9 @@ import {
 	console as structuredConsole,
 } from './index.js';
 
+// Import logger provider for reset functionality
+import {LoggerProvider} from './logger-provider.js';
+
 // Import types for testing
 import type {LogLevel, LoggerConfig} from './types.js';
 
@@ -111,18 +114,21 @@ test('createChildLogger creates child with bindings', t => {
 });
 
 test('isLevelEnabled checks log level correctly', t => {
-	initializeLogger({level: 'warn'});
+	// Reset logger to ensure clean state
+	const provider = LoggerProvider.getInstance();
+	provider.reset();
 
-	// Note: The fallback logger in logger-provider always returns true for isLevelEnabled
-	// This is expected behavior during the transition period
-	// The actual level filtering happens in the real Pino logger
+	// Initialize with debug level to ensure logging is enabled in tests
+	initializeLogger({level: 'debug'});
+
+	// With debug level, these should all be enabled
 	t.true(
 		isLevelEnabled('debug'),
-		'Debug should be enabled (fallback behavior)',
+		'Debug should be enabled',
 	);
 	t.true(
 		isLevelEnabled('trace'),
-		'Trace should be enabled (fallback behavior)',
+		'Trace should be enabled',
 	);
 	t.true(isLevelEnabled('warn'), 'Warn should be enabled');
 	t.true(isLevelEnabled('error'), 'Error should be enabled');

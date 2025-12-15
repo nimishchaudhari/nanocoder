@@ -174,15 +174,19 @@ function isValidationError(error: Error): boolean {
 function extractErrorCode(error: Error): string | number | undefined {
 	// Try common properties for error codes
 	if ('status' in error) {
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic error type
 		return (error as any).status;
 	}
 	if ('statusCode' in error) {
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic error type
 		return (error as any).statusCode;
 	}
 	if ('code' in error) {
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic error type
 		return (error as any).code;
 	}
 	if ('errorCode' in error) {
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic error type
 		return (error as any).errorCode;
 	}
 

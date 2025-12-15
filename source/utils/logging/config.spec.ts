@@ -57,7 +57,7 @@ test('createProductionConfig creates valid production config', t => {
 	const config = createProductionConfig();
 
 	t.is(typeof config, 'object', 'Should return object');
-	t.is(config.level, 'debug', 'Should use debug level in production');
+	t.is(config.level, 'silent', 'Should use silent level in production (silent-by-default for CLI)');
 	t.false(config.pretty, 'Should disable pretty printing in production');
 	t.true(config.correlation, 'Should enable correlation in production');
 	t.true(config.serialize, 'Should serialize in production');
@@ -86,7 +86,7 @@ test('getEnvironmentConfig detects environment correctly', t => {
 	// Test production environment
 	process.env.NODE_ENV = 'production';
 	const prodConfig = getEnvironmentConfig();
-	t.is(prodConfig.level, 'debug', 'Should detect production');
+	t.is(prodConfig.level, 'silent', 'Should detect production (silent-by-default)');
 	t.false(prodConfig.pretty, 'Should disable pretty in production');
 
 	// Test test environment
@@ -95,10 +95,10 @@ test('getEnvironmentConfig detects environment correctly', t => {
 	t.is(testConfig.level, 'debug', 'Should detect test');
 	t.is(testConfig.level, 'debug', 'Should use debug in test');
 
-	// Test unknown environment (should default to development)
+	// Test unknown environment (should default to production/silent for CLI tools)
 	process.env.NODE_ENV = 'unknown';
 	const unknownConfig = getEnvironmentConfig();
-	t.is(unknownConfig.level, 'debug', 'Should default to debug for unknown');
+	t.is(unknownConfig.level, 'silent', 'Should default to silent for unknown (production default)');
 
 	// Restore original environment
 	process.env.NODE_ENV = originalEnv;
@@ -145,13 +145,8 @@ test('normalizeLogLevel normalizes log levels', t => {
 });
 
 test('createConfig merges overrides correctly', t => {
-	const baseConfig: LoggerConfig = {
-		level: 'warn',
-		pretty: false,
-		redact: ['apiKey'],
-		correlation: true,
-		serialize: false,
-	};
+	// Note: createConfig() uses getEnvironmentConfig()
+	// Tests run in NODE_ENV='test', which has correlation: false and serialize: false
 
 	const overrides: Partial<LoggerConfig> = {
 		level: 'error',
@@ -164,8 +159,8 @@ test('createConfig merges overrides correctly', t => {
 	t.is(merged.level, 'error', 'Should override level');
 	t.is(merged.pretty, true, 'Should override pretty');
 	t.deepEqual(merged.redact, ['token', 'password'], 'Should override redact');
-	t.is(merged.correlation, false, 'Should preserve correlation');
-	t.is(merged.serialize, false, 'Should preserve serialize');
+	t.is(merged.correlation, false, 'Should preserve correlation from test config');
+	t.is(merged.serialize, false, 'Should preserve serialize from test config');
 });
 
 test('createConfig handles missing overrides', t => {

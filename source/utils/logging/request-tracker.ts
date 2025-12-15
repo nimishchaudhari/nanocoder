@@ -769,7 +769,7 @@ export const mcpTracker = {
 	 * Track an MCP tool execution
 	 */
 	tool: <T>(
-		serverName: string,
+		_serverName: string,
 		toolName: string,
 		fn: () => Promise<T>,
 		options?: Partial<Parameters<typeof trackRequest>[1]>,
@@ -785,7 +785,7 @@ export const mcpTracker = {
 	 * Track an MCP server connection
 	 */
 	connect: <T>(
-		serverName: string,
+		_serverName: string,
 		fn: () => Promise<T>,
 		options?: Partial<Parameters<typeof trackRequest>[1]>,
 	) =>

@@ -49,15 +49,3 @@ export function getLastUsedModel(provider: string): string | undefined {
 	const preferences = loadPreferences();
 	return preferences.providerModels?.[provider];
 }
-
-export function isDebuggingEnabled(): boolean {
-	const preferences = loadPreferences();
-	// Default to false if not set
-	return preferences.debuggingEnabled ?? false;
-}
-
-export function setDebuggingEnabled(enabled: boolean): void {
-	const preferences = loadPreferences();
-	preferences.debuggingEnabled = enabled;
-	savePreferences(preferences);
-}

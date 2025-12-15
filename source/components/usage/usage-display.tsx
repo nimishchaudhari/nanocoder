@@ -9,7 +9,6 @@ import type {Message} from '@/types/core.js';
 import type {TokenBreakdown} from '@/types/usage.js';
 import {formatTokenCount, getUsageStatusColor} from '@/usage/calculator.js';
 import {Box, Text} from 'ink';
-import React from 'react';
 import {ProgressBar} from './progress-bar.js';
 
 interface UsageDisplayProps {

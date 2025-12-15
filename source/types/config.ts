@@ -100,5 +100,4 @@ export interface UserPreferences {
 	lastUpdateCheck?: number;
 	selectedTheme?: ThemePreset;
 	trustedDirectories?: string[];
-	debuggingEnabled?: boolean;
 }

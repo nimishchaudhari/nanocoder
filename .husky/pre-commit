@@ -1,1 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Ensure pnpm is available for GUI tools (GitHub Desktop, etc.)
+# This handles different installation methods: nvm, homebrew, standalone, etc.
+
+# Try to load nvm if it exists
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Add common pnpm installation paths
+export PATH="$HOME/.local/share/pnpm:$HOME/.nvm/versions/node/$(node -v)/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
+
 pnpm lint-staged

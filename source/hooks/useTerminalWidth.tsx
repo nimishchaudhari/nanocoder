@@ -2,11 +2,11 @@ import {useEffect, useState} from 'react';
 
 type TerminalSize = 'narrow' | 'normal' | 'wide';
 
-export const useTerminalWidth = () => {
-	// Calculate box width (leave some padding and ensure minimum width)
-	const calculateBoxWidth = (columns: number) =>
-		Math.max(Math.min(columns - 4, 120), 40);
+// Calculate box width (leave some padding and ensure minimum width)
+const calculateBoxWidth = (columns: number) =>
+	Math.max(Math.min(columns - 4, 120), 40);
 
+export const useTerminalWidth = () => {
 	const [boxWidth, setBoxWidth] = useState(() =>
 		calculateBoxWidth(process.stdout.columns || 80),
 	);

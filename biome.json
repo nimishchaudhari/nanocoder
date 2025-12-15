@@ -14,7 +14,9 @@
 			"coverage",
 			"agents",
 			"node_modules",
-			"plugins"
+			"plugins",
+			"**/*.spec.ts",
+			"**/*.spec.tsx"
 		]
 	},
 	"formatter": {
@@ -34,7 +36,7 @@
 			"style": {
 				"noDefaultExport": "off",
 				"useBlockStatements": "off",
-				"noNonNullAssertion": "off",
+				"noNonNullAssertion": "warn",
 				"noParameterAssign": "off",
 				"useConst": "off",
 				"useImportType": "off",
@@ -47,7 +49,7 @@
 				"noBannedTypes": "off"
 			},
 			"suspicious": {
-				"noExplicitAny": "off",
+				"noExplicitAny": "warn",
 				"noArrayIndexKey": "off",
 				"noConsoleLog": "off",
 				"noGlobalIsNan": "off",
@@ -58,9 +60,9 @@
 				"noControlCharactersInRegex": "off"
 			},
 			"correctness": {
-				"useExhaustiveDependencies": "warn",
-				"noUnusedVariables": "warn",
-				"noUnusedImports": "warn",
+				"useExhaustiveDependencies": "error",
+				"noUnusedVariables": "error",
+				"noUnusedImports": "error",
 				"noUndeclaredVariables": "off"
 			}
 		}

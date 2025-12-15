@@ -245,8 +245,8 @@ export const globalConsoleInterceptor = new ConsoleInterceptor();
  * @internal
  */
 export function useStructuredConsoleDecorator(
-	target: unknown,
-	propertyName: string,
+	_target: unknown,
+	_propertyName: string,
 	descriptor: PropertyDescriptor,
 ): PropertyDescriptor | void {
 	const originalMethod = descriptor.value as

@@ -402,9 +402,11 @@ export function createPinoLogger(
 	cliConfig?: LoggingCliConfig,
 ): Logger {
 	const finalConfig = createConfig(config);
-	const isProduction = process.env.NODE_ENV === 'production';
+	// For CLI tools, treat unset NODE_ENV as production (not development)
+	// Developers should explicitly set NODE_ENV=development to see debug logs
+	const isDevelopment = process.env.NODE_ENV === 'development';
 	const isTest = process.env.NODE_ENV === 'test';
-	const isDevelopment = !isProduction && !isTest;
+	const isProduction = !isDevelopment && !isTest;
 
 	// Determine transport configuration
 	const transportConfig = determineTransportConfig(
@@ -435,8 +437,8 @@ export function createPinoLogger(
 			platform: process.platform, // NEW: platform field
 			arch: process.arch, // NEW: architecture field
 			service: 'nanocoder',
-			version: process.env.npm_package_version || '1.18.0',
-			environment: process.env.NODE_ENV || 'development', // NEW: environment field
+			version: process.env.npm_package_version || 'unknown',
+			environment: process.env.NODE_ENV || 'production', // Default to production for CLI tools
 			nodeVersion: process.version, // NEW: Node.js version field
 		},
 	};
@@ -476,8 +478,8 @@ export function createLoggerWithTransport(
 			platform: process.platform,
 			arch: process.arch,
 			service: 'nanocoder',
-			version: process.env.npm_package_version || '1.18.0',
-			environment: process.env.NODE_ENV || 'development',
+			version: process.env.npm_package_version || 'unknown',
+			environment: process.env.NODE_ENV || 'production',
 			nodeVersion: process.version, // NEW: Node.js version field
 		},
 	};
@@ -503,7 +505,7 @@ export function getLoggerStats(): {
 	environment: string;
 } {
 	const config = createConfig();
-	const environment = process.env.NODE_ENV || 'development';
+	const environment = process.env.NODE_ENV || 'production';
 	return {
 		level: config.level,
 		silent: config.level === 'silent',

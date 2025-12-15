@@ -39,7 +39,7 @@ export interface MCPTool {
 	name: string;
 	description?: string;
 	// JSON Schema for tool input - intentionally flexible
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 	inputSchema?: any;
 	serverName: string;
 }

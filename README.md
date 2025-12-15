@@ -706,8 +706,8 @@ Generate comprehensive unit tests for {{component}}. Include:
 - **Real-time indicators**: Shows token usage, timing, and processing status
 - **First-time directory security disclaimer**: Prompts on first run and stores a per-project trust decision to prevent accidental exposure of local code or secrets.
 - **Development modes**: Three modes to control tool execution behavior (toggle with Shift+Tab)
-  - **Normal mode**: Standard tool confirmation flow - review each tool call before execution
-  - **Auto-accept mode**: Automatically accepts all tool calls without confirmation for faster workflows
+  - **Normal mode**: Standard tool confirmation flow - review potentially dangerous tool calls before execution
+  - **Auto-accept mode**: Automatically accepts more tool calls without confirmation for faster workflows
   - **Plan mode**: AI suggests actions but doesn't execute tools - useful for planning and exploration
 
 ### Developer Features

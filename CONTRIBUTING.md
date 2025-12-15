@@ -261,6 +261,151 @@ See `source/hooks/__tests__/` for examples of this pattern in practice.
 - **Exports**: Use named exports; avoid default exports where possible
 - **Modules**: Keep files focused on a single responsibility
 
+### Logging
+
+Nanocoder uses a structured logging system based on Pino for production-grade observability. When contributing code, follow these logging practices:
+
+#### Import and Basic Usage
+
+```typescript
+import { getLogger } from '@/utils/logging';
+
+const logger = getLogger();
+
+logger.info('Tool execution completed', { tool: 'read-file', filePath: 'src/app.tsx', duration: 42 });
+logger.error('Model request failed', { error, context: { model: 'llama3', provider: 'ollama' } });
+logger.debug('Parsing tool call', { toolName: 'create-file', arguments: { path: 'test.ts' } });
+```
+
+#### Log Levels
+
+Choose the appropriate level for your logs:
+
+- `logger.fatal()` - Critical system failures that require immediate attention
+- `logger.error()` - Operation failures and errors
+- `logger.warn()` - Warning conditions and potential issues
+- `logger.info()` - Significant events and state changes (default for production)
+- `logger.http()` - HTTP request/response logging
+- `logger.debug()` - Detailed debugging information (development only)
+- `logger.trace()` - Very detailed trace information (development only)
+
+#### Structured Logging
+
+Always use structured data with context objects instead of string concatenation:
+
+**Good:**
+```typescript
+logger.info('File operation completed', {
+  operation: 'write',
+  filePath: '/path/to/file.ts',
+  linesWritten: 42,
+  duration: 15
+});
+```
+
+**Avoid:**
+```typescript
+logger.info(`Wrote 42 lines to /path/to/file.ts in 15ms`);
+```
+
+#### Performance Tracking
+
+For expensive operations, use performance monitoring:
+
+```typescript
+import { startMetrics, endMetrics } from '@/utils/logging';
+
+const metrics = startMetrics();
+const analysis = await analyzeCodebase(projectPath);
+const finalMetrics = endMetrics(metrics);
+
+logger.info('Codebase analysis completed', {
+  filesAnalyzed: analysis.fileCount,
+  duration: finalMetrics.duration,
+  memoryDelta: finalMetrics.memoryUsage
+});
+```
+
+#### Request Tracking
+
+Use request trackers for external calls:
+
+```typescript
+import { httpTracker, aiTracker, mcpTracker } from '@/utils/logging';
+
+// HTTP requests (e.g., web search tool)
+const requestId = httpTracker.get('https://api.example.com/search', async () => {
+  return await fetchSearchResults(query);
+});
+
+// AI provider calls (LLM interactions)
+const aiRequestId = aiTracker.chat('ollama', 'llama3', async () => {
+  return await client.chat(messages, tools);
+});
+
+// MCP server tool calls
+const mcpRequestId = mcpTracker.tool('filesystem', 'read-file', async () => {
+  return await mcpClient.executeTool('read-file', { path: 'src/app.tsx' });
+});
+```
+
+#### Correlation Tracking
+
+For operations that span multiple functions or components, use correlation contexts:
+
+```typescript
+import { withNewCorrelationContext, getCorrelationId } from '@/utils/logging';
+
+await withNewCorrelationContext(async () => {
+  const correlationId = getCorrelationId();
+  logger.info('Starting code refactoring', { correlationId, file: 'app.tsx' });
+
+  // All logs within this context share the same correlation ID
+  await analyzeCode();
+  await generateChanges();
+  await applyChanges();
+
+  logger.info('Refactoring completed', { correlationId, changes: 3 });
+});
+```
+
+#### When to Add Logging
+
+Add logging for:
+
+- **State changes**: Mode transitions, configuration updates
+- **External operations**: API calls, file I/O, network requests
+- **Error conditions**: Failures, validation errors, edge cases
+- **Performance-critical operations**: Long-running tasks, expensive computations
+- **User actions**: Commands, tool executions, important interactions
+
+Avoid logging:
+
+- **Sensitive data**: API keys, passwords, tokens (automatically redacted)
+- **High-frequency events**: Avoid logging in tight loops
+- **Trivial operations**: Simple getters, basic calculations
+
+#### Environment Considerations
+
+- **Production**: Logs default to `silent` level (clean CLI UX)
+- **Development**: Set `NODE_ENV=development` or `NANOCODER_LOG_LEVEL=debug` to see logs
+- **Testing**: Logs are silenced during tests
+
+#### Child Loggers
+
+Use child loggers for module-specific context:
+
+```typescript
+const logger = getLogger();
+const aiLogger = logger.child({ module: 'ai-client', provider: 'ollama', model: 'llama3' });
+
+aiLogger.info('Streaming response started'); // Automatically includes AI client context
+```
+
+#### Documentation
+
+For more details, see [`docs/pino-logging.md`](docs/pino-logging.md).
+
 ## Submitting Changes
 
 ### Pull Request Process

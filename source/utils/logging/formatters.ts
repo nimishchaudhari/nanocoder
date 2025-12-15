@@ -43,6 +43,7 @@ export function formatTimestampDev(time: number): {time: string} {
 /**
  * Sanitize error objects for JSON serialization
  */
+// biome-ignore lint/suspicious/noExplicitAny: Dynamic return type for serialized errors
 export function serializeError(err: Error): Record<string, any> {
 	if (err instanceof Error) {
 		return {
@@ -55,8 +56,14 @@ export function serializeError(err: Error): Record<string, any> {
 							.slice(0, 3)
 							.join('\n') // Limit stack traces in production
 					: err.stack,
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic error properties
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 			code: (err as any).code,
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic error properties
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 			statusCode: (err as any).statusCode,
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic error properties
+			// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required
 			status: (err as any).status,
 		};
 	}
@@ -140,6 +147,7 @@ export function createFormatters(isProduction: boolean = false) {
  */
 export function formatMessage(
 	template: string,
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic bindings for template
 	bindings: Record<string, any>,
 	level: string,
 ): string {

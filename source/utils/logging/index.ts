@@ -30,6 +30,7 @@ export function getLoggerConfig(): LoggerConfig | null {
 /**
  * Create a child logger with additional context
  */
+// biome-ignore lint/suspicious/noExplicitAny: Dynamic bindings for logger context
 export function createChildLogger(bindings: Record<string, any>): Logger {
 	return loggerProvider.createChildLogger(bindings);
 }
@@ -45,12 +46,19 @@ export function isLevelEnabled(level: LogLevel): boolean {
  * Convenience methods that match console.log API
  */
 export const log = {
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for logger methods
 	fatal: (msg: string, ...args: any[]) => getLogger().fatal(msg, ...args),
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for logger methods
 	error: (msg: string, ...args: any[]) => getLogger().error(msg, ...args),
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for logger methods
 	warn: (msg: string, ...args: any[]) => getLogger().warn(msg, ...args),
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for logger methods
 	info: (msg: string, ...args: any[]) => getLogger().info(msg, ...args),
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for logger methods
 	http: (msg: string, ...args: any[]) => getLogger().http(msg, ...args),
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for logger methods
 	debug: (msg: string, ...args: any[]) => getLogger().debug(msg, ...args),
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for logger methods
 	trace: (msg: string, ...args: any[]) => getLogger().trace(msg, ...args),
 };
 
@@ -59,6 +67,7 @@ export const log = {
  * This will be gradually replaced with structured logging
  */
 export const console = {
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for console compatibility
 	log: (...args: any[]) => {
 		// For now, use info level for console.log
 		log.info(args.join(' '));
@@ -70,15 +79,19 @@ export const console = {
 			);
 		}
 	},
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for console compatibility
 	error: (...args: any[]) => {
 		log.error(args.join(' '));
 	},
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for console compatibility
 	warn: (...args: any[]) => {
 		log.warn(args.join(' '));
 	},
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for console compatibility
 	info: (...args: any[]) => {
 		log.info(args.join(' '));
 	},
+	// biome-ignore lint/suspicious/noExplicitAny: Variadic arguments for console compatibility
 	debug: (...args: any[]) => {
 		log.debug(args.join(' '));
 	},

@@ -199,7 +199,9 @@ function addTypedMessage(
 		// Track performance metrics
 		const finalMetrics = endMetrics(metrics);
 		const memoryDelta = calculateMemoryDelta(
+			// biome-ignore lint/style/noNonNullAssertion: memoryUsage is always defined after endMetrics
 			metrics.memoryUsage!,
+			// biome-ignore lint/style/noNonNullAssertion: memoryUsage is always defined after endMetrics
 			finalMetrics.memoryUsage!,
 		);
 
@@ -224,6 +226,7 @@ export function logInfo(
 	hideBox: boolean = true,
 	options?: {
 		source?: string;
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic format args
 		context?: Record<string, any>;
 		correlationId?: string;
 	},
@@ -239,6 +242,7 @@ export function logError(
 	hideBox: boolean = true,
 	options?: {
 		source?: string;
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic format args
 		context?: Record<string, any>;
 		correlationId?: string;
 		error?: unknown;
@@ -255,6 +259,7 @@ export function logSuccess(
 	hideBox: boolean = true,
 	options?: {
 		source?: string;
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic format args
 		context?: Record<string, any>;
 		correlationId?: string;
 	},
@@ -270,6 +275,7 @@ export function logWarning(
 	hideBox: boolean = true,
 	options?: {
 		source?: string;
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic format args
 		context?: Record<string, any>;
 		correlationId?: string;
 	},
@@ -332,6 +338,7 @@ export function logToolExecution(
 	options?: {
 		correlationId?: string;
 		error?: unknown;
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic format args
 		context?: Record<string, any>;
 	},
 ) {
@@ -371,6 +378,7 @@ export function logToolExecution(
 
 export function logUserAction(
 	action: string,
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic details type
 	details?: Record<string, any>,
 	options?: {
 		correlationId?: string;
