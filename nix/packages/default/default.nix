@@ -12,7 +12,7 @@
 }:
 
 let
-  version = "1.18.0";
+  version = "1.19.1";
 in
 
 stdenv.mkDerivation (finalAttrs: {
@@ -23,7 +23,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "nano-collective";
     repo = "nanocoder";
     rev = "v${version}";
-    sha256 = "sha256-L6ZsuWiuJ/zlnm+IdGbtm0HAzebH1gfBHLt25FTNwGg=";
+    sha256 = "sha256-wv4YkyiNg6/EeFjhpOKiv0hNXor1srStG33ii/MKdK8=";
   };
 
   nativeBuildInputs = [
@@ -33,7 +33,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   pnpmDeps = pnpm_9.fetchDeps {
     inherit (finalAttrs) pname version src;
-    hash = "sha256-bCRs5/TfTA0VClwmdTwKBCj65Vf/MG3gtAN8BgVshmc=";
+    hash = "sha256-h+8lAGaJJXYYARbEKzDJJRQbGy+r2APi5HaTsbWE7tQ=";
     fetcherVersion = 2;
   };
 
