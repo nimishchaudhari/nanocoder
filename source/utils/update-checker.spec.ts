@@ -1,7 +1,7 @@
-import test from 'ava';
 import {readFileSync} from 'fs';
-import {join, dirname} from 'path';
+import {dirname, join} from 'path';
 import {fileURLToPath} from 'url';
+import test from 'ava';
 import {checkForUpdates} from './update-checker';
 
 console.log(`\nupdate-checker.spec.ts`);

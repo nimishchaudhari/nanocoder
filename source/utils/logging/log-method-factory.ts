@@ -65,7 +65,7 @@ export function createLogMethod<T = any>(
 				? transformArgs(
 						args,
 						typeof msgOrObj === 'string' ? msgOrObj : undefined,
-				  )
+					)
 				: args;
 
 			if (typeof msgOrObj === 'object' && msgOrObj !== null) {

@@ -1,9 +1,9 @@
-import test from 'ava';
 import type {
-	MCPConnectionStatus,
-	LSPConnectionStatus,
 	ConnectionStatus,
+	LSPConnectionStatus,
+	MCPConnectionStatus,
 } from '@/types/core';
+import test from 'ava';
 
 test('MCPConnectionStatus type structure', t => {
 	const status: MCPConnectionStatus = {

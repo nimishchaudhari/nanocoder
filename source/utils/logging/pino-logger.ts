@@ -2,27 +2,27 @@
  * Pino logger implementation with environment-specific transport support
  */
 
-import pino, {type Logger as PinoLogger} from 'pino';
-import {mkdirSync, existsSync} from 'fs';
+import {existsSync, mkdirSync} from 'fs';
 import {join} from 'path';
+import pino, {type Logger as PinoLogger} from 'pino';
 import {createConfig, getDefaultLogDirectory} from './config.js';
-import {redactLogEntry, createRedactionRules} from './redaction.js';
 import {
-	getCurrentCorrelationContext,
 	formatCorrelationForLog,
+	getCurrentCorrelationContext,
 	isCorrelationEnabled,
 } from './correlation.js';
+import {createLogMethods} from './log-method-factory.js';
+import {createRedactionRules, redactLogEntry} from './redaction.js';
 import type {
+	ConsoleArguments,
+	EnvironmentTransportConfig,
+	LogLevel,
 	Logger,
 	LoggerConfig,
-	LogLevel,
 	LoggingCliConfig,
-	EnvironmentTransportConfig,
-	ConsoleArguments,
-	PinoTransportOptions,
 	PiiRedactionRules,
+	PinoTransportOptions,
 } from './types.js';
-import {createLogMethods} from './log-method-factory.js';
 
 /**
  * Type guard to check if a value is a Promise

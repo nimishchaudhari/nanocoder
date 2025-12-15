@@ -1,6 +1,6 @@
+import SuccessMessage from '@/components/success-message';
 import {Command} from '@/types/index';
 import React from 'react';
-import SuccessMessage from '@/components/success-message';
 
 function Clear() {
 	return (

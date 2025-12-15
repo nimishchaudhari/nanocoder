@@ -1,7 +1,7 @@
-import {useEffect, useRef, useCallback, useState} from 'react';
-import {VSCodeServer, getVSCodeServer, DEFAULT_PORT} from '@/vscode/index';
-import type {DiagnosticInfo} from '@/vscode/protocol';
 import * as fs from 'fs';
+import {DEFAULT_PORT, VSCodeServer, getVSCodeServer} from '@/vscode/index';
+import type {DiagnosticInfo} from '@/vscode/protocol';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 interface UseVSCodeServerProps {
 	enabled: boolean;

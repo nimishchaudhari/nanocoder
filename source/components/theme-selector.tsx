@@ -1,13 +1,13 @@
-import {useState, useMemo} from 'react';
-import {Box, Text, useInput} from 'ink';
-import SelectInput from 'ink-select-input';
 import {TitledBox} from '@/components/ui/titled-box';
-import {useTheme} from '@/hooks/useTheme';
-import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {themes} from '@/config/themes';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
 import type {ThemePreset} from '@/types/ui';
-import Gradient from 'ink-gradient';
+import {Box, Text, useInput} from 'ink';
 import BigText from 'ink-big-text';
+import Gradient from 'ink-gradient';
+import SelectInput from 'ink-select-input';
+import {useMemo, useState} from 'react';
 
 interface ThemeSelectorProps {
 	onThemeSelect: (theme: ThemePreset) => void;

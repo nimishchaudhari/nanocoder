@@ -1,7 +1,7 @@
+import {ModelEntry} from '@/types/index';
 import test from 'ava';
 import {DatabaseEngine} from './database-engine';
 import {modelMatchingEngine} from './model-engine';
-import {ModelEntry} from '@/types/index';
 
 console.log(`\ndatabase-engine.spec.ts`);
 

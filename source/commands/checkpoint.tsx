@@ -1,12 +1,12 @@
-import {Command, Message} from '@/types/index';
-import React from 'react';
-import SuccessMessage from '@/components/success-message';
+import {CheckpointListDisplay} from '@/components/checkpoint-display';
 import ErrorMessage from '@/components/error-message';
 import InfoMessage from '@/components/info-message';
+import SuccessMessage from '@/components/success-message';
 import WarningMessage from '@/components/warning-message';
-import {CheckpointListDisplay} from '@/components/checkpoint-display';
 import {CheckpointManager} from '@/services/checkpoint-manager';
+import {Command, Message} from '@/types/index';
 import {addToMessageQueue} from '@/utils/message-queue';
+import React from 'react';
 
 // Default checkpoint manager instance (lazy-initialized)
 let defaultCheckpointManager: CheckpointManager | null = null;
@@ -89,11 +89,11 @@ async function createCheckpoint(
   └─ ${
 		checkpointMetadata.filesChanged.length
 	} files captured: ${checkpointMetadata.filesChanged.slice(0, 3).join(', ')}${
-				checkpointMetadata.filesChanged.length > 3 ? '...' : ''
-			}
+		checkpointMetadata.filesChanged.length > 3 ? '...' : ''
+	}
   └─ Provider: ${checkpointMetadata.provider.name} (${
-				checkpointMetadata.provider.model
-			})`,
+		checkpointMetadata.provider.model
+	})`,
 			hideBox: true,
 		});
 	} catch (error) {
@@ -170,8 +170,8 @@ async function loadCheckpoint(
 					message: `Restored checkpoint:
   • ${checkpointData.fileSnapshots.size} file(s) restored to workspace
   • Provider: ${checkpointData.metadata.provider.name} (${
-						checkpointData.metadata.provider.model
-					})
+		checkpointData.metadata.provider.model
+	})
   • Created: ${new Date(checkpointData.metadata.timestamp).toLocaleString()}`,
 					hideBox: true,
 				}),

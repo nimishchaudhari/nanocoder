@@ -1,5 +1,5 @@
-import type {ToolCall, ToolResult, ToolHandler} from '@/types/index';
 import type {ToolManager} from '@/tools/tool-manager';
+import type {ToolCall, ToolHandler, ToolResult} from '@/types/index';
 import {formatError} from '@/utils/error-formatter';
 import {parseToolArguments} from '@/utils/tool-args-parser';
 

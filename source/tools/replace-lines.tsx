@@ -1,20 +1,20 @@
-import React from 'react';
-import {resolve} from 'node:path';
-import {readFile, writeFile, access} from 'node:fs/promises';
 import {constants} from 'node:fs';
+import {access, readFile, writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
 import {highlight} from 'cli-highlight';
-import {Text, Box} from 'ink';
+import {Box, Text} from 'ink';
+import React from 'react';
 
-import {tool, jsonSchema} from '@/types/core';
-import {getColors} from '@/config/index';
-import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import ToolMessage from '@/components/tool-message';
+import {getColors} from '@/config/index';
+import {getCurrentMode} from '@/context/mode-context';
+import {jsonSchema, tool} from '@/types/core';
+import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import {
+	closeDiffInVSCode,
 	isVSCodeConnected,
 	sendFileChangeToVSCode,
-	closeDiffInVSCode,
 } from '@/vscode/index';
-import {getCurrentMode} from '@/context/mode-context';
 
 interface ReplaceLinesArgs {
 	path: string;

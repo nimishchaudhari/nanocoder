@@ -1,10 +1,10 @@
-import React from 'react';
 import test from 'ava';
 import {render} from 'ink-testing-library';
-import UserInput from './user-input';
+import React from 'react';
+import {themes} from '../config/themes';
 import {ThemeContext} from '../hooks/useTheme';
 import {UIStateProvider} from '../hooks/useUIState';
-import {themes} from '../config/themes';
+import UserInput from './user-input';
 
 console.log(`\nuser-input.spec.tsx – ${React.version}`);
 

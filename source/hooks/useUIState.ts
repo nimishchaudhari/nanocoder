@@ -1,3 +1,4 @@
+import {Completion} from '@/types/index';
 import React, {
 	createContext,
 	useCallback,
@@ -5,7 +6,6 @@ import React, {
 	useMemo,
 	useState,
 } from 'react';
-import {Completion} from '@/types/index';
 
 type UIState = {
 	showClearMessage: boolean;

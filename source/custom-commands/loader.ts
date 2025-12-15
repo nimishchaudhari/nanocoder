@@ -1,7 +1,7 @@
 import {existsSync, readdirSync, statSync} from 'fs';
-import {join, basename} from 'path';
-import type {CustomCommand} from '@/types/index';
+import {basename, join} from 'path';
 import {parseCommandFile} from '@/custom-commands/parser';
+import type {CustomCommand} from '@/types/index';
 import {logError} from '@/utils/message-queue';
 
 export class CustomCommandLoader {

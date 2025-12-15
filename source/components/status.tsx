@@ -1,14 +1,14 @@
+import {existsSync} from 'fs';
 import {Box, Text} from 'ink';
 import {memo} from 'react';
-import {existsSync} from 'fs';
 
 import {TitledBox} from '@/components/ui/titled-box';
-import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import {confDirMap} from '@/config/index';
-import {themes, getThemeColors} from '@/config/themes';
+import {getThemeColors, themes} from '@/config/themes';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
+import type {LSPConnectionStatus, MCPConnectionStatus} from '@/types/core';
 import type {ThemePreset} from '@/types/ui';
 import type {UpdateInfo} from '@/types/utils';
-import type {MCPConnectionStatus, LSPConnectionStatus} from '@/types/core';
 
 // Get CWD once at module load time
 const cwd = process.cwd();

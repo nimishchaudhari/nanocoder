@@ -1,6 +1,6 @@
-import React from 'react';
 import {Box, Text} from 'ink';
 import type {BoxProps} from 'ink';
+import React from 'react';
 
 export interface TitledBoxProps extends Omit<BoxProps, 'borderStyle'> {
 	/** Title to display in the top border */

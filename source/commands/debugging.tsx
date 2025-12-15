@@ -1,8 +1,8 @@
-import {Command} from '@/types/index';
-import React from 'react';
 import InfoMessage from '@/components/info-message';
 import {isDebuggingEnabled, setDebuggingEnabled} from '@/config/preferences';
+import {Command} from '@/types/index';
 import {Box} from 'ink';
+import React from 'react';
 
 function DebuggingToggle({enabled}: {enabled: boolean}) {
 	return (

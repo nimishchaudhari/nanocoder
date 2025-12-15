@@ -1,5 +1,5 @@
-import {readFileSync, readdirSync, statSync, existsSync} from 'fs';
-import {join, relative, basename} from 'path';
+import {existsSync, readFileSync, readdirSync, statSync} from 'fs';
+import {basename, join, relative} from 'path';
 
 interface ScanResult {
 	files: string[];

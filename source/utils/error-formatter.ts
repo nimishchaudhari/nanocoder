@@ -113,8 +113,8 @@ export function createErrorInfo(
 			errorType === 'string'
 				? 'String'
 				: errorType === 'object' && error !== null
-				? 'Object'
-				: 'Unknown',
+					? 'Object'
+					: 'Unknown',
 		originalType: errorType,
 		hasStack: false,
 		isNetworkError: false,

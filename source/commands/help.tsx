@@ -1,13 +1,13 @@
-import {Command} from '@/types/index';
-import {commandRegistry} from '@/commands';
 import fs from 'fs';
 import path from 'path';
 import {fileURLToPath} from 'url';
-import React from 'react';
-import {Box, Text} from 'ink';
+import {commandRegistry} from '@/commands';
 import {TitledBox} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
+import {Command} from '@/types/index';
+import {Box, Text} from 'ink';
+import React from 'react';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

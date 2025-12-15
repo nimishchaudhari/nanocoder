@@ -1,8 +1,8 @@
-import React from 'react';
 import test from 'ava';
 import {render} from 'ink-testing-library';
-import {ThemeContext} from '../hooks/useTheme';
+import React from 'react';
 import {themes} from '../config/themes';
+import {ThemeContext} from '../hooks/useTheme';
 
 console.log(`\nfetch-url.spec.tsx – ${React.version}`);
 

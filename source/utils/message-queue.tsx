@@ -1,19 +1,19 @@
-import React from 'react';
 import ErrorMessage from '@/components/error-message';
 import InfoMessage from '@/components/info-message';
 import SuccessMessage from '@/components/success-message';
 import WarningMessage from '@/components/warning-message';
 import type {MessageType} from '@/types/index';
+import {createErrorInfo} from '@/utils/error-formatter';
 // Import logging utilities with dependency injection pattern
 import {
-	withNewCorrelationContext,
+	calculateMemoryDelta,
+	endMetrics,
+	formatMemoryUsage,
 	generateCorrelationId,
 	startMetrics,
-	endMetrics,
-	calculateMemoryDelta,
-	formatMemoryUsage,
+	withNewCorrelationContext,
 } from '@/utils/logging';
-import {createErrorInfo} from '@/utils/error-formatter';
+import React from 'react';
 
 // Global message queue function - will be set by App component
 let globalAddToChatQueue: ((component: React.ReactNode) => void) | null = null;
@@ -108,10 +108,10 @@ function addTypedMessage(
 			type === 'error'
 				? 'error'
 				: type === 'warning'
-				? 'warn'
-				: type === 'success'
-				? 'info'
-				: 'info'
+					? 'warn'
+					: type === 'success'
+						? 'info'
+						: 'info'
 		](`Message queued: ${type.toUpperCase()}`, {
 			messageType: type,
 			message: message.substring(0, 200), // Truncate long messages for logs

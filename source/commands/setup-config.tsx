@@ -1,6 +1,6 @@
 import {Command} from '@/types/index';
-import React from 'react';
 import {Text} from 'ink';
+import React from 'react';
 
 // Note: The /setup-config command is handled via appUtils.ts which calls
 // onEnterConfigWizardMode() directly, not through this command handler.

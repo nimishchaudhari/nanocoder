@@ -61,6 +61,53 @@ Before contributing, please:
    npm run dev
    ```
 
+### Recommended Editor Setup
+
+For the best development experience, we recommend using VS Code with the **Biome extension** for automatic formatting and linting:
+
+1. **Install Biome VS Code Extension:**
+   - Open VS Code and go to Extensions (Ctrl+Shift+X / Cmd+Shift+X)
+   - Search for "Biome" and install the official extension: [biomejs.dev/reference/vscode](https://biomejs.dev/reference/vscode/)
+   - Or install from the command line:
+   ```bash
+   code --install-extension biomejs.biome
+   ```
+
+2. **Configure VS Code settings** (optional, for format on save):
+   Add to your `.vscode/settings.json`:
+   ```json
+   {
+     "editor.defaultFormatter": "biomejs.biome",
+     "editor.formatOnSave": true,
+     "editor.codeActionsOnSave": {
+       "quickfix.biome": "explicit",
+       "source.organizeImports.biome": "explicit"
+     }
+   }
+   ```
+
+### Migrating from Prettier
+
+If you previously had Prettier configured in your development environment:
+
+1. **Uninstall/disable the Prettier VS Code extension** to avoid conflicts
+2. **Remove any local Prettier configuration** files (`.prettierrc`, `.prettierrc.json`, etc.)
+3. **Install the Biome extension** (see instructions above)
+4. **Run `pnpm format`** to reformat your working changes with Biome
+
+### Pre-commit Hooks
+
+This project uses **husky** and **lint-staged** to automatically format staged files before each commit. After running `pnpm install`, the pre-commit hook will be set up automatically.
+
+**What happens on commit:**
+- Staged `.js`, `.ts`, `.jsx`, `.tsx`, `.json`, and `.md` files are automatically formatted with Biome
+- If formatting fails, the commit will be blocked until issues are resolved
+
+**To skip the pre-commit hook** (not recommended):
+```bash
+git commit --no-verify -m "your message"
+```
+
 ## Making Changes
 
 ### Types of Contributions
@@ -124,7 +171,7 @@ All new features and bug fixes should include appropriate tests:
    pnpm test:all
    ```
 
-   This command runs: formatting with Prettier, type checks, Eslint checks, AVA tests and Knip.
+   This command runs: Biome formatting checks, type checks, ESLint checks, AVA tests, and Knip.
 
 4. **Test Requirements for PRs**:
    - New features **must** include passing tests in `.spec.ts/tsx` files

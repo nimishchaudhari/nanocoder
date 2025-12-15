@@ -1,27 +1,10 @@
-import React, {useEffect} from 'react';
-import {
-	LLMClient,
-	MCPConnectionStatus,
-	LSPConnectionStatus,
-} from '@/types/core';
-import {ToolManager} from '@/tools/tool-manager';
-import {CustomCommandLoader} from '@/custom-commands/loader';
-import {CustomCommandExecutor} from '@/custom-commands/executor';
-import {createLLMClient, ConfigurationError} from '@/client-factory';
-import {
-	getLastUsedModel,
-	loadPreferences,
-	updateLastUsed,
-} from '@/config/preferences';
-import type {MCPInitResult, UserPreferences} from '@/types/index';
-import type {CustomCommand} from '@/types/commands';
-import {setToolManagerGetter, setToolRegistryGetter} from '@/message-handler';
+import {ConfigurationError, createLLMClient} from '@/client-factory';
 import {commandRegistry} from '@/commands';
-import {appConfig, reloadAppConfig} from '@/config/index';
-import {getLSPManager, type LSPInitResult} from '@/lsp/index';
 import {
+	checkpointCommand,
 	clearCommand,
 	commandsCommand,
+	debuggingCommand,
 	exitCommand,
 	exportCommand,
 	helpCommand,
@@ -29,20 +12,37 @@ import {
 	lspCommand,
 	mcpCommand,
 	modelCommand,
-	providerCommand,
 	modelDatabaseCommand,
+	providerCommand,
 	setupConfigCommand,
 	statusCommand,
-	debuggingCommand,
 	themeCommand,
 	updateCommand,
 	usageCommand,
-	checkpointCommand,
 } from '@/commands/index';
 import ErrorMessage from '@/components/error-message';
 import InfoMessage from '@/components/info-message';
-import {checkForUpdates} from '@/utils/update-checker';
+import {appConfig, reloadAppConfig} from '@/config/index';
+import {
+	getLastUsedModel,
+	loadPreferences,
+	updateLastUsed,
+} from '@/config/preferences';
+import {CustomCommandExecutor} from '@/custom-commands/executor';
+import {CustomCommandLoader} from '@/custom-commands/loader';
+import {type LSPInitResult, getLSPManager} from '@/lsp/index';
+import {setToolManagerGetter, setToolRegistryGetter} from '@/message-handler';
+import {ToolManager} from '@/tools/tool-manager';
+import type {CustomCommand} from '@/types/commands';
+import {
+	LLMClient,
+	LSPConnectionStatus,
+	MCPConnectionStatus,
+} from '@/types/core';
+import type {MCPInitResult, UserPreferences} from '@/types/index';
 import type {UpdateInfo} from '@/types/index';
+import {checkForUpdates} from '@/utils/update-checker';
+import React, {useEffect} from 'react';
 
 interface UseAppInitializationProps {
 	setClient: (client: LLMClient | null) => void;

@@ -1,0 +1,84 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"ignore": [
+			"dist",
+			"pnpm-lock.yaml",
+			"package-lock.json",
+			"yarn.lock",
+			"coverage",
+			"agents",
+			"node_modules",
+			"plugins"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"indentWidth": 2,
+		"lineEnding": "lf",
+		"lineWidth": 80
+	},
+	"organizeImports": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": false,
+			"style": {
+				"noDefaultExport": "off",
+				"useBlockStatements": "off",
+				"noNonNullAssertion": "off",
+				"noParameterAssign": "off",
+				"useConst": "off",
+				"useImportType": "off",
+				"useTemplate": "off"
+			},
+			"complexity": {
+				"noForEach": "off",
+				"useLiteralKeys": "off",
+				"useArrowFunction": "off",
+				"noBannedTypes": "off"
+			},
+			"suspicious": {
+				"noExplicitAny": "off",
+				"noArrayIndexKey": "off",
+				"noConsoleLog": "off",
+				"noGlobalIsNan": "off",
+				"noRedeclare": "off",
+				"noUnsafeDeclarationMerging": "off",
+				"noShadowRestrictedNames": "off",
+				"noAssignInExpressions": "off",
+				"noControlCharactersInRegex": "off"
+			},
+			"correctness": {
+				"useExhaustiveDependencies": "warn",
+				"noUnusedVariables": "warn",
+				"noUnusedImports": "warn",
+				"noUndeclaredVariables": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"semicolons": "always",
+			"quoteStyle": "single",
+			"jsxQuoteStyle": "double",
+			"quoteProperties": "asNeeded",
+			"bracketSpacing": false,
+			"arrowParentheses": "asNeeded",
+			"trailingCommas": "all"
+		}
+	},
+	"json": {
+		"formatter": {
+			"trailingCommas": "none"
+		}
+	}
+}

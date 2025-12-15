@@ -1,15 +1,15 @@
-import {Command} from '@/types/index';
-import React from 'react';
-import {Box, Text} from 'ink';
+import {existsSync, mkdirSync, writeFileSync} from 'fs';
+import {join} from 'path';
+import ErrorMessage from '@/components/error-message';
 import {TitledBox} from '@/components/ui/titled-box';
 import {colors} from '@/config/index';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
-import ErrorMessage from '@/components/error-message';
-import {existsSync, mkdirSync, writeFileSync} from 'fs';
-import {join} from 'path';
-import {ProjectAnalyzer} from '@/init/project-analyzer';
 import {AgentsTemplateGenerator} from '@/init/agents-template-generator';
 import {ExistingRulesExtractor} from '@/init/existing-rules-extractor';
+import {ProjectAnalyzer} from '@/init/project-analyzer';
+import {Command} from '@/types/index';
+import {Box, Text} from 'ink';
+import React from 'react';
 
 function InitSuccess({
 	created,

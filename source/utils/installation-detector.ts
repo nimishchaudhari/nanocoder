@@ -1,6 +1,6 @@
-import {fileURLToPath} from 'url';
-import {dirname, join, sep} from 'path';
 import {existsSync} from 'fs';
+import {dirname, join, sep} from 'path';
+import {fileURLToPath} from 'url';
 import {logWarning} from './message-queue';
 
 export type InstallationMethod = 'npm' | 'homebrew' | 'nix' | 'unknown';

@@ -5,9 +5,9 @@
 
 import {generateCorrelationId, getLogger} from './index.js';
 import {
-	trackPerformance,
 	calculateMemoryDelta,
 	formatBytes,
+	trackPerformance,
 } from './performance.js';
 
 // Get logger instance directly to avoid circular dependencies
@@ -176,7 +176,7 @@ export class RequestTracker {
 						heapTotal: formatBytes(memoryDelta.heapTotalDelta || 0),
 						external: formatBytes(memoryDelta.externalDelta || 0),
 						rss: formatBytes(memoryDelta.rssDelta || 0),
-				  }
+					}
 				: undefined,
 			correlationId: completedRequest.correlationId,
 			source: 'request-tracker',
@@ -256,7 +256,7 @@ export class RequestTracker {
 						heapTotal: formatBytes(memoryDelta.heapTotalDelta || 0),
 						external: formatBytes(memoryDelta.externalDelta || 0),
 						rss: formatBytes(memoryDelta.rssDelta || 0),
-				  }
+					}
 				: undefined,
 			correlationId: completedRequest.correlationId,
 			source: 'request-tracker',
@@ -318,7 +318,7 @@ export class RequestTracker {
 						heapTotal: formatBytes(memoryDelta.heapTotalDelta || 0),
 						external: formatBytes(memoryDelta.externalDelta || 0),
 						rss: formatBytes(memoryDelta.rssDelta || 0),
-				  }
+					}
 				: undefined,
 			correlationId: completedRequest.correlationId,
 			source: 'request-tracker',
@@ -380,7 +380,7 @@ export class RequestTracker {
 						heapTotal: formatBytes(memoryDelta.heapTotalDelta || 0),
 						external: formatBytes(memoryDelta.externalDelta || 0),
 						rss: formatBytes(memoryDelta.rssDelta || 0),
-				  }
+					}
 				: undefined,
 			correlationId: completedRequest.correlationId,
 			source: 'request-tracker',
@@ -468,7 +468,7 @@ export class RequestTracker {
 						heapTotal: memoryDeltaSum.heapTotal / memoryDeltaCount,
 						external: memoryDeltaSum.external / memoryDeltaCount,
 						rss: memoryDeltaSum.rss / memoryDeltaCount,
-				  }
+					}
 				: {heapUsed: 0, heapTotal: 0, external: 0, rss: 0};
 
 		// Find busiest, slowest, and most error-prone endpoints
@@ -617,7 +617,7 @@ export function trackRequest<T extends (...args: unknown[]) => unknown>(
 									count: args.length,
 									types: args.map(arg => typeof arg),
 									size: JSON.stringify(args).length,
-							  }
+								}
 							: undefined,
 					},
 				});

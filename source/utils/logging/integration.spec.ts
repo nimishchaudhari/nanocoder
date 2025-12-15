@@ -1,34 +1,34 @@
-import test from 'ava';
-import {existsSync, rmSync, mkdirSync, writeFileSync} from 'fs';
-import {join} from 'path';
+import {existsSync, mkdirSync, rmSync, writeFileSync} from 'fs';
 import {tmpdir} from 'os';
+import {join} from 'path';
+import test from 'ava';
 
 console.log(`\nlogging/integration.spec.ts`);
 
 // Integration tests for the complete logging system
 import {
-	initializeLogger,
-	getLogger,
 	end,
 	flush,
+	getLogger,
 	globalLogStorage,
 	globalRequestTracker,
 	healthChecks,
+	initializeLogger,
 } from './index.js';
 
 // Import correlation functionality
 import {
 	generateCorrelationId,
-	withNewCorrelationContext,
 	getCorrelationId,
+	withNewCorrelationContext,
 } from './correlation.js';
 
 // Import redaction
 import {
-	redactValue,
-	redactEmail,
 	createRedactionRules,
+	redactEmail,
 	redactLogEntry,
+	redactValue,
 } from './redaction.js';
 
 // Create a temporary test directory

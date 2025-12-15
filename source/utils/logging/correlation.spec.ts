@@ -1,34 +1,34 @@
-import test from 'ava';
-import {existsSync, rmSync, mkdirSync} from 'fs';
-import {join} from 'path';
+import {existsSync, mkdirSync, rmSync} from 'fs';
 import {tmpdir} from 'os';
+import {join} from 'path';
+import test from 'ava';
 
 console.log(`\nlogging/correlation.spec.ts`);
 
 // Import correlation functions
 import {
+	addCorrelationMetadata,
+	checkCorrelationHealth,
+	clearCorrelationContext,
+	correlationMiddleware,
+	createCorrelationContext,
+	createCorrelationContextWithId,
+	createCorrelationFromHeaders,
+	extractCorrelationId,
+	formatCorrelationForLog,
 	generateCorrelationId,
 	generateShortCorrelationId,
-	createCorrelationContextWithId,
-	createCorrelationContext,
+	getCorrelationHeader,
+	getCorrelationId,
+	getCorrelationMetadata,
+	getCorrelationMonitoring,
 	getCurrentCorrelationContext,
+	isCorrelationEnabled,
+	resetCorrelationMonitoring,
 	setCorrelationContext,
-	clearCorrelationContext,
+	withCorrelation,
 	withCorrelationContext,
 	withNewCorrelationContext,
-	getCorrelationId,
-	isCorrelationEnabled,
-	getCorrelationHeader,
-	extractCorrelationId,
-	createCorrelationFromHeaders,
-	addCorrelationMetadata,
-	getCorrelationMetadata,
-	formatCorrelationForLog,
-	correlationMiddleware,
-	withCorrelation,
-	getCorrelationMonitoring,
-	resetCorrelationMonitoring,
-	checkCorrelationHealth,
 } from './correlation.js';
 
 // Import types

@@ -1,5 +1,5 @@
-import test from 'ava';
 import {EventEmitter} from 'events';
+import test from 'ava';
 import {LSPClient, type LSPServerConfig} from './lsp-client';
 
 console.log(`\nlsp-client.spec.ts`);

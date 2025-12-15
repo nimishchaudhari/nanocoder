@@ -1,22 +1,22 @@
 import test from 'ava';
-import {PROTOCOL_VERSION, DEFAULT_PORT} from './protocol.js';
+import {DEFAULT_PORT, PROTOCOL_VERSION} from './protocol.js';
 import type {
-	ServerMessage,
-	ClientMessage,
-	FileChangeMessage,
-	ToolCallMessage,
-	AssistantMessage,
-	StatusMessage,
-	ConnectionAckMessage,
-	DiagnosticsRequestMessage,
-	SendPromptMessage,
 	ApplyChangeMessage,
-	RejectChangeMessage,
-	GetStatusMessage,
+	AssistantMessage,
+	ClientMessage,
+	ConnectionAckMessage,
 	ContextMessage,
-	DiagnosticsResponseMessage,
 	DiagnosticInfo,
+	DiagnosticsRequestMessage,
+	DiagnosticsResponseMessage,
+	FileChangeMessage,
+	GetStatusMessage,
 	PendingChange,
+	RejectChangeMessage,
+	SendPromptMessage,
+	ServerMessage,
+	StatusMessage,
+	ToolCallMessage,
 } from './protocol.js';
 
 // ============================================================================

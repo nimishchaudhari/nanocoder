@@ -1,7 +1,7 @@
-import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
-import {WebSocketClientTransport} from '@modelcontextprotocol/sdk/client/websocket.js';
-import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {logWarning} from '@/utils/message-queue';
+import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
+import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import {WebSocketClientTransport} from '@modelcontextprotocol/sdk/client/websocket.js';
 import type {MCPServer, MCPTransportType} from '../types/mcp.js';
 
 // Union type for all supported client transports

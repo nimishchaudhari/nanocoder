@@ -1,19 +1,19 @@
 import test from 'ava';
 import {WebSocket} from 'ws';
+import type {
+	AssistantMessage,
+	ConnectionAckMessage,
+	DiagnosticsRequestMessage,
+	FileChangeMessage,
+	ServerMessage,
+	StatusMessage,
+} from './protocol.js';
 import {
 	VSCodeServer,
 	getVSCodeServer,
 	isVSCodeConnected,
 	sendFileChangeToVSCode,
 } from './vscode-server.js';
-import type {
-	ServerMessage,
-	ConnectionAckMessage,
-	FileChangeMessage,
-	StatusMessage,
-	AssistantMessage,
-	DiagnosticsRequestMessage,
-} from './protocol.js';
 
 // Use different ports for each test to avoid conflicts
 let testPort = 52000;

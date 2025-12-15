@@ -1,12 +1,12 @@
-import React, {useState, useEffect} from 'react';
+import {defaultTheme, getThemeColors} from '@/config/themes';
+import {
+	installExtension,
+	isExtensionInstalled,
+	isVSCodeCliAvailable,
+} from '@/vscode/extension-installer';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
-import {
-	isVSCodeCliAvailable,
-	isExtensionInstalled,
-	installExtension,
-} from '@/vscode/extension-installer';
-import {getThemeColors, defaultTheme} from '@/config/themes';
+import React, {useState, useEffect} from 'react';
 
 interface VSCodeExtensionPromptProps {
 	onComplete: () => void;

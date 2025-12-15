@@ -1,11 +1,11 @@
-import React from 'react';
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import {Text} from 'ink';
+import {render} from 'ink-testing-library';
+import React from 'react';
 import {
-	isVSCodeModeEnabled,
-	getVSCodePort,
 	createFileChangeFromTool,
+	getVSCodePort,
+	isVSCodeModeEnabled,
 } from './useVSCodeServer';
 
 console.log(`\nuseVSCodeServer.spec.tsx – ${React.version}`);

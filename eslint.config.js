@@ -1,8 +1,8 @@
 import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
 	// Base ESLint recommended rules for all files
@@ -55,7 +55,7 @@ export default tseslint.config(
 
 			// General rules
 			'no-console': 'off', // CLI app needs console
-			'no-mixed-spaces-and-tabs': 'off', // Handled by Prettier
+			'no-mixed-spaces-and-tabs': 'off', // Handled by Biome
 		},
 		settings: {
 			react: {

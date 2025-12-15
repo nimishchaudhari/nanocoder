@@ -1,10 +1,10 @@
-import test from 'ava';
 import {EventEmitter} from 'events';
+import test from 'ava';
 import {
 	LSPManager,
+	type LSPManagerConfig,
 	getLSPManager,
 	resetLSPManager,
-	type LSPManagerConfig,
 } from './lsp-manager';
 
 console.log(`\nlsp-manager.spec.ts`);

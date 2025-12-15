@@ -1,20 +1,20 @@
-import {resolve, dirname} from 'node:path';
-import {writeFile, access, readFile} from 'node:fs/promises';
 import {constants, existsSync} from 'node:fs';
+import {access, readFile, writeFile} from 'node:fs/promises';
+import {dirname, resolve} from 'node:path';
 import {highlight} from 'cli-highlight';
+import {Box, Text} from 'ink';
 import React from 'react';
-import {Text, Box} from 'ink';
 
-import {tool, jsonSchema} from '@/types/core';
-import {ThemeContext} from '@/hooks/useTheme';
-import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import ToolMessage from '@/components/tool-message';
+import {getCurrentMode} from '@/context/mode-context';
+import {ThemeContext} from '@/hooks/useTheme';
+import {jsonSchema, tool} from '@/types/core';
+import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import {
+	closeDiffInVSCode,
 	isVSCodeConnected,
 	sendFileChangeToVSCode,
-	closeDiffInVSCode,
 } from '@/vscode/index';
-import {getCurrentMode} from '@/context/mode-context';
 
 const executeCreateFile = async (args: {
 	path: string;

@@ -2,17 +2,17 @@ import test from 'ava';
 
 // Implementation imports
 import {
+	createFormatters,
+	createPrettyFormatter,
+	formatDevelopmentLog,
 	formatLevel,
+	formatMessage,
+	formatProductionLog,
 	formatTimestamp,
 	formatTimestampDev,
-	serializeError,
-	formatProductionLog,
-	formatDevelopmentLog,
-	createFormatters,
-	formatMessage,
-	levelColors,
 	getLevelColor,
-	createPrettyFormatter,
+	levelColors,
+	serializeError,
 } from './formatters.js';
 import type {LogEntry} from './types.js';
 

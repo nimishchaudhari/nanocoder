@@ -1,18 +1,18 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import {existsSync} from 'fs';
-import {FileSnapshotService} from './file-snapshot';
-import {validateCheckpointName} from '@/utils/checkpoint-utils';
-import {logWarning} from '@/utils/message-queue';
-import type {Message} from '@/types/core';
+import * as path from 'path';
 import type {
-	CheckpointMetadata,
 	CheckpointConversation,
 	CheckpointData,
 	CheckpointListItem,
-	CheckpointValidationResult,
+	CheckpointMetadata,
 	CheckpointRestoreOptions,
+	CheckpointValidationResult,
 } from '@/types/checkpoint';
+import type {Message} from '@/types/core';
+import {validateCheckpointName} from '@/utils/checkpoint-utils';
+import {logWarning} from '@/utils/message-queue';
+import * as fs from 'fs/promises';
+import {FileSnapshotService} from './file-snapshot';
 
 /**
  * Service for managing conversation checkpoints.
@@ -110,9 +110,8 @@ export class CheckpointManager {
 			modifiedFiles || this.fileSnapshotService.getModifiedFiles();
 
 		// Capture file snapshots
-		const fileSnapshots = await this.fileSnapshotService.captureFiles(
-			filesToSnapshot,
-		);
+		const fileSnapshots =
+			await this.fileSnapshotService.captureFiles(filesToSnapshot);
 
 		// Create metadata
 		const metadata: CheckpointMetadata = {
@@ -249,9 +248,8 @@ export class CheckpointManager {
 							) as CheckpointMetadata;
 
 							// Calculate directory size
-							const sizeBytes = await this.calculateDirectorySize(
-								checkpointDir,
-							);
+							const sizeBytes =
+								await this.calculateDirectorySize(checkpointDir);
 
 							checkpoints.push({
 								name: entry,

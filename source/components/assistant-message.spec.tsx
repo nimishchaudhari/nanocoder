@@ -1,15 +1,15 @@
-import React from 'react';
 import test from 'ava';
 import {render} from 'ink-testing-library';
-import AssistantMessage from './assistant-message';
-import {
-	decodeHtmlEntities,
-	parseMarkdownTable,
-	parseMarkdown,
-	type Colors,
-} from '../markdown-parser/index';
-import {ThemeContext} from '../hooks/useTheme';
+import React from 'react';
 import {themes} from '../config/themes';
+import {ThemeContext} from '../hooks/useTheme';
+import {
+	type Colors,
+	decodeHtmlEntities,
+	parseMarkdown,
+	parseMarkdownTable,
+} from '../markdown-parser/index';
+import AssistantMessage from './assistant-message';
 
 // Mock theme colors for testing
 const mockColors: any = {

@@ -1,12 +1,12 @@
 import test from 'ava';
 import {
-	HealthMonitor,
 	HealthCheckResult,
+	HealthMonitor,
 	SystemMetrics,
 } from './health-monitor.js';
 import {globalLogStorage} from './log-query.js';
-import {globalRequestTracker} from './request-tracker.js';
 import {globalPerformanceMonitor} from './performance.js';
+import {globalRequestTracker} from './request-tracker.js';
 
 // Test HealthMonitor class
 // ============================================================================

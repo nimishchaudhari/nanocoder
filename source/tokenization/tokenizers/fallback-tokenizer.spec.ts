@@ -2,9 +2,9 @@
  * Tests for fallback-tokenizer.ts
  */
 
+import type {Message} from '@/types/core.js';
 import test from 'ava';
 import {FallbackTokenizer} from './fallback-tokenizer.js';
-import type {Message} from '@/types/core.js';
 
 console.log(`\nfallback-tokenizer.spec.ts`);
 

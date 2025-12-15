@@ -4,10 +4,10 @@
  */
 
 import type {Tokenizer, TokenizerProvider} from '../types/tokenization.js';
-import {OpenAITokenizer} from './tokenizers/openai-tokenizer.js';
 import {AnthropicTokenizer} from './tokenizers/anthropic-tokenizer.js';
-import {LlamaTokenizer} from './tokenizers/llama-tokenizer.js';
 import {FallbackTokenizer} from './tokenizers/fallback-tokenizer.js';
+import {LlamaTokenizer} from './tokenizers/llama-tokenizer.js';
+import {OpenAITokenizer} from './tokenizers/openai-tokenizer.js';
 
 /**
  * Detect provider from model ID or provider name

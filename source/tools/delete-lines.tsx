@@ -1,20 +1,20 @@
-import React from 'react';
-import {resolve} from 'node:path';
-import {readFile, writeFile, access} from 'node:fs/promises';
 import {constants} from 'node:fs';
-import {highlight} from 'cli-highlight';
-import {Text, Box} from 'ink';
-import type {Colors} from '@/types/index';
-import {tool, jsonSchema} from '@/types/core';
-import {getColors} from '@/config/index';
-import {getLanguageFromExtension} from '@/utils/programming-language-helper';
+import {access, readFile, writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
 import ToolMessage from '@/components/tool-message';
+import {getColors} from '@/config/index';
+import {getCurrentMode} from '@/context/mode-context';
+import {jsonSchema, tool} from '@/types/core';
+import type {Colors} from '@/types/index';
+import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import {
+	closeDiffInVSCode,
 	isVSCodeConnected,
 	sendFileChangeToVSCode,
-	closeDiffInVSCode,
 } from '@/vscode/index';
-import {getCurrentMode} from '@/context/mode-context';
+import {highlight} from 'cli-highlight';
+import {Box, Text} from 'ink';
+import React from 'react';
 
 interface DeleteLinesArgs {
 	path: string;

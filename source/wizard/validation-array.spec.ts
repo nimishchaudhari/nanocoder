@@ -1,7 +1,7 @@
 import test from 'ava';
-import {validateConfig, buildConfigObject} from './validation';
 import type {ProviderConfig} from '../types/config';
 import type {McpServerConfig} from './templates/mcp-templates';
+import {buildConfigObject, validateConfig} from './validation';
 
 // ============================================================================
 // Tests for Issue #95 Fix: Record to Array Conversion

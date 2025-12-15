@@ -1,9 +1,9 @@
-import type {Command, CustomCommand} from '@/types/index';
-import {CustomCommandLoader} from '@/custom-commands/loader';
-import React from 'react';
-import {Text, Box} from 'ink';
 import {TitledBox} from '@/components/ui/titled-box';
+import {CustomCommandLoader} from '@/custom-commands/loader';
 import {useTheme} from '@/hooks/useTheme';
+import type {Command, CustomCommand} from '@/types/index';
+import {Box, Text} from 'ink';
+import React from 'react';
 
 interface CustomCommandsProps {
 	commands: CustomCommand[];

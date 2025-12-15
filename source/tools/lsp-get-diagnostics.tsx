@@ -1,12 +1,12 @@
-import React from 'react';
-import {Text, Box} from 'ink';
 import {resolve as resolvePath} from 'node:path';
+import {Box, Text} from 'ink';
+import React from 'react';
 
-import {tool, jsonSchema} from '@/types/core';
-import {ThemeContext} from '@/hooks/useTheme';
 import ToolMessage from '@/components/tool-message';
-import {getLSPManager, DiagnosticSeverity} from '@/lsp/index';
-import {getVSCodeServer, type DiagnosticInfo} from '@/vscode/index';
+import {ThemeContext} from '@/hooks/useTheme';
+import {DiagnosticSeverity, getLSPManager} from '@/lsp/index';
+import {jsonSchema, tool} from '@/types/core';
+import {type DiagnosticInfo, getVSCodeServer} from '@/vscode/index';
 
 interface GetDiagnosticsArgs {
 	path?: string;
@@ -141,10 +141,10 @@ const executeGetDiagnostics = async (
 				diag.severity === DiagnosticSeverity.Error
 					? 'ERROR'
 					: diag.severity === DiagnosticSeverity.Warning
-					? 'WARNING'
-					: diag.severity === DiagnosticSeverity.Information
-					? 'INFO'
-					: 'HINT';
+						? 'WARNING'
+						: diag.severity === DiagnosticSeverity.Information
+							? 'INFO'
+							: 'HINT';
 
 			const line = diag.range.start.line + 1;
 			const char = diag.range.start.character + 1;
@@ -177,10 +177,10 @@ const executeGetDiagnostics = async (
 				diag.severity === DiagnosticSeverity.Error
 					? 'ERROR'
 					: diag.severity === DiagnosticSeverity.Warning
-					? 'WARNING'
-					: diag.severity === DiagnosticSeverity.Information
-					? 'INFO'
-					: 'HINT';
+						? 'WARNING'
+						: diag.severity === DiagnosticSeverity.Information
+							? 'INFO'
+							: 'HINT';
 
 			const line = diag.range.start.line + 1;
 			const char = diag.range.start.character + 1;

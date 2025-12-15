@@ -6,12 +6,12 @@
  * without breaking existing code patterns
  */
 
+import {createErrorInfo} from '@/utils/error-formatter';
 import {
 	generateCorrelationId,
-	withNewCorrelationContext,
 	getLogger,
+	withNewCorrelationContext,
 } from '@/utils/logging';
-import {createErrorInfo} from '@/utils/error-formatter';
 import type {ConsoleArguments, ConsoleLogData} from './types.js';
 
 // Get logger instance directly to avoid circular dependencies

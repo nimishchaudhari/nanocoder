@@ -1,12 +1,12 @@
+import {mkdir, rm, writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import test from 'ava';
+import {type PlaceholderContent, PlaceholderType} from '../types/hooks.js';
 import {
 	handleFileMention,
 	parseLineRangeFromMention,
 } from './file-mention-handler.js';
-import {PlaceholderType, type PlaceholderContent} from '../types/hooks.js';
-import {writeFile, mkdir, rm} from 'node:fs/promises';
-import {join} from 'node:path';
-import {tmpdir} from 'node:os';
 
 console.log(`\nfile-mention-handler.spec.ts`);
 

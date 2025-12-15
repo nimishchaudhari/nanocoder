@@ -1,15 +1,15 @@
-import test from 'ava';
-import {existsSync, rmSync, mkdirSync, readFileSync} from 'fs';
-import {join} from 'path';
+import {existsSync, mkdirSync, readFileSync, rmSync} from 'fs';
 import {tmpdir} from 'os';
+import {join} from 'path';
+import test from 'ava';
 
+import {getDefaultLogDirectory} from './config.js';
 // Implementation imports
 import {
-	createPinoLogger,
 	createLoggerWithTransport,
+	createPinoLogger,
 	getLoggerStats,
 } from './pino-logger.js';
-import {getDefaultLogDirectory} from './config.js';
 import type {LoggerConfig, LoggingCliConfig} from './types.js';
 
 // Test utilities

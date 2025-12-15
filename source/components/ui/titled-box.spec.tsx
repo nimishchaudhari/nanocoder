@@ -1,7 +1,7 @@
-import React from 'react';
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import {Text} from 'ink';
+import {render} from 'ink-testing-library';
+import React from 'react';
 import {TitledBox} from './titled-box.js';
 
 // ============================================================================

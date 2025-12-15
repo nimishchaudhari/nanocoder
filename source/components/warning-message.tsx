@@ -1,9 +1,9 @@
-import {Text, Box} from 'ink';
+import {Box, Text} from 'ink';
 import {memo} from 'react';
 
 import {TitledBox} from '@/components/ui/titled-box';
-import {useTheme} from '@/hooks/useTheme';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
 
 export default memo(function WarningMessage({
 	message,

@@ -1,6 +1,6 @@
-import fs from 'fs/promises';
-import {logError} from '@/utils/message-queue';
 import {getClosestConfigFile} from '@/config/index';
+import {logError} from '@/utils/message-queue';
+import fs from 'fs/promises';
 import type {InputState} from './types/hooks';
 
 const HISTORY_FILE = getClosestConfigFile('.nano-coder-history');

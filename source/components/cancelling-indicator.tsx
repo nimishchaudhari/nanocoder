@@ -1,7 +1,7 @@
-import {memo} from 'react';
+import {useTheme} from '@/hooks/useTheme';
 import {Box, Text} from 'ink';
 import Spinner from 'ink-spinner';
-import {useTheme} from '@/hooks/useTheme';
+import {memo} from 'react';
 
 export default memo(function CancellingIndicator() {
 	const {colors} = useTheme();

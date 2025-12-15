@@ -1,7 +1,7 @@
-import type {Command, Message} from '@/types/index';
-import React from 'react';
 import ErrorMessage from '@/components/error-message';
+import type {Command, Message} from '@/types/index';
 import {fuzzyScore} from '@/utils/fuzzy-matching';
+import React from 'react';
 
 class CommandRegistry {
 	private commands = new Map<string, Command>();

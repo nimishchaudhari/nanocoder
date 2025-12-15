@@ -1,5 +1,5 @@
-import {Command} from '@/types/index';
 import InfoMessage from '@/components/info-message';
+import {Command} from '@/types/index';
 import React from 'react';
 
 export const exitCommand: Command = {

@@ -6,10 +6,10 @@ import LogStorage, {
 	globalLogStorage,
 } from './log-query.js';
 import type {
+	AggregationResult,
 	LogEntry,
 	LogQuery,
 	QueryResult,
-	AggregationResult,
 } from './log-query.js';
 
 // Helper function to create test log entries

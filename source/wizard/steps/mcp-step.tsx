@@ -1,15 +1,15 @@
-import React, {useState, useEffect} from 'react';
-import {Box, Text, useInput} from 'ink';
-import SelectInput from 'ink-select-input';
-import TextInput from 'ink-text-input';
-import {Tabs, Tab} from 'ink-tab';
-import {
-	MCP_TEMPLATES,
-	type McpTemplate,
-	type McpServerConfig,
-} from '../templates/mcp-templates';
 import {colors} from '@/config/index';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
+import {Box, Text, useInput} from 'ink';
+import SelectInput from 'ink-select-input';
+import {Tab, Tabs} from 'ink-tab';
+import TextInput from 'ink-text-input';
+import React, {useState, useEffect} from 'react';
+import {
+	MCP_TEMPLATES,
+	type McpServerConfig,
+	type McpTemplate,
+} from '../templates/mcp-templates';
 
 interface McpStepProps {
 	onComplete: (mcpServers: Record<string, McpServerConfig>) => void;

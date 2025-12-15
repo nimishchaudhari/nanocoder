@@ -1,5 +1,5 @@
-import type {Tokenizer} from '../../types/tokenization';
 import type {Message} from '@/types/core';
+import type {Tokenizer} from '../../types/tokenization';
 
 /**
  * Fallback tokenizer for unsupported models

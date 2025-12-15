@@ -1,8 +1,8 @@
 import test from 'ava';
 import {
-	parseJSONToolCalls,
 	cleanJSONToolCalls,
 	detectMalformedJSONToolCall,
+	parseJSONToolCalls,
 } from './json-parser';
 
 console.log(`\njson-parser.spec.ts`);

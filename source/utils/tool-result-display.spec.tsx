@@ -1,10 +1,10 @@
-import React from 'react';
 import test from 'ava';
-import type {ToolCall, ToolResult} from '../types/core.js';
-import type {ToolManager} from '../tools/tool-manager.js';
-import {displayToolResult} from './tool-result-display.js';
+import React from 'react';
 import ErrorMessage from '../components/error-message.js';
 import ToolMessage from '../components/tool-message.js';
+import type {ToolManager} from '../tools/tool-manager.js';
+import type {ToolCall, ToolResult} from '../types/core.js';
+import {displayToolResult} from './tool-result-display.js';
 
 // ============================================================================
 // Type Definitions

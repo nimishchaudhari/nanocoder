@@ -3,8 +3,8 @@
  * This file provides centralized logger management without circular dependencies
  */
 
-import type {Logger, LoggerConfig, LogLevel} from './types.js';
 import {createLogMethods} from './log-method-factory.js';
+import type {LogLevel, Logger, LoggerConfig} from './types.js';
 
 export class LoggerProvider {
 	private static instance: LoggerProvider | null = null;
@@ -215,8 +215,8 @@ export class LoggerProvider {
 			level: isTest
 				? 'silent'
 				: isDev
-				? 'debug'
-				: (process.env.NANOCODER_LOG_LEVEL as LogLevel) || 'info',
+					? 'debug'
+					: (process.env.NANOCODER_LOG_LEVEL as LogLevel) || 'info',
 			pretty: isDev,
 			redact: ['apiKey', 'token', 'password', 'secret'],
 			correlation: true,

@@ -1,5 +1,5 @@
-import test from 'ava';
 import * as path from 'path';
+import test from 'ava';
 import {getAppDataPath, getConfigPath} from './paths';
 
 // These tests intentionally lock in the public contract for Nanocoder's

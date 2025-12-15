@@ -3,8 +3,8 @@
  * Uses dependency injection pattern to avoid circular dependencies
  */
 
-import type {Logger, LoggerConfig, LogLevel} from './types.js';
 import {loggerProvider} from './logger-provider.js';
+import type {LogLevel, Logger, LoggerConfig} from './types.js';
 
 /**
  * Initialize the logger with configuration

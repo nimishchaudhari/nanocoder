@@ -1,10 +1,10 @@
+import {tmpdir} from 'os';
+import {resolve} from 'path';
 import test from 'ava';
+import {readFile, unlink, writeFile} from 'fs/promises';
+import {createFileTool} from './create-file.js';
 import {executeBashTool} from './execute-bash.js';
 import {readFileTool} from './read-file.js';
-import {createFileTool} from './create-file.js';
-import {writeFile, unlink, readFile} from 'fs/promises';
-import {resolve} from 'path';
-import {tmpdir} from 'os';
 
 // ============================================================================
 // Tests for AI SDK v6 Native Tools

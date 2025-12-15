@@ -1,20 +1,20 @@
-import test from 'ava';
-import {existsSync, writeFileSync, rmSync, mkdirSync} from 'fs';
-import {join} from 'path';
+import {existsSync, mkdirSync, rmSync, writeFileSync} from 'fs';
 import {tmpdir} from 'os';
+import {join} from 'path';
+import test from 'ava';
 
 console.log(`\nlogging/config.spec.ts`);
 
 // Import configuration functions
 import {
-	getDefaultLogDirectory,
+	createConfig,
 	createDevelopmentConfig,
 	createProductionConfig,
 	createTestConfig,
+	getDefaultLogDirectory,
 	getEnvironmentConfig,
-	validateLogLevel,
 	normalizeLogLevel,
-	createConfig,
+	validateLogLevel,
 } from './config.js';
 
 // Import types

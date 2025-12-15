@@ -1,15 +1,15 @@
 import test from 'ava';
 import {
-	RequestTracker,
 	RequestMetadata,
 	RequestStats,
+	RequestTracker,
 	globalRequestTracker,
 } from './request-tracker.js';
 import {
-	trackRequest,
-	httpTracker,
 	aiTracker,
+	httpTracker,
 	mcpTracker,
+	trackRequest,
 } from './request-tracker.js';
 
 // Helper function to create test request metadata

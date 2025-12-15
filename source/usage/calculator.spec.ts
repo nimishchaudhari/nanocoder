@@ -1,12 +1,12 @@
+import type {Message} from '@/types/core.js';
+import type {Tokenizer} from '@/types/tokenization.js';
 import test from 'ava';
 import {
 	calculateTokenBreakdown,
 	calculateToolDefinitionsTokens,
-	getUsageStatusColor,
 	formatTokenCount,
+	getUsageStatusColor,
 } from './calculator.js';
-import type {Message} from '@/types/core.js';
-import type {Tokenizer} from '@/types/tokenization.js';
 
 console.log('\ncalculator.spec.ts');
 

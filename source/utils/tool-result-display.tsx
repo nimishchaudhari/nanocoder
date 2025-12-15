@@ -1,9 +1,9 @@
-import React from 'react';
-import type {ToolCall, ToolResult} from '@/types/index';
-import type {ToolManager} from '@/tools/tool-manager';
-import {parseToolArguments} from '@/utils/tool-args-parser';
-import ToolMessage from '@/components/tool-message';
 import ErrorMessage from '@/components/error-message';
+import ToolMessage from '@/components/tool-message';
+import type {ToolManager} from '@/tools/tool-manager';
+import type {ToolCall, ToolResult} from '@/types/index';
+import {parseToolArguments} from '@/utils/tool-args-parser';
+import React from 'react';
 
 /**
  * Display tool result with proper formatting

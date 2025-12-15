@@ -1,8 +1,8 @@
 import test from 'ava';
 import {
+	clearFileListCache,
 	fuzzyScore,
 	getCurrentFileMention,
-	clearFileListCache,
 } from './file-autocomplete.js';
 
 console.log(`\nfile-autocomplete.spec.ts`);

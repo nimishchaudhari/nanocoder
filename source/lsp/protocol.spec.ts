@@ -1,11 +1,11 @@
 import test from 'ava';
 import {
-	DiagnosticSeverity,
 	CompletionItemKind,
-	InsertTextFormat,
-	TextDocumentSyncKind,
 	CompletionTriggerKind,
+	DiagnosticSeverity,
+	InsertTextFormat,
 	LSPMethods,
+	TextDocumentSyncKind,
 } from './protocol';
 
 console.log(`\nprotocol.spec.ts`);

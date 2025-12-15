@@ -1,11 +1,11 @@
 import test from 'ava';
-import {
-	validateConfig,
-	buildConfigObject,
-	testProviderConnection,
-} from './validation.js';
 import type {ProviderConfig} from '../types/config.js';
 import type {McpServerConfig} from './templates/mcp-templates.js';
+import {
+	buildConfigObject,
+	testProviderConnection,
+	validateConfig,
+} from './validation.js';
 
 // ============================================================================
 // Tests for validateConfig

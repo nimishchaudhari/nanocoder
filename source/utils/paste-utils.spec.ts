@@ -1,7 +1,7 @@
+import type {PastePlaceholderContent, PlaceholderContent} from '@/types/hooks';
+import {PlaceholderType} from '@/types/hooks';
 import test from 'ava';
 import {handlePaste} from './paste-utils';
-import type {PlaceholderContent, PastePlaceholderContent} from '@/types/hooks';
-import {PlaceholderType} from '@/types/hooks';
 
 // Tests for handlePaste utility function
 // Validates paste handling logic and placeholder creation

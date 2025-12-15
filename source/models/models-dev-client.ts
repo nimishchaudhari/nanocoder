@@ -5,7 +5,7 @@
 
 import {request} from 'undici';
 import {readCache, writeCache} from './models-cache.js';
-import type {ModelsDevDatabase, ModelInfo} from './models-types.js';
+import type {ModelInfo, ModelsDevDatabase} from './models-types.js';
 
 const MODELS_DEV_API_URL = 'https://models.dev/api.json';
 

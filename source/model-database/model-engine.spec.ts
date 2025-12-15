@@ -1,7 +1,7 @@
-import test from 'ava';
-import {ModelMatchingEngine} from './model-engine';
-import {modelDatabase} from './model-database';
 import {ModelEntry} from '@/types/index';
+import test from 'ava';
+import {modelDatabase} from './model-database';
+import {ModelMatchingEngine} from './model-engine';
 
 console.log(`\nmodel-engine.spec.ts`);
 

@@ -1,5 +1,5 @@
+import {ModelResults, modelMatchingEngine} from '@/model-database/model-engine';
 import {ModelEntry} from '@/types/index';
-import {modelMatchingEngine, ModelResults} from '@/model-database/model-engine';
 
 export interface DatabaseResult {
 	openModels: ModelEntry[];

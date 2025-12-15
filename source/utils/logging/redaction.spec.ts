@@ -1,19 +1,19 @@
-import test from 'ava';
-import {existsSync, rmSync, mkdirSync} from 'fs';
-import {join} from 'path';
+import {existsSync, mkdirSync, rmSync} from 'fs';
 import {tmpdir} from 'os';
+import {join} from 'path';
+import test from 'ava';
 
 console.log(`\nlogging/redaction.spec.ts`);
 
 // Import redaction functions
 import {
-	createRedactionRules,
-	redactValue,
-	redactLogEntry,
-	redactEmail,
-	redactUserId,
-	validateRedactionRules,
 	DEFAULT_REDACT_PATHS,
+	createRedactionRules,
+	redactEmail,
+	redactLogEntry,
+	redactUserId,
+	redactValue,
+	validateRedactionRules,
 } from './redaction.js';
 
 // Import types

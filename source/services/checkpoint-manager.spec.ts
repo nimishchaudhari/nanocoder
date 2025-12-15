@@ -1,9 +1,9 @@
+import {existsSync} from 'fs';
+import * as path from 'path';
+import type {Message} from '@/types/core';
 import test from 'ava';
 import * as fs from 'fs/promises';
-import * as path from 'path';
-import {existsSync} from 'fs';
 import {CheckpointManager} from './checkpoint-manager';
-import type {Message} from '@/types/core';
 
 // Helper to create a temporary directory for tests
 async function createTempDir(): Promise<string> {

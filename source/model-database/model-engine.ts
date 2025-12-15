@@ -1,5 +1,5 @@
-import {ModelEntry} from '@/types/index';
 import {modelDatabase} from '@/model-database/model-database';
+import {ModelEntry} from '@/types/index';
 
 export interface ModelResults {
 	allModels: ModelEntry[];

@@ -1,5 +1,5 @@
 import {ModelEntry} from '@/types/index';
-import {fetchModels, isModelsCached, clearModelCache} from './model-fetcher';
+import {clearModelCache, fetchModels, isModelsCached} from './model-fetcher';
 
 export class ModelDatabase {
 	private static instance: ModelDatabase;

@@ -1,8 +1,8 @@
-import test from 'ava';
-import {existsSync, readFileSync, mkdirSync, writeFileSync, rmSync} from 'fs';
-import {join} from 'path';
+import {existsSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'fs';
 import {tmpdir} from 'os';
-import {getClosestConfigFile, confDirMap, reloadAppConfig} from './index';
+import {join} from 'path';
+import test from 'ava';
+import {confDirMap, getClosestConfigFile, reloadAppConfig} from './index';
 
 console.log(`\nindex.spec.ts`);
 

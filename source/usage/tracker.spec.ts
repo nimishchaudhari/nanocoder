@@ -1,16 +1,16 @@
-import test from 'ava';
 import * as fs from 'node:fs';
-import * as path from 'node:path';
 import * as os from 'node:os';
-import {
-	SessionTracker,
-	initializeSession,
-	getCurrentSession,
-	clearCurrentSession,
-} from './tracker.js';
-import {readUsageData, clearUsageData} from './storage.js';
+import * as path from 'node:path';
 import type {Message} from '@/types/core.js';
 import type {Tokenizer} from '@/types/tokenization.js';
+import test from 'ava';
+import {clearUsageData, readUsageData} from './storage.js';
+import {
+	SessionTracker,
+	clearCurrentSession,
+	getCurrentSession,
+	initializeSession,
+} from './tracker.js';
 
 console.log('\ntracker.spec.ts');
 

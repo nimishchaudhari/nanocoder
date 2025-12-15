@@ -7,7 +7,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {getAppDataPath, getConfigPath} from '@/config/paths';
 import {logInfo, logWarning} from '@/utils/message-queue';
-import type {UsageData, SessionUsage, DailyAggregate} from '../types/usage';
+import type {DailyAggregate, SessionUsage, UsageData} from '../types/usage';
 
 const USAGE_FILE_NAME = 'usage.json';
 const MAX_SESSIONS = 100;

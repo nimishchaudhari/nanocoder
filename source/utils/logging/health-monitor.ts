@@ -3,15 +3,15 @@
  * Provides comprehensive health metrics and monitoring capabilities
  */
 
+import {loadavg} from 'os';
 import {
 	generateCorrelationId,
-	withNewCorrelationContext,
 	getLogger,
+	withNewCorrelationContext,
 } from './index.js';
-import {loadavg} from 'os';
 import {globalLogStorage} from './log-query.js';
-import {globalRequestTracker} from './request-tracker.js';
 import {globalPerformanceMonitor} from './performance.js';
+import {globalRequestTracker} from './request-tracker.js';
 import type {CorrelationContext} from './types.js';
 
 // Get logger instance directly to avoid circular dependencies
@@ -467,7 +467,7 @@ export class HealthMonitor {
 				? allPerfStats.reduce(
 						(sum, stat) => sum + (stat?.avgDuration || 0),
 						0,
-				  ) / allPerfStats.length
+					) / allPerfStats.length
 				: 0;
 
 		return {
@@ -974,8 +974,8 @@ export function healthCheckMiddleware() {
 					health.status === 'healthy'
 						? 200
 						: health.status === 'degraded'
-						? 200
-						: 503;
+							? 200
+							: 503;
 
 				res.status(statusCode).json({
 					status: health.status,

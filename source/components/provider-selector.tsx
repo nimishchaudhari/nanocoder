@@ -1,10 +1,10 @@
-import {useState} from 'react';
-import {Box, Text, useInput} from 'ink';
-import SelectInput from 'ink-select-input';
 import {TitledBox} from '@/components/ui/titled-box';
 import {appConfig} from '@/config/index';
-import {useTheme} from '@/hooks/useTheme';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
+import {Box, Text, useInput} from 'ink';
+import SelectInput from 'ink-select-input';
+import {useState} from 'react';
 
 interface ProviderSelectorProps {
 	currentProvider: string;

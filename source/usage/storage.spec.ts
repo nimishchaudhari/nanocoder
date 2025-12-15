@@ -1,16 +1,16 @@
-import test from 'ava';
 import * as fs from 'node:fs';
-import * as path from 'node:path';
 import * as os from 'node:os';
+import * as path from 'node:path';
+import test from 'ava';
+import type {SessionUsage, TokenBreakdown, UsageData} from '../types/usage.js';
 import {
+	addSession,
+	clearUsageData,
+	getLastNDaysAggregate,
+	getTodayAggregate,
 	readUsageData,
 	writeUsageData,
-	addSession,
-	getTodayAggregate,
-	getLastNDaysAggregate,
-	clearUsageData,
 } from './storage.js';
-import type {UsageData, SessionUsage, TokenBreakdown} from '../types/usage.js';
 
 console.log('\nstorage.spec.ts');
 

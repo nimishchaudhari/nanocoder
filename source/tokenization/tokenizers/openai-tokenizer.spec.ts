@@ -2,9 +2,9 @@
  * Tests for openai-tokenizer.ts
  */
 
+import type {Message} from '@/types/core.js';
 import test from 'ava';
 import {OpenAITokenizer} from './openai-tokenizer.js';
-import type {Message} from '@/types/core.js';
 
 console.log(`\nopenai-tokenizer.spec.ts`);
 

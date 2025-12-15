@@ -2,12 +2,12 @@ import test from 'ava';
 
 // Implementation imports
 import {
-	StructuredConsole,
 	ConsoleInterceptor,
+	ConsoleUsageTracker,
+	StructuredConsole,
+	createModuleConsole,
 	globalConsoleInterceptor,
 	useStructuredConsole,
-	createModuleConsole,
-	ConsoleUsageTracker,
 } from './console-facade.js';
 
 // Since the console-facade uses the real logger at module load time,

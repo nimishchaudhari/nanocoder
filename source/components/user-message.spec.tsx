@@ -1,9 +1,9 @@
-import React from 'react';
 import test from 'ava';
 import {render} from 'ink-testing-library';
-import UserMessage from './user-message';
-import {ThemeContext} from '../hooks/useTheme';
+import React from 'react';
 import {themes} from '../config/themes';
+import {ThemeContext} from '../hooks/useTheme';
+import UserMessage from './user-message';
 
 console.log(`\nuser-message.spec.tsx – ${React.version}`);
 

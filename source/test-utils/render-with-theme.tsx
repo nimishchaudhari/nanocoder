@@ -1,7 +1,7 @@
-import React from 'react';
-import {render} from 'ink-testing-library';
 import {ThemeContext} from '@/hooks/useTheme';
 import type {Colors, ThemePreset} from '@/types/ui';
+import {render} from 'ink-testing-library';
+import React from 'react';
 
 // Default test colors that match the structure used in the app
 const testColors: Colors = {

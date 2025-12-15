@@ -1,8 +1,8 @@
-import type {ProjectAnalysis} from '@/init/project-analyzer';
 import {
-	ExistingRulesExtractor,
 	type ExistingRules,
+	ExistingRulesExtractor,
 } from '@/init/existing-rules-extractor';
+import type {ProjectAnalysis} from '@/init/project-analyzer';
 
 export class AgentsTemplateGenerator {
 	/**

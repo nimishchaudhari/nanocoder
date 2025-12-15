@@ -1,6 +1,6 @@
-import React from 'react';
 import test from 'ava';
 import {render} from 'ink-testing-library';
+import React from 'react';
 import {ProgressBar} from './progress-bar.js';
 
 console.log(`\nprogress-bar.spec.tsx – ${React.version}`);

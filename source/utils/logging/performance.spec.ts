@@ -1,14 +1,14 @@
 import test from 'ava';
 import {
-	trackPerformance,
-	measureTime,
-	checkMemoryThresholds,
-	takePerformanceSnapshot,
-} from './performance.js';
-import {
 	correlationStorage,
 	getCurrentCorrelationContext,
 } from './correlation.js';
+import {
+	checkMemoryThresholds,
+	measureTime,
+	takePerformanceSnapshot,
+	trackPerformance,
+} from './performance.js';
 
 // Test the trackPerformance decorator with async context handling
 test('trackPerformance decorator maintains correlation context throughout async operation', async t => {

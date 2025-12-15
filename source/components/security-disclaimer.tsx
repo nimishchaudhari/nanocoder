@@ -1,8 +1,8 @@
+import {TitledBox} from '@/components/ui/titled-box';
+import {defaultTheme, getThemeColors} from '@/config/themes';
+import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {Box, Text} from 'ink';
 import SelectInput from 'ink-select-input';
-import {TitledBox} from '@/components/ui/titled-box';
-import {useTerminalWidth} from '@/hooks/useTerminalWidth';
-import {getThemeColors, defaultTheme} from '@/config/themes';
 
 interface SecurityDisclaimerProps {
 	onConfirm: () => void;

@@ -1,5 +1,5 @@
-import React from 'react';
 import {Command} from '@/types/index';
+import React from 'react';
 
 export const providerCommand: Command = {
 	name: 'provider',

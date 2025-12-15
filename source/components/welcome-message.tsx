@@ -2,8 +2,8 @@ import {Box, Text} from 'ink';
 import {memo} from 'react';
 
 import {TitledBox} from '@/components/ui/titled-box';
-import {useTheme} from '@/hooks/useTheme';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
 
 import fs from 'fs';
 import path from 'path';

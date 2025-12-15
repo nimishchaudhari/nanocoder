@@ -1,9 +1,9 @@
+import {Box, Text} from 'ink';
 import React, {memo} from 'react';
-import {Text, Box} from 'ink';
 
 import {TitledBox} from '@/components/ui/titled-box';
-import {useTheme} from '@/hooks/useTheme';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
+import {useTheme} from '@/hooks/useTheme';
 
 export default memo(function ToolMessage({
 	title,

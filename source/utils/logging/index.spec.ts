@@ -1,25 +1,25 @@
-import test from 'ava';
-import {existsSync, writeFileSync, rmSync, mkdirSync} from 'fs';
-import {join} from 'path';
+import {existsSync, mkdirSync, rmSync, writeFileSync} from 'fs';
 import {tmpdir} from 'os';
+import {join} from 'path';
+import test from 'ava';
 
 console.log(`\nlogging/index.spec.ts`);
 
 // Import the logging functions we want to test
 import {
-	initializeLogger,
+	createChildLogger,
+	end,
+	flush,
 	getLogger,
 	getLoggerConfig,
-	createChildLogger,
+	initializeLogger,
 	isLevelEnabled,
 	log,
 	console as structuredConsole,
-	flush,
-	end,
 } from './index.js';
 
 // Import types for testing
-import type {LoggerConfig, LogLevel} from './types.js';
+import type {LogLevel, LoggerConfig} from './types.js';
 
 // Create a temporary test directory
 const testDir = join(tmpdir(), `nanocoder-logging-test-${Date.now()}`);

@@ -1,10 +1,10 @@
-import React from 'react';
-import {CustomCommandLoader} from '@/custom-commands/loader';
 import {CustomCommandExecutor} from '@/custom-commands/executor';
+import {CustomCommandLoader} from '@/custom-commands/loader';
+import React from 'react';
+import type {CheckpointListItem} from './checkpoint';
+import type {CustomCommand} from './commands';
 import type {Message} from './core';
 import type {UpdateInfo} from './utils';
-import type {CustomCommand} from './commands';
-import type {CheckpointListItem} from './checkpoint';
 
 export interface MessageSubmissionOptions {
 	customCommandCache: Map<string, CustomCommand>;

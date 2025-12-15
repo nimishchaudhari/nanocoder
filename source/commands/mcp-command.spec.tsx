@@ -1,10 +1,10 @@
 import test from 'ava';
-import React from 'react';
 import {render} from 'ink-testing-library';
-import {MCP} from './mcp';
-import {ToolManager} from '../tools/tool-manager';
-import {ThemeContext} from '../hooks/useTheme';
+import React from 'react';
 import {themes} from '../config/themes';
+import {ThemeContext} from '../hooks/useTheme';
+import {ToolManager} from '../tools/tool-manager';
+import {MCP} from './mcp';
 
 console.log(`\nmcp-command.spec.tsx`);
 
@@ -57,8 +57,8 @@ test('MCP command: displays transport type icons', t => {
 			transport: serverName.includes('stdio')
 				? 'stdio'
 				: serverName.includes('websocket')
-				? 'websocket'
-				: 'http',
+					? 'websocket'
+					: 'http',
 			toolCount: 1,
 			connected: true,
 		}),

@@ -3,10 +3,10 @@
  * Stores model database in XDG_CACHE_HOME for fast lookup
  */
 
-import {xdgCache} from 'xdg-basedir';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type {ModelsDevDatabase, CachedModelsData} from './models-types.js';
+import {xdgCache} from 'xdg-basedir';
+import type {CachedModelsData, ModelsDevDatabase} from './models-types.js';
 
 /**
  * Cache expiration time: 7 days in milliseconds

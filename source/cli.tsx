@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import {render} from 'ink';
 import App from '@/app';
 import type {LoggingCliConfig} from '@/utils/logging/types';
+import {render} from 'ink';
 
 // Parse CLI arguments
 const args = process.argv.slice(2);
