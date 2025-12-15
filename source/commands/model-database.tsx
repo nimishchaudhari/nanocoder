@@ -1,8 +1,8 @@
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {databaseEngine} from '@/model-database/database-engine';
 import {Colors, Command, ModelEntry} from '@/types/index';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text, useFocus, useInput} from 'ink';
 import {Tab, Tabs} from 'ink-tab';
 import React, {useState, useEffect} from 'react';
@@ -148,9 +148,7 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 	if (loading) {
 		return (
 			<TitledBox
-				borderStyle="round"
-				titles={['/model-database']}
-				titleStyles={titleStyles.pill}
+				title="/model-database"
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
@@ -164,9 +162,7 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 	if (error) {
 		return (
 			<TitledBox
-				borderStyle="round"
-				titles={['/model-database']}
-				titleStyles={titleStyles.pill}
+				title="/model-database"
 				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}
@@ -179,9 +175,7 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 
 	return (
 		<TitledBox
-			borderStyle="round"
-			titles={['/model-database']}
-			titleStyles={titleStyles.pill}
+			title="/model-database"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

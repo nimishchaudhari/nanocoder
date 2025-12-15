@@ -1,9 +1,10 @@
 import {spawnSync} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname} from 'node:path';
+import {TitledBox} from '@/components/ui/titled-box';
 import {colors} from '@/config/index';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
+import {logError} from '@/utils/message-queue';
 import {Box, Text, useFocus, useInput} from 'ink';
 import Spinner from 'ink-spinner';
 import {useEffect, useState} from 'react';
@@ -70,7 +71,10 @@ export function ConfigWizard({
 				setProviders(newProviders);
 				setMcpServers(newMcpServers);
 			} catch (err) {
-				console.error('Failed to load existing config:', err);
+				logError('Failed to load existing configuration', true, {
+					context: {configPath},
+					error: err instanceof Error ? err.message : String(err),
+				});
 			}
 		});
 	}, [configPath]);
@@ -337,10 +341,7 @@ export function ConfigWizard({
 
 	return (
 		<TitledBox
-			key={colors.primary}
-			borderStyle="round"
-			titles={[`Configuration Wizard`]}
-			titleStyles={titleStyles.pill}
+			title="Configuration Wizard"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

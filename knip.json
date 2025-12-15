@@ -1,6 +1,6 @@
 {
 	"$schema": "https://unpkg.com/knip@5/schema.json",
-	"ignoreDependencies": [],
+	"ignoreDependencies": ["pino-pretty", "pino-roll", "sonic-boom"],
 	"ignoreBinaries": ["vsce"],
 	"ignore": [
 		"nanocoder-dummy-file.ts",
@@ -13,5 +13,6 @@
 	"ignoreExportsUsedInFile": {
 		"interface": true,
 		"type": true
-	}
+	},
+	"tags": ["-@internal"]
 }

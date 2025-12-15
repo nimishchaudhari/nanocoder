@@ -1,9 +1,9 @@
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {getToolManager} from '@/message-handler';
 import {ToolManager} from '@/tools/tool-manager';
 import type {Command} from '@/types/index';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
 import React from 'react';
 
@@ -32,10 +32,7 @@ export function MCP({toolManager}: MCPProps) {
 
 	return (
 		<TitledBox
-			key={colors.primary}
-			borderStyle="round"
-			titles={['/mcp']}
-			titleStyles={titleStyles.pill}
+			title="/mcp"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

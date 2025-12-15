@@ -2,13 +2,13 @@ import {existsSync} from 'fs';
 import {Box, Text} from 'ink';
 import {memo} from 'react';
 
+import {TitledBox} from '@/components/ui/titled-box';
 import {confDirMap} from '@/config/index';
 import {getThemeColors, themes} from '@/config/themes';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import type {LSPConnectionStatus, MCPConnectionStatus} from '@/types/core';
 import type {ThemePreset} from '@/types/ui';
 import type {UpdateInfo} from '@/types/utils';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 
 // Get CWD once at module load time
 const cwd = process.cwd();
@@ -144,10 +144,7 @@ export default memo(function Status({
 			) : (
 				/* Normal/Wide terminal: full layout with TitledBox */
 				<TitledBox
-					key={colors.primary}
-					borderStyle="round"
-					titles={['Status']}
-					titleStyles={titleStyles.pill}
+					title="Status"
 					width={boxWidth}
 					borderColor={colors.info}
 					paddingX={2}

@@ -5,10 +5,6 @@ import {toolFormatters} from '@/tools/index';
 import type {ToolCall} from '@/types/core';
 import {formatError} from '@/utils/error-formatter';
 import {parseToolArguments} from '@/utils/tool-args-parser';
-import {
-	TitledBox as _TitledBox,
-	titleStyles as _titleStyles,
-} from '@mishieck/ink-titled-box';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import React from 'react';

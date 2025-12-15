@@ -43,9 +43,14 @@ const OLLAMA_MODEL_CONTEXT_LIMITS: Record<string, number> = {
 	mixtral: 32000,
 	'mixtral:8x7b': 32000,
 	'mixtral:8x22b': 64000,
-	ministral: 128000,
-	'ministral:3b': 128000,
-	'ministral:8b': 128000,
+	ministral: 256000,
+	'ministral:3b': 256000,
+	'ministral:8b': 256000,
+	'devstral-small-2:24b': 256000,
+	'devstral-2': 256000,
+
+	// Essentials AI models
+	'rnj-1:8b': 32000,
 
 	// Qwen models
 	qwen: 32000,
@@ -59,6 +64,7 @@ const OLLAMA_MODEL_CONTEXT_LIMITS: Record<string, number> = {
 	'qwen3:7b': 128000,
 	'qwen3:14b': 128000,
 	'qwen3:32b': 128000,
+	'qwen3-coder:480b': 256000,
 
 	// Gemma models
 	gemma: 8192,
@@ -75,21 +81,27 @@ const OLLAMA_MODEL_CONTEXT_LIMITS: Record<string, number> = {
 	// DeepSeek models
 	'deepseek-coder': 16000,
 	'deepseek-coder-v2': 128000,
+	'deepseek-v3.1': 128000,
+	'deepseek-v3.2': 128000,
 
 	// Phi models
 	phi3: 128000,
 	'phi3:mini': 128000,
 	'phi3:medium': 128000,
 
-	// Cloud models
-	'qwen3-coder:480b-cloud': 256000,
-	'gpt-oss:120b-cloud': 128000,
-	'gpt-oss:20b-cloud': 128000,
-	'deepseek-v3.1:671b-cloud': 128000,
-	'minimax-m2:cloud': 196608,
-	'glm-4.6:cloud': 200000,
+	// OpenAI models
+	'gpt-oss:120b': 128000,
+	'gpt-oss:20b': 128000,
+
+	// Z.ai models
+	'glm-4.6': 200000,
+
+	// Moonshot AI models
 	'kimi-k2:1t-cloud': 256000,
 	'kimi-k2-thinking:cloud': 256000,
+
+	// Cloud models
+	'minimax-m2:cloud': 196608,
 };
 
 /**

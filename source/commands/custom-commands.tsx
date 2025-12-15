@@ -1,7 +1,7 @@
+import {TitledBox} from '@/components/ui/titled-box';
 import {CustomCommandLoader} from '@/custom-commands/loader';
 import {useTheme} from '@/hooks/useTheme';
 import type {Command, CustomCommand} from '@/types/index';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
 import React from 'react';
 
@@ -39,10 +39,7 @@ function CustomCommands({commands}: CustomCommandsProps) {
 
 	return (
 		<TitledBox
-			key={colors.primary}
-			borderStyle="round"
-			titles={['Custom Commands']}
-			titleStyles={titleStyles.pill}
+			title="Custom Commands"
 			width={75}
 			borderColor={colors.primary}
 			paddingX={2}

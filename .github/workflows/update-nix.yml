@@ -1,12 +1,24 @@
-name: Update Nix Package (Manual)
+name: Update Nix Package
 
 on:
+  # Manual trigger from Actions UI
   workflow_dispatch:
     inputs:
       version:
         description: 'Version to update to (e.g., 1.15.0)'
         required: true
         type: string
+
+  # Called by other workflows
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version to update to'
+        required: true
+        type: string
+    secrets:
+      PAT_TOKEN:
+        required: true
 
 permissions:
   contents: write
@@ -45,4 +57,3 @@ jobs:
       - name: Summary
         run: |
           echo "✅ Nix package updated to v${{ inputs.version }}"
-          echo "Check the commit: https://github.com/${{ github.repository }}/commits/main"

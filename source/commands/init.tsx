@@ -1,13 +1,13 @@
 import {existsSync, mkdirSync, writeFileSync} from 'fs';
 import {join} from 'path';
 import ErrorMessage from '@/components/error-message';
+import {TitledBox} from '@/components/ui/titled-box';
 import {colors} from '@/config/index';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {AgentsTemplateGenerator} from '@/init/agents-template-generator';
 import {ExistingRulesExtractor} from '@/init/existing-rules-extractor';
 import {ProjectAnalyzer} from '@/init/project-analyzer';
 import {Command} from '@/types/index';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
 import React from 'react';
 
@@ -26,9 +26,7 @@ function InitSuccess({
 	const boxWidth = useTerminalWidth();
 	return (
 		<TitledBox
-			borderStyle="round"
-			titles={['Project Initialized']}
-			titleStyles={titleStyles.pill}
+			title="Project Initialized"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

@@ -2,12 +2,12 @@
  * Usage display component for /usage command
  */
 
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import type {Message} from '@/types/core.js';
 import type {TokenBreakdown} from '@/types/usage.js';
 import {formatTokenCount, getUsageStatusColor} from '@/usage/calculator.js';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
 import React from 'react';
 import {ProgressBar} from './progress-bar.js';
@@ -86,10 +86,7 @@ export function UsageDisplay({
 
 	return (
 		<TitledBox
-			key={colors.primary}
-			borderStyle="round"
-			titles={['Context Usage']}
-			titleStyles={titleStyles.pill}
+			title="Context Usage"
 			width={boxWidth}
 			borderColor={colors.info}
 			paddingX={2}

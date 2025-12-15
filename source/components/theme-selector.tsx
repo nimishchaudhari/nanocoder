@@ -1,8 +1,8 @@
+import {TitledBox} from '@/components/ui/titled-box';
 import {themes} from '@/config/themes';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import type {ThemePreset} from '@/types/ui';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text, useInput} from 'ink';
 import BigText from 'ink-big-text';
 import Gradient from 'ink-gradient';
@@ -69,10 +69,7 @@ export default function ThemeSelector({
 			</Gradient>
 
 			<TitledBox
-				key={colors.primary}
-				borderStyle="round"
-				titles={[`✻ Try out different themes!`]}
-				titleStyles={titleStyles.pill}
+				title="✻ Try out different themes!"
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}

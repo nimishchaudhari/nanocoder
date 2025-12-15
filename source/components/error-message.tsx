@@ -1,7 +1,7 @@
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
 import {memo} from 'react';
 
+import {TitledBox} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 
@@ -35,10 +35,7 @@ export default memo(function ErrorMessage({
 				</Box>
 			) : (
 				<TitledBox
-					key={colors.primary}
-					borderStyle="round"
-					titles={['Error']}
-					titleStyles={titleStyles.pill}
+					title="Error"
 					width={boxWidth}
 					borderColor={colors.error}
 					paddingX={2}

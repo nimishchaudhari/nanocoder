@@ -1,6 +1,6 @@
+import {TitledBox} from '@/components/ui/titled-box';
 import {defaultTheme, getThemeColors} from '@/config/themes';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
-import {TitledBox, titleStyles} from '@mishieck/ink-titled-box';
 import {Box, Text} from 'ink';
 import SelectInput from 'ink-select-input';
 
@@ -47,10 +47,7 @@ export default function SecurityDisclaimer({
 	return (
 		<Box flexDirection="column" padding={1}>
 			<TitledBox
-				key={colors.primary}
-				borderStyle="round"
-				titles={['Security Warning']}
-				titleStyles={titleStyles.pill}
+				title="Security Warning"
 				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}

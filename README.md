@@ -394,6 +394,40 @@ If you experience the model repeating tool calls or getting into loops (especial
 
 Tool-calling conversations require more context to track the history of tool calls and their results. If the context window is too small, the model may lose track of previous actions and repeat them indefinitely.
 
+### Logging Configuration
+
+Nanocoder now includes comprehensive structured logging with Pino, providing enterprise-grade logging capabilities including correlation tracking, performance monitoring, and security features.
+
+**Logging Configuration Options:**
+
+```bash
+# Environment Variables
+NANOCODER_LOG_LEVEL=debug          # Log level (trace, debug, info, warn, error, fatal)
+NANOCODER_LOG_TO_FILE=true         # Enable file logging
+NANOCODER_LOG_TO_CONSOLE=true      # Enable console logging
+NANOCODER_LOG_DIR=/var/log/nanocoder # Log directory
+NANOCODER_CORRELATION_ENABLED=true  # Enable correlation tracking
+```
+
+**Features:**
+- Structured JSON logging with metadata support
+- Correlation tracking across components
+- Automatic PII detection and redaction
+- Performance monitoring and metrics
+- Production-ready file rotation and compression
+
+**Default Log File Locations:**
+
+When `NANOCODER_LOG_TO_FILE=true` is set, logs are stored in platform-specific locations:
+
+- **macOS**: `~/Library/Preferences/nanocoder/logs`
+- **Linux/Unix**: `~/.config/nanocoder/logs/nanocoder/`
+- **Windows**: `%APPDATA%\nanocoder\logs\`
+
+You can override the default location using `NANOCODER_LOG_DIR` environment variable.
+
+For complete documentation, see [Pino Logging Guide](docs/pino-logging-comprehensive.md).
+
 ### MCP (Model Context Protocol) Servers
 
 Nanocoder supports connecting to MCP servers to extend its capabilities with additional tools. Configure MCP servers in your `agents.config.json`:
