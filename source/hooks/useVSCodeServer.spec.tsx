@@ -220,7 +220,7 @@ test('UseVSCodeServerReturn interface has expected methods', t => {
 	const mockReturn = {
 		isConnected: false,
 		connectionCount: 0,
-		sendAssistantMessage: (_content: string, _isStreaming?: boolean) => {},
+		sendAssistantMessage: (_content: string, _isGenerating?: boolean) => {},
 		notifyFileChange: (
 			_filePath: string,
 			_originalContent: string,
@@ -243,7 +243,7 @@ test('UseVSCodeServerReturn interface has expected methods', t => {
 test('sendAssistantMessage accepts correct parameters', t => {
 	const sendAssistantMessage = (
 		_content: string,
-		_isStreaming?: boolean,
+		_isGenerating?: boolean,
 	): void => {};
 
 	t.notThrows(() => {

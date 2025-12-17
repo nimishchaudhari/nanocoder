@@ -433,6 +433,17 @@ export default function UserInput({
 
 	const textColor = disabled || !input ? colors.secondary : colors.primary;
 
+	// When disabled, show minimal UI to avoid cluttering the screen
+	if (disabled) {
+		return (
+			<Box flexDirection="column" paddingY={1} width="100%" marginTop={1}>
+				<Text color={colors.secondary} dimColor>
+					<Spinner type="dots" /> Press Esc to cancel
+				</Text>
+			</Box>
+		);
+	}
+
 	return (
 		<Box flexDirection="column" paddingY={1} width="100%" marginTop={1}>
 			<Box
@@ -445,7 +456,7 @@ export default function UserInput({
 				{!isBashMode && (
 					<>
 						<Text color={colors.primary} bold>
-							{disabled ? '' : 'What would you like me to help with?'}
+							What would you like me to help with?
 						</Text>
 					</>
 				)}
@@ -453,20 +464,14 @@ export default function UserInput({
 				{/* Input row */}
 				<Box>
 					<Text color={textColor}>{'>'} </Text>
-					{disabled ? (
-						<Text color={colors.secondary}>
-							<Spinner type="dots" />
-						</Text>
-					) : (
-						<TextInput
-							key={textInputKey}
-							value={input}
-							onChange={updateInput}
-							onSubmit={handleSubmit}
-							placeholder={actualPlaceholder}
-							focus={isFocused}
-						/>
-					)}
+					<TextInput
+						key={textInputKey}
+						value={input}
+						onChange={updateInput}
+						onSubmit={handleSubmit}
+						placeholder={actualPlaceholder}
+						focus={isFocused}
+					/>
 				</Box>
 
 				{isBashMode && (

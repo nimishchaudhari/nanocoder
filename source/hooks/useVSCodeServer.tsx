@@ -22,7 +22,7 @@ interface UseVSCodeServerProps {
 interface UseVSCodeServerReturn {
 	isConnected: boolean;
 	connectionCount: number;
-	sendAssistantMessage: (content: string, isStreaming?: boolean) => void;
+	sendAssistantMessage: (content: string, isGenerating?: boolean) => void;
 	notifyFileChange: (
 		filePath: string,
 		originalContent: string,
@@ -131,9 +131,9 @@ export function useVSCodeServer({
 	}, [enabled, currentModel, currentProvider, isConnected]);
 
 	const sendAssistantMessage = useCallback(
-		(content: string, isStreaming = false) => {
+		(content: string, isGenerating = false) => {
 			if (serverRef.current && enabled) {
-				serverRef.current.sendAssistantMessage(content, isStreaming);
+				serverRef.current.sendAssistantMessage(content, isGenerating);
 			}
 		},
 		[enabled],

@@ -87,7 +87,7 @@ const executeReplaceLines = async (args: ReplaceLinesArgs): Promise<string> => {
 
 const replaceLinesCoreTool = tool({
 	description:
-		'Replace lines in a file (single line or range) with new content',
+		'Replace lines in a file (single line or range) with new content. IMPORTANT: Make granular, surgical edits - replace ONLY the specific lines that need changes (typically 1-10 lines). NEVER replace large ranges (>20 lines) when smaller edits would work. Break complex changes into multiple small edits.',
 	inputSchema: jsonSchema<ReplaceLinesArgs>({
 		type: 'object',
 		properties: {

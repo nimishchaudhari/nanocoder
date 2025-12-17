@@ -230,20 +230,29 @@ export function parseAPIError(error: unknown): string {
 }
 
 /**
- * Convert our Message format to AI SDK v5 ModelMessage format
+ * Convert our Message format to AI SDK v6 ModelMessage format
  *
- * Tool messages: Converted to user messages with [Tool: name] prefix.
- * This approach is simpler and avoids issues with orphaned tool results
- * in multi-turn conversations.
+ * Tool messages: Converted to AI SDK tool-result format with proper structure.
  */
 function convertToModelMessages(messages: Message[]): ModelMessage[] {
 	return messages.map((msg): ModelMessage => {
 		if (msg.role === 'tool') {
-			// Convert tool results to user messages with clear labeling
-			const toolName = msg.name || 'unknown_tool';
+			// Convert to AI SDK tool-result format
+			// AI SDK expects: { role: 'tool', content: [{ type: 'tool-result', toolCallId, toolName, output }] }
+			// where output is { type: 'text', value: string } or { type: 'json', value: JSONValue }
 			return {
-				role: 'user',
-				content: `[Tool: ${toolName}]\n${msg.content}`,
+				role: 'tool',
+				content: [
+					{
+						type: 'tool-result',
+						toolCallId: msg.tool_call_id || '',
+						toolName: msg.name || '',
+						output: {
+							type: 'text',
+							value: msg.content,
+						},
+					},
+				],
 			};
 		}
 
@@ -464,7 +473,6 @@ export class AISDKClient implements LLMClient {
 					tools: aiTools,
 					abortSignal: signal,
 					maxRetries: this.maxRetries,
-					temperature: 0.6,
 					stopWhen: stepCountIs(10), // Allow up to 10 tool execution steps
 					// Can be used to add custom logging, metrics, or step tracking
 					onStepFinish(step) {
@@ -513,17 +521,45 @@ export class AISDKClient implements LLMClient {
 					prepareStep: ({messages}) => {
 						// Filter out empty assistant messages that would cause API errors
 						// "Assistant message must have either content or tool_calls"
-						const filteredMessages = messages.filter(
-							m => !isEmptyAssistantMessage(m as unknown as TestableMessage),
-						);
+						// Also filter out orphaned tool messages that follow empty assistant messages
+						const filteredMessages: typeof messages = [];
+						const indicesToSkip = new Set<number>();
+
+						// First pass: identify empty assistant messages and their orphaned tool results
+						for (let i = 0; i < messages.length; i++) {
+							if (
+								isEmptyAssistantMessage(
+									messages[i] as unknown as TestableMessage,
+								)
+							) {
+								indicesToSkip.add(i);
+
+								// Mark any immediately following tool messages as orphaned
+								let j = i + 1;
+								while (j < messages.length && messages[j].role === 'tool') {
+									indicesToSkip.add(j);
+									j++;
+								}
+							}
+						}
+
+						// Second pass: build filtered array
+						for (let i = 0; i < messages.length; i++) {
+							if (!indicesToSkip.has(i)) {
+								filteredMessages.push(messages[i]);
+							}
+						}
 
 						// Log message filtering
 						if (filteredMessages.length !== messages.length) {
-							logger.debug('Filtered empty assistant messages', {
-								originalCount: messages.length,
-								filteredCount: filteredMessages.length,
-								removedCount: messages.length - filteredMessages.length,
-							});
+							logger.debug(
+								'Filtered empty assistant messages and orphaned tool results',
+								{
+									originalCount: messages.length,
+									filteredCount: filteredMessages.length,
+									removedCount: messages.length - filteredMessages.length,
+								},
+							);
 						}
 
 						// Return filtered messages if any were removed, otherwise no changes

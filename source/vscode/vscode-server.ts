@@ -172,11 +172,11 @@ export class VSCodeServer {
 	/**
 	 * Send an assistant message to VS Code
 	 */
-	sendAssistantMessage(content: string, isStreaming: boolean = false): void {
+	sendAssistantMessage(content: string, isGenerating: boolean = false): void {
 		const message: AssistantMessage = {
 			type: 'assistant_message',
 			content,
-			isStreaming,
+			isGenerating,
 		};
 		this.broadcast(message);
 	}

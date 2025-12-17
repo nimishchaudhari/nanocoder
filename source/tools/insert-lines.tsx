@@ -68,7 +68,8 @@ const executeInsertLines = async (args: InsertLinesArgs): Promise<string> => {
 };
 
 const insertLinesCoreTool = tool({
-	description: 'Insert new lines at a specific line number in a file',
+	description:
+		'Insert new lines at a specific line number in a file. IMPORTANT: Make small, targeted insertions (typically 1-10 lines). For large additions, consider if they should be separate functions or files instead.',
 	inputSchema: jsonSchema<InsertLinesArgs>({
 		type: 'object',
 		properties: {

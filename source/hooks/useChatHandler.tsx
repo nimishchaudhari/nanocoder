@@ -16,19 +16,6 @@ import {parseToolArguments} from '@/utils/tool-args-parser';
 import {displayToolResult} from '@/utils/tool-result-display';
 import React from 'react';
 
-// Normalize streaming content to prevent excessive blank lines during output
-const normalizeStreamingContent = (content: string): string =>
-	content
-		// Strip <think>...</think> tags (some models output thinking that shouldn't be shown)
-		.replace(/<think>[\s\S]*?<\/think>/gi, '')
-		// Strip orphaned/incomplete think tags (during streaming)
-		.replace(/<think>[\s\S]*$/gi, '')
-		.replace(/<\/think>/gi, '')
-		// Collapse 3+ consecutive newlines to 2 (one blank line max)
-		.replace(/\n{3,}/g, '\n\n')
-		// Remove leading whitespace (clean start)
-		.replace(/^\s+/, '');
-
 // Helper function to convert tool results to message format
 const toolResultsToMessages = (results: ToolResult[]): Message[] =>
 	results.map(result => ({
@@ -138,14 +125,16 @@ export function useChatHandler({
 
 	// State for streaming message content
 	const [streamingContent, setStreamingContent] = React.useState<string>('');
-	const [isStreaming, setIsStreaming] = React.useState<boolean>(false);
+	const [isGenerating, setIsGenerating] = React.useState<boolean>(false);
+	const [tokenCount, setTokenCount] = React.useState<number>(0);
 
 	// Helper to reset all streaming state
 	const resetStreamingState = React.useCallback(() => {
 		setIsCancelling(false);
 		setAbortController(null);
-		setIsStreaming(false);
+		setIsGenerating(false);
 		setStreamingContent('');
+		setTokenCount(0);
 	}, [setIsCancelling, setAbortController]);
 
 	// Helper to display errors in chat queue
@@ -247,19 +236,15 @@ export function useChatHandler({
 
 		try {
 			// Use streaming with callbacks
-			let accumulatedContent = '';
 
-			setIsStreaming(true);
+			setIsGenerating(true);
 			setStreamingContent('');
+			setTokenCount(0);
 
 			const result = await client.chat(
 				[systemMessage, ...messages],
 				toolManager?.getAllTools() || {},
 				{
-					onToken: (token: string) => {
-						accumulatedContent += token;
-						setStreamingContent(normalizeStreamingContent(accumulatedContent));
-					},
 					onToolExecuted: (toolCall: ToolCall, result: string) => {
 						// Display formatter for auto-executed tools (after execution with results)
 						void (async () => {
@@ -279,7 +264,7 @@ export function useChatHandler({
 						})();
 					},
 					onFinish: () => {
-						setIsStreaming(false);
+						setIsGenerating(false);
 					},
 				},
 				controller.signal,
@@ -330,7 +315,7 @@ export function useChatHandler({
 				setMessages(updatedMessagesWithError);
 
 				// Clear streaming state before recursing
-				setIsStreaming(false);
+				setIsGenerating(false);
 				setStreamingContent('');
 
 				// Continue the main conversation loop with error message as context
@@ -379,7 +364,7 @@ export function useChatHandler({
 			}
 
 			// Clear streaming state after response is complete
-			setIsStreaming(false);
+			setIsGenerating(false);
 			setStreamingContent('');
 
 			// Handle error results for non-existent tools
@@ -802,7 +787,8 @@ export function useChatHandler({
 	return {
 		handleChatMessage,
 		processAssistantResponse,
-		isStreaming,
+		isGenerating,
 		streamingContent,
+		tokenCount,
 	};
 }

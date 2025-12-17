@@ -5,6 +5,7 @@ import ToolMessage from '@/components/tool-message';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
 import type {NanocoderToolExport} from '@/types/core';
+import {normalizeIndentation} from '@/utils/normalize-indentation';
 import {Box, Text} from 'ink';
 import React from 'react';
 
@@ -101,11 +102,17 @@ const executeReadFile = async (args: {
 			? Math.min(totalLines, args.end_line)
 			: totalLines;
 
+		// Extract the lines to return
+		const linesToReturn = lines.slice(startLine - 1, endLine);
+
+		// Normalize indentation for display
+		const normalizedLines = normalizeIndentation(linesToReturn);
+
 		// Return content with line numbers for precise editing
 		let result = '';
-		for (let i = startLine - 1; i < endLine; i++) {
-			const lineNum = String(i + 1).padStart(4, ' ');
-			result += `${lineNum}: ${lines[i]}\n`;
+		for (let i = 0; i < normalizedLines.length; i++) {
+			const lineNum = String(startLine + i).padStart(4, ' ');
+			result += `${lineNum}: ${normalizedLines[i]}\n`;
 		}
 
 		return result.slice(0, -1); // Remove trailing newline

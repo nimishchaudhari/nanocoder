@@ -356,7 +356,7 @@ export default function App({
 						clientInitialized: !!appState.client,
 						mcpServersConnected: appState.mcpInitialized,
 						inputDisabled:
-							chatHandler.isStreaming ||
+							chatHandler.isGenerating ||
 							appState.isToolExecuting ||
 							appState.isBashExecuting,
 					},
@@ -372,7 +372,7 @@ export default function App({
 		appState.pendingToolCalls.length,
 		logger,
 		appState.developmentMode,
-		chatHandler.isStreaming,
+		chatHandler.isGenerating,
 		appState.isBashExecuting,
 	]);
 
@@ -832,17 +832,6 @@ export default function App({
 					{appState.startChat && (
 						<Box flexDirection="column" marginLeft={-1}>
 							{appState.isCancelling && <CancellingIndicator />}
-							{/* Show streaming content while it's being streamed */}
-							{chatHandler.isStreaming && chatHandler.streamingContent && (
-								<Box flexDirection="column" marginBottom={1}>
-									<Box marginBottom={1}>
-										<Text color={themeContextValue.colors.primary} bold>
-											{appState.currentModel}:
-										</Text>
-									</Box>
-									<Text>{chatHandler.streamingContent}</Text>
-								</Box>
-							)}
 							{appState.isModelSelectionMode ? (
 								<ModelSelector
 									client={appState.client}
@@ -919,7 +908,7 @@ export default function App({
 									)}
 									onSubmit={msg => void handleMessageSubmit(msg)}
 									disabled={
-										chatHandler.isStreaming ||
+										chatHandler.isGenerating ||
 										appState.isToolExecuting ||
 										appState.isBashExecuting
 									}

@@ -50,7 +50,7 @@ export interface ToolCallMessage {
 export interface AssistantMessage {
 	type: 'assistant_message';
 	content: string;
-	isStreaming: boolean;
+	isGenerating: boolean;
 }
 
 // Status update from CLI

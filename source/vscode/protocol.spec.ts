@@ -110,22 +110,22 @@ test('AssistantMessage has correct structure', t => {
 	const message: AssistantMessage = {
 		type: 'assistant_message',
 		content: 'Hello, I can help you with that.',
-		isStreaming: false,
+		isGenerating: false,
 	};
 
 	t.is(message.type, 'assistant_message');
 	t.is(message.content, 'Hello, I can help you with that.');
-	t.false(message.isStreaming);
+	t.false(message.isGenerating);
 });
 
 test('AssistantMessage can be streaming', t => {
 	const message: AssistantMessage = {
 		type: 'assistant_message',
 		content: 'Partial response...',
-		isStreaming: true,
+		isGenerating: true,
 	};
 
-	t.true(message.isStreaming);
+	t.true(message.isGenerating);
 });
 
 test('StatusMessage has correct structure', t => {
@@ -407,7 +407,7 @@ test('ServerMessage type union includes all message types', t => {
 			toolArgs: {},
 			status: 'pending',
 		},
-		{type: 'assistant_message', content: 'test', isStreaming: false},
+		{type: 'assistant_message', content: 'test', isGenerating: false},
 		{type: 'status', connected: true},
 		{type: 'connection_ack', protocolVersion: '1.0.0', cliVersion: '1.0.0'},
 		{type: 'diagnostics_request'},
