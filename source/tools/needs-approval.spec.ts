@@ -1,15 +1,13 @@
 import test from 'ava';
 import {setCurrentMode} from '../context/mode-context.js';
 import {createFileTool} from './create-file.js';
-import {deleteLinesTool} from './delete-lines.js';
 import {executeBashTool} from './execute-bash.js';
 import {fetchUrlTool} from './fetch-url.js';
 import {findFilesTool} from './find-files.js';
-import {insertLinesTool} from './insert-lines.js';
 import {getDiagnosticsTool} from './lsp-get-diagnostics.js';
 import {readFileTool} from './read-file.js';
-import {replaceLinesTool} from './replace-lines.js';
 import {searchFileContentsTool} from './search-file-contents.js';
+import {stringReplaceTool} from './string-replace.js';
 import {webSearchTool} from './web-search.js';
 
 // ============================================================================
@@ -93,98 +91,33 @@ test('create_file requires approval in plan mode', async t => {
 	t.true(needsApproval);
 });
 
-// insert_lines
-test('insert_lines requires approval in normal mode', async t => {
+// string_replace
+test('string_replace requires approval in normal mode', async t => {
 	setCurrentMode('normal');
-	const needsApproval = await evaluateNeedsApproval(insertLinesTool, {
+	const needsApproval = await evaluateNeedsApproval(stringReplaceTool, {
 		path: 'test.txt',
-		line_number: 1,
-		content: 'test',
+		old_str: 'old',
+		new_str: 'new',
 	});
 	t.true(needsApproval);
 });
 
-test('insert_lines does NOT require approval in auto-accept mode', async t => {
+test('string_replace does NOT require approval in auto-accept mode', async t => {
 	setCurrentMode('auto-accept');
-	const needsApproval = await evaluateNeedsApproval(insertLinesTool, {
+	const needsApproval = await evaluateNeedsApproval(stringReplaceTool, {
 		path: 'test.txt',
-		line_number: 1,
-		content: 'test',
+		old_str: 'old',
+		new_str: 'new',
 	});
 	t.false(needsApproval);
 });
 
-test('insert_lines requires approval in plan mode', async t => {
+test('string_replace requires approval in plan mode', async t => {
 	setCurrentMode('plan');
-	const needsApproval = await evaluateNeedsApproval(insertLinesTool, {
+	const needsApproval = await evaluateNeedsApproval(stringReplaceTool, {
 		path: 'test.txt',
-		line_number: 1,
-		content: 'test',
-	});
-	t.true(needsApproval);
-});
-
-// replace_lines
-test('replace_lines requires approval in normal mode', async t => {
-	setCurrentMode('normal');
-	const needsApproval = await evaluateNeedsApproval(replaceLinesTool, {
-		path: 'test.txt',
-		start_line: 1,
-		end_line: 2,
-		new_content: 'test',
-	});
-	t.true(needsApproval);
-});
-
-test('replace_lines does NOT require approval in auto-accept mode', async t => {
-	setCurrentMode('auto-accept');
-	const needsApproval = await evaluateNeedsApproval(replaceLinesTool, {
-		path: 'test.txt',
-		start_line: 1,
-		end_line: 2,
-		new_content: 'test',
-	});
-	t.false(needsApproval);
-});
-
-test('replace_lines requires approval in plan mode', async t => {
-	setCurrentMode('plan');
-	const needsApproval = await evaluateNeedsApproval(replaceLinesTool, {
-		path: 'test.txt',
-		start_line: 1,
-		end_line: 2,
-		new_content: 'test',
-	});
-	t.true(needsApproval);
-});
-
-// delete_lines
-test('delete_lines requires approval in normal mode', async t => {
-	setCurrentMode('normal');
-	const needsApproval = await evaluateNeedsApproval(deleteLinesTool, {
-		path: 'test.txt',
-		start_line: 1,
-		end_line: 2,
-	});
-	t.true(needsApproval);
-});
-
-test('delete_lines does NOT require approval in auto-accept mode', async t => {
-	setCurrentMode('auto-accept');
-	const needsApproval = await evaluateNeedsApproval(deleteLinesTool, {
-		path: 'test.txt',
-		start_line: 1,
-		end_line: 2,
-	});
-	t.false(needsApproval);
-});
-
-test('delete_lines requires approval in plan mode', async t => {
-	setCurrentMode('plan');
-	const needsApproval = await evaluateNeedsApproval(deleteLinesTool, {
-		path: 'test.txt',
-		start_line: 1,
-		end_line: 2,
+		old_str: 'old',
+		new_str: 'new',
 	});
 	t.true(needsApproval);
 });
