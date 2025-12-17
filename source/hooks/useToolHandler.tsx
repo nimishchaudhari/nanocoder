@@ -9,6 +9,7 @@ import {
 	ToolCall,
 	ToolResult,
 } from '@/types/core';
+import {MessageBuilder} from '@/utils/message-builder';
 import {parseToolArguments} from '@/utils/tool-args-parser';
 import {createCancellationResults} from '@/utils/tool-cancellation';
 import {displayToolResult} from '@/utils/tool-result-display';
@@ -71,25 +72,13 @@ export function useToolHandler({
 		// Use passed results or fallback to state (for backwards compatibility)
 		const resultsToUse = toolResults || completedToolResults;
 
-		const {updatedMessages, assistantMsg, systemMessage} =
+		const {messagesBeforeToolExecution, systemMessage} =
 			currentConversationContext;
 
-		// Format tool results as standard tool messages
-		const toolMessages = resultsToUse.map(result => ({
-			role: 'tool' as const,
-			content: result.content || '',
-			tool_call_id: result.tool_call_id,
-			name: result.name,
-		}));
-
-		// Update conversation history with tool results
-		// The assistantMsg is NOT included in updatedMessages (updatedMessages is the state before adding assistantMsg)
-		// We need to add both the assistant message and the tool results
-		const updatedMessagesWithTools = [
-			...updatedMessages,
-			assistantMsg, // Add the assistant message with tool_calls intact for proper tool_call_id matching
-			...toolMessages,
-		];
+		// Build updated messages with tool results
+		const builder = new MessageBuilder(messagesBeforeToolExecution);
+		builder.addToolResults(resultsToUse);
+		const updatedMessagesWithTools = builder.build();
 		setMessages(updatedMessagesWithTools);
 
 		// Reset tool confirmation state since we're continuing the conversation
@@ -126,23 +115,12 @@ export function useToolHandler({
 			// This is critical to maintain conversation state integrity
 			const cancellationResults = createCancellationResults(pendingToolCalls);
 
-			const {updatedMessages, assistantMsg} = currentConversationContext;
+			const {messagesBeforeToolExecution} = currentConversationContext;
 
-			// Format tool results as standard tool messages
-			const toolMessages = cancellationResults.map(result => ({
-				role: 'tool' as const,
-				content: result.content || '',
-				tool_call_id: result.tool_call_id,
-				name: result.name,
-			}));
-
-			// Update conversation history with the assistant message + cancellation results
-			// This prevents the "mismatch" error on the next user message
-			const updatedMessagesWithCancellation = [
-				...updatedMessages,
-				assistantMsg, // Add the assistant message with tool_calls
-				...toolMessages, // Add cancellation results
-			];
+			// Build updated messages with cancellation results
+			const builder = new MessageBuilder(messagesBeforeToolExecution);
+			builder.addToolResults(cancellationResults);
+			const updatedMessagesWithCancellation = builder.build();
 			setMessages(updatedMessagesWithCancellation);
 
 			// Reset state to allow user to type a new message
@@ -338,23 +316,12 @@ export function useToolHandler({
 		// This is critical to maintain conversation state integrity
 		const cancellationResults = createCancellationResults(pendingToolCalls);
 
-		const {updatedMessages, assistantMsg} = currentConversationContext;
+		const {messagesBeforeToolExecution} = currentConversationContext;
 
-		// Format tool results as standard tool messages
-		const toolMessages = cancellationResults.map(result => ({
-			role: 'tool' as const,
-			content: result.content || '',
-			tool_call_id: result.tool_call_id,
-			name: result.name,
-		}));
-
-		// Update conversation history with the assistant message + cancellation results
-		// This prevents the "mismatch" error on the next user message
-		const updatedMessagesWithCancellation = [
-			...updatedMessages,
-			assistantMsg, // Add the assistant message with tool_calls
-			...toolMessages, // Add cancellation results
-		];
+		// Build updated messages with cancellation results
+		const builder = new MessageBuilder(messagesBeforeToolExecution);
+		builder.addToolResults(cancellationResults);
+		const updatedMessagesWithCancellation = builder.build();
 		setMessages(updatedMessagesWithCancellation);
 
 		// Reset state to allow user to type a new message
@@ -365,7 +332,7 @@ export function useToolHandler({
 	// Start tool confirmation flow
 	const startToolConfirmationFlow = (
 		toolCalls: ToolCall[],
-		updatedMessages: Message[],
+		messagesBeforeToolExecution: Message[],
 		assistantMsg: Message,
 		systemMessage: Message,
 	) => {
@@ -373,7 +340,7 @@ export function useToolHandler({
 		setCurrentToolIndex(0);
 		setCompletedToolResults([]);
 		setCurrentConversationContext({
-			updatedMessages,
+			messagesBeforeToolExecution,
 			assistantMsg,
 			systemMessage,
 		});

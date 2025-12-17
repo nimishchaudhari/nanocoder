@@ -20,7 +20,7 @@ import {
 } from '@/utils/logging';
 import {createOpenAICompatible} from '@ai-sdk/openai-compatible';
 import {APICallError, RetryError, generateText, stepCountIs} from 'ai';
-import type {ModelMessage} from 'ai';
+import type {AssistantContent, ModelMessage, TextPart, ToolCallPart} from 'ai';
 import {Agent, fetch as undiciFetch} from 'undici';
 
 /**
@@ -271,11 +271,40 @@ function convertToModelMessages(messages: Message[]): ModelMessage[] {
 		}
 
 		if (msg.role === 'assistant') {
+			// Build content array
+			const content: AssistantContent = [];
+
+			// Add text content if present
+			if (msg.content) {
+				content.push({
+					type: 'text',
+					text: msg.content,
+				} as TextPart);
+			}
+
+			// Add tool calls if present (for auto-executed messages)
+			if (msg.tool_calls && msg.tool_calls.length > 0) {
+				for (const toolCall of msg.tool_calls) {
+					content.push({
+						type: 'tool-call',
+						toolCallId: toolCall.id,
+						toolName: toolCall.function.name,
+						input: toolCall.function.arguments,
+					} as ToolCallPart);
+				}
+			}
+
+			// If no content at all, add empty text to avoid empty message
+			if (content.length === 0) {
+				content.push({
+					type: 'text',
+					text: '',
+				} as TextPart);
+			}
+
 			return {
 				role: 'assistant',
-				content: msg.content,
-				// Note: tool_calls are handled separately by AI SDK
-				// They come from the response, not the input messages
+				content,
 			};
 		}
 
@@ -587,8 +616,53 @@ export class AISDKClient implements LLMClient {
 				// Get tool calls from result
 				const toolCallsResult = result.toolCalls;
 
-				// Can inspect result.steps to see auto-executed tool calls and results
-				// const steps = await result.steps;
+				// Extract auto-executed assistant messages and tool results from steps
+				// These need to be added to the messages array so usage tracking can count them
+				const autoExecutedMessages: Array<Message> = [];
+				const steps = result.steps;
+				for (const step of steps) {
+					if (
+						step.toolCalls &&
+						step.toolResults &&
+						step.toolCalls.length === step.toolResults.length
+					) {
+						// This step had tool calls that were auto-executed
+						// Add the assistant message with tool_calls
+						const stepToolCalls: ToolCall[] = step.toolCalls.map(toolCall => ({
+							id:
+								toolCall.toolCallId ||
+								`tool_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+							function: {
+								name: toolCall.toolName,
+								arguments: toolCall.input as Record<string, unknown>,
+							},
+						}));
+
+						autoExecutedMessages.push({
+							role: 'assistant',
+							content: step.text || '',
+							tool_calls: stepToolCalls,
+						});
+
+						// Add the tool result messages
+						step.toolCalls.forEach((toolCall, idx) => {
+							const toolResult = step.toolResults[idx];
+							const resultStr =
+								typeof toolResult.output === 'string'
+									? toolResult.output
+									: JSON.stringify(toolResult.output);
+
+							autoExecutedMessages.push({
+								role: 'tool' as const,
+								content: resultStr,
+								tool_call_id:
+									toolCall.toolCallId ||
+									`tool_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+								name: toolCall.toolName,
+							});
+						});
+					}
+				}
 
 				// Extract tool calls
 				const toolCalls: ToolCall[] = [];
@@ -701,6 +775,9 @@ export class AISDKClient implements LLMClient {
 							},
 						},
 					],
+					// Include auto-executed messages so they can be added to message history
+					autoExecutedMessages:
+						autoExecutedMessages.length > 0 ? autoExecutedMessages : undefined,
 				};
 			} catch (error) {
 				// Calculate performance metrics even for errors

@@ -292,7 +292,7 @@ export default function App({
 		nonInteractiveMode,
 		onStartToolConfirmationFlow: (
 			toolCalls,
-			updatedMessages,
+			messagesBeforeToolExecution,
 			assistantMsg,
 			systemMessage,
 		) => {
@@ -300,7 +300,7 @@ export default function App({
 			appState.setCurrentToolIndex(0);
 			appState.setCompletedToolResults([]);
 			appState.setCurrentConversationContext({
-				updatedMessages,
+				messagesBeforeToolExecution,
 				assistantMsg,
 				systemMessage,
 			});

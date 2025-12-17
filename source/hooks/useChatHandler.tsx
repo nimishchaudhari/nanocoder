@@ -11,19 +11,11 @@ import {ToolManager} from '@/tools/tool-manager';
 import {LLMClient, Message, ToolCall, ToolResult} from '@/types/core';
 import {calculateTokenBreakdown} from '@/usage/calculator';
 import {formatError} from '@/utils/error-formatter';
+import {MessageBuilder} from '@/utils/message-builder';
 import {processPromptTemplate} from '@/utils/prompt-processor';
 import {parseToolArguments} from '@/utils/tool-args-parser';
 import {displayToolResult} from '@/utils/tool-result-display';
 import React from 'react';
-
-// Helper function to convert tool results to message format
-const toolResultsToMessages = (results: ToolResult[]): Message[] =>
-	results.map(result => ({
-		role: 'tool' as const,
-		content: result.content || '',
-		tool_call_id: result.tool_call_id,
-		name: result.name,
-	}));
 
 // Helper function to filter out invalid tool calls and deduplicate by ID and function
 // Returns valid tool calls and error results for invalid ones
@@ -307,11 +299,11 @@ export function useChatHandler({
 				};
 
 				// Update messages and continue conversation loop for self-correction
-				const updatedMessagesWithError = [
-					...messages,
-					assistantMsgWithError,
-					errorFeedbackMessage,
-				];
+				const malformedBuilder = new MessageBuilder(messages);
+				malformedBuilder
+					.addAssistantMessage(assistantMsgWithError)
+					.addMessage(errorFeedbackMessage);
+				const updatedMessagesWithError = malformedBuilder.build();
 				setMessages(updatedMessagesWithError);
 
 				// Clear streaming state before recursing
@@ -356,11 +348,36 @@ export function useChatHandler({
 			const hasValidAssistantMessage =
 				cleanedContent.trim() || validToolCalls.length > 0;
 
+			// Build updated messages array using MessageBuilder
+			const builder = new MessageBuilder(messages);
+
+			// Add auto-executed messages (assistant + tool results) from AI SDK multi-step execution
+			// This ensures they're counted in usage tracking and included in context
+			if (
+				result.autoExecutedMessages &&
+				result.autoExecutedMessages.length > 0
+			) {
+				builder.addAutoExecutedMessages(result.autoExecutedMessages);
+			}
+
+			// Add the final assistant message if it has content or tool calls
 			if (hasValidAssistantMessage) {
-				setMessages([...messages, assistantMsg]);
+				builder.addAssistantMessage(assistantMsg);
 
 				// Update conversation state with assistant message
 				conversationStateManager.current.updateAssistantMessage(assistantMsg);
+			}
+
+			// Build the final messages array
+			const updatedMessages = builder.build();
+
+			// Update messages state once with all changes
+			if (
+				(result.autoExecutedMessages &&
+					result.autoExecutedMessages.length > 0) ||
+				hasValidAssistantMessage
+			) {
+				setMessages(updatedMessages);
 			}
 
 			// Clear streaming state after response is complete
@@ -381,11 +398,9 @@ export function useChatHandler({
 				}
 
 				// Send error results back to model for self-correction
-				const updatedMessagesWithError = [
-					...messages,
-					assistantMsg,
-					...toolResultsToMessages(errorResults),
-				];
+				const errorBuilder = new MessageBuilder(updatedMessages);
+				errorBuilder.addToolResults(errorResults);
+				const updatedMessagesWithError = errorBuilder.build();
 				setMessages(updatedMessagesWithError);
 
 				// Continue the main conversation loop with error messages as context
@@ -430,11 +445,9 @@ export function useChatHandler({
 						}
 
 						// Continue conversation with error messages
-						const updatedMessagesWithError = [
-							...messages,
-							assistantMsg,
-							...toolResultsToMessages(blockedToolErrors),
-						];
+						const blockedBuilder = new MessageBuilder(updatedMessages);
+						blockedBuilder.addToolResults(blockedToolErrors);
+						const updatedMessagesWithError = blockedBuilder.build();
 						setMessages(updatedMessagesWithError);
 
 						// Continue the main conversation loop with error messages as context
@@ -624,11 +637,10 @@ export function useChatHandler({
 
 					// If we have results, continue the conversation with them
 					if (directResults.length > 0) {
-						const updatedMessagesWithTools = [
-							...messages,
-							assistantMsg,
-							...toolResultsToMessages(directResults),
-						];
+						// Add tool results to messages
+						const directBuilder = new MessageBuilder(updatedMessages);
+						directBuilder.addToolResults(directResults);
+						const updatedMessagesWithTools = directBuilder.build();
 						setMessages(updatedMessagesWithTools);
 
 						// Continue the main conversation loop with tool results as context
@@ -663,7 +675,10 @@ export function useChatHandler({
 							role: 'assistant',
 							content: errorMsg,
 						};
-						setMessages([...messages, assistantMsg, errorMessage]);
+						// Use updatedMessages which already includes auto-executed tool results
+						const errorBuilder = new MessageBuilder(updatedMessages);
+						errorBuilder.addMessage(errorMessage);
+						setMessages(errorBuilder.build());
 
 						// Signal completion to trigger exit
 						if (onConversationComplete) {
@@ -672,9 +687,11 @@ export function useChatHandler({
 						return;
 					}
 
+					// Pass complete messages including assistant msg
+					// useToolHandler will add tool results
 					onStartToolConfirmationFlow(
 						toolsNeedingConfirmation,
-						messages,
+						updatedMessages, // Includes assistant message
 						assistantMsg,
 						systemMessage,
 					);
@@ -685,8 +702,8 @@ export function useChatHandler({
 			// BUT: if there's ALSO no content, that's likely an error - the model should have said something
 			// Auto-reprompt to help the model continue
 			if (validToolCalls.length === 0 && !cleanedContent.trim()) {
-				// Check if we just executed tools (messages should have tool results)
-				const lastMessage = messages[messages.length - 1];
+				// Check if we just executed tools (updatedMessages should have tool results)
+				const lastMessage = updatedMessages[updatedMessages.length - 1];
 				const hasRecentToolResults = lastMessage?.role === 'tool';
 
 				// Add a continuation message to help the model respond
@@ -710,7 +727,9 @@ export function useChatHandler({
 
 				// Don't include the empty assistantMsg - it would cause API error
 				// "Assistant message must have either content or tool_calls"
-				const updatedMessagesWithNudge = [...messages, nudgeMessage];
+				const nudgeBuilder = new MessageBuilder(updatedMessages);
+				nudgeBuilder.addMessage(nudgeMessage);
+				const updatedMessagesWithNudge = nudgeBuilder.build();
 				setMessages(updatedMessagesWithNudge);
 
 				// Continue the conversation loop with the nudge
@@ -749,8 +768,9 @@ export function useChatHandler({
 		);
 
 		// Add user message to conversation history
-		const userMessage: Message = {role: 'user', content: message};
-		const updatedMessages = [...messages, userMessage];
+		const builder = new MessageBuilder(messages);
+		builder.addUserMessage(message);
+		const updatedMessages = builder.build();
 		setMessages(updatedMessages);
 
 		// Initialize conversation state if this is a new conversation

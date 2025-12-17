@@ -131,6 +131,9 @@ export interface LLMChatResponse {
 	choices: Array<{
 		message: LLMMessage;
 	}>;
+	// Auto-executed messages (assistant + tool results) from AI SDK multi-step execution
+	// These need to be added to message history for proper context tracking
+	autoExecutedMessages?: Message[];
 }
 
 export interface StreamCallbacks {

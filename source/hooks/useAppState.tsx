@@ -21,8 +21,19 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 import React from 'react';
 
 export interface ConversationContext {
-	updatedMessages: Message[];
+	/**
+	 * All messages up to (but not including) tool execution.
+	 * Includes user message, auto-executed messages, and assistant message with tool_calls.
+	 */
+	messagesBeforeToolExecution: Message[];
+	/**
+	 * The assistant message that triggered tool execution.
+	 * Included in messagesBeforeToolExecution for reference.
+	 */
 	assistantMsg: Message;
+	/**
+	 * System message for the next turn after tool execution.
+	 */
 	systemMessage: Message;
 }
 
