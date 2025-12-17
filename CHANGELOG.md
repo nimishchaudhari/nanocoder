@@ -1,3 +1,15 @@
+# 1.19.2
+
+- Refactored file editing tools by replacing multiple tools with a single pattern-matching string replace tool, improving context efficiency and reliability.
+
+- Optimized system prompt to be more concise and reduce token usage.
+
+- Fix: Tool call results were incorrectly being passed as user messages, causing hallucinations in model responses.
+
+- Fix: `/usage` command now correctly displays context usage information.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 # 1.19.1
 
 - Fix Nix releases.
