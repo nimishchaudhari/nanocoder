@@ -27,7 +27,7 @@ test('DevelopmentModeIndicator renders with normal mode', t => {
 
 	const output = lastFrame();
 	t.truthy(output);
-	t.regex(output!, /Normal Mode/);
+	t.regex(output!, /normal mode on/);
 	t.regex(output!, /Shift\+Tab to cycle/);
 });
 
@@ -41,7 +41,7 @@ test('DevelopmentModeIndicator renders with auto-accept mode', t => {
 
 	const output = lastFrame();
 	t.truthy(output);
-	t.regex(output!, /Auto-Accept Mode/);
+	t.regex(output!, /auto-accept mode on/);
 	t.regex(output!, /Shift\+Tab to cycle/);
 });
 
@@ -52,7 +52,7 @@ test('DevelopmentModeIndicator renders with plan mode', t => {
 
 	const output = lastFrame();
 	t.truthy(output);
-	t.regex(output!, /Plan Mode/);
+	t.regex(output!, /plan mode on/);
 	t.regex(output!, /Shift\+Tab to cycle/);
 });
 
@@ -110,7 +110,7 @@ test('DevelopmentModeIndicator shows mode label in bold', t => {
 
 	const output = lastFrame();
 	// Bold is represented by ANSI escape codes, check for the label
-	t.regex(output!, /Normal Mode/);
+	t.regex(output!, /normal mode on/);
 });
 
 test('DevelopmentModeIndicator shows instructions', t => {
@@ -128,9 +128,9 @@ test('DevelopmentModeIndicator normal mode uses correct label', t => {
 	);
 
 	const output = lastFrame();
-	t.regex(output!, /Normal Mode/);
-	t.notRegex(output!, /Auto-Accept Mode/);
-	t.notRegex(output!, /Plan Mode/);
+	t.regex(output!, /normal mode on/);
+	t.notRegex(output!, /auto-accept mode on/);
+	t.notRegex(output!, /plan mode on/);
 });
 
 test('DevelopmentModeIndicator auto-accept mode uses correct label', t => {
@@ -142,9 +142,9 @@ test('DevelopmentModeIndicator auto-accept mode uses correct label', t => {
 	);
 
 	const output = lastFrame();
-	t.regex(output!, /Auto-Accept Mode/);
-	t.notRegex(output!, /Normal Mode/);
-	t.notRegex(output!, /Plan Mode/);
+	t.regex(output!, /auto-accept mode on/);
+	t.notRegex(output!, /normal mode on/);
+	t.notRegex(output!, /plan mode on/);
 });
 
 test('DevelopmentModeIndicator plan mode uses correct label', t => {
@@ -153,9 +153,9 @@ test('DevelopmentModeIndicator plan mode uses correct label', t => {
 	);
 
 	const output = lastFrame();
-	t.regex(output!, /Plan Mode/);
-	t.notRegex(output!, /Normal Mode/);
-	t.notRegex(output!, /Auto-Accept Mode/);
+	t.regex(output!, /plan mode on/);
+	t.notRegex(output!, /normal mode on/);
+	t.notRegex(output!, /auto-accept mode on/);
 });
 
 // ============================================================================
@@ -184,7 +184,7 @@ test('DevelopmentModeIndicator updates when developmentMode changes', t => {
 	);
 
 	const normalOutput = lastFrame();
-	t.regex(normalOutput!, /Normal Mode/);
+	t.regex(normalOutput!, /normal mode on/);
 
 	rerender(
 		<DevelopmentModeIndicator
@@ -194,7 +194,7 @@ test('DevelopmentModeIndicator updates when developmentMode changes', t => {
 	);
 
 	const autoAcceptOutput = lastFrame();
-	t.regex(autoAcceptOutput!, /Auto-Accept Mode/);
+	t.regex(autoAcceptOutput!, /auto-accept mode on/);
 });
 
 // ============================================================================
@@ -208,7 +208,7 @@ test('DevelopmentModeIndicator has correct structure', t => {
 
 	const output = lastFrame();
 	// Should have both the mode label and the instructions
-	t.regex(output!, /Normal Mode/);
+	t.regex(output!, /normal mode on/);
 	t.regex(output!, /\(Shift\+Tab to cycle\)/);
 });
 
@@ -246,7 +246,7 @@ test('DevelopmentModeIndicator handles rapid mode changes', t => {
 	);
 
 	const output = lastFrame();
-	t.regex(output!, /Normal Mode/);
+	t.regex(output!, /normal mode on/);
 });
 
 test('DevelopmentModeIndicator handles custom colors', t => {
