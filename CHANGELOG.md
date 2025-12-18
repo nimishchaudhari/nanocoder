@@ -1,10 +1,14 @@
 # 1.19.2
 
-- Refactored file editing tools by replacing multiple tools with a single pattern-matching string replace tool, improving context efficiency and reliability.
+- Refactored file editing tools by replacing line-based tools with modern content-based editing for better reliability and context efficiency.
+
+- Replaced `create_file` with `write_file` - a tool for whole-file rewrites, ideal for generated code, config files, complete file replacements and the creation of new files.
+
+- Enhanced file editing verification by returning actual file contents after writes, allowing models to see exactly what changed.
 
 - Optimized system prompt to be more concise and reduce token usage.
 
-- Fix: Tool call results were incorrectly being passed as user messages, causing hallucinations in model responses.
+- Fix: Tool call results were incorrectly being passed as user messages, causing hallucinations in model responses. This has caused great gains for models like GLM 4.6 which commonly struggles with context poisoning.
 
 - Fix: `/usage` command now correctly displays context usage information.
 
