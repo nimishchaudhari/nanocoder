@@ -4,6 +4,21 @@ import {handleAtomicDeletion} from '../utils/atomic-deletion';
 import {PasteDetector} from '../utils/paste-detection';
 import {handlePaste} from '../utils/paste-utils';
 
+const PASTE_CHUNK_BASE_WINDOW_MS = 500; // Time window to consider text as part of same paste (increased for slower terminals)
+const PASTE_CHUNK_MAX_WINDOW_MS = 2000; // Maximum window for very large pastes
+const PASTE_RAPID_DETECTION_MS = 50; // Grace period for rapid multi-detections (increased from 20)
+
+// Scales the paste window size based on content length.
+// Prevents truncation on slow terminals while keeping small pastes snappy
+function getDynamicPasteWindow(contentLength: number): number {
+	// Add ~1ms buffer per 10 chars, capped at max window
+	const dynamicExtension = Math.floor(contentLength / 10);
+	return Math.min(
+		PASTE_CHUNK_BASE_WINDOW_MS + dynamicExtension,
+		PASTE_CHUNK_MAX_WINDOW_MS,
+	);
+}
+
 // Helper functions
 function createEmptyInputState(): InputState {
 	return {
@@ -33,7 +48,6 @@ export function useInputState() {
 	// Track recent paste for chunked paste handling (VS Code terminal issue)
 	const lastPasteTimeRef = useRef<number>(0);
 	const lastPasteIdRef = useRef<string | null>(null);
-	const PASTE_CHUNK_WINDOW_MS = 200; // Time window to consider text as part of same paste (increased for slower terminals)
 
 	// Cached line count for performance
 	const [cachedLineCount, setCachedLineCount] = useState(1);
@@ -63,10 +77,17 @@ export function useInputState() {
 			const timeSinceLastPaste = now - lastPasteTimeRef.current;
 
 			// Check if this might be a continuation of a recent paste (chunked paste in VS Code)
+			const existingPlaceholder = lastPasteIdRef.current
+				? currentState.placeholderContent[lastPasteIdRef.current]
+				: null;
+			const dynamicWindow = existingPlaceholder
+				? getDynamicPasteWindow(existingPlaceholder.content.length)
+				: PASTE_CHUNK_BASE_WINDOW_MS;
+
 			if (
 				lastPasteIdRef.current &&
-				timeSinceLastPaste < PASTE_CHUNK_WINDOW_MS &&
-				currentState.placeholderContent[lastPasteIdRef.current]
+				timeSinceLastPaste < dynamicWindow &&
+				existingPlaceholder
 			) {
 				// This looks like a chunked paste continuation
 				// Extract the new text that was added (should be at the end)
@@ -118,14 +139,20 @@ export function useInputState() {
 			if (detection.isPaste && detection.addedText.length > 0) {
 				// If we have an active paste within a short window (even if state hasn't fully updated),
 				// treat this as a continuation to prevent duplicate placeholders
-				const isVeryRecentPaste = timeSinceLastPaste < 20; // 20ms grace period for rapid multi-detections
+				const isVeryRecentPaste = timeSinceLastPaste < PASTE_RAPID_DETECTION_MS;
 
 				const activePasteId = lastPasteIdRef.current;
+				const activePlaceholder = activePasteId
+					? currentState.placeholderContent[activePasteId]
+					: null;
+				const activeWindow = activePlaceholder
+					? getDynamicPasteWindow(activePlaceholder.content.length)
+					: PASTE_CHUNK_BASE_WINDOW_MS;
+
 				if (
 					activePasteId &&
 					(isVeryRecentPaste ||
-						(timeSinceLastPaste < PASTE_CHUNK_WINDOW_MS &&
-							currentState.placeholderContent[activePasteId]))
+						(timeSinceLastPaste < activeWindow && activePlaceholder))
 				) {
 					// If we don't have the placeholder in state yet, just update detector and skip
 					// This happens when multiple detections fire before React updates state
