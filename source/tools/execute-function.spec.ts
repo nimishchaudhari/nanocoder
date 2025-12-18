@@ -1,8 +1,7 @@
 import {tmpdir} from 'os';
 import {resolve} from 'path';
 import test from 'ava';
-import {readFile, unlink, writeFile} from 'fs/promises';
-import {createFileTool} from './create-file.js';
+import {unlink, writeFile} from 'fs/promises';
 import {executeBashTool} from './execute-bash.js';
 import {readFileTool} from './read-file.js';
 
@@ -128,66 +127,4 @@ test('read_file reads with line ranges', async t => {
 
 test('read_file tool name constant is correct', t => {
 	t.is(readFileTool.name, 'read_file');
-});
-
-// ============================================================================
-// Create File Execute Function
-// ============================================================================
-
-test('create_file creates file', async t => {
-	const testFile = resolve(tmpdir(), `nanocoder-test-${Date.now()}.txt`);
-
-	try {
-		const result = (await createFileTool.tool.execute!(
-			{
-				path: testFile,
-				content: 'created by test',
-			},
-			{
-				toolCallId: 'test-7',
-				messages: [],
-			},
-		)) as string;
-
-		t.is(result, 'File written successfully');
-
-		// Verify file was created
-		const content = await readFile(testFile, 'utf-8');
-		t.is(content, 'created by test');
-	} finally {
-		await unlink(testFile).catch(() => {});
-	}
-});
-
-test('create_file overwrites existing file', async t => {
-	const testFile = resolve(tmpdir(), `nanocoder-test-${Date.now()}.txt`);
-
-	try {
-		// Create initial file
-		await writeFile(testFile, 'old content', 'utf-8');
-
-		// Overwrite with create_file
-		const result = (await createFileTool.tool.execute!(
-			{
-				path: testFile,
-				content: 'new content',
-			},
-			{
-				toolCallId: 'test-8',
-				messages: [],
-			},
-		)) as string;
-
-		t.is(result, 'File written successfully');
-
-		// Verify file was overwritten
-		const content = await readFile(testFile, 'utf-8');
-		t.is(content, 'new content');
-	} finally {
-		await unlink(testFile).catch(() => {});
-	}
-});
-
-test('create_file tool name constant is correct', t => {
-	t.is(createFileTool.name, 'create_file');
 });

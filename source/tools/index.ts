@@ -1,4 +1,3 @@
-import {createFileTool} from '@/tools/create-file';
 import {executeBashTool} from '@/tools/execute-bash';
 import {fetchUrlTool} from '@/tools/fetch-url';
 import {findFilesTool} from '@/tools/find-files';
@@ -7,6 +6,7 @@ import {readFileTool} from '@/tools/read-file';
 import {searchFileContentsTool} from '@/tools/search-file-contents';
 import {stringReplaceTool} from '@/tools/string-replace';
 import {webSearchTool} from '@/tools/web-search';
+import {writeFileTool} from '@/tools/write-file';
 import type {
 	AISDKCoreTool,
 	NanocoderToolExport,
@@ -18,7 +18,7 @@ import React from 'react';
 // Each tool exports: { name, tool, formatter?, validator? }
 const allTools: NanocoderToolExport[] = [
 	readFileTool,
-	createFileTool,
+	writeFileTool,
 	stringReplaceTool,
 	executeBashTool,
 	webSearchTool,

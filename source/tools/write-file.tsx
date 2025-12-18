@@ -16,18 +16,37 @@ import {
 	sendFileChangeToVSCode,
 } from '@/vscode/index';
 
-const executeCreateFile = async (args: {
+const executeWriteFile = async (args: {
 	path: string;
 	content: string;
 }): Promise<string> => {
 	const absPath = resolve(args.path);
+	const fileExists = existsSync(absPath);
+
 	await writeFile(absPath, args.content, 'utf-8');
-	return 'File written successfully';
+
+	// Read back to verify and show actual content
+	const actualContent = await readFile(absPath, 'utf-8');
+	const lines = actualContent.split('\n');
+	const lineCount = lines.length;
+	const charCount = actualContent.length;
+	const estimatedTokens = Math.ceil(charCount / 4);
+
+	// Generate full file contents to show the model the current file state
+	let fileContext = '\n\nFile contents after write:\n';
+	for (let i = 0; i < lines.length; i++) {
+		const lineNumStr = String(i + 1).padStart(4, ' ');
+		const line = lines[i] || '';
+		fileContext += `${lineNumStr}: ${line}\n`;
+	}
+
+	const action = fileExists ? 'overwritten' : 'written';
+	return `File ${action} successfully (${lineCount} lines, ${charCount} characters, ~${estimatedTokens} tokens).${fileContext}`;
 };
 
-const createFileCoreTool = tool({
+const writeFileCoreTool = tool({
 	description:
-		'Create a new file with the specified content (overwrites if file exists)',
+		'Write content to a file (creates new file or overwrites existing file). Use this for complete file rewrites, generated code, or when most of the file needs to change. For small targeted edits, use string_replace instead.',
 	inputSchema: jsonSchema<{path: string; content: string}>({
 		type: 'object',
 		properties: {
@@ -37,7 +56,7 @@ const createFileCoreTool = tool({
 			},
 			content: {
 				type: 'string',
-				description: 'The content to write to the file.',
+				description: 'The complete content to write to the file.',
 			},
 		},
 		required: ['path', 'content'],
@@ -48,18 +67,18 @@ const createFileCoreTool = tool({
 		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
 	},
 	execute: async (args, _options) => {
-		return await executeCreateFile(args);
+		return await executeWriteFile(args);
 	},
 });
 
-interface CreateFileArgs {
+interface WriteFileArgs {
 	path?: string;
 	file_path?: string;
 	content?: string;
 }
 
 // Create a component that will re-render when theme changes
-const CreateFileFormatter = React.memo(({args}: {args: CreateFileArgs}) => {
+const WriteFileFormatter = React.memo(({args}: {args: WriteFileArgs}) => {
 	const themeContext = React.useContext(ThemeContext);
 	if (!themeContext) {
 		throw new Error('ThemeContext is required');
@@ -75,7 +94,7 @@ const CreateFileFormatter = React.memo(({args}: {args: CreateFileArgs}) => {
 
 	const messageContent = (
 		<Box flexDirection="column">
-			<Text color={colors.tool}>⚒ create_file</Text>
+			<Text color={colors.tool}>⚒ write_file</Text>
 
 			<Box>
 				<Text color={colors.secondary}>Path: </Text>
@@ -128,8 +147,8 @@ const CreateFileFormatter = React.memo(({args}: {args: CreateFileArgs}) => {
 // Track VS Code change IDs for cleanup
 const vscodeChangeIds = new Map<string, string>();
 
-const createFileFormatter = async (
-	args: CreateFileArgs,
+const writeFileFormatter = async (
+	args: WriteFileArgs,
 	result?: string,
 ): Promise<React.ReactElement> => {
 	const path = args.path || args.file_path || '';
@@ -153,7 +172,7 @@ const createFileFormatter = async (
 			absPath,
 			originalContent,
 			content,
-			'create_file',
+			'write_file',
 			{
 				path,
 				content,
@@ -171,35 +190,14 @@ const createFileFormatter = async (
 		}
 	}
 
-	return <CreateFileFormatter args={args} />;
+	return <WriteFileFormatter args={args} />;
 };
 
-const createFileValidator = async (args: {
+const writeFileValidator = async (args: {
 	path: string;
 	content: string;
 }): Promise<{valid: true} | {valid: false; error: string}> => {
 	const absPath = resolve(args.path);
-
-	// Check if file already exists
-	try {
-		await access(absPath, constants.F_OK);
-		return {
-			valid: false,
-			error: `⚒ File "${args.path}" already exists. Use a file editing tool instead.`,
-		};
-	} catch (error) {
-		// ENOENT is good - file doesn't exist
-		if (error && typeof error === 'object' && 'code' in error) {
-			if (error.code !== 'ENOENT') {
-				const errorMessage =
-					error instanceof Error ? error.message : 'Unknown error';
-				return {
-					valid: false,
-					error: `⚒ Cannot access path "${args.path}": ${errorMessage}`,
-				};
-			}
-		}
-	}
 
 	// Check if parent directory exists
 	const parentDir = dirname(absPath);
@@ -237,7 +235,7 @@ const createFileValidator = async (args: {
 		if (pattern.test(absPath)) {
 			return {
 				valid: false,
-				error: `⚒ Cannot create files in system directory: "${args.path}"`,
+				error: `⚒ Cannot write files to system directory: "${args.path}"`,
 			};
 		}
 	}
@@ -245,9 +243,9 @@ const createFileValidator = async (args: {
 	return {valid: true};
 };
 
-export const createFileTool = {
-	name: 'create_file' as const,
-	tool: createFileCoreTool,
-	formatter: createFileFormatter,
-	validator: createFileValidator,
+export const writeFileTool = {
+	name: 'write_file' as const,
+	tool: writeFileCoreTool,
+	formatter: writeFileFormatter,
+	validator: writeFileValidator,
 };

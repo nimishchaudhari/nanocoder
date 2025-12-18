@@ -1,6 +1,5 @@
 import test from 'ava';
 import {setCurrentMode} from '../context/mode-context.js';
-import {createFileTool} from './create-file.js';
 import {executeBashTool} from './execute-bash.js';
 import {fetchUrlTool} from './fetch-url.js';
 import {findFilesTool} from './find-files.js';
@@ -9,6 +8,7 @@ import {readFileTool} from './read-file.js';
 import {searchFileContentsTool} from './search-file-contents.js';
 import {stringReplaceTool} from './string-replace.js';
 import {webSearchTool} from './web-search.js';
+import {writeFileTool} from './write-file.js';
 
 // ============================================================================
 // Tests for needsApproval Logic (AI SDK v6)
@@ -63,28 +63,28 @@ test('execute_bash always requires approval in plan mode', async t => {
 // MEDIUM RISK: File Write Tools (mode-dependent approval)
 // ============================================================================
 
-// create_file
-test('create_file requires approval in normal mode', async t => {
+// write_file
+test('write_file requires approval in normal mode', async t => {
 	setCurrentMode('normal');
-	const needsApproval = await evaluateNeedsApproval(createFileTool, {
+	const needsApproval = await evaluateNeedsApproval(writeFileTool, {
 		path: 'test.txt',
 		content: 'test',
 	});
 	t.true(needsApproval);
 });
 
-test('create_file does NOT require approval in auto-accept mode', async t => {
+test('write_file does NOT require approval in auto-accept mode', async t => {
 	setCurrentMode('auto-accept');
-	const needsApproval = await evaluateNeedsApproval(createFileTool, {
+	const needsApproval = await evaluateNeedsApproval(writeFileTool, {
 		path: 'test.txt',
 		content: 'test',
 	});
 	t.false(needsApproval);
 });
 
-test('create_file requires approval in plan mode', async t => {
+test('write_file requires approval in plan mode', async t => {
 	setCurrentMode('plan');
-	const needsApproval = await evaluateNeedsApproval(createFileTool, {
+	const needsApproval = await evaluateNeedsApproval(writeFileTool, {
 		path: 'test.txt',
 		content: 'test',
 	});
