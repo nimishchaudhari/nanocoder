@@ -1,10 +1,11 @@
 import {commandRegistry} from '@/commands';
+import {DevelopmentModeIndicator} from '@/components/development-mode-indicator';
 import {useInputState} from '@/hooks/useInputState';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {useUIStateContext} from '@/hooks/useUIState';
 import {promptHistory} from '@/prompt-history';
-import {DEVELOPMENT_MODE_LABELS, DevelopmentMode} from '@/types/core';
+import type {DevelopmentMode} from '@/types/core';
 import {Completion} from '@/types/index';
 import {
 	getCurrentFileMention,
@@ -440,6 +441,10 @@ export default function UserInput({
 				<Text color={colors.secondary} dimColor>
 					<Spinner type="dots" /> Press Esc to cancel
 				</Text>
+				<DevelopmentModeIndicator
+					developmentMode={developmentMode}
+					colors={colors}
+				/>
 			</Box>
 		);
 	}
@@ -519,20 +524,10 @@ export default function UserInput({
 			</Box>
 
 			{/* Development mode indicator - always visible */}
-			<Box marginTop={1}>
-				<Text
-					color={
-						developmentMode === 'normal'
-							? colors.secondary
-							: developmentMode === 'auto-accept'
-								? colors.info
-								: colors.warning
-					}
-				>
-					<Text bold>{DEVELOPMENT_MODE_LABELS[developmentMode]}</Text>{' '}
-					<Text dimColor>(Shift+Tab to cycle)</Text>
-				</Text>
-			</Box>
+			<DevelopmentModeIndicator
+				developmentMode={developmentMode}
+				colors={colors}
+			/>
 		</Box>
 	);
 }
