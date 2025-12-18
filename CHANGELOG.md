@@ -4,8 +4,6 @@
 
 - Replaced `create_file` with `write_file` - a tool for whole-file rewrites, ideal for generated code, config files, complete file replacements and the creation of new files.
 
-- Enhanced file editing verification by returning actual file contents after writes, allowing models to see exactly what changed.
-
 - Optimized system prompt to be more concise and reduce token usage.
 
 - Fix: Tool call results were incorrectly being passed as user messages, causing hallucinations in model responses. This has caused great gains for models like GLM 4.6 which commonly struggles with context poisoning.
