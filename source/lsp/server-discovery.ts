@@ -142,6 +142,26 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		verificationMethod: 'version',
 		installHint: 'Install from https://github.com/LuaLS/lua-language-server',
 	},
+	{
+		name: 'vscode-markdown-language-server',
+		command: 'vscode-mdx-language-server',
+		args: ['--stdio'],
+		languages: ['md', 'markdown', 'mdx'],
+		checkCommand: 'vscode-mdx-language-server --version',
+		verificationMethod: 'lsp',
+		installHint:
+			'npm install -g @microsoft/vscode-mdx-language-server or vscode-langservers-extracted',
+	},
+	{
+		name: 'marksman',
+		command: 'marksman',
+		args: ['server'],
+		languages: ['md', 'markdown'],
+		checkCommand: 'marksman --version',
+		verificationMethod: 'version',
+		installHint:
+			'npm install -g marksman or download from https://github.com/artempyanykh/marksman/releases',
+	},
 ];
 
 /**
@@ -336,6 +356,8 @@ export function getLanguageId(extension: string): string {
 		zsh: 'shellscript',
 		lua: 'lua',
 		md: 'markdown',
+		markdown: 'markdown',
+		mdx: 'markdown',
 		toml: 'toml',
 		xml: 'xml',
 		sql: 'sql',

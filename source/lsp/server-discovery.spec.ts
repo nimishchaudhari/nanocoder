@@ -135,6 +135,14 @@ test('getLanguageId - returns markdown for md extension', t => {
 	t.is(getLanguageId('md'), 'markdown');
 });
 
+test('getLanguageId - returns markdown for markdown extension', t => {
+	t.is(getLanguageId('markdown'), 'markdown');
+});
+
+test('getLanguageId - returns markdown for mdx extension', t => {
+	t.is(getLanguageId('mdx'), 'markdown');
+});
+
 test('getLanguageId - returns toml for toml extension', t => {
 	t.is(getLanguageId('toml'), 'toml');
 });
@@ -280,6 +288,51 @@ test('getServerForLanguage - handles empty servers array', t => {
 	const servers: LSPServerConfig[] = [];
 	const result = getServerForLanguage(servers, 'ts');
 	t.is(result, undefined);
+});
+
+test('getServerForLanguage - finds markdown server for md extension', t => {
+	const servers: LSPServerConfig[] = [
+		{
+			name: 'vscode-markdown-language-server',
+			command: 'vscode-mdx-language-server',
+			args: ['--stdio'],
+			languages: ['md', 'markdown', 'mdx'],
+		},
+	];
+
+	const result = getServerForLanguage(servers, 'md');
+	t.truthy(result);
+	t.is(result?.name, 'vscode-markdown-language-server');
+});
+
+test('getServerForLanguage - finds markdown server for markdown extension', t => {
+	const servers: LSPServerConfig[] = [
+		{
+			name: 'vscode-markdown-language-server',
+			command: 'vscode-mdx-language-server',
+			args: ['--stdio'],
+			languages: ['md', 'markdown', 'mdx'],
+		},
+	];
+
+	const result = getServerForLanguage(servers, 'markdown');
+	t.truthy(result);
+	t.is(result?.name, 'vscode-markdown-language-server');
+});
+
+test('getServerForLanguage - finds markdown server for mdx extension', t => {
+	const servers: LSPServerConfig[] = [
+		{
+			name: 'vscode-markdown-language-server',
+			command: 'vscode-mdx-language-server',
+			args: ['--stdio'],
+			languages: ['md', 'markdown', 'mdx'],
+		},
+	];
+
+	const result = getServerForLanguage(servers, 'mdx');
+	t.truthy(result);
+	t.is(result?.name, 'vscode-markdown-language-server');
 });
 
 // getMissingServerHints tests
@@ -448,6 +501,25 @@ test('getKnownServersStatus - includes lua server', t => {
 	t.true(luaServer!.languages.includes('lua'));
 });
 
+test('getKnownServersStatus - includes vscode-markdown-language-server', t => {
+	const result = getKnownServersStatus();
+	const mdServer = result.find(s => s.name === 'vscode-markdown-language-server');
+	t.truthy(mdServer);
+	t.true(mdServer!.languages.includes('md'));
+	t.true(mdServer!.languages.includes('markdown'));
+	t.true(mdServer!.languages.includes('mdx'));
+	t.is(mdServer!.installHint, 'npm install -g @microsoft/vscode-mdx-language-server or vscode-langservers-extracted');
+});
+
+test('getKnownServersStatus - includes marksman', t => {
+	const result = getKnownServersStatus();
+	const marksmanServer = result.find(s => s.name === 'marksman');
+	t.truthy(marksmanServer);
+	t.true(marksmanServer!.languages.includes('md'));
+	t.true(marksmanServer!.languages.includes('markdown'));
+	t.true(marksmanServer!.installHint!.includes('marksman'));
+});
+
 // Edge cases
 test('getLanguageId - handles empty string', t => {
 	const result = getLanguageId('');
@@ -495,6 +567,8 @@ test('getKnownServersStatus - key servers are present with correct names', t => 
 		'yaml-language-server',
 		'bash-language-server',
 		'lua-language-server',
+		'vscode-markdown-language-server',
+		'marksman',
 	];
 
 	for (const serverName of keyServers) {
