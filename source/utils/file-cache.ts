@@ -65,8 +65,20 @@ export async function getCachedFileContent(
 				}
 				// File was modified, invalidate cache and re-read
 				cache.delete(absPath);
-				// Reuse the stat we just did to avoid double stat
-				return readAndCacheFile(absPath, now, fileStat.mtimeMs);
+
+				// Check for pending read before starting a new one (deduplication)
+				let pending = pendingReads.get(absPath);
+				if (!pending) {
+					// Reuse the stat we just did to avoid double stat
+					pending = readAndCacheFile(absPath, now, fileStat.mtimeMs);
+					pendingReads.set(absPath, pending);
+				}
+
+				try {
+					return await pending;
+				} finally {
+					pendingReads.delete(absPath);
+				}
 			} catch {
 				// File may have been deleted, invalidate cache
 				cache.delete(absPath);
@@ -115,8 +127,8 @@ async function readAndCacheFile(
 				`File ${absPath} is being modified too frequently, giving up after ${MAX_READ_RETRIES} retries`,
 			);
 		}
-		// File changed during read, retry
-		return readAndCacheFile(absPath, now, undefined, retryCount + 1);
+		// File changed during read, retry with fresh timestamp
+		return readAndCacheFile(absPath, Date.now(), undefined, retryCount + 1);
 	}
 
 	const cachedFile: CachedFile = {

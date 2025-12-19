@@ -246,3 +246,64 @@ test('getCachedFileContent - LRU eviction when cache exceeds MAX_CACHE_SIZE', as
 		await cleanupTempDir(tempDir);
 	}
 });
+
+// ============================================================================
+// Tests for Retry Mechanism and Edge Cases
+// ============================================================================
+
+test('getCachedFileContent - concurrent reads with mtime change get consistent result', async t => {
+	const tempDir = await createTempDir();
+	try {
+		const filePath = join(tempDir, 'concurrent-mtime.txt');
+		await writeFile(filePath, 'original', 'utf-8');
+
+		// First, cache the file
+		const initial = await getCachedFileContent(filePath);
+		t.is(initial.content, 'original');
+
+		// Modify the file to trigger mtime change
+		await delay(10);
+		await writeFile(filePath, 'modified', 'utf-8');
+
+		// Launch multiple concurrent reads - they should all see the modified content
+		// and should be deduplicated (not cause multiple disk reads)
+		const [result1, result2, result3] = await Promise.all([
+			getCachedFileContent(filePath),
+			getCachedFileContent(filePath),
+			getCachedFileContent(filePath),
+		]);
+
+		// All should have the modified content
+		t.is(result1.content, 'modified');
+		t.is(result2.content, 'modified');
+		t.is(result3.content, 'modified');
+
+		// All should be the same object (deduplication worked)
+		t.is(result1, result2);
+		t.is(result2, result3);
+	} finally {
+		await cleanupTempDir(tempDir);
+	}
+});
+
+test('getCachedFileContent - handles rapid sequential modifications', async t => {
+	const tempDir = await createTempDir();
+	try {
+		const filePath = join(tempDir, 'rapid-mods.txt');
+		await writeFile(filePath, 'v1', 'utf-8');
+
+		// Cache initial version
+		const v1 = await getCachedFileContent(filePath);
+		t.is(v1.content, 'v1');
+
+		// Rapidly modify and read multiple times
+		for (let i = 2; i <= 5; i++) {
+			await delay(10); // Ensure different mtime
+			await writeFile(filePath, `v${i}`, 'utf-8');
+			const result = await getCachedFileContent(filePath);
+			t.is(result.content, `v${i}`, `Should see version ${i}`);
+		}
+	} finally {
+		await cleanupTempDir(tempDir);
+	}
+});
