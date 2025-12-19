@@ -9,6 +9,7 @@ import ToolMessage from '@/components/tool-message';
 import {getCurrentMode} from '@/context/mode-context';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
+import {getCachedFileContent, invalidateCache} from '@/utils/file-cache';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import {
 	closeDiffInVSCode,
@@ -24,6 +25,9 @@ const executeWriteFile = async (args: {
 	const fileExists = existsSync(absPath);
 
 	await writeFile(absPath, args.content, 'utf-8');
+
+	// Invalidate cache after write
+	invalidateCache(absPath);
 
 	// Read back to verify and show actual content
 	const actualContent = await readFile(absPath, 'utf-8');
@@ -158,11 +162,12 @@ const writeFileFormatter = async (
 	if (result === undefined && isVSCodeConnected()) {
 		const content = args.content || '';
 
-		// Get original content if file exists
+		// Get original content if file exists (use cache if available)
 		let originalContent = '';
 		if (existsSync(absPath)) {
 			try {
-				originalContent = await readFile(absPath, 'utf-8');
+				const cached = await getCachedFileContent(absPath);
+				originalContent = cached.content;
 			} catch {
 				// File might exist but not be readable
 			}
