@@ -19,6 +19,7 @@ import {
 	withNewCorrelationContext,
 } from '@/utils/logging';
 import {createOpenAICompatible} from '@ai-sdk/openai-compatible';
+import type {LanguageModel} from 'ai';
 import {APICallError, RetryError, generateText, stepCountIs} from 'ai';
 import type {AssistantContent, ModelMessage, TextPart, ToolCallPart} from 'ai';
 import {Agent, fetch as undiciFetch} from 'undici';
@@ -479,7 +480,9 @@ export class AISDKClient implements LLMClient {
 		return await withNewCorrelationContext(async _context => {
 			try {
 				// Get the language model instance from the provider
-				const model = this.provider(this.currentModel);
+				const model = this.provider(
+					this.currentModel,
+				) as unknown as LanguageModel;
 
 				// Tools are already in AI SDK format - use directly
 				const aiTools = Object.keys(tools).length > 0 ? tools : undefined;
