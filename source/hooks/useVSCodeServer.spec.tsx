@@ -145,7 +145,7 @@ test('createFileChangeFromTool handles empty toolArgs', async t => {
 });
 
 test('createFileChangeFromTool handles special characters in content', async t => {
-	const newContent = 'const x = "Hello\nWorld";\n// コメント\n🚀';
+	const newContent = 'const x = "Hello\\nWorld";\\n// コメント\\n🚀';
 
 	const result = await createFileChangeFromTool(
 		'/test.ts',
