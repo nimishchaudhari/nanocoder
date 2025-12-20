@@ -1,4 +1,5 @@
 import {defaultTheme, getThemeColors} from '@/config/themes';
+import {TIMEOUT_VSCODE_EXTENSION_SKIP_MS} from '@/constants';
 import {
 	installExtension,
 	isExtensionInstalled,
@@ -59,7 +60,7 @@ export function VSCodeExtensionPrompt({
 			setMessage(result.message);
 			setState('error');
 			// Auto-continue after showing error
-			setTimeout(onSkip, 3000);
+			setTimeout(onSkip, TIMEOUT_VSCODE_EXTENSION_SKIP_MS);
 		}
 	}, [onSkip]);
 
@@ -83,7 +84,7 @@ export function VSCodeExtensionPrompt({
 	// Handle no-cli case - auto-skip after showing message
 	useEffect(() => {
 		if (state === 'no-cli') {
-			const timer = setTimeout(onSkip, 3000);
+			const timer = setTimeout(onSkip, TIMEOUT_VSCODE_EXTENSION_SKIP_MS);
 			return () => clearTimeout(timer);
 		}
 	}, [state, onSkip]);

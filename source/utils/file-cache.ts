@@ -1,4 +1,5 @@
 import {readFile, stat} from 'node:fs/promises';
+import {CACHE_FILE_TTL_MS, MAX_FILE_READ_RETRIES} from '@/constants';
 
 /**
  * File content cache to reduce duplicate file reads during tool confirmation flow.
@@ -6,9 +7,6 @@ import {readFile, stat} from 'node:fs/promises';
  * The cache stores file content with mtime tracking to ensure data freshness.
  * Entries auto-expire after TTL_MS and are invalidated if file mtime changes.
  */
-
-const TTL_MS = 5000; // 5 seconds
-const MAX_READ_RETRIES = 3; // Maximum retries if file changes during read
 
 /** Maximum number of files to cache (exported for testing) */
 export const MAX_CACHE_SIZE = 50;
@@ -50,7 +48,7 @@ export async function getCachedFileContent(
 		const {data} = entry;
 
 		// Check if cache entry has expired (TTL)
-		if (now - data.cachedAt > TTL_MS) {
+		if (now - data.cachedAt > CACHE_FILE_TTL_MS) {
 			cache.delete(absPath);
 		} else {
 			// Check if file mtime has changed
@@ -122,9 +120,9 @@ async function readAndCacheFile(
 	// Verify mtime didn't change during read
 	const mtimeAfter = (await stat(absPath)).mtimeMs;
 	if (mtimeAfter !== mtimeBefore) {
-		if (retryCount >= MAX_READ_RETRIES) {
+		if (retryCount >= MAX_FILE_READ_RETRIES) {
 			throw new Error(
-				`File ${absPath} is being modified too frequently, giving up after ${MAX_READ_RETRIES} retries`,
+				`File ${absPath} is being modified too frequently, giving up after ${MAX_FILE_READ_RETRIES} retries`,
 			);
 		}
 		// File changed during read, retry with fresh timestamp

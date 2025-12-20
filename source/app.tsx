@@ -50,6 +50,7 @@ import {useVSCodeServer} from '@/hooks/useVSCodeServer';
 import {UIStateProvider} from '@/hooks/useUIState';
 import {createPinoLogger} from '@/utils/logging/pino-logger';
 import type {LoggingCliConfig} from '@/utils/logging/types';
+import {TIMEOUT_OUTPUT_FLUSH_MS, TIMEOUT_EXECUTION_MAX_MS} from '@/constants';
 
 interface AppProps {
 	vscodeMode?: boolean;
@@ -634,8 +635,6 @@ export default function App({
 	]);
 
 	// Exit in non-interactive mode when all processing is complete
-	const OUTPUT_FLUSH_DELAY_MS = 1000;
-	const MAX_EXECUTION_TIME_MS = 300000; // 5 minutes
 	const [startTime] = React.useState(Date.now());
 
 	React.useEffect(() => {
@@ -643,7 +642,7 @@ export default function App({
 			const {shouldExit, reason} = isNonInteractiveModeComplete(
 				appState,
 				startTime,
-				MAX_EXECUTION_TIME_MS,
+				TIMEOUT_EXECUTION_MAX_MS,
 			);
 
 			if (shouldExit) {
@@ -660,7 +659,7 @@ export default function App({
 					process.exit(
 						reason === 'error' || reason === 'tool-approval' ? 1 : 0,
 					);
-				}, OUTPUT_FLUSH_DELAY_MS);
+				}, TIMEOUT_OUTPUT_FLUSH_MS);
 
 				return () => clearTimeout(timer);
 			}

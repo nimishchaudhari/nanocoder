@@ -7,6 +7,7 @@ import {ThemeContext} from '@/hooks/useTheme';
 import {DiagnosticSeverity, getLSPManager} from '@/lsp/index';
 import {jsonSchema, tool} from '@/types/core';
 import {type DiagnosticInfo, getVSCodeServer} from '@/vscode/index';
+import {TIMEOUT_LSP_DIAGNOSTICS_MS} from '@/constants';
 
 interface GetDiagnosticsArgs {
 	path?: string;
@@ -24,7 +25,7 @@ async function getVSCodeDiagnostics(
 	return new Promise(resolve => {
 		const timeout = setTimeout(() => {
 			resolve(null);
-		}, 5000); // 5 second timeout
+		}, TIMEOUT_LSP_DIAGNOSTICS_MS);
 
 		// Register callback for this specific request
 		server.onCallbacks({

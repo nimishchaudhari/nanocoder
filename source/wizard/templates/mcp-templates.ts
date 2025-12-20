@@ -1,4 +1,5 @@
 import type {TemplateField} from './provider-templates';
+import {TIMEOUT_MCP_DEFAULT_MS} from '@/constants';
 
 export type McpTransportType = 'stdio' | 'websocket' | 'http';
 
@@ -210,7 +211,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description:
 				'DeepWiki provides up-to-date documentation you can talk to, for every repo in the world.',
 			tags: ['remote', 'wiki', 'documentation', 'http'],
-			timeout: 30000,
+			timeout: TIMEOUT_MCP_DEFAULT_MS,
 		}),
 		category: 'remote',
 		transportType: 'http',
@@ -243,7 +244,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description:
 				'Dynamic and reflective problem-solving through thought sequences.',
 			tags: ['remote', 'reasoning', 'analysis', 'http'],
-			timeout: 30000,
+			timeout: TIMEOUT_MCP_DEFAULT_MS,
 		}),
 		category: 'remote',
 		transportType: 'http',
@@ -274,7 +275,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description:
 				'Up-to-date code documentation for LLMs and AI code editors.',
 			tags: ['remote', 'context', 'information', 'http'],
-			timeout: 30000,
+			timeout: TIMEOUT_MCP_DEFAULT_MS,
 		}),
 		category: 'remote',
 		transportType: 'http',
@@ -305,7 +306,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description:
 				'Web content fetching and conversion for efficient LLM usage',
 			tags: ['remote', 'http', 'scraping', 'fetch'],
-			timeout: 30000,
+			timeout: TIMEOUT_MCP_DEFAULT_MS,
 		}),
 		category: 'remote',
 		transportType: 'http',
@@ -337,7 +338,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 			description:
 				'Remote GitHub MCP server for repository management and operations',
 			tags: ['remote', 'github', 'git', 'repository', 'http'],
-			timeout: 30000,
+			timeout: TIMEOUT_MCP_DEFAULT_MS,
 			headers: {
 				Authorization: `Bearer ${answers.githubToken}`,
 			},
@@ -545,7 +546,7 @@ export const MCP_TEMPLATES: McpTemplate[] = [
 					throw new Error('URL is required for http/websocket transports');
 				}
 				config.url = answers.url;
-				config.timeout = 30000; // 30 seconds default timeout
+				config.timeout = TIMEOUT_MCP_DEFAULT_MS;
 			}
 
 			if (answers.envVars) {

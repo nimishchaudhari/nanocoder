@@ -1,5 +1,6 @@
 import type {ProviderConfig} from '../types/config';
 import type {McpServerConfig} from './templates/mcp-templates';
+import {TIMEOUT_PROVIDER_CONNECTION_MS} from '@/constants';
 
 interface ValidationResult {
 	valid: boolean;
@@ -74,7 +75,7 @@ export function validateConfig(
  */
 export async function testProviderConnection(
 	provider: ProviderConfig,
-	timeout = 5000,
+	timeout = TIMEOUT_PROVIDER_CONNECTION_MS,
 ): Promise<ProviderTestResult> {
 	// If no base URL, assume it's valid (will be validated when actually connecting)
 	if (!provider.baseUrl) {

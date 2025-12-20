@@ -2,9 +2,9 @@ import {getClosestConfigFile} from '@/config/index';
 import {logError} from '@/utils/message-queue';
 import fs from 'fs/promises';
 import type {InputState} from './types/hooks';
+import {MAX_PROMPT_HISTORY_SIZE} from '@/constants';
 
 const HISTORY_FILE = getClosestConfigFile('.nano-coder-history');
-const MAX_HISTORY_SIZE = 100;
 const ENTRY_SEPARATOR = '\n---ENTRY_SEPARATOR---\n';
 const JSON_FORMAT_MARKER = '---JSON_FORMAT---';
 
@@ -94,9 +94,9 @@ class PromptHistory {
 		// Add to the end
 		this.history.push(inputState);
 
-		// Keep only the last MAX_HISTORY_SIZE entries
-		if (this.history.length > MAX_HISTORY_SIZE) {
-			this.history = this.history.slice(-MAX_HISTORY_SIZE);
+		// Keep only the last MAX_PROMPT_HISTORY_SIZE entries
+		if (this.history.length > MAX_PROMPT_HISTORY_SIZE) {
+			this.history = this.history.slice(-MAX_PROMPT_HISTORY_SIZE);
 		}
 
 		this.currentIndex = -1;

@@ -7,6 +7,10 @@ import {execSync, spawn} from 'child_process';
 import {existsSync} from 'fs';
 import {join} from 'path';
 import type {LSPServerConfig} from './lsp-client';
+import {
+	TIMEOUT_LSP_VERIFICATION_MS,
+	TIMEOUT_LSP_SPAWN_VERIFICATION_MS,
+} from '@/constants';
 
 interface LanguageServerDefinition {
 	name: string;
@@ -191,7 +195,7 @@ function findCommand(command: string): string | null {
  */
 function verifyServer(checkCommand: string): boolean {
 	try {
-		execSync(checkCommand, {stdio: 'ignore', timeout: 5000});
+		execSync(checkCommand, {stdio: 'ignore', timeout: TIMEOUT_LSP_VERIFICATION_MS});
 		return true;
 	} catch {
 		return false;
@@ -213,7 +217,7 @@ function verifyLSPServerWithCommunication(
 		const timeout = setTimeout(() => {
 			child.kill();
 			resolve(false);
-		}, 2000);
+		}, TIMEOUT_LSP_SPAWN_VERIFICATION_MS);
 
 		// Listen for errors during startup (e.g., command not found)
 		child.on('error', () => {

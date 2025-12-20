@@ -8,10 +8,9 @@ import * as path from 'node:path';
 import {getAppDataPath, getConfigPath} from '@/config/paths';
 import {logInfo, logWarning} from '@/utils/message-queue';
 import type {DailyAggregate, SessionUsage, UsageData} from '../types/usage';
+import {MAX_USAGE_SESSIONS, MAX_DAILY_AGGREGATES} from '@/constants';
 
 const USAGE_FILE_NAME = 'usage.json';
-const MAX_SESSIONS = 100;
-const MAX_DAILY_AGGREGATES = 30;
 
 function getLegacyUsageFilePath(): string {
 	// Legacy location: config directory (pre-app-data change)
@@ -132,9 +131,9 @@ export function addSession(session: SessionUsage): void {
 	// Add session to the beginning (most recent first)
 	data.sessions.unshift(session);
 
-	// Keep only last MAX_SESSIONS
-	if (data.sessions.length > MAX_SESSIONS) {
-		data.sessions = data.sessions.slice(0, MAX_SESSIONS);
+	// Keep only last MAX_USAGE_SESSIONS
+	if (data.sessions.length > MAX_USAGE_SESSIONS) {
+		data.sessions = data.sessions.slice(0, MAX_USAGE_SESSIONS);
 	}
 
 	// Update lifetime total

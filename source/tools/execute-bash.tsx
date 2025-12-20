@@ -7,6 +7,7 @@ import ToolMessage from '@/components/tool-message';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
 import type {NanocoderToolExport} from '@/types/core';
+import {TRUNCATION_OUTPUT_LIMIT} from '@/constants';
 
 const executeExecuteBash = async (args: {command: string}): Promise<string> => {
 	return new Promise((resolve, reject) => {
@@ -37,10 +38,10 @@ ${stdout}`;
 				fullOutput = `${exitCodeInfo}${stdout}`;
 			}
 
-			// Limit the context for LLM to first 2000 characters to prevent overwhelming the model
+			// Limit the context for LLM to first TRUNCATION_OUTPUT_LIMIT characters to prevent overwhelming the model
 			const llmContext =
-				fullOutput.length > 2000
-					? fullOutput.substring(0, 2000) +
+				fullOutput.length > TRUNCATION_OUTPUT_LIMIT
+					? fullOutput.substring(0, TRUNCATION_OUTPUT_LIMIT) +
 						'\n... [Output truncated. Use more specific commands to see full output]'
 					: fullOutput;
 

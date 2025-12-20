@@ -8,6 +8,12 @@ import type {NanocoderToolExport} from '@/types/core';
 import {getCachedFileContent} from '@/utils/file-cache';
 import {Box, Text} from 'ink';
 import React from 'react';
+import {
+	FILE_READ_METADATA_THRESHOLD_LINES,
+	FILE_READ_CHUNKING_HINT_THRESHOLD_LINES,
+	FILE_READ_CHUNK_SIZE_LINES,
+	CHARS_PER_TOKEN_ESTIMATE,
+} from '@/constants';
 
 const executeReadFile = async (args: {
 	path: string;
@@ -28,14 +34,14 @@ const executeReadFile = async (args: {
 		const lines = cached.lines;
 		const totalLines = lines.length;
 		const fileSize = content.length;
-		const estimatedTokens = Math.ceil(fileSize / 4);
+		const estimatedTokens = Math.ceil(fileSize / CHARS_PER_TOKEN_ESTIMATE);
 
 		// Progressive disclosure: metadata first for files >300 lines
 		// Small files can be read directly without ranges
 		if (
 			args.start_line === undefined &&
 			args.end_line === undefined &&
-			totalLines > 300
+			totalLines > FILE_READ_METADATA_THRESHOLD_LINES
 		) {
 			// Return metadata only for medium/large files
 			// Detect file type from extension
@@ -70,17 +76,17 @@ const executeReadFile = async (args: {
 			output += `Size: ${fileSize.toLocaleString()} bytes\n`;
 			output += `Estimated tokens: ~${estimatedTokens.toLocaleString()}\n\n`;
 
-			if (totalLines <= 500) {
+			if (totalLines <= FILE_READ_CHUNKING_HINT_THRESHOLD_LINES) {
 				output += `[Medium file - To read specific sections, call read_file with start_line and end_line]\n`;
 				output += `[To read entire file progressively, make multiple calls:]\n`;
-				output += `  - read_file({path: "${args.path}", start_line: 1, end_line: 250})\n`;
-				output += `  - read_file({path: "${args.path}", start_line: 251, end_line: ${totalLines}})\n`;
+				output += `  - read_file({path: "${args.path}", start_line: 1, end_line: ${FILE_READ_CHUNK_SIZE_LINES}})\n`;
+				output += `  - read_file({path: "${args.path}", start_line: ${FILE_READ_CHUNK_SIZE_LINES + 1}, end_line: ${totalLines}})\n`;
 			} else {
 				output += `[Large file - Choose one approach:]\n`;
 				output += `[1. Targeted read: Use search_files to find code, then read specific ranges]\n`;
 				output += `[2. Progressive read: Read file in chunks (recommended chunk size: 200-300 lines)]\n`;
 				output += `   Example chunks for ${totalLines} lines:\n`;
-				const chunkSize = 250;
+				const chunkSize = FILE_READ_CHUNK_SIZE_LINES;
 				const numChunks = Math.ceil(totalLines / chunkSize);
 				for (let i = 0; i < Math.min(numChunks, 3); i++) {
 					const start = i * chunkSize + 1;
@@ -275,7 +281,7 @@ const readFileFormatter = async (
 				(result?.startsWith('File:') ?? false) &&
 				!args.start_line &&
 				!args.end_line &&
-				totalLines > 300;
+				totalLines > FILE_READ_METADATA_THRESHOLD_LINES;
 
 			// Calculate what was actually read
 			const startLine = args.start_line || 1;
@@ -287,10 +293,10 @@ const readFileFormatter = async (
 			let tokens: number;
 			if (isMetadataOnly) {
 				// For metadata, show estimated tokens of the FULL FILE
-				tokens = Math.ceil(content.length / 4);
+				tokens = Math.ceil(content.length / CHARS_PER_TOKEN_ESTIMATE);
 			} else {
 				// For content reads, show tokens of what was actually returned
-				tokens = result ? Math.ceil(result.length / 4) : 0;
+				tokens = result ? Math.ceil(result.length / CHARS_PER_TOKEN_ESTIMATE) : 0;
 			}
 
 			fileInfo = {

@@ -16,6 +16,7 @@ import {processPromptTemplate} from '@/utils/prompt-processor';
 import {parseToolArguments} from '@/utils/tool-args-parser';
 import {displayToolResult} from '@/utils/tool-result-display';
 import React from 'react';
+import {TOKEN_THRESHOLD_WARNING_PERCENT, TOKEN_THRESHOLD_CRITICAL_PERCENT} from '@/constants';
 
 // Helper function to filter out invalid tool calls and deduplicate by ID and function
 // Returns valid tool calls and error results for invalid ones
@@ -183,8 +184,8 @@ export function useChatHandler({
 
 				const percentUsed = (breakdown.total / contextLimit) * 100;
 
-				// Show warning on every message once past 80%
-				if (percentUsed >= 95) {
+				// Show warning on every message once past TOKEN_THRESHOLD_WARNING_PERCENT%
+				if (percentUsed >= TOKEN_THRESHOLD_CRITICAL_PERCENT) {
 					addToChatQueue(
 						<WarningMessage
 							key={`context-warning-${componentKeyCounter}`}
@@ -194,7 +195,7 @@ export function useChatHandler({
 							hideBox={true}
 						/>,
 					);
-				} else if (percentUsed >= 80) {
+				} else if (percentUsed >= TOKEN_THRESHOLD_WARNING_PERCENT) {
 					addToChatQueue(
 						<WarningMessage
 							key={`context-warning-${componentKeyCounter}`}

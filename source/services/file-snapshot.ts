@@ -3,12 +3,7 @@ import {existsSync} from 'fs';
 import * as path from 'path';
 import {logWarning} from '@/utils/message-queue';
 import * as fs from 'fs/promises';
-
-/**
- * Maximum number of files to capture in a checkpoint.
- * This limit prevents excessive memory usage and storage for large workspaces.
- */
-const MAX_CHECKPOINT_FILES = 50;
+import {MAX_CHECKPOINT_FILES} from '@/constants';
 
 /**
  * Service for capturing and restoring file snapshots for checkpoints

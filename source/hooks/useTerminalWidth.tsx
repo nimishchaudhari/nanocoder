@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react';
+import {DEFAULT_TERMINAL_COLUMNS} from '@/constants';
 
 type TerminalSize = 'narrow' | 'normal' | 'wide';
 
@@ -8,12 +9,12 @@ const calculateBoxWidth = (columns: number) =>
 
 export const useTerminalWidth = () => {
 	const [boxWidth, setBoxWidth] = useState(() =>
-		calculateBoxWidth(process.stdout.columns || 80),
+		calculateBoxWidth(process.stdout.columns || DEFAULT_TERMINAL_COLUMNS),
 	);
 
 	useEffect(() => {
 		const handleResize = () => {
-			const newWidth = calculateBoxWidth(process.stdout.columns || 80);
+			const newWidth = calculateBoxWidth(process.stdout.columns || DEFAULT_TERMINAL_COLUMNS);
 			// Only update if width actually changed
 			setBoxWidth(prevWidth => (prevWidth !== newWidth ? newWidth : prevWidth));
 		};
@@ -42,7 +43,7 @@ export const useTerminalWidth = () => {
  */
 export const useResponsiveTerminal = () => {
 	const boxWidth = useTerminalWidth();
-	const actualWidth = process.stdout.columns || 80;
+	const actualWidth = process.stdout.columns || DEFAULT_TERMINAL_COLUMNS;
 
 	// Define breakpoints for terminal sizes
 	const getSize = (width: number): TerminalSize => {
