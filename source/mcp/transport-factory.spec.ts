@@ -347,3 +347,56 @@ test('TransportFactory.validateServerConfig: validates http config with headers'
 	t.true(result.valid);
 	t.is(result.errors.length, 0);
 });
+
+// ============================================================================
+// Tests for Command Existence Validation (Issue #148 Fix)
+// ============================================================================
+
+test('TransportFactory.validateServerConfig: detects missing command', t => {
+	const server: MCPServer = {
+		name: 'test-stdio-missing-command',
+		transport: 'stdio',
+		command: 'this-command-definitely-does-not-exist-xyz123',
+	};
+
+	const result = TransportFactory.validateServerConfig(server);
+
+	t.false(result.valid);
+	t.true(
+		result.errors.some((error: string) =>
+			error.includes("Command 'this-command-definitely-does-not-exist-xyz123' not found"),
+		),
+	);
+});
+
+test('TransportFactory.validateServerConfig: returns uvx-specific installation hint', t => {
+	const server: MCPServer = {
+		name: 'test-stdio-uvx-hint',
+		transport: 'stdio',
+		command: 'uvx',
+	};
+
+	const result = TransportFactory.validateServerConfig(server);
+
+	// Should fail since uvx is likely not installed in test environment
+	t.false(result.valid);
+	// Should include uvx-specific installation instructions
+	t.true(result.errors.length > 0);
+	t.true(result.errors[0]!.includes("'uv' Python package manager"));
+	t.true(result.errors[0]!.includes('astral.sh/uv/install.sh'));
+});
+
+test('TransportFactory.validateServerConfig: validates existing command (node)', t => {
+	// node should exist since we're running tests with it
+	const server: MCPServer = {
+		name: 'test-stdio-node-exists',
+		transport: 'stdio',
+		command: 'node',
+		args: ['--version'],
+	};
+
+	const result = TransportFactory.validateServerConfig(server);
+
+	t.true(result.valid);
+	t.is(result.errors.length, 0);
+});
