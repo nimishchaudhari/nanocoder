@@ -3,7 +3,9 @@
  * Provides comprehensive monitoring and analysis capabilities
  */
 
-import {loadavg} from 'os';
+import {randomBytes} from 'node:crypto';
+import {loadavg} from 'node:os';
+
 import {generateCorrelationId} from './index.js';
 import type {Logger, PerformanceMetrics} from './types.js';
 
@@ -643,7 +645,7 @@ class PerformanceMonitor {
 	 * Start measuring an operation
 	 */
 	start(operation: string): string {
-		const id = `${operation}_${Date.now()}_${Math.random()}`;
+		const id = `${operation}_${Date.now()}_${randomBytes(8).toString('hex')}`;
 		const metrics = startMetrics();
 
 		if (!this.measurements.has(operation)) {

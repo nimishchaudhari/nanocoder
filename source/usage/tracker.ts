@@ -3,6 +3,8 @@
  * Tracks current session usage
  */
 
+import {randomBytes} from 'node:crypto';
+
 import {getModelContextLimit} from '@/models/index';
 import type {Message} from '@/types/core';
 import type {Tokenizer} from '@/types/tokenization';
@@ -24,7 +26,7 @@ export class SessionTracker {
 	}
 
 	private generateSessionId(): string {
-		return `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+		return `${Date.now()}-${randomBytes(8).toString('hex')}`;
 	}
 
 	async getCurrentStats(
