@@ -53,6 +53,7 @@ const CLOUD_PROVIDERS: Record<CloudModelsEndpointType, CloudProviderConfig> = {
 interface CloudModelsResponse {
 	data?: Array<{
 		id: string;
+		name?: string; // GitHub
 		display_name?: string; // Anthropic
 		object?: string; // OpenAI/Mistral
 	}>;

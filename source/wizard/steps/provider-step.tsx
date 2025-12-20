@@ -885,7 +885,7 @@ export function ProviderStep({
 					<Box>
 						<Text color={colors.info}>
 							<Spinner type="dots" /> Fetching models from{' '}
-							{fieldAnswers.baseUrl}...
+							{fieldAnswers.baseUrl || selectedTemplate.name}...
 						</Text>
 					</Box>
 				)}
