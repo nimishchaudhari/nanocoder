@@ -15,8 +15,8 @@ importers:
   .:
     dependencies:
       '@ai-sdk/openai-compatible':
-        specifier: 2.0.0-beta.42
-        version: 2.0.0-beta.42(zod@4.2.1)
+        specifier: 2.0.0-beta.57
+        version: 2.0.0-beta.57(zod@4.2.1)
       '@anthropic-ai/tokenizer':
         specifier: ^0.0.4
         version: 0.0.4
@@ -181,8 +181,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/openai-compatible@2.0.0-beta.42':
-    resolution: {integrity: sha512-5ggsxiUlk0Fg0OgCAlSr2f78dqGKLlCvPoYHe2rmJMck5zA02OYaPSAT8nQi9H73qTdxp6Y8AEQeQkAebydCOA==}
+  '@ai-sdk/openai-compatible@2.0.0-beta.57':
+    resolution: {integrity: sha512-CFzpgiw9RdMDxhk6wc4Ih0EsZxw45Kwkq+yJL/gGPjTLhNU/ANrew6DOUvrHyTyM0Ch5QrPobZM8t07cpeilLQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -203,8 +203,18 @@ packages:
       effect:
         optional: true
 
+  '@ai-sdk/provider-utils@4.0.0-beta.56':
+    resolution: {integrity: sha512-dcSlLZrAdDAZ7vGHf42bvI8J2JtpYaBJDuHUELS3nwTNEFsjltPGV+vgmtTeKu7RjPBB7Rq3W8r64yeqfD4P/g==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/provider@3.0.0-beta.23':
     resolution: {integrity: sha512-C8X5urwwxCM8GzdMiEnI5ZtRSv+rs17smwubTy0S+dFm9aSVui92ED5U42TJvDivEpDsHbMhuNI8sxRbtFQduQ==}
+    engines: {node: '>=18'}
+
+  '@ai-sdk/provider@3.0.0-beta.29':
+    resolution: {integrity: sha512-Lxbmcs7lb4lxKsp5SiJI2gR1z9bIdsV4O1ToNDS0fgtZeg+QOtetXNTqYtlTpRhrkfRb/5we/cGVPtdyx36CyA==}
     engines: {node: '>=18'}
 
   '@alcalzone/ansi-tokenize@0.2.2':
@@ -941,6 +951,9 @@ packages:
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
+
+  '@standard-schema/spec@1.1.0':
+    resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
   '@textlint/ast-node-types@15.5.0':
     resolution: {integrity: sha512-K0LEuuTo4rza8yDrlYkRdXLao8Iz/QBMsQdIxRrOOrLYb4HAtZaypZ78c+J6rDA1UlGxadZVLmkkiv4KV5fMKQ==}
@@ -3499,15 +3512,11 @@ snapshots:
       - arktype
       - effect
 
-  '@ai-sdk/openai-compatible@2.0.0-beta.42(zod@4.2.1)':
+  '@ai-sdk/openai-compatible@2.0.0-beta.57(zod@4.2.1)':
     dependencies:
-      '@ai-sdk/provider': 3.0.0-beta.23
-      '@ai-sdk/provider-utils': 4.0.0-beta.41(zod@4.2.1)
+      '@ai-sdk/provider': 3.0.0-beta.29
+      '@ai-sdk/provider-utils': 4.0.0-beta.56(zod@4.2.1)
       zod: 4.2.1
-    transitivePeerDependencies:
-      - '@valibot/to-json-schema'
-      - arktype
-      - effect
 
   '@ai-sdk/provider-utils@4.0.0-beta.41(zod@4.2.1)':
     dependencies:
@@ -3516,7 +3525,18 @@ snapshots:
       eventsource-parser: 3.0.6
       zod: 4.2.1
 
+  '@ai-sdk/provider-utils@4.0.0-beta.56(zod@4.2.1)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.0-beta.29
+      '@standard-schema/spec': 1.1.0
+      eventsource-parser: 3.0.6
+      zod: 4.2.1
+
   '@ai-sdk/provider@3.0.0-beta.23':
+    dependencies:
+      json-schema: 0.4.0
+
+  '@ai-sdk/provider@3.0.0-beta.29':
     dependencies:
       json-schema: 0.4.0
 
@@ -4134,6 +4154,8 @@ snapshots:
   '@sindresorhus/merge-streams@4.0.0': {}
 
   '@standard-schema/spec@1.0.0': {}
+
+  '@standard-schema/spec@1.1.0': {}
 
   '@textlint/ast-node-types@15.5.0': {}
 
