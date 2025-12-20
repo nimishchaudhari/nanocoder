@@ -180,14 +180,14 @@ async function fetchModelsData(): Promise<ModelsDevDatabase | null> {
 		const data = body as ModelsDevDatabase;
 
 		// Cache the successful response
-		writeCache(data);
+		await writeCache(data);
 
 		return data;
 	} catch (error) {
 		console.warn('Failed to fetch from models.dev:', error);
 
 		// Try to use cached data as fallback
-		const cached = readCache();
+		const cached = await readCache();
 		if (cached) {
 			console.log('Using cached models data');
 			return cached.data;
@@ -202,7 +202,7 @@ async function fetchModelsData(): Promise<ModelsDevDatabase | null> {
  */
 async function getModelsData(): Promise<ModelsDevDatabase | null> {
 	// Try cache first
-	const cached = readCache();
+	const cached = await readCache();
 	if (cached) {
 		return cached.data;
 	}

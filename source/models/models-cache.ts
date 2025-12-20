@@ -3,7 +3,8 @@
  * Stores model database in XDG_CACHE_HOME for fast lookup
  */
 
-import * as fs from 'node:fs';
+import {constants} from 'node:fs';
+import {access, mkdir, readFile, writeFile} from 'node:fs/promises';
 import * as path from 'node:path';
 import {xdgCache} from 'xdg-basedir';
 import type {CachedModelsData, ModelsDevDatabase} from './models-types.js';
@@ -27,22 +28,23 @@ function getCacheFilePath(): string {
 	return path.join(getCacheDir(), 'models.json');
 }
 
-function ensureCacheDir(): void {
+async function ensureCacheDir(): Promise<void> {
 	const dir = getCacheDir();
-	if (!fs.existsSync(dir)) {
-		fs.mkdirSync(dir, {recursive: true});
+
+	try {
+		await access(dir, constants.F_OK);
+	} catch {
+		await mkdir(dir, {recursive: true});
 	}
 }
 
-export function readCache(): CachedModelsData | null {
+export async function readCache(): Promise<CachedModelsData | null> {
 	try {
 		const cachePath = getCacheFilePath();
 
-		if (!fs.existsSync(cachePath)) {
-			return null;
-		}
+		await access(cachePath, constants.F_OK);
 
-		const content = fs.readFileSync(cachePath, 'utf-8');
+		const content = await readFile(cachePath, 'utf-8');
 		const cached = JSON.parse(content) as CachedModelsData;
 
 		// Check if cache is expired
@@ -58,9 +60,9 @@ export function readCache(): CachedModelsData | null {
 	}
 }
 
-export function writeCache(data: ModelsDevDatabase): void {
+export async function writeCache(data: ModelsDevDatabase): Promise<void> {
 	try {
-		ensureCacheDir();
+		await ensureCacheDir();
 
 		const cached: CachedModelsData = {
 			data,
@@ -69,7 +71,7 @@ export function writeCache(data: ModelsDevDatabase): void {
 		};
 
 		const cachePath = getCacheFilePath();
-		fs.writeFileSync(cachePath, JSON.stringify(cached, null, 2), 'utf-8');
+		await writeFile(cachePath, JSON.stringify(cached, null, 2), 'utf-8');
 	} catch (error) {
 		console.warn('Failed to write models cache:', error);
 	}

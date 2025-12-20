@@ -67,8 +67,8 @@ test('getVSCodePort does not throw', t => {
 // createFileChangeFromTool Tests
 // ============================================================================
 
-test('createFileChangeFromTool returns object with required properties', t => {
-	const result = createFileChangeFromTool(
+test('createFileChangeFromTool returns object with required properties', async t => {
+	const result = await createFileChangeFromTool(
 		'/non-existent-file.ts',
 		'new content',
 		'create_file',
@@ -80,9 +80,9 @@ test('createFileChangeFromTool returns object with required properties', t => {
 	t.true('newContent' in result);
 });
 
-test('createFileChangeFromTool returns correct newContent', t => {
+test('createFileChangeFromTool returns correct newContent', async t => {
 	const newContent = 'const x = 1;';
-	const result = createFileChangeFromTool(
+	const result = await createFileChangeFromTool(
 		'/non-existent-file.ts',
 		newContent,
 		'create_file',
@@ -92,8 +92,8 @@ test('createFileChangeFromTool returns correct newContent', t => {
 	t.is(result.newContent, newContent);
 });
 
-test('createFileChangeFromTool returns empty originalContent for non-existent file', t => {
-	const result = createFileChangeFromTool(
+test('createFileChangeFromTool returns empty originalContent for non-existent file', async t => {
+	const result = await createFileChangeFromTool(
 		'/definitely-does-not-exist-12345.ts',
 		'new content',
 		'create_file',
@@ -103,8 +103,8 @@ test('createFileChangeFromTool returns empty originalContent for non-existent fi
 	t.is(result.originalContent, '');
 });
 
-test('createFileChangeFromTool handles empty newContent', t => {
-	const result = createFileChangeFromTool(
+test('createFileChangeFromTool handles empty newContent', async t => {
+	const result = await createFileChangeFromTool(
 		'/non-existent-file.ts',
 		'',
 		'create_file',
@@ -114,17 +114,17 @@ test('createFileChangeFromTool handles empty newContent', t => {
 	t.is(result.newContent, '');
 });
 
-test('createFileChangeFromTool handles various tool names', t => {
+test('createFileChangeFromTool handles various tool names', async t => {
 	const toolNames = ['create_file', 'replace_lines', 'insert_lines', 'edit'];
 
 	for (const toolName of toolNames) {
-		t.notThrows(() => {
-			createFileChangeFromTool('/test.ts', 'content', toolName, {});
+		await t.notThrowsAsync(async () => {
+			await createFileChangeFromTool('/test.ts', 'content', toolName, {});
 		});
 	}
 });
 
-test('createFileChangeFromTool handles complex toolArgs', t => {
+test('createFileChangeFromTool handles complex toolArgs', async t => {
 	const toolArgs = {
 		path: '/test.ts',
 		startLine: 1,
@@ -133,21 +133,21 @@ test('createFileChangeFromTool handles complex toolArgs', t => {
 		nested: {value: true},
 	};
 
-	t.notThrows(() => {
-		createFileChangeFromTool('/test.ts', 'content', 'replace_lines', toolArgs);
+	await t.notThrowsAsync(async () => {
+		await createFileChangeFromTool('/test.ts', 'content', 'replace_lines', toolArgs);
 	});
 });
 
-test('createFileChangeFromTool handles empty toolArgs', t => {
-	t.notThrows(() => {
-		createFileChangeFromTool('/test.ts', 'content', 'create_file', {});
+test('createFileChangeFromTool handles empty toolArgs', async t => {
+	await t.notThrowsAsync(async () => {
+		await createFileChangeFromTool('/test.ts', 'content', 'create_file', {});
 	});
 });
 
-test('createFileChangeFromTool handles special characters in content', t => {
-	const newContent = 'const x = "Hello\\nWorld";\n// コメント\n🚀';
+test('createFileChangeFromTool handles special characters in content', async t => {
+	const newContent = 'const x = "Hello\nWorld";\n// コメント\n🚀';
 
-	const result = createFileChangeFromTool(
+	const result = await createFileChangeFromTool(
 		'/test.ts',
 		newContent,
 		'create_file',
@@ -157,10 +157,10 @@ test('createFileChangeFromTool handles special characters in content', t => {
 	t.is(result.newContent, newContent);
 });
 
-test('createFileChangeFromTool handles large content', t => {
+test('createFileChangeFromTool handles large content', async t => {
 	const largeContent = 'x'.repeat(100000);
 
-	const result = createFileChangeFromTool(
+	const result = await createFileChangeFromTool(
 		'/test.ts',
 		largeContent,
 		'create_file',
@@ -365,9 +365,9 @@ test('onPrompt callback works without context', t => {
 // Edge Cases
 // ============================================================================
 
-test('createFileChangeFromTool handles paths with spaces', t => {
-	t.notThrows(() => {
-		createFileChangeFromTool(
+test('createFileChangeFromTool handles paths with spaces', async t => {
+	await t.notThrowsAsync(async () => {
+		await createFileChangeFromTool(
 			'/path/with spaces/file.ts',
 			'content',
 			'create_file',
@@ -376,9 +376,9 @@ test('createFileChangeFromTool handles paths with spaces', t => {
 	});
 });
 
-test('createFileChangeFromTool handles Windows-style paths', t => {
-	t.notThrows(() => {
-		createFileChangeFromTool(
+test('createFileChangeFromTool handles Windows-style paths', async t => {
+	await t.notThrowsAsync(async () => {
+		await createFileChangeFromTool(
 			'C:\\Users\\test\\file.ts',
 			'content',
 			'create_file',
@@ -387,9 +387,9 @@ test('createFileChangeFromTool handles Windows-style paths', t => {
 	});
 });
 
-test('createFileChangeFromTool handles relative paths', t => {
-	t.notThrows(() => {
-		createFileChangeFromTool(
+test('createFileChangeFromTool handles relative paths', async t => {
+	await t.notThrowsAsync(async () => {
+		await createFileChangeFromTool(
 			'./relative/path.ts',
 			'content',
 			'create_file',
@@ -398,8 +398,8 @@ test('createFileChangeFromTool handles relative paths', t => {
 	});
 });
 
-test('createFileChangeFromTool handles empty path', t => {
-	const result = createFileChangeFromTool('', 'content', 'create_file', {});
+test('createFileChangeFromTool handles empty path', async t => {
+	const result = await createFileChangeFromTool('', 'content', 'create_file', {});
 
 	t.is(result.newContent, 'content');
 	t.is(result.originalContent, '');

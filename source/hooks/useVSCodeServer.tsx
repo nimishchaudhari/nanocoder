@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import {readFile} from 'node:fs/promises';
 import {DEFAULT_PORT, VSCodeServer, getVSCodeServer} from '@/vscode/index';
 import type {DiagnosticInfo} from '@/vscode/protocol';
 import {useCallback, useEffect, useRef, useState} from 'react';
@@ -212,20 +212,18 @@ export function getVSCodePort(): number {
 /**
  * Helper to create file change notification with automatic content reading
  */
-export function createFileChangeFromTool(
+export async function createFileChangeFromTool(
 	filePath: string,
 	newContent: string,
 	_toolName: string,
 	_toolArgs: Record<string, unknown>,
-): {
+): Promise<{
 	originalContent: string;
 	newContent: string;
-} {
+}> {
 	let originalContent = '';
 	try {
-		if (fs.existsSync(filePath)) {
-			originalContent = fs.readFileSync(filePath, 'utf-8');
-		}
+		originalContent = await readFile(filePath, 'utf-8');
 	} catch {
 		// File doesn't exist or can't be read - that's fine for create operations
 	}
