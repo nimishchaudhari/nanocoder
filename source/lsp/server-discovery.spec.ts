@@ -187,9 +187,20 @@ test('getLanguageId - returns extension as fallback for unknown type', t => {
 	t.is(getLanguageId('xyz'), 'xyz');
 });
 
+test('getLanguageId - returns dockerfile for docker extension', t => {
+	t.is(getLanguageId('dockerfile'), 'dockerfile');
+});
+
+test('getLanguageId - returns docker-compose for yaml files that match compose naming', t => {
+	// Assuming your getLanguageId handles filename patterns
+	t.is(getLanguageId('docker-compose.yml'), 'docker-compose');
+	t.is(getLanguageId('compose.yaml'), 'docker-compose');
+});
+
 test('getLanguageId - returns extension as fallback for unknown with dot', t => {
 	t.is(getLanguageId('.unknown'), 'unknown');
 });
+
 
 // getServerForLanguage tests
 test('getServerForLanguage - finds server for matching extension', t => {
@@ -536,6 +547,31 @@ test('getServerForLanguage - handles empty extension', t => {
 	];
 	const result = getServerForLanguage(servers, '');
 	t.is(result, undefined);
+});
+
+test('getKnownServersStatus - includes docker-language-server', t => {
+	const result = getKnownServersStatus();
+	const dockerServer = result.find(s => s.name === 'docker-language');
+
+	t.truthy(dockerServer, 'Docker server should be registered');
+	t.true(dockerServer!.languages.includes('dockerfile'), 'Should support dockerfile');
+	t.is(
+		dockerServer!.installHint,
+		'npm install -g docker-langserver or https://github.com/rcjsuen/dockerfile-language-server-nodejs'
+	);
+});
+
+test('getKnownServersStatus - includes docker-compose-language-server', t => {
+	const result = getKnownServersStatus();
+	const composeServer = result.find(s => s.name === 'docker-compose-language');
+
+	t.truthy(composeServer, 'Docker Compose server should be registered');
+	// Verifying support for both the specific ID and the base YAML extensions
+	t.true(composeServer!.languages.includes('docker-compose'), 'Should support docker-compose specific ID');
+	t.true(composeServer!.languages.includes('yaml'), 'Should support yaml extension');
+	t.true(composeServer!.languages.includes('yml'), 'Should support yml extension');
+
+	t.is(composeServer!.installHint, 'npm install -g yaml-language-server');
 });
 
 // Tests for verificationMethod functionality
