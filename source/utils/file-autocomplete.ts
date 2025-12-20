@@ -3,7 +3,9 @@ import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {promisify} from 'node:util';
 import ignore from 'ignore';
+import {formatError} from './error-formatter';
 import {fuzzyScoreFilePath} from './fuzzy-matching';
+import {getLogger} from './logging';
 
 const execAsync = promisify(exec);
 
@@ -92,7 +94,8 @@ async function getAllFiles(cwd: string): Promise<string[]> {
 		return allFiles;
 	} catch (error) {
 		// If find fails, return empty array
-		console.error('Failed to list files:', error);
+		const logger = getLogger();
+		logger.error({error: formatError(error)}, 'Failed to list files');
 		return [];
 	}
 }
