@@ -294,13 +294,13 @@ jobs:
 
             let jobDetails = {};
             if (workflowRun) {
-              const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+              const { data: jobs } = await github.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs', {
                 owner,
                 repo,
                 run_id: workflowRun.id
               });
 
-              jobDetails = jobs.jobs.reduce((acc, job) => {
+              jobDetails = jobs.reduce((acc, job) => {
                 acc[job.name] = job;
                 return acc;
               }, {});
