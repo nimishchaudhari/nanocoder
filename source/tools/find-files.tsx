@@ -96,6 +96,17 @@ async function findFilesByPattern(
 			if (namePattern !== '*' && namePattern !== '') {
 				findArgs.push('-name', namePattern);
 			}
+		} else if (pattern.includes('/') && pattern.includes('*')) {
+			// Pattern like source/tools/*.ts - has both path and wildcard
+			// Split into directory path and filename pattern
+			const lastSlashIndex = pattern.lastIndexOf('/');
+			const dirPath = pattern.substring(0, lastSlashIndex);
+			const filePattern = pattern.substring(lastSlashIndex + 1);
+
+			// Start search from the directory
+			findArgs[0] = `./${dirPath}`;
+			// Only descend one level (maxdepth 1) to match the specific directory
+			findArgs.push('-maxdepth', '1', '-name', filePattern);
 		} else if (pattern.includes('*')) {
 			// Simple pattern like *.ts
 			findArgs.push('-name', pattern);

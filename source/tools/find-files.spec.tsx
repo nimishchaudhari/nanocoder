@@ -399,6 +399,66 @@ test.serial('find_files handles simple patterns (*.ext)', async t => {
 });
 
 test.serial(
+	'find_files handles directory-prefixed wildcard patterns (dir/*.ext)',
+	async t => {
+		t.timeout(10000);
+		const testDir = join(process.cwd(), 'test-find-dir-wildcard-temp');
+
+		try {
+			mkdirSync(testDir, {recursive: true});
+			mkdirSync(join(testDir, 'scripts'), {recursive: true});
+			mkdirSync(join(testDir, 'src'), {recursive: true});
+
+			writeFileSync(join(testDir, 'scripts', 'build.sh'), '#!/bin/bash');
+			writeFileSync(join(testDir, 'scripts', 'test.sh'), '#!/bin/bash');
+			writeFileSync(join(testDir, 'scripts', 'readme.md'), 'docs');
+			writeFileSync(join(testDir, 'src', 'index.ts'), 'source');
+			writeFileSync(join(testDir, 'root.sh'), '#!/bin/bash');
+
+			const originalCwd = process.cwd();
+
+			try {
+				process.chdir(testDir);
+
+				// Test scripts/*.sh pattern
+				const result = await findFilesTool.tool.execute!(
+					{
+						pattern: 'scripts/*.sh',
+						maxResults: 50,
+					},
+					{toolCallId: 'test', messages: []},
+				);
+
+				t.true(
+					result.includes('scripts/build.sh'),
+					'Should find .sh files in scripts directory',
+				);
+				t.true(
+					result.includes('scripts/test.sh'),
+					'Should find all .sh files in scripts directory',
+				);
+				t.false(
+					result.includes('scripts/readme.md'),
+					'Should not include non-.sh files in scripts',
+				);
+				t.false(
+					result.includes('src/index.ts'),
+					'Should not include files from other directories',
+				);
+				t.false(
+					result.includes('root.sh'),
+					'Should not include .sh files in root when pattern specifies scripts/',
+				);
+			} finally {
+				process.chdir(originalCwd);
+			}
+		} finally {
+			rmSync(testDir, {recursive: true, force: true});
+		}
+	},
+);
+
+test.serial(
 	'find_files includes directories when they match pattern',
 	async t => {
 		t.timeout(10000);
