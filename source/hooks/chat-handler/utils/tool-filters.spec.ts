@@ -1,0 +1,109 @@
+import test from 'ava';
+import {filterValidToolCalls} from './tool-filters.js';
+import type {ToolCall} from '@/types/core';
+import type {ToolManager} from '@/tools/tool-manager';
+
+test('filterValidToolCalls - filters out empty tool calls', t => {
+	const toolCalls: ToolCall[] = [
+		{
+			id: '',
+			function: {name: 'test', arguments: {}},
+		},
+		{
+			id: 'call_1',
+			function: {name: '', arguments: {}},
+		},
+		{
+			id: 'call_2',
+			function: {name: 'valid_tool', arguments: {}},
+		},
+	];
+
+	const {validToolCalls, errorResults} = filterValidToolCalls(toolCalls, null);
+
+	t.is(validToolCalls.length, 1);
+	t.is(validToolCalls[0].id, 'call_2');
+	t.is(errorResults.length, 0);
+});
+
+test('filterValidToolCalls - creates error for non-existent tools', t => {
+	const toolCalls: ToolCall[] = [
+		{
+			id: 'call_1',
+			function: {name: 'nonexistent_tool', arguments: {}},
+		},
+	];
+
+	const mockToolManager = {
+		hasTool: (name: string) => name === 'existing_tool',
+	} as unknown as ToolManager;
+
+	const {validToolCalls, errorResults} = filterValidToolCalls(
+		toolCalls,
+		mockToolManager,
+	);
+
+	t.is(validToolCalls.length, 0);
+	t.is(errorResults.length, 1);
+	t.is(errorResults[0].tool_call_id, 'call_1');
+	t.is(errorResults[0].name, 'nonexistent_tool');
+	t.true(errorResults[0].content.includes('does not exist'));
+});
+
+test('filterValidToolCalls - deduplicates by ID', t => {
+	const toolCalls: ToolCall[] = [
+		{
+			id: 'call_1',
+			function: {name: 'tool', arguments: {a: 1}},
+		},
+		{
+			id: 'call_1', // Duplicate ID
+			function: {name: 'tool', arguments: {a: 2}},
+		},
+	];
+
+	const {validToolCalls} = filterValidToolCalls(toolCalls, null);
+
+	t.is(validToolCalls.length, 1);
+	t.is(validToolCalls[0].id, 'call_1');
+	t.deepEqual(validToolCalls[0].function.arguments, {a: 1}); // First one wins
+});
+
+test('filterValidToolCalls - deduplicates by function signature', t => {
+	const toolCalls: ToolCall[] = [
+		{
+			id: 'call_1',
+			function: {name: 'tool', arguments: {a: 1}},
+		},
+		{
+			id: 'call_2',
+			function: {name: 'tool', arguments: {a: 1}}, // Same tool + args
+		},
+	];
+
+	const {validToolCalls} = filterValidToolCalls(toolCalls, null);
+
+	t.is(validToolCalls.length, 1);
+	t.is(validToolCalls[0].id, 'call_1'); // First one wins
+});
+
+test('filterValidToolCalls - allows different tool calls', t => {
+	const toolCalls: ToolCall[] = [
+		{
+			id: 'call_1',
+			function: {name: 'tool_a', arguments: {a: 1}},
+		},
+		{
+			id: 'call_2',
+			function: {name: 'tool_b', arguments: {b: 2}},
+		},
+		{
+			id: 'call_3',
+			function: {name: 'tool_a', arguments: {a: 2}}, // Same tool, different args
+		},
+	];
+
+	const {validToolCalls} = filterValidToolCalls(toolCalls, null);
+
+	t.is(validToolCalls.length, 3);
+});
