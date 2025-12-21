@@ -7,9 +7,7 @@ console.log(`\nlogging/correlation.spec.ts`);
 
 // Import correlation functions
 import {
-	addCorrelationMetadata,
 	checkCorrelationHealth,
-	clearCorrelationContext,
 	correlationMiddleware,
 	createCorrelationContext,
 	createCorrelationContextWithId,
@@ -25,7 +23,6 @@ import {
 	getCurrentCorrelationContext,
 	isCorrelationEnabled,
 	resetCorrelationMonitoring,
-	setCorrelationContext,
 	withCorrelation,
 	withCorrelationContext,
 	withNewCorrelationContext,
@@ -46,9 +43,6 @@ test.after.always(() => {
 	if (existsSync(testDir)) {
 		rmSync(testDir, {recursive: true, force: true});
 	}
-
-	// Clear correlation context
-	clearCorrelationContext();
 });
 
 test('generateCorrelationId creates valid correlation ID', t => {
@@ -84,7 +78,7 @@ test('correlation context management works', t => {
 		},
 	};
 
-	// Use withCorrelationContext instead of deprecated setCorrelationContext
+	// Use withCorrelationContext for proper async context management
 	withCorrelationContext(context, () => {
 		// Get current context
 		const current = getCurrentCorrelationContext();
@@ -371,12 +365,6 @@ test('context isolation between concurrent operations', async t => {
 });
 
 test('error handling in correlation functions', t => {
-	// Test with invalid context
-	t.notThrows(() => {
-		setCorrelationContext(null as any);
-		getCurrentCorrelationContext();
-	}, 'Should handle invalid context gracefully');
-
 	// Test with malformed headers
 	const malformedHeaders = {
 		'x-correlation-id': null,
