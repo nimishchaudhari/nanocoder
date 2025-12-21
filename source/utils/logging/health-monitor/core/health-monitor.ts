@@ -15,7 +15,7 @@ import {
 	TIMEOUT_HEALTH_CHECK_MS,
 } from '@/constants';
 import {generateCorrelationId} from '../../correlation.js';
-import {globalLogStorage} from '../../log-query.js';
+import {globalLogStorage} from '../../log-query/index.js';
 import {loggerProvider} from '../../logger-provider.js';
 import {globalPerformanceMonitor} from '../../performance.js';
 import {globalRequestTracker} from '../../request-tracker.js';

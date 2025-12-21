@@ -2,7 +2,7 @@
  * Logging system health check
  */
 
-import {globalLogStorage} from '../../log-query.js';
+import {globalLogStorage} from '../../log-query/index.js';
 import {loggerProvider} from '../../logger-provider.js';
 import type {HealthCheck, HealthCheckConfig} from '../types.js';
 
