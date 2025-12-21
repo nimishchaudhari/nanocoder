@@ -1,6 +1,6 @@
 import test from 'ava';
 import type {ModelMessage} from 'ai';
-import {isEmptyAssistantMessage, type TestableMessage} from './ai-sdk-client.js';
+import {isEmptyAssistantMessage, type TestableMessage} from '@/ai-sdk-client';
 
 // Tests for prepareStep message filtering logic
 // This simulates the filtering logic used in AISDKClient.chat() to prevent:

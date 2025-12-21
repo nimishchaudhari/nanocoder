@@ -1,6 +1,6 @@
 import test from 'ava';
-import {AISDKClient} from './ai-sdk-client.js';
-import type {AIProviderConfig} from './types/config.js';
+import {AISDKClient} from '@/ai-sdk-client';
+import type {AIProviderConfig} from '@/types/config';
 
 // Tests for maxRetries configuration
 // Now tests actual AISDKClient instantiation and behavior

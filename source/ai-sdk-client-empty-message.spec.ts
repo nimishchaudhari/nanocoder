@@ -1,5 +1,5 @@
 import test from 'ava';
-import {TestableMessage, isEmptyAssistantMessage} from './ai-sdk-client.js';
+import {isEmptyAssistantMessage, type TestableMessage} from '@/ai-sdk-client';
 
 // Tests for isEmptyAssistantMessage function
 // This function is used to filter out empty assistant messages that would cause API errors:
