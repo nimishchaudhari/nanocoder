@@ -1,5 +1,5 @@
 import {constants} from 'node:fs';
-import {access, readFile, writeFile} from 'node:fs/promises';
+import {access, writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {highlight} from 'cli-highlight';
 import {Box, Text} from 'ink';
@@ -10,6 +10,7 @@ import {getColors} from '@/config/index';
 import {getCurrentMode} from '@/context/mode-context';
 import {jsonSchema, tool} from '@/types/core';
 import type {Colors} from '@/types/index';
+import {getCachedFileContent, invalidateCache} from '@/utils/file-cache';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import {
 	closeDiffInVSCode,
@@ -36,7 +37,8 @@ const executeStringReplace = async (
 	}
 
 	const absPath = resolve(path);
-	const fileContent = await readFile(absPath, 'utf-8');
+	const cached = await getCachedFileContent(absPath);
+	const fileContent = cached.content;
 
 	// Count occurrences of old_str
 	const occurrences = fileContent.split(old_str).length - 1;
@@ -58,6 +60,9 @@ const executeStringReplace = async (
 
 	// Write updated content
 	await writeFile(absPath, newContent, 'utf-8');
+
+	// Invalidate cache after write
+	invalidateCache(absPath);
 
 	// Calculate line numbers where change occurred
 	const beforeLines = fileContent.split('\n');
@@ -152,7 +157,8 @@ async function formatStringReplacePreview(
 
 	try {
 		const absPath = resolve(path);
-		const fileContent = await readFile(absPath, 'utf-8');
+		const cached = await getCachedFileContent(absPath);
+		const fileContent = cached.content;
 		const ext = path.split('.').pop()?.toLowerCase() ?? '';
 		const language = getLanguageFromExtension(ext);
 
@@ -420,7 +426,8 @@ const stringReplaceFormatter = async (
 	// Send diff to VS Code during preview phase (before execution)
 	if (result === undefined && isVSCodeConnected()) {
 		try {
-			const fileContent = await readFile(absPath, 'utf-8');
+			const cached = await getCachedFileContent(absPath);
+			const fileContent = cached.content;
 
 			// Only send if we can find a unique match
 			const occurrences = fileContent.split(old_str).length - 1;
