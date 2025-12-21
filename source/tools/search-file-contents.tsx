@@ -1,4 +1,4 @@
-import {exec} from 'node:child_process';
+import {execFile} from 'node:child_process';
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {promisify} from 'node:util';
@@ -16,7 +16,7 @@ import {
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 interface SearchMatch {
 	file: string;
@@ -70,18 +70,42 @@ async function searchFileContents(
 	try {
 		const ig = loadGitignore(cwd);
 
-		// Escape query for shell safety
-		const escapedQuery = query.replace(/"/g, '\\"');
+		// Build grep arguments array to prevent command injection
+		const grepArgs: string[] = [
+			'-rn', // recursive with line numbers
+			'-E', // extended regex
+		];
 
-		// Use grep with basic exclusions for performance
-		// -E enables extended regex for patterns like "foo|bar", "func(tion)?", etc.
-		const caseFlag = caseSensitive ? '' : '-i';
-		const {stdout} = await execAsync(
-			`grep -rn -E ${caseFlag} --include="*" --exclude-dir={node_modules,.git,dist,build,coverage,.next,.nuxt,out,.cache} "${escapedQuery}" . | head -n ${
-				maxResults
-			}`,
-			{cwd, maxBuffer: BUFFER_FIND_FILES_BYTES * BUFFER_GREP_MULTIPLIER},
+		// Add case sensitivity flag
+		if (!caseSensitive) {
+			grepArgs.push('-i');
+		}
+
+		// Add include and exclude patterns
+		grepArgs.push('--include=*');
+		grepArgs.push(
+			'--exclude-dir=node_modules',
+			'--exclude-dir=.git',
+			'--exclude-dir=dist',
+			'--exclude-dir=build',
+			'--exclude-dir=coverage',
+			'--exclude-dir=.next',
+			'--exclude-dir=.nuxt',
+			'--exclude-dir=out',
+			'--exclude-dir=.cache',
 		);
+
+		// Add the search query (no escaping needed with array-based args)
+		grepArgs.push(query);
+
+		// Add search path
+		grepArgs.push('.');
+
+		// Execute grep command with array-based arguments
+		const {stdout} = await execFileAsync('grep', grepArgs, {
+			cwd,
+			maxBuffer: BUFFER_FIND_FILES_BYTES * BUFFER_GREP_MULTIPLIER,
+		});
 
 		const matches: SearchMatch[] = [];
 		const lines = stdout.trim().split('\n').filter(Boolean);

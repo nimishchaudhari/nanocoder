@@ -3,7 +3,7 @@
  * Detects installed language servers on the system
  */
 
-import {execSync, spawn} from 'child_process';
+import {execFileSync, spawn} from 'child_process';
 import {existsSync} from 'fs';
 import {join} from 'path';
 import {
@@ -216,7 +216,7 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 function findCommand(command: string): string | null {
 	// First check PATH
 	try {
-		execSync(`which ${command}`, {stdio: 'ignore'});
+		execFileSync('which', [command], {stdio: 'ignore'});
 		return command;
 	} catch {
 		// Not in PATH
@@ -236,7 +236,12 @@ function findCommand(command: string): string | null {
  */
 function verifyServer(checkCommand: string): boolean {
 	try {
-		execSync(checkCommand, {
+		// Parse command and arguments from the check command string
+		const parts = checkCommand.split(/\s+/);
+		const command = parts[0];
+		const args = parts.slice(1);
+
+		execFileSync(command, args, {
 			stdio: 'ignore',
 			timeout: TIMEOUT_LSP_VERIFICATION_MS,
 		});

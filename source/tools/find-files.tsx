@@ -1,4 +1,4 @@
-import {exec} from 'node:child_process';
+import {execFile} from 'node:child_process';
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {promisify} from 'node:util';
@@ -15,7 +15,7 @@ import {
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 /**
  * Load and parse .gitignore file, returns an ignore instance
@@ -62,51 +62,70 @@ async function findFilesByPattern(
 	try {
 		const ig = loadGitignore(cwd);
 
-		// Convert glob patterns to find-compatible patterns
-		let findCommand = '';
-		let pathPrefix = '.';
+		// Build find arguments array to prevent command injection
+		const findArgs: string[] = ['.'];
 
 		if (pattern.includes('{') && pattern.includes('}')) {
 			// Handle brace expansion like *.{ts,tsx}
 			const braceMatch = pattern.match(/\{([^}]+)\}/);
 			if (braceMatch) {
 				const extensions = braceMatch[1].split(',');
-				const patterns = extensions
-					.map(ext => `-name "*.${ext.trim()}"`)
-					.join(' -o ');
-				findCommand = `find . \\( ${patterns} \\)`;
+				// Build: ( -name "*.ext1" -o -name "*.ext2" )
+				findArgs.push('(');
+				for (let i = 0; i < extensions.length; i++) {
+					if (i > 0) {
+						findArgs.push('-o');
+					}
+					findArgs.push('-name', `*.${extensions[i].trim()}`);
+				}
+				findArgs.push(')');
 			}
 		} else if (pattern.startsWith('**/')) {
 			// Pattern like **/*.ts - search everywhere
 			const namePattern = pattern.replace('**/', '');
-			findCommand = `find . -name "${namePattern}"`;
+			findArgs.push('-name', namePattern);
 		} else if (pattern.includes('/**')) {
 			// Pattern like scripts/** or scripts/**/*.ts - search within a directory
 			const parts = pattern.split('/**');
-			pathPrefix = `./${parts[0]}`;
+			const pathPrefix = `./${parts[0]}`;
 			const namePattern = parts[1] ? parts[1].replace(/^\//, '') : '*';
 
-			if (namePattern === '*' || namePattern === '') {
-				// Just list everything in the directory
-				findCommand = `find ${pathPrefix}`;
-			} else {
-				findCommand = `find ${pathPrefix} -name "${namePattern}"`;
+			// Replace the starting '.' with pathPrefix
+			findArgs[0] = pathPrefix;
+
+			if (namePattern !== '*' && namePattern !== '') {
+				findArgs.push('-name', namePattern);
 			}
 		} else if (pattern.includes('*')) {
 			// Simple pattern like *.ts
-			findCommand = `find . -name "${pattern}"`;
+			findArgs.push('-name', pattern);
 		} else {
 			// Exact path or directory name
-			findCommand = `find . -name "${pattern}"`;
+			findArgs.push('-name', pattern);
 		}
 
-		// Add exclusions and execute
-		const {stdout} = await execAsync(
-			`${findCommand} -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/coverage/*" -not -path "*/.next/*" -not -path "*/.nuxt/*" -not -path "*/out/*" -not -path "*/.cache/*" | head -n ${
-				maxResults
-			}`,
-			{cwd, maxBuffer: BUFFER_FIND_FILES_BYTES},
-		);
+		// Add exclusions
+		const exclusions = [
+			'*/node_modules/*',
+			'*/.git/*',
+			'*/dist/*',
+			'*/build/*',
+			'*/coverage/*',
+			'*/.next/*',
+			'*/.nuxt/*',
+			'*/out/*',
+			'*/.cache/*',
+		];
+
+		for (const exclusion of exclusions) {
+			findArgs.push('-not', '-path', exclusion);
+		}
+
+		// Execute find command with array-based arguments
+		const {stdout} = await execFileAsync('find', findArgs, {
+			cwd,
+			maxBuffer: BUFFER_FIND_FILES_BYTES,
+		});
 
 		const allPaths = stdout
 			.trim()
@@ -115,7 +134,7 @@ async function findFilesByPattern(
 			.map(line => line.replace(/^\.\//, ''))
 			.filter(path => path && path !== '.');
 
-		// Filter using gitignore
+		// Filter using gitignore and limit results
 		const paths: string[] = [];
 		for (const path of allPaths) {
 			if (!ig.ignores(path)) {
