@@ -3,6 +3,7 @@
  */
 
 import {randomUUID} from 'crypto';
+import {readFile} from 'node:fs/promises';
 import * as fs from 'fs';
 import {formatError} from '@/utils/error-formatter';
 import {getLogger} from '@/utils/logging';
@@ -22,11 +23,27 @@ import {
 	StatusMessage,
 } from './protocol';
 
-// Get version from package.json
-const packageJson = JSON.parse(
-	fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'),
-) as {version?: string};
-const CLI_VERSION = packageJson.version ?? '0.0.0';
+let cachedCliVersion: string | null = null;
+
+async function getCliVersion(): Promise<string> {
+	if (cachedCliVersion) {
+		return cachedCliVersion;
+	}
+
+	try {
+		const content = await readFile(
+			new URL('../../package.json', import.meta.url),
+			'utf-8',
+		);
+		const packageJson = JSON.parse(content) as {version?: string};
+		cachedCliVersion = packageJson.version ?? '0.0.0';
+		return cachedCliVersion;
+	} catch (error) {
+		console.warn('Failed to load CLI version from package.json:', error);
+		cachedCliVersion = '0.0.0';
+		return cachedCliVersion;
+	}
+}
 
 export type MessageHandler = (message: ClientMessage) => void;
 export type PromptHandler = (
@@ -60,6 +77,7 @@ export class VSCodeServer {
 	private callbacks: VSCodeServerCallbacks = {};
 	private currentModel?: string;
 	private currentProvider?: string;
+	private cliVersion: string = '0.0.0';
 
 	constructor(private port: number = DEFAULT_PORT) {}
 
@@ -67,6 +85,8 @@ export class VSCodeServer {
 	 * Start the WebSocket server
 	 */
 	async start(): Promise<boolean> {
+		this.cliVersion = await getCliVersion();
+
 		return new Promise(resolve => {
 			try {
 				this.wss = new WebSocketServer({
@@ -262,7 +282,7 @@ export class VSCodeServer {
 		const ack: ConnectionAckMessage = {
 			type: 'connection_ack',
 			protocolVersion: PROTOCOL_VERSION,
-			cliVersion: CLI_VERSION,
+			cliVersion: this.cliVersion,
 		};
 		ws.send(JSON.stringify(ack));
 
