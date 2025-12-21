@@ -131,3 +131,41 @@ test('promptPath points to main-prompt.md', async t => {
 		'promptPath should include source/app/prompts directory',
 	);
 });
+
+test('loadAppConfig handles malformed JSON gracefully', t => {
+	const fileName = 'malformed-config.json';
+	const configPath = getClosestConfigFile(fileName);
+
+	// Write malformed JSON to the config file
+	writeFileSync(configPath, '{ "nanocoder": { "providers": [ }, "mcpServers": [ ] }', 'utf-8');
+
+	try {
+		// This should not throw, but should log a warning
+		const {reloadAppConfig} = require('./index');
+		reloadAppConfig();
+		t.pass('Should handle malformed JSON without throwing');
+	} finally {
+		// Clean up
+		if (existsSync(configPath)) {
+			rmSync(configPath, {force: true});
+		}
+	}
+});
+
+test('loadAppConfig handles missing file gracefully', t => {
+	// This test ensures that when the config file is missing,
+	// the function falls back to defaults without throwing
+	const originalCwd = process.cwd();
+	
+	try {
+		// Change to a directory where the config file doesn't exist
+		process.chdir(testDir);
+		
+		const {reloadAppConfig} = require('./index');
+		reloadAppConfig();
+		t.pass('Should handle missing config file without throwing');
+	} finally {
+		// Restore original directory
+		process.chdir(originalCwd);
+	}
+});

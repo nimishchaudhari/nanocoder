@@ -7,7 +7,7 @@ import {getConfigPath} from '@/config/paths';
 import {loadPreferences} from '@/config/preferences';
 import {defaultTheme, getThemeColors} from '@/config/themes';
 import type {AppConfig, Colors} from '@/types/index';
-import {logError} from '@/utils/message-queue';
+import {logError, logWarning} from '@/utils/message-queue';
 import {config as loadEnv} from 'dotenv';
 
 // Load .env file from working directory (shell environment takes precedence)
@@ -101,8 +101,10 @@ function loadAppConfig(): AppConfig {
 				mcpServers: processedData.nanocoder.mcpServers ?? [],
 			};
 		}
-	} catch {
-		//
+	} catch (error) {
+		logWarning('Failed to load agents.config.json', {
+			error: error instanceof Error ? error.message : String(error)
+		});
 	}
 
 	return {};
