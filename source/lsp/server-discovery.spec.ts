@@ -1,5 +1,5 @@
 import test from 'ava';
-import type {LSPServerConfig} from './lsp-client';
+import type { LSPServerConfig } from './lsp-client';
 import {
 	findLocalServer,
 	getKnownServersStatus,
@@ -183,6 +183,15 @@ test('getLanguageId - handles extension with leading dot for py', t => {
 	t.is(getLanguageId('.py'), 'python');
 });
 
+test('getLanguageId - returns graphql for graphql extension', t => {
+	t.is(getLanguageId('graphql'), 'graphql');
+});
+
+test('getLanguageId - returns graphql for gql extension', t => {
+	// Both common extensions should map to the standard 'graphql' language ID
+	t.is(getLanguageId('gql'), 'graphql');
+});
+
 test('getLanguageId - returns extension as fallback for unknown type', t => {
 	t.is(getLanguageId('xyz'), 'xyz');
 });
@@ -344,6 +353,25 @@ test('getServerForLanguage - finds markdown server for mdx extension', t => {
 	const result = getServerForLanguage(servers, 'mdx');
 	t.truthy(result);
 	t.is(result?.name, 'vscode-markdown-language-server');
+});
+
+test('getKnownServersStatus - includes graphql-lsp-server', t => {
+	const result = getKnownServersStatus();
+	const graphqlServer = result.find(s => s.name === 'graphql-lsp-server');
+
+	t.truthy(graphqlServer, 'GraphQL server should be defined in KNOWN_SERVERS');
+	t.true(graphqlServer!.languages.includes('graphql'), 'Should support .graphql extension');
+	t.true(graphqlServer!.languages.includes('gql'), 'Should support .gql extension');
+	t.true(graphqlServer!.installHint!.includes('@graphql-tools/lsp-server'), 'Should point to the correct npm package');
+});
+
+test('getKnownServersStatus - includes graphql-language-server-cli', t => {
+	const result = getKnownServersStatus();
+	const graphqlServer = result.find(s => s.name === 'graphql-language-server-cli');
+
+	t.truthy(graphqlServer);
+	t.true(graphqlServer!.languages.includes('graphql'));
+	t.true(graphqlServer!.installHint!.includes('graphql-language-service-cli'));
 });
 
 // getMissingServerHints tests
@@ -605,6 +633,7 @@ test('getKnownServersStatus - key servers are present with correct names', t => 
 		'lua-language-server',
 		'vscode-markdown-language-server',
 		'marksman',
+		'graphql-language-server-cli'
 	];
 
 	for (const serverName of keyServers) {

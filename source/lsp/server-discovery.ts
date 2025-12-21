@@ -142,6 +142,8 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		verificationMethod: 'version',
 		installHint: 'Install from https://github.com/LuaLS/lua-language-server',
 	},
+
+	//markdown
 	{
 		name: 'vscode-markdown-language-server',
 		command: 'vscode-mdx-language-server',
@@ -162,6 +164,25 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		installHint:
 			'npm install -g marksman or download from https://github.com/artempyanykh/marksman/releases',
 	},
+  
+	//graphql
+	{
+		name: 'graphql-lsp-server',
+		command: 'graphql-lsp',
+		args: ['server -s'],
+		languages: ['graphql', 'gql'],
+		checkCommand: 'graphql-lsp --version',
+		verificationMethod: 'version',
+		installHint: 'npm install -g @graphql-tools/lsp-server',
+	},
+	{
+		name: 'graphql-language-server-cli',
+		command: 'graphql-lsp',
+		args: ['server', '--stdio'],
+		languages: ['graphql', 'gql'],
+		checkCommand: 'graphql-lsp --version',
+		verificationMethod: 'version',
+		installHint: 'npm install -g graphql-language-service-cli',
 	{
 		name: 'docker-language',
 		command: 'docker-langserver',
@@ -385,6 +406,8 @@ export function getLanguageId(extension: string): string {
 		swift: 'swift',
 		rb: 'ruby',
 		php: 'php',
+		graphql: 'graphql',
+		gql: 'graphql',
 		dockerfile: 'dockerfile',
 	};
 
