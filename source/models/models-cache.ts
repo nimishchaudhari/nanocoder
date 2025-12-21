@@ -5,6 +5,8 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import {formatError} from '@/utils/error-formatter';
+import {getLogger} from '@/utils/logging';
 import {xdgCache} from 'xdg-basedir';
 import type {CachedModelsData, ModelsDevDatabase} from './models-types.js';
 
@@ -53,7 +55,8 @@ export function readCache(): CachedModelsData | null {
 		return cached;
 	} catch (error) {
 		// If there's any error reading cache, return null to trigger fresh fetch
-		console.warn('Failed to read models cache:', error);
+		const logger = getLogger();
+		logger.warn({error: formatError(error)}, 'Failed to read models cache');
 		return null;
 	}
 }
@@ -71,6 +74,7 @@ export function writeCache(data: ModelsDevDatabase): void {
 		const cachePath = getCacheFilePath();
 		fs.writeFileSync(cachePath, JSON.stringify(cached, null, 2), 'utf-8');
 	} catch (error) {
-		console.warn('Failed to write models cache:', error);
+		const logger = getLogger();
+		logger.warn({error: formatError(error)}, 'Failed to write models cache');
 	}
 }
