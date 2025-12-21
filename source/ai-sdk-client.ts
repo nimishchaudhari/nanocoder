@@ -1,5 +1,6 @@
 import {randomBytes} from 'node:crypto';
 
+import {MAX_TOOL_STEPS, TIMEOUT_SOCKET_DEFAULT_MS} from '@/constants';
 import {getModelContextLimit} from '@/models/index.js';
 import {XMLToolCallParser} from '@/tool-calling/xml-parser';
 import type {
@@ -25,7 +26,6 @@ import type {LanguageModel} from 'ai';
 import {APICallError, RetryError, generateText, stepCountIs} from 'ai';
 import type {AssistantContent, ModelMessage, TextPart, ToolCallPart} from 'ai';
 import {Agent, fetch as undiciFetch} from 'undici';
-import {TIMEOUT_SOCKET_DEFAULT_MS, MAX_TOOL_STEPS} from '@/constants';
 
 /**
  * Message type used for testing the empty assistant message filter.
@@ -351,7 +351,9 @@ export class AISDKClient implements LLMClient {
 		const {requestTimeout, socketTimeout} = this.providerConfig;
 		const effectiveSocketTimeout = socketTimeout ?? requestTimeout;
 		const resolvedSocketTimeout =
-			effectiveSocketTimeout === -1 ? 0 : (effectiveSocketTimeout ?? TIMEOUT_SOCKET_DEFAULT_MS);
+			effectiveSocketTimeout === -1
+				? 0
+				: (effectiveSocketTimeout ?? TIMEOUT_SOCKET_DEFAULT_MS);
 
 		this.undiciAgent = new Agent({
 			connect: {

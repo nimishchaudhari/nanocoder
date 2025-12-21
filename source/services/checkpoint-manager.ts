@@ -1,5 +1,6 @@
 import {existsSync} from 'fs';
 import * as path from 'path';
+import {TRUNCATION_DESCRIPTION_LENGTH} from '@/constants';
 import type {
 	CheckpointConversation,
 	CheckpointData,
@@ -13,7 +14,6 @@ import {validateCheckpointName} from '@/utils/checkpoint-utils';
 import {logWarning} from '@/utils/message-queue';
 import * as fs from 'fs/promises';
 import {FileSnapshotService} from './file-snapshot';
-import {TRUNCATION_DESCRIPTION_LENGTH} from '@/constants';
 
 /**
  * Service for managing conversation checkpoints.

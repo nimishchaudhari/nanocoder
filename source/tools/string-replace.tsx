@@ -499,6 +499,33 @@ const stringReplaceValidator = async (
 		};
 	}
 
+	// Check if content exists in file and is unique
+	try {
+		const cached = await getCachedFileContent(absPath);
+		const fileContent = cached.content;
+		const occurrences = fileContent.split(old_str).length - 1;
+
+		if (occurrences === 0) {
+			return {
+				valid: false,
+				error: `⚒ Content not found in file. The file may have changed since you last read it.\n\nSearching for:\n${old_str}\n\nSuggestion: Read the file again to see current contents.`,
+			};
+		}
+
+		if (occurrences > 1) {
+			return {
+				valid: false,
+				error: `⚒ Found ${occurrences} matches for the search string. Please provide more surrounding context to make the match unique.\n\nSearching for:\n${old_str}`,
+			};
+		}
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		return {
+			valid: false,
+			error: `⚒ Error reading file "${path}": ${errorMessage}`,
+		};
+	}
+
 	return {valid: true};
 };
 

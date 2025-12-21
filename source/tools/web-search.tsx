@@ -4,15 +4,15 @@ import React from 'react';
 import {fetch} from 'undici';
 
 import ToolMessage from '@/components/tool-message';
+import {
+	DEFAULT_WEB_SEARCH_RESULTS,
+	MAX_WEB_SEARCH_QUERY_LENGTH,
+	TIMEOUT_WEB_SEARCH_MS,
+	WEB_SEARCH_DISPLAY_RESULTS,
+} from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
 import type {NanocoderToolExport} from '@/types/core';
-import {
-	TIMEOUT_WEB_SEARCH_MS,
-	DEFAULT_WEB_SEARCH_RESULTS,
-	WEB_SEARCH_DISPLAY_RESULTS,
-	MAX_WEB_SEARCH_QUERY_LENGTH,
-} from '@/constants';
 
 interface SearchArgs {
 	query: string;

@@ -132,7 +132,7 @@ test('promptPath points to main-prompt.md', async t => {
 	);
 });
 
-test('loadAppConfig handles malformed JSON gracefully', t => {
+test('loadAppConfig handles malformed JSON gracefully', async t => {
 	const fileName = 'malformed-config.json';
 	const configPath = getClosestConfigFile(fileName);
 
@@ -141,7 +141,7 @@ test('loadAppConfig handles malformed JSON gracefully', t => {
 
 	try {
 		// This should not throw, but should log a warning
-		const {reloadAppConfig} = require('./index');
+		const {reloadAppConfig} = await import('./index.js');
 		reloadAppConfig();
 		t.pass('Should handle malformed JSON without throwing');
 	} finally {
@@ -152,7 +152,7 @@ test('loadAppConfig handles malformed JSON gracefully', t => {
 	}
 });
 
-test('loadAppConfig handles missing file gracefully', t => {
+test('loadAppConfig handles missing file gracefully', async t => {
 	// This test ensures that when the config file is missing,
 	// the function falls back to defaults without throwing
 	const originalCwd = process.cwd();
@@ -161,7 +161,7 @@ test('loadAppConfig handles missing file gracefully', t => {
 		// Change to a directory where the config file doesn't exist
 		process.chdir(testDir);
 		
-		const {reloadAppConfig} = require('./index');
+		const {reloadAppConfig} = await import('./index.js');
 		reloadAppConfig();
 		t.pass('Should handle missing config file without throwing');
 	} finally {

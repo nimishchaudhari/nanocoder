@@ -394,6 +394,49 @@ test('string_replace validator: rejects empty old_str', async t => {
 	}
 });
 
+test('string_replace validator: rejects when content not found', async t => {
+	const filePath = await createTestFile('test.txt', 'Hello World\n');
+
+	if (!stringReplaceTool.validator) {
+		t.fail('Validator not defined');
+		return;
+	}
+
+	const result = await stringReplaceTool.validator({
+		path: filePath,
+		old_str: 'This does not exist',
+		new_str: 'new',
+	});
+
+	t.false(result.valid);
+	if (!result.valid) {
+		t.true(result.error.includes('Content not found in file'));
+	}
+});
+
+test('string_replace validator: rejects when multiple matches found', async t => {
+	const filePath = await createTestFile(
+		'test.txt',
+		'Hello World\nHello World\n',
+	);
+
+	if (!stringReplaceTool.validator) {
+		t.fail('Validator not defined');
+		return;
+	}
+
+	const result = await stringReplaceTool.validator({
+		path: filePath,
+		old_str: 'Hello World',
+		new_str: 'Hi Universe',
+	});
+
+	t.false(result.valid);
+	if (!result.valid) {
+		t.true(result.error.includes('Found 2 matches'));
+	}
+});
+
 // ============================================================================
 // Special Character Tests
 // ============================================================================

@@ -6,9 +6,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {getAppDataPath, getConfigPath} from '@/config/paths';
+import {MAX_DAILY_AGGREGATES, MAX_USAGE_SESSIONS} from '@/constants';
 import {logInfo, logWarning} from '@/utils/message-queue';
 import type {DailyAggregate, SessionUsage, UsageData} from '../types/usage';
-import {MAX_USAGE_SESSIONS, MAX_DAILY_AGGREGATES} from '@/constants';
 
 const USAGE_FILE_NAME = 'usage.json';
 

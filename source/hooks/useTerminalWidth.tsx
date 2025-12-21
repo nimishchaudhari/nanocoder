@@ -1,5 +1,5 @@
-import {useEffect, useState} from 'react';
 import {DEFAULT_TERMINAL_COLUMNS} from '@/constants';
+import {useEffect, useState} from 'react';
 
 type TerminalSize = 'narrow' | 'normal' | 'wide';
 
@@ -14,7 +14,9 @@ export const useTerminalWidth = () => {
 
 	useEffect(() => {
 		const handleResize = () => {
-			const newWidth = calculateBoxWidth(process.stdout.columns || DEFAULT_TERMINAL_COLUMNS);
+			const newWidth = calculateBoxWidth(
+				process.stdout.columns || DEFAULT_TERMINAL_COLUMNS,
+			);
 			// Only update if width actually changed
 			setBoxWidth(prevWidth => (prevWidth !== newWidth ? newWidth : prevWidth));
 		};

@@ -1,5 +1,5 @@
-import type {TemplateField} from './provider-templates';
 import {TIMEOUT_MCP_DEFAULT_MS} from '@/constants';
+import type {TemplateField} from './provider-templates';
 
 export type McpTransportType = 'stdio' | 'websocket' | 'http';
 

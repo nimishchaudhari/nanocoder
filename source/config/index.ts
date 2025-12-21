@@ -102,9 +102,9 @@ function loadAppConfig(): AppConfig {
 			};
 		}
 	} catch (error) {
-		logWarning('Failed to load agents.config.json', {
-			error: error instanceof Error ? error.message : String(error)
-		});
+		logWarning(
+			`Failed to load agents.config.json: ${error instanceof Error ? error.message : String(error)}`,
+		);
 	}
 
 	return {};

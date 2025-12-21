@@ -47,11 +47,11 @@ import {useModeHandlers} from '@/hooks/useModeHandlers';
 import {useToolHandler} from '@/hooks/useToolHandler';
 import {useVSCodeServer} from '@/hooks/useVSCodeServer';
 
+import {TIMEOUT_EXECUTION_MAX_MS, TIMEOUT_OUTPUT_FLUSH_MS} from '@/constants';
 // Provide shared UI state to components
 import {UIStateProvider} from '@/hooks/useUIState';
 import {createPinoLogger} from '@/utils/logging/pino-logger';
 import type {LoggingCliConfig} from '@/utils/logging/types';
-import {TIMEOUT_OUTPUT_FLUSH_MS, TIMEOUT_EXECUTION_MAX_MS} from '@/constants';
 
 interface AppProps {
 	vscodeMode?: boolean;

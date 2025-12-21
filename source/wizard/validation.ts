@@ -1,6 +1,6 @@
+import {TIMEOUT_PROVIDER_CONNECTION_MS} from '@/constants';
 import type {ProviderConfig} from '../types/config';
 import type {McpServerConfig} from './templates/mcp-templates';
-import {TIMEOUT_PROVIDER_CONNECTION_MS} from '@/constants';
 
 interface ValidationResult {
 	valid: boolean;

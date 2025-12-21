@@ -3,12 +3,12 @@
  * Fetches and caches model metadata
  */
 
+import {TIMEOUT_HTTP_BODY_MS, TIMEOUT_HTTP_HEADERS_MS} from '@/constants';
 import {formatError} from '@/utils/error-formatter';
 import {getLogger} from '@/utils/logging';
 import {request} from 'undici';
 import {readCache, writeCache} from './models-cache.js';
 import type {ModelInfo, ModelsDevDatabase} from './models-types.js';
-import {TIMEOUT_HTTP_HEADERS_MS, TIMEOUT_HTTP_BODY_MS} from '@/constants';
 
 const MODELS_DEV_API_URL = 'https://models.dev/api.json';
 

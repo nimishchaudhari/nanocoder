@@ -16,7 +16,8 @@
 			"node_modules",
 			"plugins",
 			"**/*.spec.ts",
-			"**/*.spec.tsx"
+			"**/*.spec.tsx",
+			".husky"
 		]
 	},
 	"formatter": {

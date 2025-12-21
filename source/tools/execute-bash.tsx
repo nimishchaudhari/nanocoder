@@ -4,10 +4,10 @@ import {Box, Text} from 'ink';
 import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
+import {TRUNCATION_OUTPUT_LIMIT} from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
 import type {NanocoderToolExport} from '@/types/core';
-import {TRUNCATION_OUTPUT_LIMIT} from '@/constants';
 
 const executeExecuteBash = async (args: {command: string}): Promise<string> => {
 	return new Promise((resolve, reject) => {

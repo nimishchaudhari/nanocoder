@@ -3,6 +3,10 @@ import AssistantMessage from '@/components/assistant-message';
 import ErrorMessage from '@/components/error-message';
 import UserMessage from '@/components/user-message';
 import WarningMessage from '@/components/warning-message';
+import {
+	TOKEN_THRESHOLD_CRITICAL_PERCENT,
+	TOKEN_THRESHOLD_WARNING_PERCENT,
+} from '@/constants';
 import {getModelContextLimit} from '@/models/index';
 import {promptHistory} from '@/prompt-history';
 import {createTokenizer} from '@/tokenization/index';
@@ -16,7 +20,6 @@ import {processPromptTemplate} from '@/utils/prompt-processor';
 import {parseToolArguments} from '@/utils/tool-args-parser';
 import {displayToolResult} from '@/utils/tool-result-display';
 import React from 'react';
-import {TOKEN_THRESHOLD_WARNING_PERCENT, TOKEN_THRESHOLD_CRITICAL_PERCENT} from '@/constants';
 
 // Helper function to filter out invalid tool calls and deduplicate by ID and function
 // Returns valid tool calls and error results for invalid ones

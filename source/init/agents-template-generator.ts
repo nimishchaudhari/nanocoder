@@ -1,9 +1,9 @@
+import {THRESHOLD_LARGE_CODEBASE_FILES} from '@/constants';
 import {
 	type ExistingRules,
 	ExistingRulesExtractor,
 } from '@/init/existing-rules-extractor';
 import type {ProjectAnalysis} from '@/init/project-analyzer';
-import {THRESHOLD_LARGE_CODEBASE_FILES} from '@/constants';
 
 export class AgentsTemplateGenerator {
 	/**

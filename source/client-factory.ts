@@ -3,8 +3,8 @@ import {join} from 'path';
 import {AISDKClient} from '@/ai-sdk-client';
 import {appConfig, getClosestConfigFile} from '@/config/index';
 import {loadPreferences} from '@/config/preferences';
-import type {AIProviderConfig, LLMClient} from '@/types/index';
 import {TIMEOUT_PROVIDER_CONNECTION_MS} from '@/constants';
+import type {AIProviderConfig, LLMClient} from '@/types/index';
 
 // Custom error class for configuration errors that need special UI handling
 export class ConfigurationError extends Error {

@@ -1,3 +1,4 @@
+import {CACHE_MODELS_EXPIRATION_MS} from '@/constants';
 import {ModelEntry} from '@/types/index';
 import {logError} from '@/utils/message-queue';
 
@@ -31,7 +32,6 @@ interface OpenRouterResponse {
 	data: OpenRouterModel[];
 }
 
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour cache
 const OPENROUTER_API = 'https://openrouter.ai/api/v1/models';
 
 let modelCache: ModelCache | null = null;
@@ -256,7 +256,10 @@ async function fetchOpenRouterModels(): Promise<OpenRouterModel[]> {
  */
 export async function fetchModels(): Promise<ModelEntry[]> {
 	// Check cache first
-	if (modelCache && Date.now() - modelCache.timestamp < CACHE_TTL_MS) {
+	if (
+		modelCache &&
+		Date.now() - modelCache.timestamp < CACHE_MODELS_EXPIRATION_MS
+	) {
 		return modelCache.models;
 	}
 
@@ -321,6 +324,7 @@ export function clearModelCache(): void {
  */
 export function isModelsCached(): boolean {
 	return (
-		modelCache !== null && Date.now() - modelCache.timestamp < CACHE_TTL_MS
+		modelCache !== null &&
+		Date.now() - modelCache.timestamp < CACHE_MODELS_EXPIRATION_MS
 	);
 }

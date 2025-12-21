@@ -5,6 +5,17 @@
 
 import {loadavg} from 'os';
 import {
+	COOLDOWN_ALERT_MS,
+	DURATION_AVERAGE_CRITICAL_MS,
+	DURATION_AVERAGE_WARNING_MS,
+	DURATION_REQUEST_CRITICAL_MS,
+	DURATION_REQUEST_WARNING_MS,
+	HEAP_USAGE_CRITICAL_THRESHOLD,
+	HEAP_USAGE_WARNING_THRESHOLD,
+	INTERVAL_HEALTH_CHECK_MS,
+	TIMEOUT_HEALTH_CHECK_MS,
+} from '@/constants';
+import {
 	generateCorrelationId,
 	getLogger,
 	withNewCorrelationContext,
@@ -13,17 +24,6 @@ import {globalLogStorage} from './log-query.js';
 import {globalPerformanceMonitor} from './performance.js';
 import {globalRequestTracker} from './request-tracker.js';
 import type {CorrelationContext} from './types.js';
-import {
-	INTERVAL_HEALTH_CHECK_MS,
-	TIMEOUT_HEALTH_CHECK_MS,
-	HEAP_USAGE_WARNING_THRESHOLD,
-	HEAP_USAGE_CRITICAL_THRESHOLD,
-	DURATION_AVERAGE_WARNING_MS,
-	DURATION_AVERAGE_CRITICAL_MS,
-	DURATION_REQUEST_WARNING_MS,
-	DURATION_REQUEST_CRITICAL_MS,
-	COOLDOWN_ALERT_MS,
-} from '@/constants';
 
 // Get logger instance directly to avoid circular dependencies
 const logger = getLogger();

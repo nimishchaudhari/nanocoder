@@ -2,10 +2,10 @@ import {exec} from 'node:child_process';
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {promisify} from 'node:util';
+import {BUFFER_FILE_LIST_BYTES, CACHE_FILE_LIST_TTL_MS} from '@/constants';
 import ignore from 'ignore';
 import {formatError} from './error-formatter';
 import {fuzzyScoreFilePath} from './fuzzy-matching';
-import {CACHE_FILE_LIST_TTL_MS, BUFFER_FILE_LIST_BYTES} from '@/constants';
 import {getLogger} from './logging';
 
 const execAsync = promisify(exec);

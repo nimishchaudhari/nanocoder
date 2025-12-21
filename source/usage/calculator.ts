@@ -3,14 +3,14 @@
  * Calculates token breakdown by category
  */
 
+import {
+	TOKENS_PER_TOOL_ESTIMATE,
+	USAGE_ERROR_THRESHOLD_PERCENT,
+	USAGE_SUCCESS_THRESHOLD_PERCENT,
+} from '@/constants';
 import type {Message} from '@/types/core';
 import type {Tokenizer} from '@/types/tokenization';
 import type {TokenBreakdown} from '../types/usage';
-import {
-	TOKENS_PER_TOOL_ESTIMATE,
-	USAGE_SUCCESS_THRESHOLD_PERCENT,
-	USAGE_ERROR_THRESHOLD_PERCENT,
-} from '@/constants';
 
 /**
  * Calculate token breakdown from messages

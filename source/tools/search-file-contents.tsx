@@ -7,14 +7,14 @@ import {Box, Text} from 'ink';
 import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
-import {ThemeContext} from '@/hooks/useTheme';
-import {jsonSchema, tool} from '@/types/core';
 import {
 	BUFFER_FIND_FILES_BYTES,
 	BUFFER_GREP_MULTIPLIER,
 	DEFAULT_SEARCH_RESULTS,
 	MAX_SEARCH_RESULTS,
 } from '@/constants';
+import {ThemeContext} from '@/hooks/useTheme';
+import {jsonSchema, tool} from '@/types/core';
 
 const execAsync = promisify(exec);
 
@@ -132,7 +132,10 @@ const executeSearchFileContents = async (
 	args: SearchFileContentsArgs,
 ): Promise<string> => {
 	const cwd = process.cwd();
-	const maxResults = Math.min(args.maxResults || DEFAULT_SEARCH_RESULTS, MAX_SEARCH_RESULTS);
+	const maxResults = Math.min(
+		args.maxResults || DEFAULT_SEARCH_RESULTS,
+		MAX_SEARCH_RESULTS,
+	);
 	const caseSensitive = args.caseSensitive || false;
 
 	try {

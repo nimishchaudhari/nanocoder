@@ -3,8 +3,8 @@
  * Provides powerful filtering, searching, and analytics capabilities
  */
 
-import {getLogger} from './index.js';
 import {MAX_LOG_ENTRIES} from '@/constants';
+import {getLogger} from './index.js';
 
 // Get logger instance directly to avoid circular dependencies
 const _logger = getLogger();

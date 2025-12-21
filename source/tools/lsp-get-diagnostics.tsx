@@ -3,11 +3,11 @@ import {Box, Text} from 'ink';
 import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
+import {TIMEOUT_LSP_DIAGNOSTICS_MS} from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import {DiagnosticSeverity, getLSPManager} from '@/lsp/index';
 import {jsonSchema, tool} from '@/types/core';
 import {type DiagnosticInfo, getVSCodeServer} from '@/vscode/index';
-import {TIMEOUT_LSP_DIAGNOSTICS_MS} from '@/constants';
 
 interface GetDiagnosticsArgs {
 	path?: string;

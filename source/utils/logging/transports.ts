@@ -3,9 +3,9 @@
  */
 
 import {join} from 'path';
+import {BUFFER_LOG_BYTES, INTERVAL_LOG_FLUSH_MS} from '@/constants';
 import {getDefaultLogDirectory} from './config.js';
 import type {TransportConfig} from './types.js';
-import {BUFFER_LOG_BYTES, INTERVAL_LOG_FLUSH_MS} from '@/constants';
 
 // Type definition for Pino transport target
 type TransportTarget = {

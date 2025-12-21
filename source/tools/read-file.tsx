@@ -2,18 +2,18 @@ import {constants} from 'node:fs';
 import {access} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import ToolMessage from '@/components/tool-message';
+import {
+	CHARS_PER_TOKEN_ESTIMATE,
+	FILE_READ_CHUNKING_HINT_THRESHOLD_LINES,
+	FILE_READ_CHUNK_SIZE_LINES,
+	FILE_READ_METADATA_THRESHOLD_LINES,
+} from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
 import type {NanocoderToolExport} from '@/types/core';
 import {getCachedFileContent} from '@/utils/file-cache';
 import {Box, Text} from 'ink';
 import React from 'react';
-import {
-	FILE_READ_METADATA_THRESHOLD_LINES,
-	FILE_READ_CHUNKING_HINT_THRESHOLD_LINES,
-	FILE_READ_CHUNK_SIZE_LINES,
-	CHARS_PER_TOKEN_ESTIMATE,
-} from '@/constants';
 
 const executeReadFile = async (args: {
 	path: string;
@@ -296,7 +296,9 @@ const readFileFormatter = async (
 				tokens = Math.ceil(content.length / CHARS_PER_TOKEN_ESTIMATE);
 			} else {
 				// For content reads, show tokens of what was actually returned
-				tokens = result ? Math.ceil(result.length / CHARS_PER_TOKEN_ESTIMATE) : 0;
+				tokens = result
+					? Math.ceil(result.length / CHARS_PER_TOKEN_ESTIMATE)
+					: 0;
 			}
 
 			fileInfo = {

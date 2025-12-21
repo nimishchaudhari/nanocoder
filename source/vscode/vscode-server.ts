@@ -4,7 +4,6 @@
 
 import {randomUUID} from 'crypto';
 import {readFile} from 'node:fs/promises';
-import * as fs from 'fs';
 import {formatError} from '@/utils/error-formatter';
 import {getLogger} from '@/utils/logging';
 import {WebSocket, WebSocketServer} from 'ws';

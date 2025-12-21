@@ -3,9 +3,9 @@ import {Box, Text} from 'ink';
 import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
+import {MAX_URL_CONTENT_BYTES} from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
-import {MAX_URL_CONTENT_BYTES} from '@/constants';
 
 interface FetchArgs {
 	url: string;

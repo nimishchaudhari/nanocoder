@@ -3,12 +3,15 @@ import {commandRegistry} from '@/commands';
 import ErrorMessage from '@/components/error-message';
 import InfoMessage from '@/components/info-message';
 import ToolMessage from '@/components/tool-message';
+import {
+	DELAY_COMMAND_COMPLETE_MS,
+	TRUNCATION_RESULT_STRING_LENGTH,
+} from '@/constants';
 import {CheckpointManager} from '@/services/checkpoint-manager';
 import {toolRegistry} from '@/tools/index';
 import type {LLMClient} from '@/types/core';
 import type {Message, MessageSubmissionOptions} from '@/types/index';
 import React from 'react';
-import {TRUNCATION_RESULT_STRING_LENGTH, DELAY_COMMAND_COMPLETE_MS} from '@/constants';
 
 export async function handleMessageSubmission(
 	message: string,

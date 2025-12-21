@@ -5,13 +5,13 @@
 
 import {randomBytes} from 'node:crypto';
 
+import {MAX_COMPLETED_REQUESTS} from '@/constants';
 import {generateCorrelationId, getLogger} from './index.js';
 import {
 	calculateMemoryDelta,
 	formatBytes,
 	trackPerformance,
 } from './performance.js';
-import {MAX_COMPLETED_REQUESTS} from '@/constants';
 
 // Get logger instance directly to avoid circular dependencies
 const logger = getLogger();

@@ -6,11 +6,11 @@
 import {execSync, spawn} from 'child_process';
 import {existsSync} from 'fs';
 import {join} from 'path';
-import type {LSPServerConfig} from './lsp-client';
 import {
-	TIMEOUT_LSP_VERIFICATION_MS,
 	TIMEOUT_LSP_SPAWN_VERIFICATION_MS,
+	TIMEOUT_LSP_VERIFICATION_MS,
 } from '@/constants';
+import type {LSPServerConfig} from './lsp-client';
 
 interface LanguageServerDefinition {
 	name: string;
@@ -236,7 +236,10 @@ function findCommand(command: string): string | null {
  */
 function verifyServer(checkCommand: string): boolean {
 	try {
-		execSync(checkCommand, {stdio: 'ignore', timeout: TIMEOUT_LSP_VERIFICATION_MS});
+		execSync(checkCommand, {
+			stdio: 'ignore',
+			timeout: TIMEOUT_LSP_VERIFICATION_MS,
+		});
 		return true;
 	} catch {
 		return false;
@@ -368,6 +371,16 @@ export function getServerForLanguage(
  */
 export function getLanguageId(extension: string): string {
 	const ext = extension.startsWith('.') ? extension.slice(1) : extension;
+
+	// Handle Docker Compose filename patterns
+	if (
+		ext === 'docker-compose.yml' ||
+		ext === 'docker-compose.yaml' ||
+		ext === 'compose.yml' ||
+		ext === 'compose.yaml'
+	) {
+		return 'docker-compose';
+	}
 
 	const languageMap: Record<string, string> = {
 		ts: 'typescript',

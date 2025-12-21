@@ -7,13 +7,13 @@ import {Box, Text} from 'ink';
 import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
-import {ThemeContext} from '@/hooks/useTheme';
-import {jsonSchema, tool} from '@/types/core';
 import {
 	BUFFER_FIND_FILES_BYTES,
 	DEFAULT_FIND_FILES_RESULTS,
 	MAX_FIND_FILES_RESULTS,
 } from '@/constants';
+import {ThemeContext} from '@/hooks/useTheme';
+import {jsonSchema, tool} from '@/types/core';
 
 const execAsync = promisify(exec);
 
@@ -146,7 +146,10 @@ interface FindFilesArgs {
 
 const executeFindFiles = async (args: FindFilesArgs): Promise<string> => {
 	const cwd = process.cwd();
-	const maxResults = Math.min(args.maxResults || DEFAULT_FIND_FILES_RESULTS, MAX_FIND_FILES_RESULTS);
+	const maxResults = Math.min(
+		args.maxResults || DEFAULT_FIND_FILES_RESULTS,
+		MAX_FIND_FILES_RESULTS,
+	);
 
 	try {
 		const {files, truncated} = await findFilesByPattern(
