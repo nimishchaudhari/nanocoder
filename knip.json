@@ -14,7 +14,8 @@
 		"source/hooks/useVSCodeServer.tsx",
 		"plugins/**/*",
 		"scripts/fetch-models.js",
-		".husky/**"
+		".husky/**",
+		".github/**"
 	],
 	"ignoreExportsUsedInFile": {
 		"interface": true,
