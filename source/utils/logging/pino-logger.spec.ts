@@ -48,11 +48,15 @@ test.before(() => {
 });
 
 test.after.always(async () => {
-	// End all tracked loggers first
+	// Flush and end all tracked loggers first
 	await Promise.all(
 		createdLoggers.map(async logger => {
 			try {
-						} catch {
+				// Flush any pending writes first
+				await logger.flush();
+				// Then end the logger
+				await logger.end();
+			} catch {
 				// Ignore errors during cleanup
 			}
 		}),
@@ -63,7 +67,8 @@ test.after.always(async () => {
 
 	// Give Pino transport workers time to shut down gracefully
 	// Pino uses worker threads that need time to clean up
-	await new Promise(resolve => setTimeout(resolve, 100));
+	// Increased timeout to ensure worker threads can terminate
+	await new Promise(resolve => setTimeout(resolve, 500));
 
 	// Clean up test directory
 	if (existsSync(testLogDir)) {
