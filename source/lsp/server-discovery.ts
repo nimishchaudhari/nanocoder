@@ -164,7 +164,7 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		installHint:
 			'npm install -g marksman or download from https://github.com/artempyanykh/marksman/releases',
 	},
-  
+
 	//graphql
 	{
 		name: 'graphql-lsp-server',
@@ -183,6 +183,7 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		checkCommand: 'graphql-lsp --version',
 		verificationMethod: 'version',
 		installHint: 'npm install -g graphql-language-service-cli',
+	},
 	{
 		name: 'docker-language',
 		command: 'docker-langserver',
