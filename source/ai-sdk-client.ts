@@ -1,3 +1,5 @@
+import {randomBytes} from 'node:crypto';
+
 import {getModelContextLimit} from '@/models/index.js';
 import {XMLToolCallParser} from '@/tool-calling/xml-parser';
 import type {
@@ -528,9 +530,7 @@ export class AISDKClient implements LLMClient {
 								const tc: ToolCall = {
 									id:
 										toolCall.toolCallId ||
-										`tool_${Date.now()}_${Math.random()
-											.toString(36)
-											.substring(7)}`,
+										`tool_${Date.now()}_${randomBytes(8).toString('hex')}`,
 									function: {
 										name: toolCall.toolName,
 										arguments: toolCall.input as Record<string, unknown>,
@@ -634,7 +634,7 @@ export class AISDKClient implements LLMClient {
 						const stepToolCalls: ToolCall[] = step.toolCalls.map(toolCall => ({
 							id:
 								toolCall.toolCallId ||
-								`tool_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+								`tool_${Date.now()}_${randomBytes(8).toString('hex')}`,
 							function: {
 								name: toolCall.toolName,
 								arguments: toolCall.input as Record<string, unknown>,
@@ -660,7 +660,7 @@ export class AISDKClient implements LLMClient {
 								content: resultStr,
 								tool_call_id:
 									toolCall.toolCallId ||
-									`tool_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+									`tool_${Date.now()}_${randomBytes(8).toString('hex')}`,
 								name: toolCall.toolName,
 							});
 						});
@@ -679,7 +679,7 @@ export class AISDKClient implements LLMClient {
 							// Some providers (like Ollama) don't provide toolCallId, so generate one
 							id:
 								toolCall.toolCallId ||
-								`tool_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+								`tool_${Date.now()}_${randomBytes(8).toString('hex')}`,
 							function: {
 								name: toolCall.toolName,
 								// AI SDK v5 uses 'input' for tool arguments

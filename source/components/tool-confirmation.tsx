@@ -4,6 +4,7 @@ import {getToolManager} from '@/message-handler';
 import {toolFormatters} from '@/tools/index';
 import type {ToolCall} from '@/types/core';
 import {formatError} from '@/utils/error-formatter';
+import {getLogger} from '@/utils/logging';
 import {parseToolArguments} from '@/utils/tool-args-parser';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
@@ -64,7 +65,11 @@ export default function ToolConfirmation({
 							return;
 						}
 					} catch (error) {
-						console.error('Error running validator:', error);
+						const logger = getLogger();
+						logger.error(
+							{error: formatError(error)},
+							'Error running validator',
+						);
 						const errorMsg = `Validation error: ${formatError(error)}`;
 						setValidationError(errorMsg);
 						setHasValidationError(true);
@@ -83,7 +88,11 @@ export default function ToolConfirmation({
 					const preview = await formatter(parsedArgs);
 					setFormatterPreview(preview);
 				} catch (error) {
-					console.error('Error loading formatter preview:', error);
+					const logger = getLogger();
+					logger.error(
+						{error: formatError(error)},
+						'Error loading formatter preview',
+					);
 					setHasFormatterError(true);
 					setFormatterPreview(
 						<Text color={colors.error}>Error: {String(error)}</Text>,

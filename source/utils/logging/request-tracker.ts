@@ -3,6 +3,8 @@
  * Provides comprehensive monitoring for HTTP requests, AI calls, and MCP operations
  */
 
+import {randomBytes} from 'node:crypto';
+
 import {generateCorrelationId, getLogger} from './index.js';
 import {
 	calculateMemoryDelta,
@@ -554,7 +556,7 @@ export class RequestTracker {
 	}
 
 	private generateRequestId(): string {
-		return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		return `req_${Date.now()}_${randomBytes(8).toString('hex')}`;
 	}
 
 	private addToCompleted(request: RequestMetadata): void {

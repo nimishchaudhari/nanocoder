@@ -4,6 +4,9 @@
 
 import {randomUUID} from 'crypto';
 import {readFile} from 'node:fs/promises';
+import * as fs from 'fs';
+import {formatError} from '@/utils/error-formatter';
+import {getLogger} from '@/utils/logging';
 import {WebSocket, WebSocketServer} from 'ws';
 import {
 	AssistantMessage,
@@ -296,7 +299,11 @@ export class VSCodeServer {
 				const message = JSON.parse(data.toString()) as ClientMessage;
 				this.handleMessage(message);
 			} catch (error) {
-				console.error('Failed to parse message from VS Code:', error);
+				const logger = getLogger();
+				logger.error(
+					{error: formatError(error)},
+					'Failed to parse message from VS Code',
+				);
 			}
 		});
 

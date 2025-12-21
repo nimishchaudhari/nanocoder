@@ -3,6 +3,8 @@
  * Fetches and caches model metadata
  */
 
+import {formatError} from '@/utils/error-formatter';
+import {getLogger} from '@/utils/logging';
 import {request} from 'undici';
 import {readCache, writeCache} from './models-cache.js';
 import type {ModelInfo, ModelsDevDatabase} from './models-types.js';
@@ -184,12 +186,13 @@ async function fetchModelsData(): Promise<ModelsDevDatabase | null> {
 
 		return data;
 	} catch (error) {
-		console.warn('Failed to fetch from models.dev:', error);
+		const logger = getLogger();
+		logger.warn({error: formatError(error)}, 'Failed to fetch from models.dev');
 
 		// Try to use cached data as fallback
 		const cached = await readCache();
 		if (cached) {
-			console.log('Using cached models data');
+			logger.info('Using cached models data');
 			return cached.data;
 		}
 
