@@ -11,6 +11,7 @@ import {
 	formatBytes,
 	trackPerformance,
 } from './performance.js';
+import {MAX_COMPLETED_REQUESTS} from '@/constants';
 
 // Get logger instance directly to avoid circular dependencies
 const logger = getLogger();
@@ -80,7 +81,7 @@ export class RequestTracker {
 	private readonly maxCompletedRequests: number;
 	private readonly correlationId: string;
 
-	constructor(maxCompletedRequests: number = 1000) {
+	constructor(maxCompletedRequests: number = MAX_COMPLETED_REQUESTS) {
 		this.maxCompletedRequests = maxCompletedRequests;
 		this.correlationId = generateCorrelationId();
 	}

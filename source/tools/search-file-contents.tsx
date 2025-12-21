@@ -9,6 +9,12 @@ import React from 'react';
 import ToolMessage from '@/components/tool-message';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
+import {
+	BUFFER_FIND_FILES_BYTES,
+	BUFFER_GREP_MULTIPLIER,
+	DEFAULT_SEARCH_RESULTS,
+	MAX_SEARCH_RESULTS,
+} from '@/constants';
 
 const execAsync = promisify(exec);
 
@@ -74,7 +80,7 @@ async function searchFileContents(
 			`grep -rn -E ${caseFlag} --include="*" --exclude-dir={node_modules,.git,dist,build,coverage,.next,.nuxt,out,.cache} "${escapedQuery}" . | head -n ${
 				maxResults
 			}`,
-			{cwd, maxBuffer: 1024 * 1024},
+			{cwd, maxBuffer: BUFFER_FIND_FILES_BYTES * BUFFER_GREP_MULTIPLIER},
 		);
 
 		const matches: SearchMatch[] = [];
@@ -126,7 +132,7 @@ const executeSearchFileContents = async (
 	args: SearchFileContentsArgs,
 ): Promise<string> => {
 	const cwd = process.cwd();
-	const maxResults = Math.min(args.maxResults || 30, 100);
+	const maxResults = Math.min(args.maxResults || DEFAULT_SEARCH_RESULTS, MAX_SEARCH_RESULTS);
 	const caseSensitive = args.caseSensitive || false;
 
 	try {

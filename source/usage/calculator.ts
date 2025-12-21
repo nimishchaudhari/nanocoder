@@ -6,6 +6,11 @@
 import type {Message} from '@/types/core';
 import type {Tokenizer} from '@/types/tokenization';
 import type {TokenBreakdown} from '../types/usage';
+import {
+	TOKENS_PER_TOOL_ESTIMATE,
+	USAGE_SUCCESS_THRESHOLD_PERCENT,
+	USAGE_ERROR_THRESHOLD_PERCENT,
+} from '@/constants';
 
 /**
  * Calculate token breakdown from messages
@@ -71,11 +76,9 @@ export function calculateTokenBreakdown(
  * This estimates the tokens used by tool definitions sent to the model
  */
 export function calculateToolDefinitionsTokens(toolCount: number): number {
-	// Rough estimate: each tool definition is about 150 tokens
+	// Rough estimate: each tool definition is about TOKENS_PER_TOOL_ESTIMATE tokens
 	// This includes name, description, parameters schema
-	const TOKENS_PER_TOOL = 150;
-
-	return toolCount * TOKENS_PER_TOOL;
+	return toolCount * TOKENS_PER_TOOL_ESTIMATE;
 }
 
 /**
@@ -84,9 +87,9 @@ export function calculateToolDefinitionsTokens(toolCount: number): number {
 export function getUsageStatusColor(
 	percentUsed: number,
 ): 'success' | 'warning' | 'error' {
-	if (percentUsed < 70) {
+	if (percentUsed < USAGE_SUCCESS_THRESHOLD_PERCENT) {
 		return 'success';
-	} else if (percentUsed < 90) {
+	} else if (percentUsed < USAGE_ERROR_THRESHOLD_PERCENT) {
 		return 'warning';
 	} else {
 		return 'error';

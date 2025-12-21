@@ -8,6 +8,7 @@ import {getLogger} from '@/utils/logging';
 import {request} from 'undici';
 import {readCache, writeCache} from './models-cache.js';
 import type {ModelInfo, ModelsDevDatabase} from './models-types.js';
+import {TIMEOUT_HTTP_HEADERS_MS, TIMEOUT_HTTP_BODY_MS} from '@/constants';
 
 const MODELS_DEV_API_URL = 'https://models.dev/api.json';
 
@@ -168,8 +169,8 @@ async function fetchModelsData(): Promise<ModelsDevDatabase | null> {
 	try {
 		const response = await request(MODELS_DEV_API_URL, {
 			method: 'GET',
-			headersTimeout: 10000,
-			bodyTimeout: 30000,
+			headersTimeout: TIMEOUT_HTTP_HEADERS_MS,
+			bodyTimeout: TIMEOUT_HTTP_BODY_MS,
 		});
 
 		if (response.statusCode !== 200) {

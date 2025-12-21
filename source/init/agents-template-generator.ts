@@ -3,6 +3,7 @@ import {
 	ExistingRulesExtractor,
 } from '@/init/existing-rules-extractor';
 import type {ProjectAnalysis} from '@/init/project-analyzer';
+import {THRESHOLD_LARGE_CODEBASE_FILES} from '@/constants';
 
 export class AgentsTemplateGenerator {
 	/**
@@ -189,7 +190,7 @@ export class AgentsTemplateGenerator {
 		sections.push(
 			`- Project has ${analysis.structure.scannedFiles} files across ${analysis.structure.directories.length} directories`,
 		);
-		if (analysis.structure.scannedFiles >= 500) {
+		if (analysis.structure.scannedFiles >= THRESHOLD_LARGE_CODEBASE_FILES) {
 			sections.push(
 				'- Large codebase: Focus on specific areas when making changes',
 			);

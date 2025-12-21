@@ -13,6 +13,7 @@ import {validateCheckpointName} from '@/utils/checkpoint-utils';
 import {logWarning} from '@/utils/message-queue';
 import * as fs from 'fs/promises';
 import {FileSnapshotService} from './file-snapshot';
+import {TRUNCATION_DESCRIPTION_LENGTH} from '@/constants';
 
 /**
  * Service for managing conversation checkpoints.
@@ -76,9 +77,9 @@ export class CheckpointManager {
 		}
 
 		const firstMessage = userMessages[0].content;
-		// Take first 100 characters and add ellipsis if longer
-		return firstMessage.length > 100
-			? `${firstMessage.substring(0, 100)}...`
+		// Take first characters and add ellipsis if longer
+		return firstMessage.length > TRUNCATION_DESCRIPTION_LENGTH
+			? `${firstMessage.substring(0, TRUNCATION_DESCRIPTION_LENGTH)}...`
 			: firstMessage;
 	}
 

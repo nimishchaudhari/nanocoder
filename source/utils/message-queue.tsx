@@ -4,6 +4,7 @@ import SuccessMessage from '@/components/success-message';
 import WarningMessage from '@/components/warning-message';
 import type {MessageType} from '@/types/index';
 import {createErrorInfo} from '@/utils/error-formatter';
+import {TIMEOUT_MESSAGE_PROCESSING_MS} from '@/constants';
 // Import logging utilities with dependency injection pattern
 import {
 	calculateMemoryDelta,
@@ -455,9 +456,8 @@ export function checkMessageQueueHealth(): {
 	if (messageStats.lastMessageTime) {
 		const lastMessageAge =
 			Date.now() - new Date(messageStats.lastMessageTime).getTime();
-		const fiveMinutes = 5 * 60 * 1000;
 
-		if (lastMessageAge > fiveMinutes && messageStats.totalMessages > 0) {
+		if (lastMessageAge > TIMEOUT_MESSAGE_PROCESSING_MS && messageStats.totalMessages > 0) {
 			issues.push(
 				`No messages for ${Math.round(lastMessageAge / 60000)} minutes`,
 			);

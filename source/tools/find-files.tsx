@@ -9,6 +9,11 @@ import React from 'react';
 import ToolMessage from '@/components/tool-message';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
+import {
+	BUFFER_FIND_FILES_BYTES,
+	DEFAULT_FIND_FILES_RESULTS,
+	MAX_FIND_FILES_RESULTS,
+} from '@/constants';
 
 const execAsync = promisify(exec);
 
@@ -100,7 +105,7 @@ async function findFilesByPattern(
 			`${findCommand} -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/coverage/*" -not -path "*/.next/*" -not -path "*/.nuxt/*" -not -path "*/out/*" -not -path "*/.cache/*" | head -n ${
 				maxResults
 			}`,
-			{cwd, maxBuffer: 1024 * 1024},
+			{cwd, maxBuffer: BUFFER_FIND_FILES_BYTES},
 		);
 
 		const allPaths = stdout
@@ -141,7 +146,7 @@ interface FindFilesArgs {
 
 const executeFindFiles = async (args: FindFilesArgs): Promise<string> => {
 	const cwd = process.cwd();
-	const maxResults = Math.min(args.maxResults || 50, 100);
+	const maxResults = Math.min(args.maxResults || DEFAULT_FIND_FILES_RESULTS, MAX_FIND_FILES_RESULTS);
 
 	try {
 		const {files, truncated} = await findFilesByPattern(

@@ -10,11 +10,7 @@ import {formatError} from '@/utils/error-formatter';
 import {getLogger} from '@/utils/logging';
 import {xdgCache} from 'xdg-basedir';
 import type {CachedModelsData, ModelsDevDatabase} from './models-types.js';
-
-/**
- * Cache expiration time: 7 days in milliseconds
- */
-const CACHE_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000;
+import {CACHE_MODELS_EXPIRATION_MS} from '@/constants';
 
 const DEFAULT_CACHE_DIR =
 	process.platform === 'darwin'
@@ -70,7 +66,7 @@ export async function writeCache(data: ModelsDevDatabase): Promise<void> {
 		const cached: CachedModelsData = {
 			data,
 			fetchedAt: Date.now(),
-			expiresAt: Date.now() + CACHE_EXPIRATION_MS,
+			expiresAt: Date.now() + CACHE_MODELS_EXPIRATION_MS,
 		};
 
 		const cachePath = getCacheFilePath();

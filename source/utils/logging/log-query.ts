@@ -4,6 +4,7 @@
  */
 
 import {getLogger} from './index.js';
+import {MAX_LOG_ENTRIES} from '@/constants';
 
 // Get logger instance directly to avoid circular dependencies
 const _logger = getLogger();
@@ -179,7 +180,7 @@ class LogStorage {
 	private maxEntries: number;
 	private indexes: Map<string, Set<string>> = new Map();
 
-	constructor(maxEntries: number = 10000) {
+	constructor(maxEntries: number = MAX_LOG_ENTRIES) {
 		this.maxEntries = maxEntries;
 		this.entries = new Array(maxEntries); // Pre-allocate array
 	}

@@ -9,6 +9,7 @@ import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import type {LSPConnectionStatus, MCPConnectionStatus} from '@/types/core';
 import type {ThemePreset} from '@/types/ui';
 import type {UpdateInfo} from '@/types/utils';
+import {PATH_LENGTH_NARROW_TERMINAL, PATH_LENGTH_NORMAL_TERMINAL} from '@/constants';
 
 // Get CWD once at module load time
 const cwd = process.cwd();
@@ -59,7 +60,7 @@ export default memo(function Status({
 	};
 
 	// Calculate max path length based on terminal size
-	const maxPathLength = isNarrow ? 30 : 60;
+	const maxPathLength = isNarrow ? PATH_LENGTH_NARROW_TERMINAL : PATH_LENGTH_NORMAL_TERMINAL;
 
 	return (
 		<>

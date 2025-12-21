@@ -7,6 +7,12 @@ import ToolMessage from '@/components/tool-message';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
 import type {NanocoderToolExport} from '@/types/core';
+import {
+	TIMEOUT_WEB_SEARCH_MS,
+	DEFAULT_WEB_SEARCH_RESULTS,
+	WEB_SEARCH_DISPLAY_RESULTS,
+	MAX_WEB_SEARCH_QUERY_LENGTH,
+} from '@/constants';
 
 interface SearchArgs {
 	query: string;
@@ -20,7 +26,7 @@ interface SearchResult {
 }
 
 const executeWebSearch = async (args: SearchArgs): Promise<string> => {
-	const maxResults = args.max_results ?? 10;
+	const maxResults = args.max_results ?? DEFAULT_WEB_SEARCH_RESULTS;
 	const encodedQuery = encodeURIComponent(args.query);
 
 	try {
@@ -33,7 +39,7 @@ const executeWebSearch = async (args: SearchArgs): Promise<string> => {
 					'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
 				Accept: 'text/html',
 			},
-			signal: AbortSignal.timeout(10000),
+			signal: AbortSignal.timeout(TIMEOUT_WEB_SEARCH_MS),
 		});
 
 		if (!response.ok) {
@@ -131,7 +137,7 @@ const WebSearchFormatter = React.memo(
 		}
 		const {colors} = themeContext;
 		const query = args.query || 'unknown';
-		const maxResults = args.max_results ?? 5;
+		const maxResults = args.max_results ?? WEB_SEARCH_DISPLAY_RESULTS;
 
 		// Parse result to count actual results
 		let resultCount = 0;
@@ -199,10 +205,10 @@ const webSearchValidator = (
 	}
 
 	// Check query length (reasonable limit)
-	if (query.length > 500) {
+	if (query.length > MAX_WEB_SEARCH_QUERY_LENGTH) {
 		return Promise.resolve({
 			valid: false,
-			error: `⚒ Search query is too long (${query.length} characters). Maximum length is 500 characters.`,
+			error: `⚒ Search query is too long (${query.length} characters). Maximum length is ${MAX_WEB_SEARCH_QUERY_LENGTH} characters.`,
 		});
 	}
 

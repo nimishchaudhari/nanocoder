@@ -1,5 +1,6 @@
 import {existsSync, readFileSync, readdirSync, statSync} from 'fs';
 import {basename, join, relative} from 'path';
+import {MAX_FILES_TO_SCAN, MAX_DIRECTORY_DEPTH} from '@/constants';
 
 interface ScanResult {
 	files: string[];
@@ -10,8 +11,8 @@ interface ScanResult {
 
 export class FileScanner {
 	private gitignorePatterns: string[] = [];
-	private maxFiles = 1000; // Prevent scanning massive codebases
-	private maxDepth = 10; // Prevent infinite recursion
+	private maxFiles = MAX_FILES_TO_SCAN; // Prevent scanning massive codebases
+	private maxDepth = MAX_DIRECTORY_DEPTH; // Prevent infinite recursion
 
 	constructor(private rootPath: string) {
 		this.loadGitignore();

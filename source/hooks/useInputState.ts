@@ -3,10 +3,12 @@ import {InputState, PlaceholderType} from '../types/hooks';
 import {handleAtomicDeletion} from '../utils/atomic-deletion';
 import {PasteDetector} from '../utils/paste-detection';
 import {handlePaste} from '../utils/paste-utils';
-
-const PASTE_CHUNK_BASE_WINDOW_MS = 500; // Time window to consider text as part of same paste (increased for slower terminals)
-const PASTE_CHUNK_MAX_WINDOW_MS = 2000; // Maximum window for very large pastes
-const PASTE_RAPID_DETECTION_MS = 50; // Grace period for rapid multi-detections (increased from 20)
+import {
+	PASTE_CHUNK_BASE_WINDOW_MS,
+	PASTE_CHUNK_MAX_WINDOW_MS,
+	PASTE_RAPID_DETECTION_MS,
+	PASTE_LARGE_CONTENT_THRESHOLD_CHARS,
+} from '@/constants';
 
 // Scales the paste window size based on content length.
 // Prevents truncation on slow terminals while keeping small pastes snappy
@@ -248,7 +250,7 @@ export function useInputState() {
 			}
 
 			debounceTimerRef.current = setTimeout(() => {
-				setHasLargeContent(newInput.length > 150);
+				setHasLargeContent(newInput.length > PASTE_LARGE_CONTENT_THRESHOLD_CHARS);
 			}, 50);
 		},
 		[currentState, pushToUndoStack],

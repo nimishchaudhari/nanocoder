@@ -5,6 +5,7 @@ import React from 'react';
 import ToolMessage from '@/components/tool-message';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
+import {MAX_URL_CONTENT_BYTES} from '@/constants';
 
 interface FetchArgs {
 	url: string;
@@ -28,10 +29,9 @@ const executeFetchUrl = async (args: FetchArgs): Promise<string> => {
 			throw new Error('No content returned from URL');
 		}
 
-		// Limit content size to prevent context overflow (~100KB)
-		const maxSize = 100000;
-		if (content.length > maxSize) {
-			const truncated = content.substring(0, maxSize);
+		// Limit content size to prevent context overflow
+		if (content.length > MAX_URL_CONTENT_BYTES) {
+			const truncated = content.substring(0, MAX_URL_CONTENT_BYTES);
 			return `${truncated}\n\n[Content truncated - original size was ${content.length} characters]`;
 		}
 

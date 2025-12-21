@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import Table from 'cli-table3';
 import type {Colors} from '../types/markdown-parser';
 import {stripMarkdown} from './utils';
+import {DEFAULT_TERMINAL_WIDTH, TABLE_COLUMN_MIN_WIDTH} from '@/constants';
 
 // Parse markdown tables using cli-table3
 export function parseMarkdownTable(
@@ -45,7 +46,7 @@ export function parseMarkdownTable(
 	const dataWidths = dataRows.map(row => row.map(cell => cell.length));
 
 	// Calculate column widths properly
-	const terminalWidth = process.stdout.columns || 120;
+	const terminalWidth = process.stdout.columns || DEFAULT_TERMINAL_WIDTH;
 	const numCols = header.length;
 
 	// Get max content width for each column
@@ -67,7 +68,7 @@ export function parseMarkdownTable(
 	// Distribute width proportionally
 	const totalContentWidth = contentWidths.reduce((a, b) => a + b, 0);
 	const colWidths = contentWidths.map(width =>
-		Math.max(10, Math.floor((width / totalContentWidth) * availableWidth)),
+		Math.max(TABLE_COLUMN_MIN_WIDTH, Math.floor((width / totalContentWidth) * availableWidth)),
 	);
 
 	// Create table with cli-table3 - full borders, proper alignment

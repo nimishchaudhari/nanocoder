@@ -1,4 +1,5 @@
 import {basename, extname} from 'path';
+import {MIN_LANGUAGE_PERCENTAGE, MAX_SECONDARY_LANGUAGES} from '@/constants';
 
 interface LanguageInfo {
 	name: string;
@@ -145,8 +146,8 @@ export class LanguageDetector {
 		const primary = languageInfos.length > 0 ? languageInfos[0] : null;
 		const secondary = languageInfos
 			.slice(1)
-			.filter(lang => lang.percentage >= 5) // At least 5% of files
-			.slice(0, 3); // Top 3 secondary languages
+			.filter(lang => lang.percentage >= MIN_LANGUAGE_PERCENTAGE) // At least MIN_LANGUAGE_PERCENTAGE% of files
+			.slice(0, MAX_SECONDARY_LANGUAGES); // Top MAX_SECONDARY_LANGUAGES secondary languages
 
 		return {
 			primary,

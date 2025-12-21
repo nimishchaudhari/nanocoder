@@ -5,6 +5,7 @@
 import {join} from 'path';
 import {getDefaultLogDirectory} from './config.js';
 import type {TransportConfig} from './types.js';
+import {BUFFER_LOG_BYTES, INTERVAL_LOG_FLUSH_MS} from '@/constants';
 
 // Type definition for Pino transport target
 type TransportTarget = {
@@ -64,7 +65,7 @@ export function createProductionTransport(
 			},
 			minLength: 4096,
 			maxLength: 1048576, // 1MB
-			periodicFlush: 1000,
+			periodicFlush: INTERVAL_LOG_FLUSH_MS,
 		},
 	};
 }
@@ -126,7 +127,7 @@ export function createMultiTransport(): TransportTarget[] {
  */
 export function createBufferedTransport(
 	baseTransport: TransportTarget,
-	bufferSize: number = 65536,
+	bufferSize: number = BUFFER_LOG_BYTES,
 ): TransportTarget {
 	return {
 		...baseTransport,

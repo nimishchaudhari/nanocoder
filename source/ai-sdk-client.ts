@@ -25,6 +25,7 @@ import type {LanguageModel} from 'ai';
 import {APICallError, RetryError, generateText, stepCountIs} from 'ai';
 import type {AssistantContent, ModelMessage, TextPart, ToolCallPart} from 'ai';
 import {Agent, fetch as undiciFetch} from 'undici';
+import {TIMEOUT_SOCKET_DEFAULT_MS, MAX_TOOL_STEPS} from '@/constants';
 
 /**
  * Message type used for testing the empty assistant message filter.
@@ -350,7 +351,7 @@ export class AISDKClient implements LLMClient {
 		const {requestTimeout, socketTimeout} = this.providerConfig;
 		const effectiveSocketTimeout = socketTimeout ?? requestTimeout;
 		const resolvedSocketTimeout =
-			effectiveSocketTimeout === -1 ? 0 : (effectiveSocketTimeout ?? 120000);
+			effectiveSocketTimeout === -1 ? 0 : (effectiveSocketTimeout ?? TIMEOUT_SOCKET_DEFAULT_MS);
 
 		this.undiciAgent = new Agent({
 			connect: {
@@ -500,14 +501,14 @@ export class AISDKClient implements LLMClient {
 
 				// Tools with needsApproval: false auto-execute in the loop
 				// Tools with needsApproval: true cause interruptions for manual approval
-				// stopWhen controls when the tool loop stops (max 10 steps)
+				// stopWhen controls when the tool loop stops (max MAX_TOOL_STEPS steps)
 				const result = await generateText({
 					model,
 					messages: modelMessages,
 					tools: aiTools,
 					abortSignal: signal,
 					maxRetries: this.maxRetries,
-					stopWhen: stepCountIs(10), // Allow up to 10 tool execution steps
+					stopWhen: stepCountIs(MAX_TOOL_STEPS), // Allow up to MAX_TOOL_STEPS tool execution steps
 					// Can be used to add custom logging, metrics, or step tracking
 					onStepFinish(step) {
 						// Log tool execution steps

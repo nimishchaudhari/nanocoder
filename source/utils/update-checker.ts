@@ -5,6 +5,7 @@ import {loadPreferences, savePreferences} from '@/config/preferences';
 import type {NpmRegistryResponse, UpdateInfo} from '@/types/index';
 import {logError} from '@/utils/message-queue';
 import {detectInstallationMethod} from './installation-detector';
+import {TIMEOUT_UPDATE_CHECK_MS} from '@/constants';
 
 const UPDATE_COMMANDS = {
 	NPM: 'npm update -g @nanocollective/nanocoder',
@@ -87,7 +88,7 @@ async function fetchLatestVersion(): Promise<string | null> {
 					'User-Agent': 'nanocoder-update-checker',
 				},
 				// Add timeout
-				signal: AbortSignal.timeout(10000), // 10 second timeout
+				signal: AbortSignal.timeout(TIMEOUT_UPDATE_CHECK_MS),
 			},
 		);
 
