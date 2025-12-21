@@ -1,5 +1,5 @@
 import test from 'ava';
-import {parseAPIError} from './ai-sdk-client.js';
+import {parseAPIError} from '@/ai-sdk-client';
 
 // Tests for parseAPIError function
 // Now using the actual exported function instead of a duplicated copy
