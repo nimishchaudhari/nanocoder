@@ -4,7 +4,7 @@ import {
 	HealthMonitor,
 	SystemMetrics,
 } from './health-monitor.js';
-import {globalLogStorage} from './log-query.js';
+import {globalLogStorage} from './log-query/index.js';
 import {globalPerformanceMonitor} from './performance.js';
 import {globalRequestTracker} from './request-tracker.js';
 

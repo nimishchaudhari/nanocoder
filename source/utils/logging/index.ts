@@ -3,8 +3,8 @@
  * Uses dependency injection pattern to avoid circular dependencies
  */
 
-import {loggerProvider} from './logger-provider.js';
-import type {LogLevel, Logger, LoggerConfig} from './types.js';
+import {loggerProvider} from './logger-provider';
+import type {LogLevel, Logger, LoggerConfig} from './types';
 
 /**
  * Initialize the logger with configuration
@@ -219,7 +219,7 @@ export {mcpTracker} from './request-tracker.js';
 export {globalRequestTracker} from './request-tracker.js';
 
 // Export log storage for tests
-export {globalLogStorage} from './log-query.js';
+export {globalLogStorage} from './log-query/index.js';
 
 // RequestTracker is only used internally as default export
 // No export needed here
