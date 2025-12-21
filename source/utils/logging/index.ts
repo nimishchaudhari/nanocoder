@@ -204,7 +204,7 @@ export {
 // No exports from console-facade.js as they are only used internally and in tests
 
 // Export request tracking utilities (specific instances used by other modules)
-export {healthChecks} from './health-monitor.js';
+export {healthChecks} from './health-monitor/index.js';
 
 // Internal exports that knip should ignore
 /** @internal */
@@ -233,14 +233,4 @@ export {
 	type HealthCheck,
 	type SystemMetrics,
 	type HealthCheckConfig,
-} from './health-monitor.js';
-
-// Internal exports that knip should ignore
-/** @internal */
-export {globalHealthMonitor} from './health-monitor.js';
-
-/** @internal */
-export {initializeHealthMonitoring} from './health-monitor.js';
-
-/** @internal */
-export {healthCheckMiddleware} from './health-monitor.js';
+} from './health-monitor/index.js';
