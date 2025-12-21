@@ -38,10 +38,10 @@ import {
 	createClearMessagesHandler,
 	handleMessageSubmission,
 } from '@/app/utils/appUtils';
+import {useChatHandler} from '@/hooks/chat-handler';
 import {useAppInitialization} from '@/hooks/useAppInitialization';
 // Import extracted hooks and utilities
 import {useAppState} from '@/hooks/useAppState';
-import {useChatHandler} from '@/hooks/useChatHandler';
 import {useDirectoryTrust} from '@/hooks/useDirectoryTrust';
 import {useModeHandlers} from '@/hooks/useModeHandlers';
 import {useToolHandler} from '@/hooks/useToolHandler';
