@@ -17,6 +17,7 @@ import {
 import type {ToolResult, UpdateInfo} from '@/types/index';
 import type {Tokenizer} from '@/types/tokenization.js';
 import type {ThemePreset} from '@/types/ui';
+import {BoundedMap} from '@/utils/bounded-map';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import React from 'react';
 
@@ -46,8 +47,13 @@ export function useAppState() {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [displayMessages, setDisplayMessages] = useState<Message[]>([]);
 	const [messageTokenCache, setMessageTokenCache] = useState<
-		Map<string, number>
-	>(new Map());
+		BoundedMap<string, number>
+	>(
+		new BoundedMap({
+			maxSize: 1000,
+			// No TTL - cache is session-based and cleared on app restart
+		}),
+	);
 	const [currentModel, setCurrentModel] = useState<string>('');
 	const [currentProvider, setCurrentProvider] =
 		useState<string>('openai-compatible');
@@ -178,7 +184,18 @@ export function useAppState() {
 			// Defer cache update to avoid "Cannot update a component while rendering" error
 			// This can happen when components call getMessageTokens during their render
 			queueMicrotask(() => {
-				setMessageTokenCache(prev => new Map(prev).set(cacheKey, tokens));
+				setMessageTokenCache(prev => {
+					const newCache = new BoundedMap<string, number>({
+						maxSize: 1000,
+					});
+					// Copy existing entries
+					for (const [k, v] of prev.entries()) {
+						newCache.set(k, v);
+					}
+					// Add new entry
+					newCache.set(cacheKey, tokens);
+					return newCache;
+				});
 			});
 			return tokens;
 		},

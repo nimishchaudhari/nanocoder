@@ -4,6 +4,7 @@
 
 import {randomUUID} from 'crypto';
 import {readFile} from 'node:fs/promises';
+import {BoundedMap} from '@/utils/bounded-map';
 import {formatError} from '@/utils/error-formatter';
 import {getLogger} from '@/utils/logging';
 import {WebSocket, WebSocketServer} from 'ws';
@@ -72,7 +73,10 @@ export interface VSCodeServerCallbacks {
 export class VSCodeServer {
 	private wss: WebSocketServer | null = null;
 	private clients: Set<WebSocket> = new Set();
-	private pendingChanges: Map<string, PendingChange> = new Map();
+	private pendingChanges: BoundedMap<string, PendingChange> = new BoundedMap({
+		maxSize: 1000,
+		ttl: 30 * 60 * 1000, // 30 minutes
+	});
 	private callbacks: VSCodeServerCallbacks = {};
 	private currentModel?: string;
 	private currentProvider?: string;
