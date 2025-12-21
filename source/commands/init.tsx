@@ -1,6 +1,6 @@
 import {existsSync, mkdirSync, writeFileSync} from 'fs';
 import {join} from 'path';
-import ErrorMessage from '@/components/error-message';
+import {ErrorMessage} from '@/components/message-box';
 import {TitledBox} from '@/components/ui/titled-box';
 import {colors} from '@/config/index';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';

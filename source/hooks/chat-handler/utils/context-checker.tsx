@@ -1,4 +1,4 @@
-import WarningMessage from '@/components/warning-message';
+import {WarningMessage} from '@/components/message-box';
 import {
 	TOKEN_THRESHOLD_CRITICAL_PERCENT,
 	TOKEN_THRESHOLD_WARNING_PERCENT,

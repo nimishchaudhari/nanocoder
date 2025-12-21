@@ -1,6 +1,6 @@
 import type {ConversationStateManager} from '@/app/utils/conversationState';
 import AssistantMessage from '@/components/assistant-message';
-import ErrorMessage from '@/components/error-message';
+import {ErrorMessage} from '@/components/message-box';
 import UserMessage from '@/components/user-message';
 import {parseToolCalls} from '@/tool-calling/index';
 import type {ToolManager} from '@/tools/tool-manager';

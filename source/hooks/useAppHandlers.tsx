@@ -1,9 +1,11 @@
 import {handleMessageSubmission} from '@/app/utils/appUtils';
 import {createClearMessagesHandler} from '@/app/utils/appUtils';
-import ErrorMessage from '@/components/error-message';
+import {
+	ErrorMessage,
+	SuccessMessage,
+	WarningMessage,
+} from '@/components/message-box';
 import Status from '@/components/status';
-import SuccessMessage from '@/components/success-message';
-import WarningMessage from '@/components/warning-message';
 import {setCurrentMode as setCurrentModeContext} from '@/context/mode-context';
 import {CustomCommandExecutor} from '@/custom-commands/executor';
 import {CustomCommandLoader} from '@/custom-commands/loader';

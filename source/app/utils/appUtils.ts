@@ -1,7 +1,6 @@
 import {parseInput} from '@/command-parser';
 import {commandRegistry} from '@/commands';
-import ErrorMessage from '@/components/error-message';
-import InfoMessage from '@/components/info-message';
+import {ErrorMessage, InfoMessage} from '@/components/message-box';
 import ToolMessage from '@/components/tool-message';
 import {
 	DELAY_COMMAND_COMPLETE_MS,
