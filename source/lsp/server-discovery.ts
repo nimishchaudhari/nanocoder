@@ -162,6 +162,25 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		installHint:
 			'npm install -g marksman or download from https://github.com/artempyanykh/marksman/releases',
 	},
+	{
+		name: 'docker-language',
+		command: 'docker-langserver',
+		args: ['--stdio'],
+		languages: ['dockerfile'],
+		checkCommand: 'docker-langserver --version',
+		verificationMethod: 'version',
+		installHint:
+			'npm install -g docker-langserver or https://github.com/rcjsuen/dockerfile-language-server-nodejs',
+	},
+	{
+		name: 'docker-compose-language',
+		command: 'yaml-language-server',
+		args: ['--stdio'],
+		languages: ['yaml', 'yml', 'docker-compose'],
+		checkCommand: 'yaml-language-server --version',
+		verificationMethod: 'version',
+		installHint: 'npm install -g yaml-language-server',
+	},
 ];
 
 /**
@@ -366,6 +385,7 @@ export function getLanguageId(extension: string): string {
 		swift: 'swift',
 		rb: 'ruby',
 		php: 'php',
+		dockerfile: 'dockerfile',
 	};
 
 	return languageMap[ext] || ext;
