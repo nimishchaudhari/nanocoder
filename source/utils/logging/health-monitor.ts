@@ -19,11 +19,11 @@ import {
 	generateCorrelationId,
 	getLogger,
 	withNewCorrelationContext,
-} from './index.js';
-import {globalLogStorage} from './log-query.js';
-import {globalPerformanceMonitor} from './performance.js';
-import {globalRequestTracker} from './request-tracker.js';
-import type {CorrelationContext} from './types.js';
+} from './index';
+import {globalLogStorage} from './log-query/index';
+import {globalPerformanceMonitor} from './performance';
+import {globalRequestTracker} from './request-tracker';
+import type {CorrelationContext} from './types';
 
 // Get logger instance directly to avoid circular dependencies
 const logger = getLogger();
