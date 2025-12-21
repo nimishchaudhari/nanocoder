@@ -212,33 +212,6 @@ export function getCurrentCorrelationContext(): CorrelationContext | null {
 }
 
 /**
- * Set the current correlation context (runs function with context)
- * Note: AsyncLocalStorage doesn't support direct setting, use withCorrelationContext instead
- * @deprecated Use withCorrelationContext or withNewCorrelationContext
- */
-export function setCorrelationContext(_context: CorrelationContext): void {
-	// This function is deprecated - AsyncLocalStorage requires running within a context
-	console.warn(
-		'⚠️  setCorrelationContext is DEPRECATED and will be removed in future versions.' +
-			'\nUse withCorrelationContext() or withNewCorrelationContext() instead.' +
-			'\nExample: withNewCorrelationContext(async (context) => { ... })',
-	);
-}
-
-/**
- * Clear the current correlation context
- * Note: AsyncLocalStorage handles cleanup automatically
- * @deprecated Context is automatically cleared when async operation completes
- */
-export function clearCorrelationContext(): void {
-	// This function is deprecated - Context cleanup is automatic with AsyncLocalStorage
-	console.warn(
-		'⚠️  clearCorrelationContext is DEPRECATED. ' +
-			'Context cleanup is automatic with AsyncLocalStorage.',
-	);
-}
-
-/**
  * Run a function with a specific correlation context
  */
 export function withCorrelationContext<T>(
@@ -393,19 +366,6 @@ export function createCorrelationFromHeaders(
 	}
 
 	return createCorrelationContext(undefined, metadata);
-}
-
-/**
- * Add correlation metadata
- * Note: Creates a new context with updated metadata since AsyncLocalStorage is immutable
- * @deprecated Use withNewCorrelationContext with metadata parameter
- */
-export function addCorrelationMetadata(_key: string, _value: unknown): void {
-	// This function is deprecated - use withNewCorrelationContext with metadata instead
-	console.warn(
-		'⚠️  addCorrelationMetadata is DEPRECATED. ' +
-			'Use withNewCorrelationContext with metadata parameter instead.',
-	);
 }
 
 /**

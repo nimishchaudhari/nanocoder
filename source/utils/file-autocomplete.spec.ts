@@ -1,75 +1,75 @@
 import test from 'ava';
 import {
 	clearFileListCache,
-	fuzzyScore,
 	getCurrentFileMention,
 } from './file-autocomplete.js';
+import {fuzzyScoreFilePath} from './fuzzy-matching.js';
 
 console.log(`\nfile-autocomplete.spec.ts`);
 
-// Test fuzzyScore()
+// Test fuzzyScoreFilePath()
 test('fuzzy score: exact match gets highest score', t => {
-	const score = fuzzyScore('app.tsx', 'app.tsx');
+	const score = fuzzyScoreFilePath('app.tsx', 'app.tsx');
 	t.is(score, 1000);
 });
 
 test('fuzzy score: exact filename match', t => {
-	const score = fuzzyScore('src/components/app.tsx', 'app.tsx');
+	const score = fuzzyScoreFilePath('src/components/app.tsx', 'app.tsx');
 	t.is(score, 900);
 });
 
 test('fuzzy score: path ends with query', t => {
-	const score = fuzzyScore('src/components/Button.tsx', 'Button.tsx');
+	const score = fuzzyScoreFilePath('src/components/Button.tsx', 'Button.tsx');
 	// This matches exact filename, so it gets 900 not 850
 	t.is(score, 900);
 });
 
 test('fuzzy score: filename starts with query', t => {
-	const score = fuzzyScore('src/components/Button.tsx', 'butt');
+	const score = fuzzyScoreFilePath('src/components/Button.tsx', 'butt');
 	t.is(score, 800);
 });
 
 test('fuzzy score: path starts with query', t => {
-	const score = fuzzyScore('src/components/Button.tsx', 'src/comp');
+	const score = fuzzyScoreFilePath('src/components/Button.tsx', 'src/comp');
 	t.is(score, 750);
 });
 
 test('fuzzy score: filename contains query', t => {
-	const score = fuzzyScore('src/components/Button.tsx', 'ton');
+	const score = fuzzyScoreFilePath('src/components/Button.tsx', 'ton');
 	t.is(score, 700);
 });
 
 test('fuzzy score: path contains query', t => {
-	const score = fuzzyScore('src/components/Button.tsx', 'compo');
+	const score = fuzzyScoreFilePath('src/components/Button.tsx', 'compo');
 	// "compo" is a substring in path but doesn't start the path
 	t.is(score, 600);
 });
 
 test('fuzzy score: sequential character match', t => {
-	const score = fuzzyScore('src/components/Button.tsx', 'btn');
+	const score = fuzzyScoreFilePath('src/components/Button.tsx', 'btn');
 	t.true(score > 0 && score < 600);
 });
 
 test('fuzzy score: no match returns 0', t => {
-	const score = fuzzyScore('app.tsx', 'xyz');
+	const score = fuzzyScoreFilePath('app.tsx', 'xyz');
 	t.is(score, 0);
 });
 
 test('fuzzy score: empty query returns 0', t => {
-	const score = fuzzyScore('app.tsx', '');
+	const score = fuzzyScoreFilePath('app.tsx', '');
 	t.is(score, 0);
 });
 
 test('fuzzy score: case insensitive', t => {
-	const score1 = fuzzyScore('App.tsx', 'app');
-	const score2 = fuzzyScore('app.tsx', 'APP');
+	const score1 = fuzzyScoreFilePath('App.tsx', 'app');
+	const score2 = fuzzyScoreFilePath('app.tsx', 'APP');
 	t.true(score1 > 0);
 	t.true(score2 > 0);
 });
 
 test('fuzzy score: prefers shorter paths', t => {
-	const shortPath = fuzzyScore('app.tsx', 'app');
-	const longPath = fuzzyScore('src/components/nested/app.tsx', 'app');
+	const shortPath = fuzzyScoreFilePath('app.tsx', 'app');
+	const longPath = fuzzyScoreFilePath('src/components/nested/app.tsx', 'app');
 	// Both match filename "app.tsx" starting with "app", so they get same score
 	// The scoring doesn't currently prefer shorter paths
 	t.is(shortPath, longPath);
@@ -77,9 +77,9 @@ test('fuzzy score: prefers shorter paths', t => {
 
 test('fuzzy score: consecutive matches get bonus', t => {
 	// "but" matches consecutively in "Button"
-	const consecutive = fuzzyScore('Button.tsx', 'but');
+	const consecutive = fuzzyScoreFilePath('Button.tsx', 'but');
 	// "btn" requires skipping characters
-	const nonConsecutive = fuzzyScore('Button.tsx', 'btn');
+	const nonConsecutive = fuzzyScoreFilePath('Button.tsx', 'btn');
 	t.true(consecutive > nonConsecutive);
 });
 

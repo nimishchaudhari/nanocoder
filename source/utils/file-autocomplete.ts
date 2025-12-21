@@ -98,15 +98,6 @@ async function getAllFiles(cwd: string): Promise<string[]> {
 }
 
 /**
- * Fuzzy match scoring algorithm for file paths
- * Returns a score from 0 to 1000 (higher = better match)
- * @deprecated Use fuzzyScoreFilePath from fuzzy-matching.ts instead
- */
-export function fuzzyScore(filePath: string, query: string): number {
-	return fuzzyScoreFilePath(filePath, query);
-}
-
-/**
  * Extract the current @mention being typed at cursor position
  * Returns the mention text and its position in the input
  */
