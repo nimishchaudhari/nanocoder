@@ -78,7 +78,7 @@ async function searchFileContents(
 		const caseFlag = caseSensitive ? '' : '-i';
 		const {stdout} = await execAsync(
 			`grep -rn -E ${caseFlag} --include="*" --exclude-dir={node_modules,.git,dist,build,coverage,.next,.nuxt,out,.cache} "${escapedQuery}" . | head -n ${
-				maxResults * 3
+				maxResults
 			}`,
 			{cwd, maxBuffer: BUFFER_FIND_FILES_BYTES * BUFFER_GREP_MULTIPLIER},
 		);
@@ -111,7 +111,7 @@ async function searchFileContents(
 
 		return {
 			matches,
-			truncated: lines.length >= maxResults * 3 || matches.length >= maxResults,
+			truncated: lines.length >= maxResults || matches.length >= maxResults,
 		};
 	} catch (error: unknown) {
 		// grep returns exit code 1 when no matches found

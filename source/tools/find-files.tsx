@@ -103,7 +103,7 @@ async function findFilesByPattern(
 		// Add exclusions and execute
 		const {stdout} = await execAsync(
 			`${findCommand} -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/coverage/*" -not -path "*/.next/*" -not -path "*/.nuxt/*" -not -path "*/out/*" -not -path "*/.cache/*" | head -n ${
-				maxResults * 3
+				maxResults
 			}`,
 			{cwd, maxBuffer: BUFFER_FIND_FILES_BYTES},
 		);
@@ -129,8 +129,7 @@ async function findFilesByPattern(
 
 		return {
 			files: paths,
-			truncated:
-				allPaths.length >= maxResults * 3 || paths.length >= maxResults,
+			truncated: allPaths.length >= maxResults || paths.length >= maxResults,
 		};
 	} catch (error: unknown) {
 		if (error instanceof Error && 'code' in error && error.code === 1) {

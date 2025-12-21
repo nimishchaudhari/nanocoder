@@ -4,6 +4,7 @@ import {join} from 'path';
 import {promptPath} from '../config/index';
 import type {InputState} from '../types/hooks';
 import {PlaceholderType} from '../types/hooks';
+import {getLogger} from './logging';
 
 /**
  * Get the default shell for the current platform
@@ -83,7 +84,8 @@ export function processPromptTemplate(): string {
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error);
-			console.warn(
+			const logger = getLogger();
+			logger.warn(
 				`Failed to load system prompt from ${promptPath}: ${errorMessage}`,
 			);
 		}
@@ -101,7 +103,8 @@ export function processPromptTemplate(): string {
 		} catch (error) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error);
-			console.warn(
+			const logger = getLogger();
+			logger.warn(
 				`Failed to load AGENTS.md from ${agentsPath}: ${errorMessage}`,
 			);
 		}

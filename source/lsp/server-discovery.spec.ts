@@ -1,5 +1,5 @@
 import test from 'ava';
-import type {LSPServerConfig} from './lsp-client';
+import type { LSPServerConfig } from './lsp-client';
 import {
 	findLocalServer,
 	getKnownServersStatus,
@@ -183,13 +183,33 @@ test('getLanguageId - handles extension with leading dot for py', t => {
 	t.is(getLanguageId('.py'), 'python');
 });
 
+test('getLanguageId - returns graphql for graphql extension', t => {
+	t.is(getLanguageId('graphql'), 'graphql');
+});
+
+test('getLanguageId - returns graphql for gql extension', t => {
+	// Both common extensions should map to the standard 'graphql' language ID
+	t.is(getLanguageId('gql'), 'graphql');
+});
+
 test('getLanguageId - returns extension as fallback for unknown type', t => {
 	t.is(getLanguageId('xyz'), 'xyz');
+});
+
+test('getLanguageId - returns dockerfile for docker extension', t => {
+	t.is(getLanguageId('dockerfile'), 'dockerfile');
+});
+
+test('getLanguageId - returns docker-compose for yaml files that match compose naming', t => {
+	// Assuming your getLanguageId handles filename patterns
+	t.is(getLanguageId('docker-compose.yml'), 'docker-compose');
+	t.is(getLanguageId('compose.yaml'), 'docker-compose');
 });
 
 test('getLanguageId - returns extension as fallback for unknown with dot', t => {
 	t.is(getLanguageId('.unknown'), 'unknown');
 });
+
 
 // getServerForLanguage tests
 test('getServerForLanguage - finds server for matching extension', t => {
@@ -333,6 +353,25 @@ test('getServerForLanguage - finds markdown server for mdx extension', t => {
 	const result = getServerForLanguage(servers, 'mdx');
 	t.truthy(result);
 	t.is(result?.name, 'vscode-markdown-language-server');
+});
+
+test('getKnownServersStatus - includes graphql-lsp-server', t => {
+	const result = getKnownServersStatus();
+	const graphqlServer = result.find(s => s.name === 'graphql-lsp-server');
+
+	t.truthy(graphqlServer, 'GraphQL server should be defined in KNOWN_SERVERS');
+	t.true(graphqlServer!.languages.includes('graphql'), 'Should support .graphql extension');
+	t.true(graphqlServer!.languages.includes('gql'), 'Should support .gql extension');
+	t.true(graphqlServer!.installHint!.includes('@graphql-tools/lsp-server'), 'Should point to the correct npm package');
+});
+
+test('getKnownServersStatus - includes graphql-language-server-cli', t => {
+	const result = getKnownServersStatus();
+	const graphqlServer = result.find(s => s.name === 'graphql-language-server-cli');
+
+	t.truthy(graphqlServer);
+	t.true(graphqlServer!.languages.includes('graphql'));
+	t.true(graphqlServer!.installHint!.includes('graphql-language-service-cli'));
 });
 
 // getMissingServerHints tests
@@ -538,6 +577,31 @@ test('getServerForLanguage - handles empty extension', t => {
 	t.is(result, undefined);
 });
 
+test('getKnownServersStatus - includes docker-language-server', t => {
+	const result = getKnownServersStatus();
+	const dockerServer = result.find(s => s.name === 'docker-language');
+
+	t.truthy(dockerServer, 'Docker server should be registered');
+	t.true(dockerServer!.languages.includes('dockerfile'), 'Should support dockerfile');
+	t.is(
+		dockerServer!.installHint,
+		'npm install -g docker-langserver or https://github.com/rcjsuen/dockerfile-language-server-nodejs'
+	);
+});
+
+test('getKnownServersStatus - includes docker-compose-language-server', t => {
+	const result = getKnownServersStatus();
+	const composeServer = result.find(s => s.name === 'docker-compose-language');
+
+	t.truthy(composeServer, 'Docker Compose server should be registered');
+	// Verifying support for both the specific ID and the base YAML extensions
+	t.true(composeServer!.languages.includes('docker-compose'), 'Should support docker-compose specific ID');
+	t.true(composeServer!.languages.includes('yaml'), 'Should support yaml extension');
+	t.true(composeServer!.languages.includes('yml'), 'Should support yml extension');
+
+	t.is(composeServer!.installHint, 'npm install -g yaml-language-server');
+});
+
 // Tests for verificationMethod functionality
 test('getKnownServersStatus - all servers have proper structure', t => {
 	const result = getKnownServersStatus();
@@ -569,6 +633,7 @@ test('getKnownServersStatus - key servers are present with correct names', t => 
 		'lua-language-server',
 		'vscode-markdown-language-server',
 		'marksman',
+		'graphql-language-server-cli'
 	];
 
 	for (const serverName of keyServers) {

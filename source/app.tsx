@@ -23,6 +23,7 @@ import {getThemeColors} from '@/config/themes';
 import {setCurrentMode as setCurrentModeContext} from '@/context/mode-context';
 import {ThemeContext} from '@/hooks/useTheme';
 import {CheckpointManager} from '@/services/checkpoint-manager';
+import {getLogger} from '@/utils/logging';
 import {
 	generateCorrelationId,
 	withNewCorrelationContext,
@@ -646,10 +647,11 @@ export default function App({
 			);
 
 			if (shouldExit) {
+				const logger = getLogger();
 				if (reason === 'timeout') {
-					console.error('Non-interactive mode timed out');
+					logger.error('Non-interactive mode timed out');
 				} else if (reason === 'error') {
-					console.error('Non-interactive mode encountered errors');
+					logger.error('Non-interactive mode encountered errors');
 				} else if (reason === 'tool-approval') {
 					// Exit with error code when tool approval is required
 					// Error message already printed by useChatHandler

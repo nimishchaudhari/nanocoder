@@ -103,14 +103,6 @@ export class ToolManager {
 	}
 
 	/**
-	 * Get native AI SDK tools registry
-	 * @deprecated Use getAllTools() instead - they now return the same thing
-	 */
-	getNativeToolsRegistry(): Record<string, AISDKCoreTool> {
-		return this.registry.getNativeTools();
-	}
-
-	/**
 	 * Check if a tool exists
 	 */
 	hasTool(toolName: string): boolean {

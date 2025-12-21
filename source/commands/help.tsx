@@ -1,4 +1,4 @@
-import fs from 'fs';
+import {readFile} from 'node:fs/promises';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {commandRegistry} from '@/commands';
@@ -11,9 +11,27 @@ import React from 'react';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const packageJson = JSON.parse(
-	fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'),
-) as {version: string};
+let cachedVersion: string | null = null;
+
+async function getPackageVersion(): Promise<string> {
+	if (cachedVersion) {
+		return cachedVersion;
+	}
+
+	try {
+		const content = await readFile(
+			path.join(__dirname, '../../package.json'),
+			'utf8',
+		);
+		const packageJson = JSON.parse(content) as {version?: string};
+		cachedVersion = packageJson.version ?? '0.0.0';
+		return cachedVersion;
+	} catch (error) {
+		console.warn('Failed to read package version:', error);
+		cachedVersion = '0.0.0';
+		return cachedVersion;
+	}
+}
 
 function Help({
 	version,
@@ -89,15 +107,14 @@ function Help({
 export const helpCommand: Command = {
 	name: 'help',
 	description: 'Show available commands',
-	handler: (_args: string[], _messages, _metadata) => {
+	handler: async (_args: string[], _messages, _metadata) => {
 		const commands = commandRegistry.getAll();
+		const version = await getPackageVersion();
 
-		return Promise.resolve(
-			React.createElement(Help, {
-				key: `help-${Date.now()}`,
-				version: packageJson.version,
-				commands: commands,
-			}),
-		);
+		return React.createElement(Help, {
+			key: `help-${Date.now()}`,
+			version,
+			commands: commands,
+		});
 	},
 };

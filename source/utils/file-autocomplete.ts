@@ -3,8 +3,10 @@ import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {promisify} from 'node:util';
 import ignore from 'ignore';
+import {formatError} from './error-formatter';
 import {fuzzyScoreFilePath} from './fuzzy-matching';
 import {CACHE_FILE_LIST_TTL_MS, BUFFER_FILE_LIST_BYTES} from '@/constants';
+import {getLogger} from './logging';
 
 const execAsync = promisify(exec);
 
@@ -92,18 +94,10 @@ async function getAllFiles(cwd: string): Promise<string[]> {
 		return allFiles;
 	} catch (error) {
 		// If find fails, return empty array
-		console.error('Failed to list files:', error);
+		const logger = getLogger();
+		logger.error({error: formatError(error)}, 'Failed to list files');
 		return [];
 	}
-}
-
-/**
- * Fuzzy match scoring algorithm for file paths
- * Returns a score from 0 to 1000 (higher = better match)
- * @deprecated Use fuzzyScoreFilePath from fuzzy-matching.ts instead
- */
-export function fuzzyScore(filePath: string, query: string): number {
-	return fuzzyScoreFilePath(filePath, query);
 }
 
 /**
