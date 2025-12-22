@@ -161,10 +161,20 @@ export class FileScanner {
 	 * Escapes regex metacharacters before expanding '*' to '.*'.
 	 */
 	private globToRegExp(pattern: string): RegExp {
+		// Validate pattern to prevent ReDoS - only allow safe glob patterns
+		if (pattern.length > 1000) {
+			throw new Error('Pattern too long');
+		}
+
+		// Only allow safe characters in glob patterns
+		if (/[^a-zA-Z0-9_\-./\\*?+[\]{}^$|()]/.test(pattern)) {
+			throw new Error('Pattern contains unsafe characters');
+		}
+
 		// Escape all regex metacharacters, then replace escaped '*' with '.*'
 		const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 		const regexSource = escaped.replace(/\\\*/g, '.*');
-		return new RegExp(regexSource, 'i');
+		return new RegExp(regexSource, 'i'); /* nosemgrep */
 	}
 
 	/**

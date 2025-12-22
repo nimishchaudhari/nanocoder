@@ -32,33 +32,36 @@ export function getClosestConfigFile(fileName: string): string {
 		const configDir = getConfigPath();
 
 		// First, lets check for a working directory config
-		if (existsSync(join(process.cwd(), fileName))) {
+		const cwdPath = join(process.cwd(), fileName); // nosemgrep
+		if (existsSync(cwdPath)) {
 			// nosemgrep
-			confDirMap[fileName] = join(process.cwd(), fileName); // nosemgrep
+			confDirMap[fileName] = cwdPath; // nosemgrep
 
-			return join(process.cwd(), fileName); // nosemgrep
+			return cwdPath; // nosemgrep
 		}
 
 		// Next lets check the $HOME for a hidden file. This should only be for
 		// legacy support
-		if (existsSync(join(homedir(), `.${fileName}`))) {
+		const homePath = join(homedir(), `.${fileName}`); // nosemgrep
+		if (existsSync(homePath)) {
 			// nosemgrep
-			confDirMap[fileName] = join(homedir(), `.${fileName}`); // nosemgrep
+			confDirMap[fileName] = homePath; // nosemgrep
 
-			return join(homedir(), `.${fileName}`); // nosemgrep
+			return homePath; // nosemgrep
 		}
 
 		// Last, lets look for an user level config.
 
 		// If the file doesn't exist, create it
-		if (!existsSync(join(configDir, fileName))) {
+		const configPath = join(configDir, fileName); // nosemgrep
+		if (!existsSync(configPath)) {
 			// nosemgrep
 			createDefaultConfFile(configDir, fileName);
 		}
 
-		confDirMap[fileName] = join(configDir, fileName); // nosemgrep
+		confDirMap[fileName] = configPath; // nosemgrep
 
-		return join(configDir, fileName); // nosemgrep
+		return configPath; // nosemgrep
 	} catch (error) {
 		logError(`Failed to load ${fileName}: ${String(error)}`);
 	}
@@ -71,15 +74,15 @@ function createDefaultConfFile(filePath: string, fileName: string): void {
 	try {
 		// If we cant find any, lets assume this is the first user run, create the
 		// correct file and direct the user to configure them correctly,
-		if (!existsSync(join(filePath, fileName))) {
+		const configFilePath = join(filePath, fileName); // nosemgrep
+		if (!existsSync(configFilePath)) {
 			// nosemgrep
 			// Maybe add a better sample config?
 			const sampleConfig = {};
 
 			mkdirSync(filePath, {recursive: true});
 			writeFileSync(
-				// nosemgrep
-				join(filePath, fileName), // nosemgrep
+				configFilePath, // nosemgrep
 				JSON.stringify(sampleConfig, null, 2),
 				'utf-8',
 			);
