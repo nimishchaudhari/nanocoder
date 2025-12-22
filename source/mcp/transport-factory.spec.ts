@@ -378,12 +378,16 @@ test('TransportFactory.validateServerConfig: returns uvx-specific installation h
 
 	const result = TransportFactory.validateServerConfig(server);
 
-	// Should fail since uvx is likely not installed in test environment
-	t.false(result.valid);
-	// Should include uvx-specific installation instructions
-	t.true(result.errors.length > 0);
-	t.true(result.errors[0]!.includes("'uv' Python package manager"));
-	t.true(result.errors[0]!.includes('astral.sh/uv/install.sh'));
+	// Note: uvx may or may not be installed in different test environments
+	// If uvx is installed and valid, the test passes
+	// If uvx is not installed, check for uvx-specific installation instructions
+	if (result.valid) {
+		t.pass('uvx is installed in this environment');
+	} else {
+		t.true(result.errors.length > 0);
+		t.true(result.errors.some((error: string) => error.includes("'uv' Python package manager")));
+		t.true(result.errors.some((error: string) => error.includes('astral.sh/uv/install.sh')));
+	}
 });
 
 test('TransportFactory.validateServerConfig: validates existing command (node)', t => {
