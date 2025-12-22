@@ -67,8 +67,6 @@ const MessageBox = memo(function MessageBox({
 	);
 });
 
-export default MessageBox;
-
 // Convenience exports for backward compatibility
 type SpecificMessageProps = Omit<MessageBoxProps, 'type'>;
 
