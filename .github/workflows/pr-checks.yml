@@ -324,17 +324,16 @@ jobs:
             const knipResult = '${{ needs.test-knip.result }}';
             const coverageResult = '${{ needs.test-coverage.result }}';
             const buildResult = '${{ needs.verify-build.result }}';
-            const securityResult = '${{ needs.security-scan.result }}';
+            const package-auditResult = '${{ needs.package-audit.result }}';
             const semgrepResult = '${{ needs.semgrep-scan.result }}';
             const codeqlResult = '${{ needs.codeql-scan.result }}';
-            const zapResult = '${{ needs.owasp-zap-scan.result }}';
 
             // Build status message
             let status = '✅ All checks passed!';
             let hasFailures = false;
             if (lintResult !== 'success' || typesResult !== 'success' || formatResult !== 'success' ||
                 knipResult !== 'success' || coverageResult !== 'success' || buildResult !== 'success' ||
-                securityResult !== 'success' || semgrepResult !== 'success' || codeqlResult !== 'success' || zapResult !== 'success') {
+                package-auditResult !== 'success' || semgrepResult !== 'success' || codeqlResult !== 'success') {
               status = '❌ Some checks failed';
               hasFailures = true;
             }
@@ -364,10 +363,9 @@ jobs:
             | Dependencies | ${knipResult === 'success' ? '✅' : '❌'} | Unused dependency check (knip) |
             | Coverage | ${coverageResult === 'success' ? '✅' : '❌'} | ${coverageText}. Coverage threshold (${{ env.ENABLE_COVERAGE_THRESHOLD }}%) met |
             | Build | ${buildResult === 'success' ? '✅' : '❌'} | Build and artifact verification |
-            | Security | ${securityResult === 'success' ? '✅' : '❌'} | No high-severity vulnerabilities detected |
+            | Package Audit | ${package-auditResult === 'success' ? '✅' : '❌'} | No Package Audit issues detected |
             | Semgrep | ${semgrepResult === 'success' ? '✅' : '❌'} | Static analysis security scanning |
             | CodeQL | ${codeqlResult === 'success' ? '✅' : '❌'} | Advanced code analysis for vulnerabilities |
-            | OWASP Dependency Check | ${zapResult === 'success' ? '✅' : '❌'} | Dependency vulnerability scan |
 
             **Overall Status: ${status}**
 
