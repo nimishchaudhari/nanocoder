@@ -183,6 +183,18 @@ export class FileSnapshotService {
 					}
 				}
 
+				// After attempting to create the directory, verify it's writable
+				if (dirWritable) {
+					try {
+						await fs.access(directory, fs.constants.W_OK);
+					} catch (accessError) {
+						dirWritable = false;
+						errors.push(
+							`Directory "${directory}" is not writable: ${accessError instanceof Error ? accessError.message : 'Unknown error'}`,
+						);
+					}
+				}
+
 				// If directory is not writable or was not successfully created, skip further checks for this file
 				if (!dirWritable) {
 					continue;
