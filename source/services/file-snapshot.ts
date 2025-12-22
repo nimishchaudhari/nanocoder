@@ -164,29 +164,45 @@ export class FileSnapshotService {
 		const errors: string[] = [];
 
 		for (const relativePath of snapshots.keys()) {
-			try {
-				const absolutePath = path.resolve(this.workspaceRoot, relativePath);
-				const directory = path.dirname(absolutePath);
+			const absolutePath = path.resolve(this.workspaceRoot, relativePath);
+			const directory = path.dirname(absolutePath);
 
-				await fs.access(directory, fs.constants.W_OK).catch(async () => {
-					await fs.mkdir(directory, {recursive: true});
-				});
+			try {
+				let dirWritable = true;
+				try {
+					await fs.access(directory, fs.constants.W_OK);
+				} catch (_err) {
+					// Directory is not writable or does not exist, so try to create it
+					try {
+						await fs.mkdir(directory, {recursive: true});
+					} catch (mkdirError) {
+						dirWritable = false;
+						errors.push(
+							`Cannot create directory "${directory}": ${mkdirError instanceof Error ? mkdirError.message : 'Unknown error'}`,
+						);
+					}
+				}
+
+				// If directory is not writable or was not successfully created, skip further checks for this file
+				if (!dirWritable) {
+					continue;
+				}
 
 				if (existsSync(absolutePath)) {
-					await fs.access(absolutePath, fs.constants.W_OK);
+					try {
+						await fs.access(absolutePath, fs.constants.W_OK);
+					} catch (fileError) {
+						errors.push(
+							`Cannot write to file "${absolutePath}": ${fileError instanceof Error ? fileError.message : 'Unknown error'}`,
+						);
+					}
 				}
 			} catch (error) {
 				errors.push(
-					`Cannot write to ${relativePath}: ${
-						error instanceof Error ? error.message : 'Unknown error'
-					}`,
+					`Cannot validate path for ${relativePath}: ${error instanceof Error ? error.message : 'Unknown error'}`,
 				);
 			}
 		}
-
-		return {
-			valid: errors.length === 0,
-			errors,
-		};
+		return {valid: errors.length === 0, errors};
 	}
 }
