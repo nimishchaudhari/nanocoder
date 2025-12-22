@@ -36,6 +36,16 @@ const KNOWN_SERVERS: LanguageServerDefinition[] = [
 		verificationMethod: 'version',
 		installHint: 'npm install -g typescript-language-server typescript',
 	},
+	// Deno
+	{
+		name: 'deno',
+		command: 'deno',
+		args: ['lsp'],
+		languages: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs'],
+		checkCommand: 'deno --version',
+		verificationMethod: 'version',
+		installHint: 'Install Deno from https://deno.com/',
+	},
 	// Python - Pyright (preferred)
 	{
 		name: 'pyright',
