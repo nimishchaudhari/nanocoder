@@ -297,8 +297,8 @@ export function useInputState() {
 				'',
 			);
 			const placeholderPattern = `[Paste #${sanitizedPlaceholderId}: \\d+ chars]`;
+			/* nosemgrep */
 			const regex = new RegExp(
-				/* nosemgrep */
 				placeholderPattern.replace(/[[\]]/g, '\\$&'),
 				'g',
 			);
