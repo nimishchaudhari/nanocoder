@@ -157,13 +157,24 @@ export class FileScanner {
 	}
 
 	/**
+	 * Convert a simple glob-like pattern (using '*' as wildcard) to a RegExp.
+	 * Escapes regex metacharacters before expanding '*' to '.*'.
+	 */
+	private globToRegExp(pattern: string): RegExp {
+		// Escape all regex metacharacters, then replace escaped '*' with '.*'
+		const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		const regexSource = escaped.replace(/\\\*/g, '.*');
+		return new RegExp(regexSource, 'i');
+	}
+
+	/**
 	 * Get files matching specific patterns
 	 */
 	public getFilesByPattern(patterns: string[]): string[] {
 		const scanResult = this.scan();
 		return scanResult.files.filter(file =>
 			patterns.some(pattern => {
-				const regex = new RegExp(pattern.replace('*', '.*'), 'i'); // nosemgrep
+				const regex = this.globToRegExp(pattern);
 				return regex.test(file) || regex.test(basename(file));
 			}),
 		);
