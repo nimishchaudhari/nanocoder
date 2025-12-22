@@ -292,7 +292,10 @@ export function useInputState() {
 	const deletePlaceholder = useCallback(
 		(placeholderId: string) => {
 			const placeholderPattern = `[Paste #${placeholderId}: \\d+ chars]`;
+			// nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
+			// placeholderPattern contains placeholderId from app state, not user input
 			const regex = new RegExp(
+				// nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
 				placeholderPattern.replace(/[[\]]/g, '\\$&'),
 				'g',
 			);

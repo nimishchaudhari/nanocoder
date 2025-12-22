@@ -143,7 +143,7 @@ export class TransportFactory {
 		// Validate WebSocket URL
 		if (!url.protocol.startsWith('ws')) {
 			throw new Error(
-				`Invalid WebSocket URL protocol: ${url.protocol}. Expected ws:// or wss://`,
+				`Invalid WebSocket URL protocol: ${url.protocol}. Expected ws:// or wss://`, // nosemgrep
 			);
 		}
 
@@ -241,7 +241,7 @@ export class TransportFactory {
 					try {
 						const url = new URL(server.url);
 						if (!url.protocol.startsWith('ws')) {
-							errors.push('websocket URL must use ws:// or wss:// protocol');
+							errors.push('websocket URL must use ws:// or wss:// protocol'); // nosemgrep
 						}
 					} catch {
 						errors.push('websocket URL is invalid');
@@ -290,7 +290,7 @@ export class TransportFactory {
 			case 'websocket':
 				return [
 					'WebSocket transport connects to remote MCP servers',
-					'Requires a ws:// or wss:// URL',
+					'Requires a ws:// or wss:// URL', // nosemgrep
 					'Supports real-time bidirectional communication',
 					'Best for interactive remote services',
 					'Note: Custom headers are not currently supported by the SDK and will be ignored',

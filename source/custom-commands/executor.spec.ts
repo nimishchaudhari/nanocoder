@@ -4,14 +4,21 @@ import {CustomCommandExecutor} from './executor';
 
 const executor = new CustomCommandExecutor();
 
-test('execute returns prompt with command content', t => {
-	const command: CustomCommand = {
+// Helper to create test command objects
+function createTestCommand(overrides?: Partial<CustomCommand>): CustomCommand {
+	return {
 		name: 'test',
 		fullName: 'test',
 		namespace: '',
-		content: 'This is a test command',
+		path: '/test/command.md',
+		content: 'Test content',
 		metadata: {},
+		...overrides,
 	};
+}
+
+test('execute returns prompt with command content', t => {
+	const command = createTestCommand({content: 'This is a test command'});
 
 	const result = executor.execute(command, []);
 	t.true(result.includes('This is a test command'));
@@ -19,13 +26,7 @@ test('execute returns prompt with command content', t => {
 });
 
 test('execute substitutes cwd variable', t => {
-	const command: CustomCommand = {
-		name: 'test',
-		fullName: 'test',
-		namespace: '',
-		content: 'Working in {{cwd}}',
-		metadata: {},
-	};
+	const command = createTestCommand({content: 'Working in {{cwd}}'});
 
 	const result = executor.execute(command, []);
 	const expectedCwd = process.cwd();
@@ -33,28 +34,19 @@ test('execute substitutes cwd variable', t => {
 });
 
 test('execute substitutes command variable', t => {
-	const command: CustomCommand = {
-		name: 'test',
-		fullName: 'test',
-		namespace: '',
-		content: 'Running {{command}}',
-		metadata: {},
-	};
+	const command = createTestCommand({content: 'Running {{command}}'});
 
 	const result = executor.execute(command, []);
 	t.true(result.includes('/test'));
 });
 
 test('execute substitutes parameter variables', t => {
-	const command: CustomCommand = {
-		name: 'test',
-		fullName: 'test',
-		namespace: '',
+	const command = createTestCommand({
 		content: 'Arg1: {{arg1}}, Arg2: {{arg2}}',
 		metadata: {
 			parameters: ['arg1', 'arg2'],
 		},
-	};
+	});
 
 	const result = executor.execute(command, ['value1', 'value2']);
 	t.true(result.includes('value1'));
@@ -62,15 +54,12 @@ test('execute substitutes parameter variables', t => {
 });
 
 test('execute handles missing parameters gracefully', t => {
-	const command: CustomCommand = {
-		name: 'test',
-		fullName: 'test',
-		namespace: '',
+	const command = createTestCommand({
 		content: 'Arg1: {{arg1}}',
 		metadata: {
 			parameters: ['arg1', 'arg2'],
 		},
-	};
+	});
 
 	const result = executor.execute(command, ['value1']);
 	// Should still work, missing arg2 becomes empty string
@@ -78,28 +67,19 @@ test('execute handles missing parameters gracefully', t => {
 });
 
 test('execute includes args variable with all arguments', t => {
-	const command: CustomCommand = {
-		name: 'test',
-		fullName: 'test',
-		namespace: '',
+	const command = createTestCommand({
 		content: 'All args: {{args}}',
 		metadata: {
 			parameters: ['arg1', 'arg2'],
 		},
-	};
+	});
 
 	const result = executor.execute(command, ['hello', 'world']);
 	t.true(result.includes('hello world'));
 });
 
 test('execute adds note about custom command', t => {
-	const command: CustomCommand = {
-		name: 'test',
-		fullName: 'test',
-		namespace: '',
-		content: 'Test content',
-		metadata: {},
-	};
+	const command = createTestCommand();
 
 	const result = executor.execute(command, []);
 	t.true(result.includes('Executing custom command'));
@@ -107,28 +87,18 @@ test('execute adds note about custom command', t => {
 });
 
 test('formatHelp returns command name', t => {
-	const command: CustomCommand = {
-		name: 'test',
-		fullName: 'test',
-		namespace: '',
-		content: 'Test',
-		metadata: {},
-	};
+	const command = createTestCommand();
 
 	const result = executor.formatHelp(command);
 	t.true(result.includes('/test'));
 });
 
 test('formatHelp includes parameters', t => {
-	const command: CustomCommand = {
-		name: 'test',
-		fullName: 'test',
-		namespace: '',
-		content: 'Test',
+	const command = createTestCommand({
 		metadata: {
 			parameters: ['arg1', 'arg2'],
 		},
-	};
+	});
 
 	const result = executor.formatHelp(command);
 	t.true(result.includes('<arg1>'));
@@ -136,30 +106,24 @@ test('formatHelp includes parameters', t => {
 });
 
 test('formatHelp includes description', t => {
-	const command: CustomCommand = {
-		name: 'test',
-		fullName: 'test',
-		namespace: '',
-		content: 'Test',
+	const command = createTestCommand({
 		metadata: {
 			description: 'This is a test command',
 		},
-	};
+	});
 
 	const result = executor.formatHelp(command);
 	t.true(result.includes('This is a test command'));
 });
 
 test('formatHelp includes aliases', t => {
-	const command: CustomCommand = {
-		name: 'test',
+	const command = createTestCommand({
 		fullName: 'namespace:test',
 		namespace: 'namespace',
-		content: 'Test',
 		metadata: {
 			aliases: ['t', 'testy'],
 		},
-	};
+	});
 
 	const result = executor.formatHelp(command);
 	t.true(result.includes('namespace:t'));
@@ -167,15 +131,11 @@ test('formatHelp includes aliases', t => {
 });
 
 test('formatHelp includes aliases without namespace', t => {
-	const command: CustomCommand = {
-		name: 'test',
-		fullName: 'test',
-		namespace: '',
-		content: 'Test',
+	const command = createTestCommand({
 		metadata: {
 			aliases: ['t', 'testy'],
 		},
-	};
+	});
 
 	const result = executor.formatHelp(command);
 	t.true(result.includes('t, testy'));

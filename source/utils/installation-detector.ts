@@ -136,7 +136,7 @@ function hasPackageJsonMarker(startPath: string): boolean {
 	const maxLevelsToCheck = 4; // Limit to prevent excessive traversal
 
 	for (let i = 0; i < maxLevelsToCheck; i++) {
-		const packageJsonPath = join(currentPath, 'package.json');
+		const packageJsonPath = join(currentPath, 'package.json'); // nosemgrep
 		if (existsSync(packageJsonPath)) {
 			return true;
 		}

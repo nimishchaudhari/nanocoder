@@ -2,31 +2,23 @@ import test from 'ava';
 import { ToolRegistry } from './tool-registry';
 import type { ToolEntry } from '@/types/index';
 
-// Mock tool handler function
-const mockHandler: ToolEntry['handler'] = async () => ({ content: 'test' });
+// Mock tool handler function - returns Promise<string>
+const mockHandler: ToolEntry['handler'] = async () => 'test result';
 
 // Mock formatter function
 const mockFormatter: ToolEntry['formatter'] = (output: unknown) => {
 	return String(output);
 };
 
-// Mock validator function
-const mockValidator: ToolEntry['validator'] = () => true;
+// Mock validator function - returns Promise<{valid: true} | {valid: false, error: string}>
+const mockValidator: ToolEntry['validator'] = async () => ({ valid: true });
 
-// Mock AI SDK tool
+// Mock AI SDK tool - cast to any since we're just testing registry functionality
 const mockTool: ToolEntry['tool'] = {
-	spec: {
-		name: 'test-tool',
-		description: 'A test tool',
-		input_schema: {
-			type: 'object',
-			properties: {}
-		}
-	},
-	handler: () => ({ content: 'test' })
-};
+	execute: async () => 'test result',
+} as any;
 
-function createMockToolEntry(overrides?: Partial<ToolEntry>): ToolEntry {
+function createMockToolEntry(overrides: Partial<ToolEntry> = {}): ToolEntry {
 	return {
 		name: 'test-tool',
 		handler: mockHandler,
@@ -34,7 +26,7 @@ function createMockToolEntry(overrides?: Partial<ToolEntry>): ToolEntry {
 		formatter: mockFormatter,
 		validator: mockValidator,
 		...overrides
-	};
+	} as ToolEntry;
 }
 
 test('ToolRegistry - register adds a tool entry', t => {
@@ -208,8 +200,8 @@ test('ToolRegistry - getTool returns undefined for non-existent tool', t => {
 
 test('ToolRegistry - getHandlers returns record of all handlers', t => {
 	const registry = new ToolRegistry();
-	const handler1: ToolEntry['handler'] = async () => ({ content: '1' });
-	const handler2: ToolEntry['handler'] = async () => ({ content: '2' });
+	const handler1: ToolEntry['handler'] = async () => 'result 1';
+	const handler2: ToolEntry['handler'] = async () => 'result 2';
 
 	registry.registerMany([
 		createMockToolEntry({ name: 'tool1', handler: handler1 }),
@@ -245,13 +237,14 @@ test('ToolRegistry - getFormatters returns record of formatters', t => {
 
 	t.is(formatters.tool1, formatter1);
 	t.is(formatters.tool2, formatter2);
-	t.is(formatters.tool3, undefined);
+	// tool3 has no formatter, so it shouldn't be in the record
+	t.false('tool3' in formatters);
 });
 
 test('ToolRegistry - getValidators returns record of validators', t => {
 	const registry = new ToolRegistry();
-	const validator1: ToolEntry['validator'] = () => true;
-	const validator2: ToolEntry['validator'] = () => false;
+	const validator1: ToolEntry['validator'] = async () => ({ valid: true });
+	const validator2: ToolEntry['validator'] = async () => ({ valid: false, error: 'test error' });
 
 	registry.registerMany([
 		createMockToolEntry({ name: 'tool1', validator: validator1 }),
@@ -263,19 +256,14 @@ test('ToolRegistry - getValidators returns record of validators', t => {
 
 	t.is(validators.tool1, validator1);
 	t.is(validators.tool2, validator2);
-	t.is(validators.tool3, undefined);
+	// tool3 has no validator, so it shouldn't be in the record
+	t.false('tool3' in validators);
 });
 
 test('ToolRegistry - getNativeTools returns record of native tools', t => {
 	const registry = new ToolRegistry();
-	const tool1: ToolEntry['tool'] = {
-		spec: { name: 'tool1', description: 'Test 1', input_schema: { type: 'object', properties: {} } },
-		handler: () => ({ content: 'test' })
-	};
-	const tool2: ToolEntry['tool'] = {
-		spec: { name: 'tool2', description: 'Test 2', input_schema: { type: 'object', properties: {} } },
-		handler: () => ({ content: 'test' })
-	};
+	const tool1: ToolEntry['tool'] = { execute: async () => 'test 1' } as any;
+	const tool2: ToolEntry['tool'] = { execute: async () => 'test 2' } as any;
 
 	registry.registerMany([
 		createMockToolEntry({ name: 'tool1', tool: tool1 }),
@@ -379,18 +367,12 @@ test('ToolRegistry - clear removes all tools', t => {
 });
 
 test('ToolRegistry - fromRegistries creates registry from records', t => {
-	const handler1: ToolEntry['handler'] = async () => ({ content: 'test' });
-	const handler2: ToolEntry['handler'] = async () => ({ content: 'test' });
+	const handler1: ToolEntry['handler'] = async () => 'test';
+	const handler2: ToolEntry['handler'] = async () => 'test';
 	const formatter1: ToolEntry['formatter'] = (o) => String(o);
-	const validator1: ToolEntry['validator'] = () => true;
-	const tool1: ToolEntry['tool'] = {
-		spec: { name: 'tool1', description: 'Test 1', input_schema: { type: 'object', properties: {} } },
-		handler: () => ({ content: 'test' })
-	};
-	const tool2: ToolEntry['tool'] = {
-		spec: { name: 'tool2', description: 'Test 2', input_schema: { type: 'object', properties: {} } },
-		handler: () => ({ content: 'test' })
-	};
+	const validator1: ToolEntry['validator'] = async () => ({ valid: true });
+	const tool1: ToolEntry['tool'] = { execute: async () => 'test' } as any;
+	const tool2: ToolEntry['tool'] = { execute: async () => 'test' } as any;
 
 	const handlers = { tool1: handler1, tool2: handler2 };
 	const tools = { tool1, tool2 };
@@ -408,11 +390,8 @@ test('ToolRegistry - fromRegistries creates registry from records', t => {
 });
 
 test('ToolRegistry - fromRegistries with optional parameters', t => {
-	const handler: ToolEntry['handler'] = async () => ({ content: 'test' });
-	const tool: ToolEntry['tool'] = {
-		spec: { name: 'tool1', description: 'Test', input_schema: { type: 'object', properties: {} } },
-		handler: () => ({ content: 'test' })
-	};
+	const handler: ToolEntry['handler'] = async () => 'test';
+	const tool: ToolEntry['tool'] = { execute: async () => 'test' } as any;
 
 	const registry = ToolRegistry.fromRegistries({ tool1: handler }, { tool1: tool });
 
@@ -422,11 +401,8 @@ test('ToolRegistry - fromRegistries with optional parameters', t => {
 });
 
 test('ToolRegistry - fromRegistries skips tools without matching handlers', t => {
-	const handler: ToolEntry['handler'] = async () => ({ content: 'test' });
-	const tool: ToolEntry['tool'] = {
-		spec: { name: 'tool1', description: 'Test', input_schema: { type: 'object', properties: {} } },
-		handler: () => ({ content: 'test' })
-	};
+	const handler: ToolEntry['handler'] = async () => 'test';
+	const tool: ToolEntry['tool'] = { execute: async () => 'test' } as any;
 
 	const registry = ToolRegistry.fromRegistries(
 		{ tool1: handler }, // Only has handler for tool1

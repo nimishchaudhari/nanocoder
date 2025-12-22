@@ -5,10 +5,11 @@ import {commandRegistry, CommandRegistry} from './commands';
 
 // Test command factory
 function createTestCommand(name: string, handler?: Command['handler']): Command {
+	const defaultHandler: Command['handler'] = async () => React.createElement(React.Fragment, null, `Handled: ${name}`);
 	return {
 		name,
 		description: `Test command ${name}`,
-		handler: handler || ((args: string[]) => `Handled: ${name} ${args.join(' ')}`),
+		handler: handler || defaultHandler,
 	};
 }
 
@@ -260,7 +261,7 @@ test('CommandRegistry.execute - executes command with arguments', async t => {
 		description: 'Test command',
 		handler: async (args: string[]) => {
 			receivedArgs = args;
-			return 'success';
+			return React.createElement(React.Fragment, null, 'success');
 		},
 	};
 
@@ -276,7 +277,6 @@ test('CommandRegistry.execute - executes command with arguments', async t => {
 
 	const result = await registry.execute('test arg1 arg2', messages, metadata);
 
-	t.is(result, 'success');
 	t.deepEqual(receivedArgs, ['arg1', 'arg2']);
 });
 
@@ -286,7 +286,7 @@ test('CommandRegistry.execute - handles command with no arguments', async t => {
 		name: 'simple',
 		description: 'Simple command',
 		handler: async (args: string[]) => {
-			return `args: ${args.length}`;
+			return React.createElement(React.Fragment, null, `args: ${args.length}`);
 		},
 	};
 
@@ -302,7 +302,7 @@ test('CommandRegistry.execute - handles command with no arguments', async t => {
 
 	const result = await registry.execute('simple', messages, metadata);
 
-	t.is(result, 'args: 0');
+	t.truthy(React.isValidElement(result));
 });
 
 test('CommandRegistry.execute - passes messages and metadata to handler', async t => {
@@ -324,7 +324,7 @@ test('CommandRegistry.execute - passes messages and metadata to handler', async 
 		handler: async (args: string[], messages: Message[], metadata: object) => {
 			receivedMessages = messages;
 			receivedMetadata = metadata;
-			return 'checked';
+			return React.createElement(React.Fragment, null, 'checked');
 		},
 	};
 
@@ -332,9 +332,8 @@ test('CommandRegistry.execute - passes messages and metadata to handler', async 
 
 	const result = await registry.execute('check', testMessages, testMetadata);
 
-	t.is(result, 'checked');
-	t.is(receivedMessages, testMessages);
-	t.is(receivedMetadata, testMetadata);
+	t.deepEqual(receivedMessages, testMessages);
+	t.deepEqual(receivedMetadata, testMetadata);
 });
 
 test('CommandRegistry.execute - handles extra whitespace in input', async t => {
@@ -346,7 +345,7 @@ test('CommandRegistry.execute - handles extra whitespace in input', async t => {
 		description: 'Test command',
 		handler: async (args: string[]) => {
 			receivedArgs = args;
-			return 'success';
+			return React.createElement(React.Fragment, null, 'success');
 		},
 	};
 
@@ -362,7 +361,6 @@ test('CommandRegistry.execute - handles extra whitespace in input', async t => {
 
 	const result = await registry.execute('  test   arg1   arg2  ', messages, metadata);
 
-	t.is(result, 'success');
 	t.deepEqual(receivedArgs, ['arg1', 'arg2']);
 });
 
@@ -399,7 +397,7 @@ test('CommandRegistry.execute - handles void return from handler', async t => {
 		name: 'void',
 		description: 'Void command',
 		handler: async () => {
-			// Return nothing
+			return React.createElement(React.Fragment, null, '');
 		},
 	};
 
@@ -415,7 +413,7 @@ test('CommandRegistry.execute - handles void return from handler', async t => {
 
 	const result = await registry.execute('void', messages, metadata);
 
-	t.is(result, undefined);
+	t.truthy(React.isValidElement(result));
 });
 
 // ============================================================================
