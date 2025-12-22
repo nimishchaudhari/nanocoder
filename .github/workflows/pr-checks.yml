@@ -151,7 +151,8 @@ jobs:
 
       - name: Generate coverage summary
         run: |
-          pnpm exec c8 report --reporter=json-summary --include='source/**/*.ts' --exclude='**/*.spec.ts'
+          pnpm exec c8 report --reporter=json-summary
+        # pnpm exec c8 report --reporter=json-summary --include='source/**/*.ts' --exclude='**/*.spec.ts'
 
       - name: Extract coverage percentage
         id: coverage
