@@ -20,6 +20,29 @@ function createInputState(
 	return {displayValue, placeholderContent};
 }
 
+// Helper to wait for file to be written with expected content
+async function waitForFileContent(
+	filePath: string,
+	minLength: number,
+	maxWaitMs: number = 1000,
+): Promise<boolean> {
+	const startTime = Date.now();
+	while (Date.now() - startTime < maxWaitMs) {
+		if (existsSync(filePath)) {
+			try {
+				const content = readFileSync(filePath, 'utf8');
+				if (content.length >= minLength) {
+					return true;
+				}
+			} catch {
+				// File might be being written, try again
+			}
+		}
+		await new Promise(resolve => setTimeout(resolve, 10));
+	}
+	return false;
+}
+
 test.before(() => {
 	// Create test directory
 	mkdirSync(testDir, {recursive: true});
@@ -522,7 +545,8 @@ test('backwards compatibility - getNextString returns empty string at end', t =>
 // File I/O Tests - Testing loadHistory and saveHistory
 
 test('loadHistory handles non-existent file', async t => {
-	const history = new PromptHistory();
+	const tempFile = join(testDir, `history-${Date.now()}-${Math.random()}.json`);
+	const history = new PromptHistory(tempFile);
 
 	// loadHistory is called internally, but we can test it works without errors
 	await t.notThrowsAsync(async () => {
@@ -534,9 +558,8 @@ test('loadHistory handles non-existent file', async t => {
 });
 
 test('loadHistory parses JSON format correctly', async t => {
-	// We need to test with a mock since the actual file path is hardcoded
-	// This tests the logic by creating a PromptHistory instance and using internal methods
-	const history = new PromptHistory();
+	const tempFile = join(testDir, `history-${Date.now()}-${Math.random()}.json`);
+	const history = new PromptHistory(tempFile);
 
 	// Add some data
 	history.addPrompt(createInputState('command 1', {id: 'data'}));
@@ -545,76 +568,93 @@ test('loadHistory parses JSON format correctly', async t => {
 	// Save it (which uses JSON format)
 	await history.saveHistory();
 
+	// Wait for file to be written
+	const fileReady = await waitForFileContent(tempFile, 50, 1000);
+	t.true(fileReady, 'History file should be written with content');
+
 	// Create a new instance and load
-	const history2 = new PromptHistory();
+	const history2 = new PromptHistory(tempFile);
 	await history2.loadHistory();
 
 	// Should have the same data
 	const loaded = history2.getHistory();
-	t.true(loaded.length >= 2, 'Should have at least 2 entries');
+	t.is(loaded.length, 2, 'Should have exactly 2 entries');
 
-	// Find our test entries (there might be others from previous runs)
-	const cmd1 = loaded.find(h => h.displayValue === 'command 1');
-	const cmd2 = loaded.find(h => h.displayValue === 'command 2');
-
-	if (cmd1) {
-		t.deepEqual(cmd1.placeholderContent, {id: 'data'});
-	}
-	if (cmd2) {
-		t.is(cmd2.displayValue, 'command 2');
-	}
+	// Check the entries directly (no need to search since we have isolated data)
+	t.is(loaded[0]?.displayValue, 'command 1');
+	t.deepEqual(loaded[0]?.placeholderContent, {id: 'data'});
+	t.is(loaded[1]?.displayValue, 'command 2');
+	t.deepEqual(loaded[1]?.placeholderContent, {});
 });
 
 test('saveHistory persists data to disk', async t => {
-	const history = new PromptHistory();
+	const tempFile = join(testDir, `history-${Date.now()}-${Math.random()}.json`);
+	const history = new PromptHistory(tempFile);
 
 	history.addPrompt('persisted command');
 	history.addPrompt(createInputState('complex command', {key: 'value'}));
 
-	// Save is called automatically by addPrompt, but we'll call it explicitly
+	// Save is called automatically by addPrompt, but we'll call it explicitly and wait
 	await history.saveHistory();
 
+	// Wait for file to be written with reasonable content (at least 50 bytes)
+	const fileReady = await waitForFileContent(tempFile, 50, 1000);
+	t.true(fileReady, 'History file should be written with content');
+
 	// Load in a new instance
-	const history2 = new PromptHistory();
+	const history2 = new PromptHistory(tempFile);
 	await history2.loadHistory();
 
 	const loaded = history2.getHistory();
-	const persisted = loaded.find(h => h.displayValue === 'persisted command');
-	const complex = loaded.find(h => h.displayValue === 'complex command');
+	t.is(loaded.length, 2, 'Should have exactly 2 entries');
 
-	t.truthy(persisted, 'Should find persisted command');
-	if (complex) {
-		t.deepEqual(complex.placeholderContent, {key: 'value'});
-	}
+	// Check both entries directly
+	t.is(loaded[0]?.displayValue, 'persisted command', 'Should find persisted command');
+	t.deepEqual(loaded[0]?.placeholderContent, {});
+	t.is(loaded[1]?.displayValue, 'complex command', 'Should find complex command');
+	t.deepEqual(loaded[1]?.placeholderContent, {key: 'value'});
 });
 
 test('loadHistory handles legacy ENTRY_SEPARATOR format', async t => {
-	// We can't easily test this without mocking the file system
-	// but we can verify the migration logic works by checking the public API
-	const history = new PromptHistory();
+	const tempFile = join(testDir, `history-${Date.now()}-${Math.random()}.json`);
 
-	// The migration happens internally in loadHistory
-	// We'll trust the implementation and just verify the API works
-	await t.notThrowsAsync(async () => {
-		await history.loadHistory();
-	});
+	// Create a legacy format file manually
+	const legacyContent = `command 1${ENTRY_SEPARATOR}command 2${ENTRY_SEPARATOR}command 3`;
+	writeFileSync(tempFile, legacyContent, 'utf8');
 
-	t.pass('loadHistory handles legacy format without errors');
+	const history = new PromptHistory(tempFile);
+	await history.loadHistory();
+
+	const loaded = history.getHistory();
+	t.is(loaded.length, 3, 'Should have loaded 3 entries');
+	t.is(loaded[0]?.displayValue, 'command 1');
+	t.is(loaded[1]?.displayValue, 'command 2');
+	t.is(loaded[2]?.displayValue, 'command 3');
+	t.deepEqual(loaded[0]?.placeholderContent, {}, 'Migrated entries should have empty placeholderContent');
 });
 
 test('loadHistory handles very old newline format', async t => {
-	const history = new PromptHistory();
+	const tempFile = join(testDir, `history-${Date.now()}-${Math.random()}.json`);
 
-	// Similar to above, we verify the API works
-	await t.notThrowsAsync(async () => {
-		await history.loadHistory();
-	});
+	// Create a very old format file (newline-separated)
+	const oldContent = 'command 1\ncommand 2\ncommand 3\n';
+	writeFileSync(tempFile, oldContent, 'utf8');
 
-	t.pass('loadHistory handles very old format without errors');
+	const history = new PromptHistory(tempFile);
+	await history.loadHistory();
+
+	const loaded = history.getHistory();
+	t.is(loaded.length, 3, 'Should have loaded 3 entries');
+	t.is(loaded[0]?.displayValue, 'command 1');
+	t.is(loaded[1]?.displayValue, 'command 2');
+	t.is(loaded[2]?.displayValue, 'command 3');
+	t.deepEqual(loaded[0]?.placeholderContent, {}, 'Migrated entries should have empty placeholderContent');
 });
 
 test('saveHistory handles write errors gracefully', async t => {
-	const history = new PromptHistory();
+	// Use an invalid path that will cause write to fail (directory doesn't exist)
+	const invalidPath = '/nonexistent/directory/history.json';
+	const history = new PromptHistory(invalidPath);
 
 	history.addPrompt('test command');
 
@@ -646,33 +686,29 @@ test('migrateStringArrayToInputState converts strings correctly', t => {
 });
 
 test('history file uses JSON format marker', async t => {
-	const history = new PromptHistory();
+	const tempFile = join(testDir, `history-${Date.now()}-${Math.random()}.json`);
+	const history = new PromptHistory(tempFile);
 
-	// Use a unique identifier to ensure we can find it
 	const uniqueCommand = `test-format-${Date.now()}-${Math.random()}`;
 	history.addPrompt(uniqueCommand);
 	await history.saveHistory();
 
-	// We can't directly read the file without knowing its path,
-	// but we can verify the format by loading it back
-	const history2 = new PromptHistory();
+	// Read the raw file to verify format
+	const content = readFileSync(tempFile, 'utf8');
+	t.true(content.startsWith(JSON_FORMAT_MARKER), 'File should start with JSON format marker');
+
+	// Verify we can load it back
+	const history2 = new PromptHistory(tempFile);
 	await history2.loadHistory();
 
 	const loaded = history2.getHistory();
-	const found = loaded.find(h => h.displayValue === uniqueCommand);
-
-	// If not found, it might have been pruned or the history is shared
-	// Just verify that we can load history without errors
-	if (found) {
-		t.pass('Found the saved command');
-	} else {
-		// As long as loading worked, the test passes
-		t.true(loaded.length >= 0, 'History loaded successfully');
-	}
+	t.is(loaded.length, 1, 'Should have exactly 1 entry');
+	t.is(loaded[0]?.displayValue, uniqueCommand, 'Should load the saved command');
 });
 
 test('loadHistory resets currentIndex after loading', async t => {
-	const history = new PromptHistory();
+	const tempFile = join(testDir, `history-${Date.now()}-${Math.random()}.json`);
+	const history = new PromptHistory(tempFile);
 
 	history.addPrompt('command 1');
 	history.addPrompt('command 2');
@@ -681,18 +717,14 @@ test('loadHistory resets currentIndex after loading', async t => {
 	history.getPrevious();
 	history.getPrevious();
 
-	// Load history should reset index
+	// Save and load history should reset index
+	await history.saveHistory();
 	await history.loadHistory();
 
 	// After loading, getPrevious should start from the end
 	const prev = history.getPrevious();
 
-	// Should get the most recent item (or null if history is empty after load)
-	if (prev !== null) {
-		// If there's history, we should be at the end
-		t.truthy(prev.displayValue, 'Should have a displayValue');
-	} else {
-		// If history is empty, that's also valid
-		t.pass('History is empty after load');
-	}
+	// Should get the most recent item
+	t.truthy(prev, 'Should have a previous item');
+	t.is(prev?.displayValue, 'command 2', 'Should start from most recent after load');
 });

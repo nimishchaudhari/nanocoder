@@ -4,17 +4,22 @@ import {logError} from '@/utils/message-queue';
 import fs from 'fs/promises';
 import type {InputState} from './types/hooks';
 
-const HISTORY_FILE = getClosestConfigFile('.nano-coder-history');
 const ENTRY_SEPARATOR = '\n---ENTRY_SEPARATOR---\n';
 const JSON_FORMAT_MARKER = '---JSON_FORMAT---';
 
 export class PromptHistory {
 	private history: InputState[] = [];
 	private currentIndex: number = -1;
+	private readonly historyFile: string;
+
+	constructor(historyFile?: string) {
+		this.historyFile =
+			historyFile ?? getClosestConfigFile('.nano-coder-history');
+	}
 
 	async loadHistory(): Promise<void> {
 		try {
-			const content = await fs.readFile(HISTORY_FILE, 'utf8');
+			const content = await fs.readFile(this.historyFile, 'utf8');
 
 			if (content.startsWith(JSON_FORMAT_MARKER)) {
 				// New JSON format with InputState objects
@@ -54,7 +59,7 @@ export class PromptHistory {
 		try {
 			const jsonContent = JSON.stringify(this.history, null, 2);
 			await fs.writeFile(
-				HISTORY_FILE,
+				this.historyFile,
 				JSON_FORMAT_MARKER + jsonContent,
 				'utf8',
 			);
