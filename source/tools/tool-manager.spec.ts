@@ -1,58 +1,11 @@
-import {MCPClient} from '@/mcp/mcp-client';
 import type {
-	AISDKCoreTool,
 	MCPInitResult,
 	MCPServer,
-	MCPTool,
-	ToolEntry,
 } from '@/types/index';
 import test from 'ava';
 import {ToolManager} from './tool-manager';
 
 console.log('\ntool-manager.spec.ts');
-
-// Mock tool entries for testing
-const createMockToolEntry = (name: string): ToolEntry => ({
-	name,
-	handler: async (args: Record<string, unknown>) => {
-		return `Mock handler result for ${name}: ${JSON.stringify(args)}`;
-	},
-	tool: {
-		type: 'function',
-		function: {
-			name,
-			description: `Mock tool: ${name}`,
-			parameters: {
-				type: 'object',
-				properties: {
-					input: {type: 'string'},
-				},
-				required: [],
-			},
-		},
-	} as AISDKCoreTool,
-	formatter: (args: Record<string, unknown>) => {
-		return `Formatted: ${JSON.stringify(args)}`;
-	},
-	validator: async (args: Record<string, unknown>) => {
-		if (args.invalid) {
-			return {valid: false, error: 'Validation failed'};
-		}
-		return {valid: true};
-	},
-});
-
-const createMockMCPTool = (name: string, serverName: string): MCPTool => ({
-	name,
-	description: `MCP tool from ${serverName}`,
-	inputSchema: {
-		type: 'object',
-		properties: {
-			param: {type: 'string'},
-		},
-	},
-	serverName,
-});
 
 // ============================================================================
 // Constructor Tests
