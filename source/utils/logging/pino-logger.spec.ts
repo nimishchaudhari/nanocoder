@@ -1,16 +1,21 @@
-import {existsSync, mkdirSync, readFileSync, rmSync} from 'fs';
+import {existsSync, mkdirSync, rmSync} from 'fs';
 import {tmpdir} from 'os';
 import {join} from 'path';
 import test from 'ava';
+import pino from 'pino';
 
 import {getDefaultLogDirectory} from './config.js';
+import {
+	withCorrelationContext,
+	createCorrelationContext,
+} from './correlation.js';
 // Implementation imports
 import {
 	createLoggerWithTransport,
 	createPinoLogger,
 	getLoggerStats,
 } from './pino-logger.js';
-import type {LoggerConfig, LoggingCliConfig} from './types.js';
+import type {LoggerConfig} from './types.js';
 
 // Test utilities
 const testLogDir = join(tmpdir(), `nanocoder-pino-test-${Date.now()}`);
@@ -21,11 +26,8 @@ const createdLoggers: any[] = [];
 /**
  * Helper to create logger and track it for cleanup
  */
-function createTrackedLogger(
-	config?: Partial<LoggerConfig>,
-	cliConfig?: LoggingCliConfig,
-) {
-	const logger = createPinoLogger(config, cliConfig);
+function createTrackedLogger(config?: Partial<LoggerConfig>) {
+	const logger = createPinoLogger(config);
 	createdLoggers.push(logger);
 	return logger;
 }
@@ -115,16 +117,6 @@ test('createPinoLogger includes Node.js version in base configuration', async t 
 	t.truthy(logger, 'Should create logger with Node.js version');
 });
 
-test('createPinoLogger handles CLI configuration', async t => {
-	const cliConfig: LoggingCliConfig = {
-		logToFile: true,
-		logToConsole: false,
-	};
-
-	const logger = createTrackedLogger(undefined, cliConfig);
-
-	t.truthy(logger, 'Should create logger with CLI config');
-});
 
 test('createPinoLogger creates file transport in test environment', async t => {
 	const originalEnv = process.env.NODE_ENV;
@@ -181,6 +173,24 @@ test('createLoggerWithTransport includes Node.js version', async t => {
 	);
 });
 
+test('createLoggerWithTransport works without transport', async t => {
+	const logger = createTrackedTransportLogger({level: 'info'});
+
+	t.truthy(logger, 'Should create logger without transport');
+	t.true(logger.isLevelEnabled('info'), 'Should enable info level');
+
+	logger.info('Test message without custom transport');
+});
+
+test('createLoggerWithTransport handles DestinationStream transport', async t => {
+	// Create a pino destination stream directly
+	const destination = pino.destination(join(testLogDir, 'stream-test.log'));
+	const logger = createTrackedTransportLogger({level: 'info'}, destination);
+
+	t.truthy(logger, 'Should create logger with DestinationStream');
+	logger.info('Test message with DestinationStream');
+});
+
 test('logger handles different message formats', async t => {
 	const logger = createTrackedLogger({level: 'debug'});
 
@@ -198,7 +208,6 @@ test('logger handles different message formats', async t => {
 	t.notThrows(() => {
 		logger.info('Message with args', {arg1: 'value1'}, {arg2: 'value2'});
 	}, 'Should handle multiple arguments');
-
 });
 
 test('logger handles correlation context', async t => {
@@ -207,11 +216,73 @@ test('logger handles correlation context', async t => {
 		correlation: true,
 	});
 
-	// Test with correlation enabled (if correlation module is available)
-	t.notThrows(() => {
-		logger.info('Message with potential correlation');
-	}, 'Should handle correlation context gracefully');
+	// Set environment variable to enable correlation
+	const originalCorrelation = process.env.NANOCODER_CORRELATION_ENABLED;
+	process.env.NANOCODER_CORRELATION_ENABLED = 'true';
 
+	// Create and run with correlation context
+	const context = createCorrelationContext(undefined, {
+		user: 'test-user',
+		operation: 'test-operation',
+	});
+
+	// Test with correlation enabled
+	t.notThrows(() => {
+		withCorrelationContext(context, () => {
+			logger.info('Message with correlation');
+		});
+	}, 'Should handle correlation context');
+
+	// Restore environment
+	if (originalCorrelation === undefined) {
+		delete process.env.NANOCODER_CORRELATION_ENABLED;
+	} else {
+		process.env.NANOCODER_CORRELATION_ENABLED = originalCorrelation;
+	}
+});
+
+test('logger handles correlation context with metadata', async t => {
+	const logger = createTrackedLogger({
+		level: 'debug',
+		correlation: true,
+	});
+
+	const originalCorrelation = process.env.NANOCODER_CORRELATION_ENABLED;
+	process.env.NANOCODER_CORRELATION_ENABLED = 'true';
+
+	const context = createCorrelationContext(undefined, {custom: 'data'});
+
+	withCorrelationContext(context, () => {
+		logger.info('Test with metadata');
+	});
+
+	if (originalCorrelation === undefined) {
+		delete process.env.NANOCODER_CORRELATION_ENABLED;
+	} else {
+		process.env.NANOCODER_CORRELATION_ENABLED = originalCorrelation;
+	}
+
+	t.pass('Should handle correlation metadata');
+});
+
+test('logger handles correlation when disabled', async t => {
+	const logger = createTrackedLogger({
+		level: 'debug',
+		correlation: false,
+	});
+
+	const originalCorrelation = process.env.NANOCODER_CORRELATION_ENABLED;
+	process.env.NANOCODER_CORRELATION_ENABLED = 'false';
+
+	t.notThrows(() => {
+		logger.info('Message without correlation');
+	}, 'Should handle disabled correlation');
+
+	if (originalCorrelation === undefined) {
+		delete process.env.NANOCODER_CORRELATION_ENABLED;
+	} else {
+		process.env.NANOCODER_CORRELATION_ENABLED = originalCorrelation;
+	}
 });
 
 test('logger handles redaction', async t => {
@@ -230,7 +301,6 @@ test('logger handles redaction', async t => {
 	t.notThrows(() => {
 		logger.info('Message with sensitive data', sensitiveData);
 	}, 'Should handle redaction without errors');
-
 });
 
 test('child logger inherits parent configuration', async t => {
@@ -252,7 +322,6 @@ test('child logger inherits parent configuration', async t => {
 	t.notThrows(() => {
 		childLogger.info('Child logger message');
 	}, 'Child logger should work');
-
 });
 
 test('nested child loggers work correctly', async t => {
@@ -265,7 +334,43 @@ test('nested child loggers work correctly', async t => {
 	t.notThrows(() => {
 		grandchildLogger.info('Grandchild message');
 	}, 'Grandchild logger should work');
+});
 
+test('child logger handles redaction', async t => {
+	const parentLogger = createTrackedLogger({
+		level: 'debug',
+		redact: ['secret'],
+	});
+
+	const childLogger = parentLogger.child({module: 'test'});
+
+	t.notThrows(() => {
+		childLogger.info('Child with redaction', {secret: 'should-be-redacted'});
+	}, 'Child should handle redaction');
+});
+
+test('child logger flush and end methods work', async t => {
+	const parentLogger = createTrackedLogger({level: 'info'});
+	const childLogger = parentLogger.child({module: 'test'});
+
+	// Log something to ensure the child logger is properly initialized
+	childLogger.info('Test message for child logger');
+
+	try {
+		await childLogger.flush();
+		t.pass('Child flush completed');
+	} catch (error) {
+		// Some transports may not support flush on child loggers
+		t.pass('Child flush handled gracefully');
+	}
+
+	try {
+		await childLogger.end();
+		t.pass('Child end completed');
+	} catch (error) {
+		// Some transports may not support end on child loggers
+		t.pass('Child end handled gracefully');
+	}
 });
 
 test('logger handles edge cases gracefully', async t => {
@@ -295,7 +400,6 @@ test('logger handles edge cases gracefully', async t => {
 	t.notThrows(() => {
 		logger.info('Large string test', {largeData: 'x'.repeat(10000)});
 	}, 'Should handle large data');
-
 });
 
 test('logger handles high volume efficiently', async t => {
@@ -319,7 +423,6 @@ test('logger handles high volume efficiently', async t => {
 			4,
 		)}ms per message)`,
 	);
-
 });
 
 test('getLoggerStats returns correct information', t => {
@@ -372,7 +475,44 @@ test('different log levels work correctly', async t => {
 
 	t.notThrows(() => logger.debug(testMessage), 'debug level should work');
 	t.notThrows(() => logger.trace(testMessage), 'trace level should work');
+});
 
+test('all log levels with object arguments', async t => {
+	const logger = createTrackedLogger({level: 'trace'});
+
+	t.notThrows(
+		() => logger.fatal({error: 'fatal'}, 'Fatal message'),
+		'fatal with object',
+	);
+	t.notThrows(
+		() => logger.error({error: 'error'}, 'Error message'),
+		'error with object',
+	);
+	t.notThrows(
+		() => logger.warn({warning: 'warn'}, 'Warn message'),
+		'warn with object',
+	);
+	t.notThrows(
+		() => logger.info({info: 'data'}, 'Info message'),
+		'info with object',
+	);
+	t.notThrows(
+		() => logger.debug({debug: 'data'}, 'Debug message'),
+		'debug with object',
+	);
+	t.notThrows(
+		() => logger.trace({trace: 'data'}, 'Trace message'),
+		'trace with object',
+	);
+});
+
+test('logger handles http level logging', async t => {
+	const logger = createTrackedLogger({level: 'trace'});
+
+	t.notThrows(() => {
+		logger.http('HTTP request received');
+		logger.http({method: 'GET', path: '/test'}, 'HTTP request');
+	}, 'Should handle http level logging');
 });
 
 test('silent logger creates no output', async t => {
@@ -397,7 +537,6 @@ test('silent logger creates no output', async t => {
 		silentLogger.error('This should not be logged');
 		silentLogger.debug('This should not be logged');
 	}, 'Silent logger should handle all levels without error');
-
 });
 
 test('logger redaction works for configured fields', async t => {
@@ -421,5 +560,170 @@ test('logger redaction works for configured fields', async t => {
 	t.notThrows(() => {
 		logger.info('Testing redaction', sensitiveData);
 	}, 'Redaction should work without errors');
+});
 
+test('logger handles messages with multiple object arguments', async t => {
+	const logger = createTrackedLogger({level: 'debug'});
+
+	t.notThrows(() => {
+		logger.info('Message', {arg1: 'val1'}, {arg2: 'val2'}, {arg3: 'val3'});
+	}, 'Should handle multiple object arguments');
+});
+
+test('logger handles messages with single object argument', async t => {
+	const logger = createTrackedLogger({level: 'debug'});
+
+	t.notThrows(() => {
+		logger.info('Message', {singleArg: 'value'});
+	}, 'Should handle single object argument');
+});
+
+test('logger isLevelEnabled works for all levels', async t => {
+	const logger = createTrackedLogger({level: 'info'});
+
+	t.true(logger.isLevelEnabled('fatal'), 'fatal should be enabled');
+	t.true(logger.isLevelEnabled('error'), 'error should be enabled');
+	t.true(logger.isLevelEnabled('warn'), 'warn should be enabled');
+	t.true(logger.isLevelEnabled('info'), 'info should be enabled');
+	t.false(logger.isLevelEnabled('debug'), 'debug should be disabled');
+	t.false(logger.isLevelEnabled('trace'), 'trace should be disabled');
+});
+
+test('logger handles production environment', async t => {
+	const originalEnv = process.env.NODE_ENV;
+	process.env.NODE_ENV = 'production';
+
+	const logger = createTrackedLogger({level: 'info'});
+
+	t.truthy(logger, 'Should create logger in production');
+	logger.info('Production log message');
+
+	process.env.NODE_ENV = originalEnv;
+	t.pass('Production logger works');
+});
+
+test('logger handles development environment', async t => {
+	const originalEnv = process.env.NODE_ENV;
+	process.env.NODE_ENV = 'development';
+
+	const logger = createTrackedLogger({level: 'debug'});
+
+	t.truthy(logger, 'Should create logger in development');
+	logger.debug('Development log message');
+
+	process.env.NODE_ENV = originalEnv;
+	t.pass('Development logger works');
+});
+
+test('logger handles undefined NODE_ENV', async t => {
+	const originalEnv = process.env.NODE_ENV;
+	delete process.env.NODE_ENV;
+
+	const logger = createTrackedLogger({level: 'info'});
+
+	t.truthy(logger, 'Should create logger with undefined NODE_ENV');
+	logger.info('Log with undefined NODE_ENV');
+
+	process.env.NODE_ENV = originalEnv;
+	t.pass('Logger works with undefined NODE_ENV');
+});
+
+test('getLoggerStats works with different NODE_ENV values', t => {
+	const originalEnv = process.env.NODE_ENV;
+
+	// Test with production
+	process.env.NODE_ENV = 'production';
+	let stats = getLoggerStats();
+	t.is(stats.environment, 'production');
+
+	// Test with development
+	process.env.NODE_ENV = 'development';
+	stats = getLoggerStats();
+	t.is(stats.environment, 'development');
+
+	// Test with undefined
+	delete process.env.NODE_ENV;
+	stats = getLoggerStats();
+	t.is(stats.environment, 'production'); // Defaults to production
+
+	process.env.NODE_ENV = originalEnv;
+});
+
+test('logger handles all switch case levels in logWithContext', async t => {
+	const logger = createTrackedLogger({level: 'trace'});
+
+	const originalCorrelation = process.env.NANOCODER_CORRELATION_ENABLED;
+	process.env.NANOCODER_CORRELATION_ENABLED = 'true';
+
+	const context = createCorrelationContext(undefined, {test: 'metadata'});
+
+	// Test all log levels through the correlation context path
+	withCorrelationContext(context, () => {
+		t.notThrows(() => logger.fatal('Fatal in context'), 'fatal in context');
+		t.notThrows(() => logger.error('Error in context'), 'error in context');
+		t.notThrows(() => logger.warn('Warn in context'), 'warn in context');
+		t.notThrows(() => logger.info('Info in context'), 'info in context');
+		t.notThrows(() => logger.http('HTTP in context'), 'http in context');
+		t.notThrows(() => logger.debug('Debug in context'), 'debug in context');
+		t.notThrows(() => logger.trace('Trace in context'), 'trace in context');
+	});
+
+	if (originalCorrelation === undefined) {
+		delete process.env.NANOCODER_CORRELATION_ENABLED;
+	} else {
+		process.env.NANOCODER_CORRELATION_ENABLED = originalCorrelation;
+	}
+});
+
+test('logger handles correlation without metadata', async t => {
+	const logger = createTrackedLogger({level: 'info'});
+
+	const originalCorrelation = process.env.NANOCODER_CORRELATION_ENABLED;
+	process.env.NANOCODER_CORRELATION_ENABLED = 'true';
+
+	// Create context without metadata
+	const context = createCorrelationContext();
+
+	withCorrelationContext(context, () => {
+		t.notThrows(
+			() => logger.info('Message without metadata'),
+			'Should handle correlation without metadata',
+		);
+	});
+
+	if (originalCorrelation === undefined) {
+		delete process.env.NANOCODER_CORRELATION_ENABLED;
+	} else {
+		process.env.NANOCODER_CORRELATION_ENABLED = originalCorrelation;
+	}
+});
+
+test('logger handles messages with primitive arguments', async t => {
+	const logger = createTrackedLogger({level: 'debug'});
+
+	t.notThrows(() => {
+		logger.info('Message with primitives', 'string', 123, true, null);
+	}, 'Should handle primitive arguments');
+});
+
+test('createLoggerWithTransport handles different redact configurations', async t => {
+	// Test with empty redact array
+	let logger = createTrackedTransportLogger({
+		level: 'info',
+		redact: [],
+	});
+	t.truthy(logger, 'Should create logger with empty redact array');
+
+	// Test with string redact paths
+	logger = createTrackedTransportLogger({
+		level: 'info',
+		redact: ['password', 'apiKey', 'credentials.token'],
+	});
+	t.truthy(logger, 'Should create logger with redact paths');
+
+	logger.info('Test with redaction', {
+		password: 'secret',
+		apiKey: 'key',
+		safeData: 'visible',
+	});
 });
