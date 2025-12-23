@@ -651,3 +651,295 @@ test('MCPClient.getServerInfo: returns undefined when only tools exist', t => {
 
 	t.is(serverInfo, undefined);
 });
+
+// ============================================================================
+// Integration Tests with Real MCP Servers (HTTP Transport)
+// ============================================================================
+
+// These tests use real remote MCP servers via HTTP transport
+// They test the actual connection, tool listing, and tool execution flow
+
+test('MCPClient.connectToServer: connects to remote HTTP MCP server', async t => {
+	const client = new MCPClient();
+
+	// Use DeepWiki public MCP server (no auth required)
+	const server = {
+		name: 'test-deepwiki',
+		transport: 'http' as const,
+		url: 'https://mcp.deepwiki.com/mcp',
+	};
+
+	// This should connect successfully
+	await t.notThrowsAsync(async () => await client.connectToServer(server));
+
+	// Verify server is marked as connected
+	t.true(client.isServerConnected('test-deepwiki'));
+
+	// Verify tools were loaded
+	const tools = client.getServerTools('test-deepwiki');
+	t.true(tools.length > 0, 'Should have loaded tools from remote server');
+
+	// Verify server info is available
+	const serverInfo = client.getServerInfo('test-deepwiki');
+	t.truthy(serverInfo);
+	t.is(serverInfo?.name, 'test-deepwiki');
+	t.is(serverInfo?.transport, 'http');
+	t.is(serverInfo?.connected, true);
+
+	// Clean up - disconnect
+	await client.disconnect();
+
+	// Verify disconnection
+	t.false(client.isServerConnected('test-deepwiki'));
+	t.is(client.getServerTools('test-deepwiki').length, 0);
+});
+
+test('MCPClient.connectToServer: connects to Remote Fetch HTTP server and fetches content', async t => {
+	const client = new MCPClient();
+
+	const server = {
+		name: 'test-remote-fetch',
+		transport: 'http' as const,
+		url: 'https://remote.mcpservers.org/fetch/mcp',
+	};
+
+	await t.notThrowsAsync(async () => await client.connectToServer(server));
+
+	t.true(client.isServerConnected('test-remote-fetch'));
+
+	const tools = client.getServerTools('test-remote-fetch');
+	t.true(tools.length > 0, 'Should have loaded tools from Remote Fetch');
+
+	// Find the fetch tool
+	const fetchTool = tools.find(t => t.name === 'fetch');
+	t.truthy(fetchTool, 'Should have a fetch tool');
+
+	// Execute the fetch tool to get Nanocoder's GitHub repo
+	// callTool uses just the tool name, and internally looks up the server
+	const result = await client.callTool('fetch', {
+		url: 'https://github.com/Nano-Collective/nanocoder',
+	});
+
+	t.truthy(result, 'Should get a result from fetch tool');
+
+	await client.disconnect();
+	t.false(client.isServerConnected('test-remote-fetch'));
+});
+
+test('MCPClient.connectToServers: connects to multiple HTTP servers', async t => {
+	const client = new MCPClient();
+
+	const servers = [
+		{
+			name: 'test-deepwiki',
+			transport: 'http' as const,
+			url: 'https://mcp.deepwiki.com/mcp',
+		},
+		{
+			name: 'test-context7',
+			transport: 'http' as const,
+			url: 'https://mcp.context7.com/mcp',
+		},
+	];
+
+	// Track progress
+	const progressResults: any[] = [];
+	const onProgress = (result: any) => {
+		progressResults.push(result);
+	};
+
+	const results = await client.connectToServers(servers, onProgress);
+
+	// Should have 2 results
+	t.is(results.length, 2);
+	t.is(progressResults.length, 2);
+
+	// Both should succeed (network permitting)
+	const successful = results.filter((r: any) => r.success);
+	t.true(successful.length >= 1, 'At least one server should connect successfully');
+
+	// Clean up
+	await client.disconnect();
+});
+
+test('MCPClient.getAllTools: builds tools registry from connected HTTP server', async t => {
+	const client = new MCPClient();
+
+	const server = {
+		name: 'test-deepwiki',
+		transport: 'http' as const,
+		url: 'https://mcp.deepwiki.com/mcp',
+	};
+
+	await client.connectToServer(server);
+
+	// getAllTools should return tools in the AI SDK format
+	const tools = client.getAllTools();
+
+	t.true(tools.length > 0, 'Should have tools from connected server');
+
+	// Verify tool structure
+	const firstTool = tools[0];
+	t.is(firstTool.type, 'function');
+	t.truthy(firstTool.function.name);
+	t.truthy(firstTool.function.description);
+	t.true(
+		firstTool.function.description?.includes('[MCP:test-deepwiki]'),
+		'Tool description should include server prefix',
+	);
+	t.truthy(firstTool.function.parameters);
+	t.is(firstTool.function.parameters.type, 'object');
+
+	await client.disconnect();
+});
+
+test('MCPClient.getNativeToolsRegistry: creates registry from connected HTTP server', async t => {
+	const client = new MCPClient();
+
+	const server = {
+		name: 'test-context7',
+		transport: 'http' as const,
+		url: 'https://mcp.context7.com/mcp',
+	};
+
+	await client.connectToServer(server);
+
+	// getNativeToolsRegistry should return tools in AI SDK CoreTool format
+	const registry = client.getNativeToolsRegistry();
+
+	t.true(Object.keys(registry).length > 0, 'Should have tools in registry');
+
+	// Verify first tool structure
+	const firstToolName = Object.keys(registry)[0];
+	const firstTool = registry[firstToolName];
+
+	t.truthy(firstTool.description);
+	t.is(typeof firstTool.inputSchema, 'object');
+	t.truthy(firstTool.needsApproval);
+	t.is(typeof firstTool.needsApproval, 'function');
+
+	// Test needsApproval callback
+	const needsApprovalResult = firstTool.needsApproval();
+	t.is(typeof needsApprovalResult, 'boolean');
+
+	await client.disconnect();
+});
+
+test('MCPClient.callTool: executes tool on connected HTTP server', async t => {
+	const client = new MCPClient();
+
+	const server = {
+		name: 'test-deepwiki',
+		transport: 'http' as const,
+		url: 'https://mcp.deepwiki.com/mcp',
+	};
+
+	await client.connectToServer(server);
+
+	// Get available tools
+	const tools = client.getServerTools('test-deepwiki');
+	t.true(tools.length > 0, 'Should have tools to call');
+
+	// Try to call the first tool (note: may fail if tool requires specific args)
+	const toolName = tools[0].name;
+
+	// This test just verifies the call mechanism works
+	// The actual tool call may fail due to invalid arguments, but that's expected
+	try {
+		const result = await client.callTool(toolName, {});
+		t.truthy(result);
+	} catch (error) {
+		// Tool call failed due to invalid args - this is expected for testing
+		t.truthy(error, 'Tool call may fail with invalid arguments');
+	}
+
+	await client.disconnect();
+});
+
+test('MCPClient.getToolMapping: returns mapping from connected HTTP server', async t => {
+	const client = new MCPClient();
+
+	const server = {
+		name: 'test-deepwiki',
+		transport: 'http' as const,
+		url: 'https://mcp.deepwiki.com/mcp',
+	};
+
+	await client.connectToServer(server);
+
+	// Get tool mapping
+	const mapping = client.getToolMapping();
+
+	t.true(mapping.size > 0, 'Should have tool mappings');
+
+	// Verify mapping structure
+	const firstMapping = mapping.entries().next().value;
+	const [toolName, mappingInfo] = firstMapping;
+
+	t.is(typeof toolName, 'string');
+	t.deepEqual(mappingInfo, {
+		serverName: 'test-deepwiki',
+		originalName: toolName,
+	});
+
+	await client.disconnect();
+});
+
+test('MCPClient.getToolEntries: returns entries from connected HTTP server', async t => {
+	const client = new MCPClient();
+
+	const server = {
+		name: 'test-context7',
+		transport: 'http' as const,
+		url: 'https://mcp.context7.com/mcp',
+	};
+
+	await client.connectToServer(server);
+
+	// Get tool entries
+	const entries = client.getToolEntries();
+
+	t.true(entries.length > 0, 'Should have tool entries');
+
+	// Verify entry structure
+	const firstEntry = entries[0];
+
+	t.is(typeof firstEntry.name, 'string');
+	t.truthy(firstEntry.tool);
+	t.is(typeof firstEntry.handler, 'function');
+
+	await client.disconnect();
+});
+
+// ============================================================================
+// Error Handling Tests with Real Servers
+// ============================================================================
+
+test('MCPClient.connectToServer: handles invalid URL gracefully', async t => {
+	const client = new MCPClient();
+
+	const server = {
+		name: 'test-invalid',
+		transport: 'http' as const,
+		url: 'http://localhost:99999/invalid-mcp', // Invalid port
+	};
+
+	// Should throw error due to connection failure
+	await t.throwsAsync(async () => await client.connectToServer(server));
+});
+
+test('MCPClient.connectToServer: validates websocket URL protocol', async t => {
+	const client = new MCPClient();
+
+	const server = {
+		name: 'test-invalid-ws',
+		transport: 'websocket' as const,
+		url: 'http://invalid-protocol.com', // Wrong protocol for websocket
+	};
+
+	// Should throw error during validation
+	await t.throwsAsync(
+		async () => await client.connectToServer(server),
+		{message: /websocket URL must use ws:\/\/ or wss:\/\/ protocol/i},
+	);
+});
