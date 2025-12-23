@@ -8,7 +8,7 @@ const HISTORY_FILE = getClosestConfigFile('.nano-coder-history');
 const ENTRY_SEPARATOR = '\n---ENTRY_SEPARATOR---\n';
 const JSON_FORMAT_MARKER = '---JSON_FORMAT---';
 
-class PromptHistory {
+export class PromptHistory {
 	private history: InputState[] = [];
 	private currentIndex: number = -1;
 
