@@ -19,8 +19,7 @@ import {
 	updateCommand,
 	usageCommand,
 } from '@/commands/index';
-import ErrorMessage from '@/components/error-message';
-import InfoMessage from '@/components/info-message';
+import {ErrorMessage, InfoMessage} from '@/components/message-box';
 import {appConfig, reloadAppConfig} from '@/config/index';
 import {
 	getLastUsedModel,

@@ -1,4 +1,4 @@
-import ErrorMessage from '@/components/error-message';
+import {ErrorMessage} from '@/components/message-box';
 import ToolMessage from '@/components/tool-message';
 import type {ToolManager} from '@/tools/tool-manager';
 import type {ToolCall, ToolResult} from '@/types/index';

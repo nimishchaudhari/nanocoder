@@ -1,6 +1,6 @@
 import test from 'ava';
 import React from 'react';
-import ErrorMessage from '../components/error-message.js';
+import {ErrorMessage} from '../components/message-box.js';
 import ToolMessage from '../components/tool-message.js';
 import type {ToolManager} from '../tools/tool-manager.js';
 import type {ToolCall, ToolResult} from '../types/core.js';

@@ -1,4 +1,4 @@
-import SuccessMessage from '@/components/success-message';
+import {SuccessMessage} from '@/components/message-box';
 import {Command} from '@/types/index';
 import React from 'react';
 

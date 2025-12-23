@@ -1,4 +1,4 @@
-import ErrorMessage from '@/components/error-message';
+import {ErrorMessage} from '@/components/message-box';
 import type {Command, Message} from '@/types/index';
 import {fuzzyScore} from '@/utils/fuzzy-matching';
 import React from 'react';

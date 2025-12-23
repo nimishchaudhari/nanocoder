@@ -1,4 +1,4 @@
-import ErrorMessage from '@/components/error-message';
+import {ErrorMessage} from '@/components/message-box';
 import {formatError} from '@/utils/error-formatter';
 import type React from 'react';
 

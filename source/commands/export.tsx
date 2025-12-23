@@ -1,5 +1,5 @@
 import path from 'path';
-import SuccessMessage from '@/components/success-message';
+import {SuccessMessage} from '@/components/message-box';
 import {Command, Message} from '@/types/index';
 import fs from 'fs/promises';
 import React from 'react';
