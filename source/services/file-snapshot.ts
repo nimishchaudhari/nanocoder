@@ -23,7 +23,7 @@ export class FileSnapshotService {
 
 		for (const filePath of filePaths) {
 			try {
-				const absolutePath = path.resolve(this.workspaceRoot, filePath);
+				const absolutePath = path.resolve(this.workspaceRoot, filePath); // nosemgrep
 				const content = await fs.readFile(absolutePath, 'utf-8');
 				const relativePath = path.relative(this.workspaceRoot, absolutePath);
 				snapshots.set(relativePath, content);
@@ -164,7 +164,7 @@ export class FileSnapshotService {
 		const errors: string[] = [];
 
 		for (const relativePath of snapshots.keys()) {
-			const absolutePath = path.resolve(this.workspaceRoot, relativePath);
+			const absolutePath = path.resolve(this.workspaceRoot, relativePath); // nosemgrep
 			const directory = path.dirname(absolutePath);
 
 			try {

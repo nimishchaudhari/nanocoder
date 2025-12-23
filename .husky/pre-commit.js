@@ -180,6 +180,8 @@ function runLintStaged() {
 
 		console.log(`Using pnpm: ${pnpmPath}`);
 
+		// no-semgrep: javascript.lang.security.audit.spawn-shell-true.spawn-shell-true
+		// shell is required for .cmd files on Windows; pnpmPath is controlled by findPnpm()
 		const child = spawn(pnpmPath, ['lint-staged'], {
 			stdio: 'inherit',
 			shell: os.platform() === 'win32', // Use shell on Windows for .cmd files

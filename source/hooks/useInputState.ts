@@ -291,7 +291,13 @@ export function useInputState() {
 	// Delete placeholder atomically
 	const deletePlaceholder = useCallback(
 		(placeholderId: string) => {
-			const placeholderPattern = `[Paste #${placeholderId}: \\d+ chars]`;
+			// Sanitize placeholderId to ensure it only contains safe characters
+			const sanitizedPlaceholderId = placeholderId.replace(
+				/[^a-zA-Z0-9_-]/g,
+				'',
+			);
+			const placeholderPattern = `[Paste #${sanitizedPlaceholderId}: \\d+ chars]`;
+			/* nosemgrep */
 			const regex = new RegExp(
 				placeholderPattern.replace(/[[\]]/g, '\\$&'),
 				'g',

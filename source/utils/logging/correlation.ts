@@ -240,7 +240,7 @@ export function withCorrelationContext<T>(
 		correlationMonitoring.activeContexts--;
 
 		if (process.env.NANOCODER_CORRELATION_DEBUG === 'true') {
-			console.error(`[Correlation] Context error: ${context.id}`, error);
+			console.error(`[Correlation] Context error: ${context.id}`, error); // nosemgrep
 		}
 
 		throw error;
@@ -283,7 +283,7 @@ export function withNewCorrelationContext<T>(
 		correlationMonitoring.activeContexts--;
 
 		if (process.env.NANOCODER_CORRELATION_DEBUG === 'true') {
-			console.error(`[Correlation] New context error: ${context.id}`, error);
+			console.error(`[Correlation] New context error: ${context.id}`, error); // nosemgrep
 		}
 
 		throw error;

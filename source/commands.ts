@@ -78,3 +78,6 @@ class CommandRegistry {
 }
 
 export const commandRegistry = new CommandRegistry();
+
+// Export the class for testing purposes
+export {CommandRegistry};
