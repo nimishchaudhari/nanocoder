@@ -20,6 +20,12 @@ function createInputState(
 	return {displayValue, placeholderContent};
 }
 
+// Helper to create a PromptHistory instance with isolated temp file
+function createTestHistory(): PromptHistory {
+	const tempFile = join(testDir, `history-${Date.now()}-${Math.random()}.json`);
+	return new PromptHistory(tempFile);
+}
+
 // Helper to wait for file to be written with expected content
 async function waitForFileContent(
 	filePath: string,
@@ -55,11 +61,8 @@ test.after.always(() => {
 	}
 });
 
-// Since PromptHistory uses a hardcoded file path from getClosestConfigFile,
-// we'll test the in-memory behavior primarily and file I/O indirectly
-
 test('addPrompt with string adds to history', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('test command');
 
@@ -70,7 +73,7 @@ test('addPrompt with string adds to history', t => {
 });
 
 test('addPrompt with InputState adds to history', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	const inputState = createInputState('complex command', {
 		id1: {content: 'data'},
@@ -84,7 +87,7 @@ test('addPrompt with InputState adds to history', t => {
 });
 
 test('addPrompt ignores empty strings', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('');
 	history.addPrompt('   ');
@@ -93,7 +96,7 @@ test('addPrompt ignores empty strings', t => {
 });
 
 test('addPrompt ignores empty InputState', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt(createInputState(''));
 	history.addPrompt(createInputState('   '));
@@ -106,7 +109,7 @@ test('addPrompt ignores empty InputState', t => {
 });
 
 test('addPrompt removes duplicates', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -119,7 +122,7 @@ test('addPrompt removes duplicates', t => {
 });
 
 test('addPrompt respects MAX_PROMPT_HISTORY_SIZE', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	// Add more than MAX_PROMPT_HISTORY_SIZE entries (100)
 	for (let i = 0; i < 105; i++) {
@@ -137,7 +140,7 @@ test('addPrompt respects MAX_PROMPT_HISTORY_SIZE', t => {
 });
 
 test('addPrompt resets currentIndex', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -154,7 +157,7 @@ test('addPrompt resets currentIndex', t => {
 });
 
 test('getPrevious navigates backward through history', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -174,13 +177,13 @@ test('getPrevious navigates backward through history', t => {
 });
 
 test('getPrevious returns null for empty history', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	t.is(history.getPrevious(), null, 'Should return null for empty history');
 });
 
 test('getNext navigates forward through history', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -202,7 +205,7 @@ test('getNext navigates forward through history', t => {
 });
 
 test('getNext returns null when not navigating', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 
@@ -214,13 +217,13 @@ test('getNext returns null when not navigating', t => {
 });
 
 test('getNext returns null for empty history', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	t.is(history.getNext(), null, 'Should return null for empty history');
 });
 
 test('resetIndex resets navigation', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -235,7 +238,7 @@ test('resetIndex resets navigation', t => {
 });
 
 test('getPreviousString returns string value', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('test command');
 
@@ -244,7 +247,7 @@ test('getPreviousString returns string value', t => {
 });
 
 test('getPreviousString returns null for empty history', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	t.is(
 		history.getPreviousString(),
@@ -254,7 +257,7 @@ test('getPreviousString returns null for empty history', t => {
 });
 
 test('getNextString returns string value', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -267,7 +270,7 @@ test('getNextString returns string value', t => {
 });
 
 test('getNextString returns empty string at end', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 
@@ -282,7 +285,7 @@ test('getNextString returns empty string at end', t => {
 });
 
 test('getHistory returns copy of history', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -302,7 +305,7 @@ test('getHistory returns copy of history', t => {
 });
 
 test('getHistoryStrings returns string array', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt(createInputState('command one', {id: 'data'}));
 	history.addPrompt('command two');
@@ -316,7 +319,7 @@ test('getHistoryStrings returns string array', t => {
 });
 
 test('navigation wraps correctly at boundaries', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -336,7 +339,7 @@ test('navigation wraps correctly at boundaries', t => {
 });
 
 test('mixed string and InputState prompts work together', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('string command');
 	history.addPrompt(createInputState('input state command', {id: 'data'}));
@@ -352,7 +355,7 @@ test('mixed string and InputState prompts work together', t => {
 });
 
 test('duplicate removal works with InputState', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt(
 		createInputState('command', {id1: {content: 'placeholder1'}}),
@@ -373,7 +376,7 @@ test('duplicate removal works with InputState', t => {
 });
 
 test('addPrompt trims whitespace from strings', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('  test command  ');
 
@@ -386,7 +389,7 @@ test('addPrompt trims whitespace from strings', t => {
 });
 
 test('navigation index stays within bounds', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 
@@ -408,7 +411,7 @@ test('navigation index stays within bounds', t => {
 });
 
 test('resetIndex allows re-navigation from start', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -427,7 +430,7 @@ test('resetIndex allows re-navigation from start', t => {
 });
 
 test('getPrevious at end of forward navigation restarts properly', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -447,7 +450,7 @@ test('getPrevious at end of forward navigation restarts properly', t => {
 });
 
 test('history maintains order after adding many items', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	for (let i = 0; i < 50; i++) {
 		history.addPrompt(`command ${i}`);
@@ -460,7 +463,7 @@ test('history maintains order after adding many items', t => {
 });
 
 test('migrateStringArrayToInputState preserves order', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	// We can't directly test the private method, but we can test its effect
 	// by testing the public API with different input types
@@ -475,7 +478,7 @@ test('migrateStringArrayToInputState preserves order', t => {
 });
 
 test('adding duplicate moves it to end and updates placeholderContent', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt(
 		createInputState('command', {id1: {content: 'original'}}),
@@ -495,7 +498,7 @@ test('adding duplicate moves it to end and updates placeholderContent', t => {
 });
 
 test('getNext after reaching end resets index to -1', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('command one');
 	history.addPrompt('command two');
@@ -515,7 +518,7 @@ test('getNext after reaching end resets index to -1', t => {
 });
 
 test('backwards compatibility - getPreviousString vs getPrevious', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt(createInputState('test', {id: 'data'}));
 
@@ -529,7 +532,7 @@ test('backwards compatibility - getPreviousString vs getPrevious', t => {
 });
 
 test('backwards compatibility - getNextString returns empty string at end', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	history.addPrompt('test');
 	history.getPrevious();
@@ -665,7 +668,7 @@ test('saveHistory handles write errors gracefully', async t => {
 });
 
 test('migrateStringArrayToInputState converts strings correctly', t => {
-	const history = new PromptHistory();
+	const history = createTestHistory();
 
 	// We can't call the private method directly, but we can test its effect
 	// by verifying that string prompts are converted to InputState format
