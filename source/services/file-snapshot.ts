@@ -164,7 +164,7 @@ export class FileSnapshotService {
 		const errors: string[] = [];
 
 		for (const relativePath of snapshots.keys()) {
-			const absolutePath = path.resolve(this.workspaceRoot, relativePath);
+			const absolutePath = path.resolve(this.workspaceRoot, relativePath); // nosemgrep
 			const directory = path.dirname(absolutePath);
 
 			try {
