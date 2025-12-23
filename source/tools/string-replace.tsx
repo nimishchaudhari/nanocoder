@@ -11,6 +11,7 @@ import {getCurrentMode} from '@/context/mode-context';
 import {jsonSchema, tool} from '@/types/core';
 import type {Colors} from '@/types/index';
 import {getCachedFileContent, invalidateCache} from '@/utils/file-cache';
+import {normalizeIndentation} from '@/utils/indentation-normalizer';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import {
 	closeDiffInVSCode,
@@ -264,15 +265,65 @@ async function formatStringReplacePreview(
 		const showStart = Math.max(0, startLine - 1 - contextLines);
 		const showEnd = Math.min(allLines.length - 1, endLine - 1 + contextLines);
 
+		// Collect all lines to be displayed for normalization
+		const linesToNormalize: string[] = [];
+
+		// Context before
+		for (let i = showStart; i < startLine - 1; i++) {
+			linesToNormalize.push(allLines[i] || '');
+		}
+
+		// Old lines
+		for (let i = 0; i < oldStrLines.length; i++) {
+			linesToNormalize.push(oldStrLines[i] || '');
+		}
+
+		// New lines
+		for (let i = 0; i < newStrLines.length; i++) {
+			linesToNormalize.push(newStrLines[i] || '');
+		}
+
+		// Context after
+		for (let i = endLine; i <= showEnd; i++) {
+			linesToNormalize.push(allLines[i] || '');
+		}
+
+		// Normalize indentation
+		const normalizedLines = normalizeIndentation(linesToNormalize);
+
+		// Split normalized lines back into sections
+		let lineIndex = 0;
+		const contextBeforeCount = startLine - 1 - showStart;
+		const normalizedContextBefore = normalizedLines.slice(
+			lineIndex,
+			lineIndex + contextBeforeCount,
+		);
+		lineIndex += contextBeforeCount;
+
+		const normalizedOldLines = normalizedLines.slice(
+			lineIndex,
+			lineIndex + oldStrLines.length,
+		);
+		lineIndex += oldStrLines.length;
+
+		const normalizedNewLines = normalizedLines.slice(
+			lineIndex,
+			lineIndex + newStrLines.length,
+		);
+		lineIndex += newStrLines.length;
+
+		const normalizedContextAfter = normalizedLines.slice(lineIndex);
+
 		const contextBefore: React.ReactElement[] = [];
 		const removedLines: React.ReactElement[] = [];
 		const addedLines: React.ReactElement[] = [];
 		const contextAfter: React.ReactElement[] = [];
 
 		// Show context before
-		for (let i = showStart; i < startLine - 1; i++) {
-			const lineNumStr = String(i + 1).padStart(4, ' ');
-			const line = allLines[i] || '';
+		for (let i = 0; i < normalizedContextBefore.length; i++) {
+			const actualLineNum = showStart + i;
+			const lineNumStr = String(actualLineNum + 1).padStart(4, ' ');
+			const line = normalizedContextBefore[i] || '';
 			let displayLine: string;
 			try {
 				displayLine = highlight(line, {language, theme: 'default'});
@@ -288,9 +339,9 @@ async function formatStringReplacePreview(
 		}
 
 		// Show removed lines (old_str)
-		for (let i = 0; i < oldStrLines.length; i++) {
+		for (let i = 0; i < normalizedOldLines.length; i++) {
 			const lineNumStr = String(startLine + i).padStart(4, ' ');
-			const line = oldStrLines[i] || '';
+			const line = normalizedOldLines[i] || '';
 			let displayLine: string;
 			try {
 				displayLine = highlight(line, {language, theme: 'default'});
@@ -311,9 +362,9 @@ async function formatStringReplacePreview(
 		}
 
 		// Show added lines (new_str)
-		for (let i = 0; i < newStrLines.length; i++) {
+		for (let i = 0; i < normalizedNewLines.length; i++) {
 			const lineNumStr = String(startLine + i).padStart(4, ' ');
-			const line = newStrLines[i] || '';
+			const line = normalizedNewLines[i] || '';
 			let displayLine: string;
 			try {
 				displayLine = highlight(line, {language, theme: 'default'});
@@ -335,9 +386,10 @@ async function formatStringReplacePreview(
 
 		// Show context after
 		const lineDelta = newStrLines.length - oldStrLines.length;
-		for (let i = endLine; i <= showEnd; i++) {
-			const lineNumStr = String(i + lineDelta + 1).padStart(4, ' ');
-			const line = allLines[i] || '';
+		for (let i = 0; i < normalizedContextAfter.length; i++) {
+			const actualLineNum = endLine + i;
+			const lineNumStr = String(actualLineNum + lineDelta + 1).padStart(4, ' ');
+			const line = normalizedContextAfter[i] || '';
 			let displayLine: string;
 			try {
 				displayLine = highlight(line, {language, theme: 'default'});
