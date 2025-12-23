@@ -155,8 +155,7 @@ export async function handleChat(
 							role: 'tool' as const,
 							content: resultStr,
 							tool_call_id:
-								toolCall.toolCallId ||
-								`tool_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
+								toolCall.toolCallId || `tool_${crypto.randomUUID()}`,
 							name: toolCall.toolName,
 						});
 					});
