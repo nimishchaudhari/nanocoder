@@ -450,6 +450,14 @@ test('getKnownServersStatus - includes typescript server', t => {
 	t.true(tsServer!.languages.includes('tsx'));
 });
 
+test('getKnownServersStatus - includes deno server', t => {
+	const result = getKnownServersStatus();
+	const denoServer = result.find(s => s.name === 'deno');
+	t.truthy(denoServer);
+	t.true(denoServer!.languages.includes('ts'));
+	t.true(denoServer!.languages.includes('js'));
+});
+
 test('getKnownServersStatus - includes pyright server', t => {
 	const result = getKnownServersStatus();
 	const pyServer = result.find(s => s.name === 'pyright');
@@ -502,6 +510,7 @@ test('getKnownServersStatus - includes all major language servers', t => {
 
 	// Check for presence of major servers
 	t.true(serverNames.includes('typescript-language-server'));
+	t.true(serverNames.includes('deno'));
 	t.true(serverNames.includes('pyright') || serverNames.includes('pylsp'));
 	t.true(serverNames.includes('rust-analyzer'));
 	t.true(serverNames.includes('gopls'));
@@ -620,6 +629,7 @@ test('getKnownServersStatus - key servers are present with correct names', t => 
 	// Check that key servers are present with their correct names
 	const keyServers = [
 		'typescript-language-server',
+		'deno',
 		'pyright',
 		'pylsp',
 		'rust-analyzer',
