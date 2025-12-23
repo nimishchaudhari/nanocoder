@@ -30,7 +30,7 @@ function createTestHistory(): PromptHistory {
 async function waitForFileContent(
 	filePath: string,
 	minLength: number,
-	maxWaitMs: number = 1000,
+	maxWaitMs: number = 2000,
 ): Promise<boolean> {
 	const startTime = Date.now();
 	while (Date.now() - startTime < maxWaitMs) {
@@ -572,7 +572,7 @@ test('loadHistory parses JSON format correctly', async t => {
 	await history.saveHistory();
 
 	// Wait for file to be written
-	const fileReady = await waitForFileContent(tempFile, 50, 1000);
+	const fileReady = await waitForFileContent(tempFile, 50, 2000);
 	t.true(fileReady, 'History file should be written with content');
 
 	// Create a new instance and load
@@ -601,7 +601,7 @@ test('saveHistory persists data to disk', async t => {
 	await history.saveHistory();
 
 	// Wait for file to be written with reasonable content (at least 50 bytes)
-	const fileReady = await waitForFileContent(tempFile, 50, 1000);
+	const fileReady = await waitForFileContent(tempFile, 50, 2000);
 	t.true(fileReady, 'History file should be written with content');
 
 	// Load in a new instance

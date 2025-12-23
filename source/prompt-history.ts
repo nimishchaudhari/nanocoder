@@ -11,6 +11,7 @@ export class PromptHistory {
 	private history: InputState[] = [];
 	private currentIndex: number = -1;
 	private readonly historyFile: string;
+	private savePromise: Promise<void> = Promise.resolve();
 
 	constructor(historyFile?: string) {
 		this.historyFile =
@@ -56,19 +57,23 @@ export class PromptHistory {
 	}
 
 	async saveHistory(): Promise<void> {
-		try {
-			const jsonContent = JSON.stringify(this.history, null, 2);
-			await fs.writeFile(
-				this.historyFile,
-				JSON_FORMAT_MARKER + jsonContent,
-				'utf8',
-			);
-		} catch (error) {
-			// Silently fail to avoid disrupting the user experience
-			const errorMessage =
-				error instanceof Error ? error.message : 'Unknown error';
-			logError(`Failed to save prompt history: ${errorMessage}`);
-		}
+		// Chain this save onto the previous save to prevent concurrent writes
+		this.savePromise = this.savePromise.then(async () => {
+			try {
+				const jsonContent = JSON.stringify(this.history, null, 2);
+				await fs.writeFile(
+					this.historyFile,
+					JSON_FORMAT_MARKER + jsonContent,
+					'utf8',
+				);
+			} catch (error) {
+				// Silently fail to avoid disrupting the user experience
+				const errorMessage =
+					error instanceof Error ? error.message : 'Unknown error';
+				logError(`Failed to save prompt history: ${errorMessage}`);
+			}
+		});
+		return this.savePromise;
 	}
 
 	addPrompt(inputState: InputState): void;
