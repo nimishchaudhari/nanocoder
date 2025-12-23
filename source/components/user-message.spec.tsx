@@ -205,6 +205,20 @@ test('UserMessage does not render @ symbols that are not placeholders', t => {
 	// Should NOT have placeholder styling since it's not in [@...] format
 });
 
+test('UserMessage renders paragraphs with spacing', t => {
+	const {lastFrame} = render(
+		<MockThemeProvider>
+			<UserMessage message="First paragraph\n\nSecond paragraph\n\nThird paragraph" />
+		</MockThemeProvider>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /First paragraph/);
+	t.regex(output!, /Second paragraph/);
+	t.regex(output!, /Third paragraph/);
+});
+
 test('UserMessage renders without crashing', t => {
 	const {lastFrame} = render(
 		<MockThemeProvider>
