@@ -97,7 +97,7 @@ const OLLAMA_MODEL_CONTEXT_LIMITS: Record<string, number> = {
 	'gpt-oss:20b': 128000,
 
 	// Z.ai models
-	'glm-4.6': 200000,
+	'glm-4.7': 200000,
 
 	// Moonshot AI models
 	'kimi-k2:1t-cloud': 256000,

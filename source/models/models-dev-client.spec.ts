@@ -43,8 +43,8 @@ test('getModelContextLimit - returns 196608 for minimax-m2:cloud', async t => {
 	t.is(limit, 196608);
 });
 
-test('getModelContextLimit - returns 200000 for glm-4.6:cloud', async t => {
-	const limit = await getModelContextLimit('glm-4.6:cloud');
+test('getModelContextLimit - returns 200000 for glm-4.7:cloud', async t => {
+	const limit = await getModelContextLimit('glm-4.7:cloud');
 	t.is(limit, 200000);
 });
 
