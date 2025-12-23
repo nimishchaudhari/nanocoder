@@ -86,10 +86,10 @@ test('openrouter template: single model', t => {
 	const config = template!.buildConfig({
 		providerName: 'OpenRouter',
 		apiKey: 'test-key',
-		model: 'z-ai/glm-4.6',
+		model: 'z-ai/glm-4.7',
 	});
 
-	t.deepEqual(config.models, ['z-ai/glm-4.6']);
+	t.deepEqual(config.models, ['z-ai/glm-4.7']);
 });
 
 test('openrouter template: multiple comma-separated models', t => {
@@ -99,11 +99,11 @@ test('openrouter template: multiple comma-separated models', t => {
 	const config = template!.buildConfig({
 		providerName: 'OpenRouter',
 		apiKey: 'test-key',
-		model: 'z-ai/glm-4.6, anthropic/claude-3-opus, openai/gpt-4',
+		model: 'z-ai/glm-4.7, anthropic/claude-3-opus, openai/gpt-4',
 	});
 
 	t.deepEqual(config.models, [
-		'z-ai/glm-4.6',
+		'z-ai/glm-4.7',
 		'anthropic/claude-3-opus',
 		'openai/gpt-4',
 	]);

@@ -1,6 +1,8 @@
-import ErrorMessage from '@/components/error-message';
-import InfoMessage from '@/components/info-message';
-import SuccessMessage from '@/components/success-message';
+import {
+	ErrorMessage,
+	InfoMessage,
+	SuccessMessage,
+} from '@/components/message-box';
 import {toolRegistry} from '@/tools/index';
 import {Command} from '@/types/index';
 import {logError, logInfo} from '@/utils/message-queue';

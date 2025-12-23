@@ -1,8 +1,10 @@
 import {CheckpointListDisplay} from '@/components/checkpoint-display';
-import ErrorMessage from '@/components/error-message';
-import InfoMessage from '@/components/info-message';
-import SuccessMessage from '@/components/success-message';
-import WarningMessage from '@/components/warning-message';
+import {
+	ErrorMessage,
+	InfoMessage,
+	SuccessMessage,
+	WarningMessage,
+} from '@/components/message-box';
 import {CheckpointManager} from '@/services/checkpoint-manager';
 import {Command, Message} from '@/types/index';
 import {addToMessageQueue} from '@/utils/message-queue';

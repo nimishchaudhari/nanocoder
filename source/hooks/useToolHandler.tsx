@@ -1,5 +1,4 @@
-import ErrorMessage from '@/components/error-message';
-import InfoMessage from '@/components/info-message';
+import {ErrorMessage, InfoMessage} from '@/components/message-box';
 import {ConversationContext} from '@/hooks/useAppState';
 import {getToolManager, processToolUse} from '@/message-handler';
 import {

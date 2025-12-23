@@ -1,5 +1,5 @@
 import type {ConversationStateManager} from '@/app/utils/conversationState';
-import ErrorMessage from '@/components/error-message';
+import {ErrorMessage} from '@/components/message-box';
 import type {ToolManager} from '@/tools/tool-manager';
 import type {ToolCall, ToolResult} from '@/types/core';
 import {formatError} from '@/utils/error-formatter';

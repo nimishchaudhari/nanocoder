@@ -53,19 +53,29 @@ export default memo(function UserMessage({message}: UserMessageProps) {
 			</Box>
 			<Box flexDirection="column">
 				{lines.map((line, lineIndex) => {
+					// Skip empty lines - they create paragraph spacing via marginBottom
+					if (line.trim() === '') {
+						return null;
+					}
+
 					const segments = parseLineWithPlaceholders(line);
+					const isEndOfParagraph =
+						lineIndex + 1 < lines.length && lines[lineIndex + 1].trim() === '';
+
 					return (
-						<Text key={lineIndex}>
-							{segments.map((segment, segIndex) => (
-								<Text
-									key={segIndex}
-									color={segment.isPlaceholder ? colors.info : colors.white}
-									bold={segment.isPlaceholder}
-								>
-									{segment.text}
-								</Text>
-							))}
-						</Text>
+						<Box key={lineIndex} marginBottom={isEndOfParagraph ? 1 : 0}>
+							<Text>
+								{segments.map((segment, segIndex) => (
+									<Text
+										key={segIndex}
+										color={segment.isPlaceholder ? colors.info : colors.white}
+										bold={segment.isPlaceholder}
+									>
+										{segment.text}
+									</Text>
+								))}
+							</Text>
+						</Box>
 					);
 				})}
 			</Box>

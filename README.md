@@ -289,13 +289,13 @@ Nanocoder looks for configuration in the following order (first found wins):
 				"name": "Z.ai",
 				"baseUrl": "https://api.z.ai/api/paas/v4/",
 				"apiKey": "your-z.ai-api-key",
-				"models": ["glm-4.6", "glm-4.5", "glm-4.5-air"]
+				"models": ["glm-4.7", "glm-4.5", "glm-4.5-air"]
 			},
 			{
 				"name": "Z.ai Coding Subscription",
 				"baseUrl": "https://api.z.ai/api/coding/paas/v4/",
 				"apiKey": "your-z.ai-coding-api-key",
-				"models": ["glm-4.6", "glm-4.5", "glm-4.5-air"]
+				"models": ["glm-4.7", "glm-4.5", "glm-4.5-air"]
 			},
 			{
 				"name": "GitHub Models",

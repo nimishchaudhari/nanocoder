@@ -1,6 +1,5 @@
 import {createLLMClient} from '@/client-factory';
-import ErrorMessage from '@/components/error-message';
-import SuccessMessage from '@/components/success-message';
+import {ErrorMessage, SuccessMessage} from '@/components/message-box';
 import {reloadAppConfig} from '@/config/index';
 import {
 	loadPreferences,

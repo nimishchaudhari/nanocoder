@@ -1,4 +1,4 @@
-import InfoMessage from '@/components/info-message';
+import {InfoMessage} from '@/components/message-box';
 import {Command} from '@/types/index';
 import React from 'react';
 

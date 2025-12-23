@@ -1,4 +1,4 @@
-import {existsSync} from 'fs';
+import {chmodSync, existsSync} from 'fs';
 import * as path from 'path';
 import test from 'ava';
 import * as fs from 'fs/promises';
@@ -271,6 +271,209 @@ test.serial(
 			const result = await service.validateRestorePath(snapshots);
 
 			t.true(result.valid);
+			t.is(result.errors.length, 0);
+		} finally {
+			await cleanupTempDir(tempDir);
+		}
+	},
+);
+
+test.serial(
+	'FileSnapshotService validateRestorePath creates missing directories',
+	async t => {
+		const tempDir = await createTempDir();
+		try {
+			const service = new FileSnapshotService(tempDir);
+			const snapshots = new Map<string, string>();
+			// Directory doesn't exist yet - should be created during validation
+			snapshots.set('nested/deep/path/file.txt', 'Content');
+
+			const result = await service.validateRestorePath(snapshots);
+
+			t.true(result.valid);
+			t.is(result.errors.length, 0);
+			// Directory should now exist (created during validation)
+			const dirPath = path.join(tempDir, 'nested/deep/path');
+			t.true(existsSync(dirPath));
+		} finally {
+			await cleanupTempDir(tempDir);
+		}
+	},
+);
+
+test.serial(
+	'FileSnapshotService validateRestorePath handles non-writable directories',
+	async t => {
+		const tempDir = await createTempDir();
+		try {
+			// Create a read-only directory
+			const readOnlyDir = path.join(tempDir, 'readonly-dir');
+			await fs.mkdir(readOnlyDir, {recursive: true});
+			chmodSync(readOnlyDir, 0o444); // Read-only
+
+			const service = new FileSnapshotService(tempDir);
+			const snapshots = new Map<string, string>();
+			snapshots.set('readonly-dir/file.txt', 'Content');
+
+			const result = await service.validateRestorePath(snapshots);
+
+			t.false(result.valid);
+			t.true(result.errors.length > 0);
+			t.true(
+				result.errors.some(error =>
+					error.includes('Cannot create directory') ||
+						error.includes('Cannot write to file') ||
+						error.includes('is not writable'),
+				),
+			);
+		} finally {
+			// Restore permissions for cleanup
+			try {
+				chmodSync(path.join(tempDir, 'readonly-dir'), 0o755);
+			} catch {
+				// Ignore cleanup errors
+			}
+			await cleanupTempDir(tempDir);
+		}
+	},
+);
+
+test.serial(
+	'FileSnapshotService validateRestorePath handles non-writable existing files',
+	async t => {
+		const tempDir = await createTempDir();
+		try {
+			// Create a read-only file
+			const readOnlyFile = path.join(tempDir, 'readonly.txt');
+			await fs.writeFile(readOnlyFile, 'Original', 'utf-8');
+			chmodSync(readOnlyFile, 0o444); // Read-only
+
+			const service = new FileSnapshotService(tempDir);
+			const snapshots = new Map<string, string>();
+			snapshots.set('readonly.txt', 'New content');
+
+			const result = await service.validateRestorePath(snapshots);
+
+			t.false(result.valid);
+			t.true(result.errors.length > 0);
+			t.true(
+				result.errors.some(error =>
+					error.includes('Cannot write to file'),
+				),
+			);
+		} finally {
+			// Restore permissions for cleanup
+			try {
+				chmodSync(path.join(tempDir, 'readonly.txt'), 0o644);
+			} catch {
+				// Ignore cleanup errors
+			}
+			await cleanupTempDir(tempDir);
+		}
+	},
+);
+
+test.serial(
+	'FileSnapshotService validateRestorePath skips file checks when directory creation fails',
+	async t => {
+		const tempDir = await createTempDir();
+		try {
+			// Create a read-only parent directory
+			const parentDir = path.join(tempDir, 'parent');
+			await fs.mkdir(parentDir, {recursive: true});
+			chmodSync(parentDir, 0o444); // Read-only
+
+			const service = new FileSnapshotService(tempDir);
+			const snapshots = new Map<string, string>();
+			// Try to create a file in a subdirectory of the read-only parent
+			snapshots.set('parent/child/file.txt', 'Content');
+
+			const result = await service.validateRestorePath(snapshots);
+
+			t.false(result.valid);
+			t.true(result.errors.length > 0);
+			// Should only have directory creation error, not file write error
+			// because we skip file checks when directory creation fails
+			const dirErrors = result.errors.filter(error =>
+				error.includes('Cannot create directory'),
+			);
+			t.true(dirErrors.length > 0);
+		} finally {
+			// Restore permissions for cleanup
+			try {
+				chmodSync(path.join(tempDir, 'parent'), 0o755);
+			} catch {
+				// Ignore cleanup errors
+			}
+			await cleanupTempDir(tempDir);
+		}
+	},
+);
+
+test.serial(
+	'FileSnapshotService validateRestorePath handles multiple files with mixed scenarios',
+	async t => {
+		const tempDir = await createTempDir();
+		try {
+			// Create one writable file
+			await createTestFile(tempDir, 'writable.txt', 'Original');
+			// Create one read-only file
+			const readOnlyFile = path.join(tempDir, 'readonly.txt');
+			await fs.writeFile(readOnlyFile, 'Original', 'utf-8');
+			chmodSync(readOnlyFile, 0o444);
+
+			const service = new FileSnapshotService(tempDir);
+			const snapshots = new Map<string, string>();
+			snapshots.set('writable.txt', 'New content');
+			snapshots.set('readonly.txt', 'New content');
+			snapshots.set('new-file.txt', 'Content');
+			snapshots.set('nested/new-file.txt', 'Content');
+
+			const result = await service.validateRestorePath(snapshots);
+
+			t.false(result.valid);
+			t.true(result.errors.length > 0);
+			// Should have error for read-only file
+			t.true(
+				result.errors.some(error =>
+					error.includes('Cannot write to file') &&
+						error.includes('readonly.txt'),
+				),
+			);
+		} finally {
+			// Restore permissions for cleanup
+			try {
+				chmodSync(path.join(tempDir, 'readonly.txt'), 0o644);
+			} catch {
+				// Ignore cleanup errors
+			}
+			await cleanupTempDir(tempDir);
+		}
+	},
+);
+
+test.serial(
+	'FileSnapshotService validateRestorePath handles deeply nested paths',
+	async t => {
+		const tempDir = await createTempDir();
+		try {
+			const service = new FileSnapshotService(tempDir);
+			const snapshots = new Map<string, string>();
+			snapshots.set(
+				'level1/level2/level3/level4/file.txt',
+				'Deeply nested content',
+			);
+
+			const result = await service.validateRestorePath(snapshots);
+
+			t.true(result.valid);
+			t.is(result.errors.length, 0);
+			// All nested directories should be created
+			const nestedDir = path.join(
+				tempDir,
+				'level1/level2/level3/level4',
+			);
+			t.true(existsSync(nestedDir));
 		} finally {
 			await cleanupTempDir(tempDir);
 		}

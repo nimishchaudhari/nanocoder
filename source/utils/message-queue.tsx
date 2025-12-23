@@ -1,7 +1,9 @@
-import ErrorMessage from '@/components/error-message';
-import InfoMessage from '@/components/info-message';
-import SuccessMessage from '@/components/success-message';
-import WarningMessage from '@/components/warning-message';
+import {
+	ErrorMessage,
+	InfoMessage,
+	SuccessMessage,
+	WarningMessage,
+} from '@/components/message-box';
 import {TIMEOUT_MESSAGE_PROCESSING_MS} from '@/constants';
 import type {MessageType} from '@/types/index';
 import {createErrorInfo} from '@/utils/error-formatter';
