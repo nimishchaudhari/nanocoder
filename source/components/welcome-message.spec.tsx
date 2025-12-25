@@ -64,7 +64,7 @@ test('WelcomeMessage shows version in narrow layout', t => {
 	const output = lastFrame();
 	t.truthy(output);
 	// Version from package.json should be displayed
-	t.regex(output!, new RegExp(VERSION.replace(/\./g, '\\.')));
+	t.regex(output!, new RegExp(VERSION.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 
 	process.stdout.columns = originalColumns;
 });
