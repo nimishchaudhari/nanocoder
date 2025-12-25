@@ -136,9 +136,8 @@ test('createPinoLogger creates file transport in test environment', async t => {
 	// Log a test message
 	logger.info('Test message for file transport');
 
-	// Verify log directory is created
-	const logDir = getDefaultLogDirectory();
-	t.true(existsSync(logDir), 'Should create log directory');
+	// Verify test log directory is created (createTrackedLogger uses testLogDir)
+	t.true(existsSync(testLogDir), 'Should create test log directory');
 
 	process.env.NODE_ENV = originalEnv;
 });
@@ -1027,8 +1026,7 @@ test('createEnvironmentLogger creates log directory if it does not exist', async
 	// This test ensures the directory creation logic is exercised
 	const logger = createTrackedLogger({level: 'info'});
 
-	const logDir = getDefaultLogDirectory();
-	t.true(existsSync(logDir), 'Log directory should exist after logger creation');
+	t.true(existsSync(testLogDir), 'Test log directory should exist after logger creation');
 
 	logger.info('Test message for directory creation');
 });

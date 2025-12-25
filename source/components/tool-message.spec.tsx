@@ -1,6 +1,7 @@
 import test from 'ava';
 import {render} from 'ink-testing-library';
 import React from 'react';
+import {Text} from 'ink';
 import {themes} from '../config/themes';
 import {ThemeContext} from '../hooks/useTheme';
 import {UIStateProvider} from '../hooks/useUIState';
@@ -79,7 +80,7 @@ test('ToolMessage renders string message', t => {
 test('ToolMessage renders ReactNode message', t => {
 	const {lastFrame} = render(
 		<TestWrapper>
-			<ToolMessage title="Test" message={<React.Fragment>Hello world</React.Fragment>} />
+			<ToolMessage title="Test" message={<Text>Hello world</Text>} />
 		</TestWrapper>,
 	);
 
