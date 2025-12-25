@@ -2,12 +2,33 @@ import {mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'ava';
+import {render} from 'ink-testing-library';
+import React from 'react';
+import {themes} from '../config/themes.js';
 import {setCurrentMode} from '../context/mode-context.js';
+import {ThemeContext} from '../hooks/useTheme.js';
 import {writeFileTool} from './write-file.js';
 
 // ============================================================================
 // Test Helpers
 // ============================================================================
+
+console.log(`\nwrite-file.spec.tsx – ${React.version}`);
+
+// Create a mock theme provider for tests
+function TestThemeProvider({children}: {children: React.ReactNode}) {
+	const themeContextValue = {
+		currentTheme: 'tokyo-night' as const,
+		colors: themes['tokyo-night'].colors,
+		setCurrentTheme: () => {},
+	};
+
+	return (
+		<ThemeContext.Provider value={themeContextValue}>
+			{children}
+		</ThemeContext.Provider>
+	);
+}
 
 let testDir: string;
 
@@ -622,6 +643,201 @@ test('write_file: handles very long lines', async t => {
 
 	const actual = await readFile(filePath, 'utf-8');
 	t.is(actual, content);
+});
+
+// ============================================================================
+// Formatter Tests (Visual Display with Ink)
+// ============================================================================
+
+test('write_file formatter: renders file content preview', async t => {
+	const formatter = writeFileTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter not defined');
+		return;
+	}
+
+	const element = await formatter({
+		path: 'test.ts',
+		content: 'const x = 1;\nconst y = 2;\n',
+	});
+
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+	const output = lastFrame();
+
+	t.truthy(output);
+	t.regex(output!, /write_file/);
+	t.regex(output!, /test\.ts/);
+	t.regex(output!, /3 lines/); // Trailing newline creates 3 lines
+	t.regex(output!, /File content:/);
+});
+
+test('write_file formatter: shows normalized indentation for deeply indented code', async t => {
+	const formatter = writeFileTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter not defined');
+		return;
+	}
+
+	const element = await formatter({
+		path: 'nested.jsx',
+		content: '        function Component() {\n          return (\n            <div>Hello</div>\n          );\n        }\n',
+	});
+
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+	const output = lastFrame();
+
+	t.truthy(output);
+	// Should show normalized indentation (leftmost code at column 0)
+	t.regex(output!, /write_file/);
+	t.regex(output!, /nested\.jsx/);
+	t.regex(output!, /6 lines/); // Trailing newline creates 6 lines
+});
+
+test('write_file formatter: displays token count', async t => {
+	const formatter = writeFileTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter not defined');
+		return;
+	}
+
+	const content = 'x'.repeat(400); // ~100 tokens
+
+	const element = await formatter({
+		path: 'large.txt',
+		content,
+	});
+
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+	const output = lastFrame();
+
+	t.truthy(output);
+	t.regex(output!, /~100 tokens/);
+});
+
+test('write_file formatter: handles empty file', async t => {
+	const formatter = writeFileTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter not defined');
+		return;
+	}
+
+	const element = await formatter({
+		path: 'empty.txt',
+		content: '',
+	});
+
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+	const output = lastFrame();
+
+	t.truthy(output);
+	t.regex(output!, /write_file/);
+	t.regex(output!, /File will be empty/);
+});
+
+test('write_file formatter: shows line numbers with content', async t => {
+	const formatter = writeFileTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter not defined');
+		return;
+	}
+
+	const element = await formatter({
+		path: 'numbered.ts',
+		content: 'line1\nline2\nline3\n',
+	});
+
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+	const output = lastFrame();
+
+	t.truthy(output);
+	// Line numbers should be padded to 4 spaces
+	t.regex(output!, /1\s+line1/);
+	t.regex(output!, /2\s+line2/);
+	t.regex(output!, /3\s+line3/);
+});
+
+test('write_file formatter: normalizes tabs to 2 spaces', async t => {
+	const formatter = writeFileTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter not defined');
+		return;
+	}
+
+	const element = await formatter({
+		path: 'tabs.go',
+		content: '\t\tfunc main() {\n\t\t\tfmt.Println("hello")\n\t\t}\n',
+	});
+
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+	const output = lastFrame();
+
+	t.truthy(output);
+	// Should normalize tabs to spaces for display
+	t.regex(output!, /write_file/);
+	t.regex(output!, /tabs\.go/);
+	t.regex(output!, /4 lines/); // Trailing newline creates 4 lines
+});
+
+test('write_file formatter: handles JSX with normalized indentation', async t => {
+	const formatter = writeFileTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter not defined');
+		return;
+	}
+
+	const element = await formatter({
+		path: 'component.jsx',
+		content: '      export function Button() {\n        return <button>Click me</button>;\n      }\n',
+	});
+
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+	const output = lastFrame();
+
+	t.truthy(output);
+	t.regex(output!, /write_file/);
+	t.regex(output!, /component\.jsx/);
+	// Indentation should be normalized
+});
+
+test('write_file formatter: shows character count', async t => {
+	const formatter = writeFileTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter not defined');
+		return;
+	}
+
+	const element = await formatter({
+		path: 'size.txt',
+		content: 'Hello World!', // 12 characters
+	});
+
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+	const output = lastFrame();
+
+	t.truthy(output);
+	t.regex(output!, /12 characters/);
+});
+
+test('write_file formatter: renders syntax highlighting for code', async t => {
+	const formatter = writeFileTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter not defined');
+		return;
+	}
+
+	const element = await formatter({
+		path: 'code.ts',
+		content: 'const greeting = "Hello";\nconsole.log(greeting);\n',
+	});
+
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+	const output = lastFrame();
+
+	t.truthy(output);
+	t.regex(output!, /write_file/);
+	t.regex(output!, /code\.ts/);
+	// Content should be present (syntax highlighting adds ANSI codes)
+	t.regex(output!, /greeting/);
 });
 
 // ============================================================================

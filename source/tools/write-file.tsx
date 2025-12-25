@@ -10,6 +10,7 @@ import {getCurrentMode} from '@/context/mode-context';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
 import {getCachedFileContent, invalidateCache} from '@/utils/file-cache';
+import {normalizeIndentation} from '@/utils/indentation-normalizer';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import {
 	closeDiffInVSCode,
@@ -96,6 +97,10 @@ const WriteFileFormatter = React.memo(({args}: {args: WriteFileArgs}) => {
 	// Estimate tokens (rough approximation: ~4 characters per token)
 	const estimatedTokens = Math.ceil(charCount / 4);
 
+	// Normalize indentation for display
+	const lines = newContent.split('\n');
+	const normalizedLines = normalizeIndentation(lines);
+
 	const messageContent = (
 		<Box flexDirection="column">
 			<Text color={colors.tool}>⚒ write_file</Text>
@@ -114,7 +119,7 @@ const WriteFileFormatter = React.memo(({args}: {args: WriteFileArgs}) => {
 			{newContent.length > 0 ? (
 				<Box flexDirection="column" marginTop={1}>
 					<Text color={colors.white}>File content:</Text>
-					{newContent.split('\n').map((line: string, i: number) => {
+					{normalizedLines.map((line: string, i: number) => {
 						const lineNumStr = String(i + 1).padStart(4, ' ');
 						const ext = path.split('.').pop()?.toLowerCase() ?? '';
 						const language = getLanguageFromExtension(ext);
