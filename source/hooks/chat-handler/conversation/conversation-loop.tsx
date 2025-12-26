@@ -1,4 +1,4 @@
-import type {ConversationStateManager} from '@/app/utils/conversationState';
+import type {ConversationStateManager} from '@/app/utils/conversation-state';
 import AssistantMessage from '@/components/assistant-message';
 import {ErrorMessage} from '@/components/message-box';
 import UserMessage from '@/components/user-message';
