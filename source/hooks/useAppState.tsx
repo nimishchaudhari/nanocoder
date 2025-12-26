@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {loadPreferences} from '@/config/preferences';
 import {defaultTheme} from '@/config/themes';
 import {CustomCommandExecutor} from '@/custom-commands/executor';
@@ -127,13 +127,21 @@ export function useAppState() {
 
 	// Chat queue for components
 	const [chatComponents, setChatComponents] = useState<React.ReactNode[]>([]);
-	const [componentKeyCounter, setComponentKeyCounter] = useState(0);
+	// Use ref for component key counter to avoid stale closure issues
+	// State updates are async/batched, but ref updates are synchronous
+	// This prevents duplicate keys when addToChatQueue is called rapidly
+	const componentKeyCounterRef = useRef(0);
+
+	// Get the next unique component key - synchronous to prevent duplicates
+	const getNextComponentKey = useCallback(() => {
+		componentKeyCounterRef.current += 1;
+		return componentKeyCounterRef.current;
+	}, []);
 
 	// Helper function to add components to the chat queue with stable keys
 	const addToChatQueue = useCallback(
 		(component: React.ReactNode) => {
-			const newCounter = componentKeyCounter + 1;
-			setComponentKeyCounter(newCounter);
+			const newCounter = getNextComponentKey();
 
 			let componentWithKey = component;
 			if (React.isValidElement(component) && !component.key) {
@@ -147,7 +155,7 @@ export function useAppState() {
 				componentWithKey,
 			]);
 		},
-		[componentKeyCounter],
+		[getNextComponentKey],
 	);
 
 	// Create tokenizer based on current provider and model
@@ -257,7 +265,7 @@ export function useAppState() {
 		completedToolResults,
 		currentConversationContext,
 		chatComponents,
-		componentKeyCounter,
+		getNextComponentKey,
 		tokenizer,
 
 		// Setters
@@ -299,7 +307,6 @@ export function useAppState() {
 		setCompletedToolResults,
 		setCurrentConversationContext,
 		setChatComponents,
-		setComponentKeyCounter,
 
 		// Utilities
 		addToChatQueue,
