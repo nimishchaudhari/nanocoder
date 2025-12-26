@@ -10,7 +10,7 @@ import React from 'react';
 import {
 	createClearMessagesHandler,
 	handleMessageSubmission,
-} from './appUtils';
+} from './app-util.js';
 
 console.log('\napp/utils/appUtils.spec.ts');
 

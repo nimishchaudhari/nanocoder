@@ -5,6 +5,7 @@ import test from 'ava';
 import {
 	getLastUsedModel,
 	loadPreferences,
+	resetPreferencesCache,
 	savePreferences,
 	updateLastUsed,
 } from './preferences';
@@ -19,6 +20,8 @@ test.before(() => {
 	// Set config directory for all tests
 	process.env.NANOCODER_CONFIG_DIR = testConfigDir;
 	mkdirSync(testConfigDir, {recursive: true});
+	// Reset the preferences cache to pick up the new config directory
+	resetPreferencesCache();
 });
 
 test.after.always(() => {
@@ -28,6 +31,8 @@ test.after.always(() => {
 	}
 	// Clean up environment
 	delete process.env.NANOCODER_CONFIG_DIR;
+	// Reset the cache to restore normal behavior
+	resetPreferencesCache();
 });
 
 // Helper to get the preferences file path

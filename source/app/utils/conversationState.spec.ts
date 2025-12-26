@@ -1,6 +1,6 @@
 import type {Message, ToolCall} from '@/types/core';
 import test from 'ava';
-import {ConversationStateManager} from './conversationState';
+import {ConversationStateManager} from './conversation-state.js';
 
 console.log('\napp/utils/conversationState.spec.ts');
 
