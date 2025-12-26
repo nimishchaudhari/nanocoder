@@ -73,7 +73,9 @@ export class ConversationStateManager {
 		// Add completed action
 		const actionDescription = this.describeToolAction(toolCall, result);
 		this.state.progress.completedActions.push(actionDescription);
-		if (this.state.progress.completedActions.length > this.maxCompletedActions) {
+		if (
+			this.state.progress.completedActions.length > this.maxCompletedActions
+		) {
 			this.state.progress.completedActions.shift();
 		}
 
