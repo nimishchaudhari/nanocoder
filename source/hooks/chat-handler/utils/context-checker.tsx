@@ -46,7 +46,7 @@ export const checkContextUsage = async (
 	if (!contextLimit) return;
 
 	// 2. Create tokenizer
-	let tokenizer: Tokenizer;
+	let tokenizer: Tokenizer | undefined;
 	try {
 		tokenizer = createTokenizer(currentProvider, currentModel);
 	} catch (error) {
@@ -91,7 +91,7 @@ export const checkContextUsage = async (
 	} catch (error) {
 		logger.debug('Failed to calculate token breakdown', {error});
 	} finally {
-		if (tokenizer.free) {
+		if (tokenizer?.free) {
 			tokenizer.free();
 		}
 	}
