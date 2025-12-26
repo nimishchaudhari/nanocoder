@@ -357,7 +357,7 @@ async function handleSlashCommand(
 	message: string,
 	options: MessageSubmissionOptions,
 ): Promise<void> {
-	const commandName = message.slice(1).split(' ')[0];
+	const commandName = message.slice(1).split(/\s+/)[0];
 
 	// Try custom command first
 	if (await handleCustomCommand(message, commandName, options)) {
