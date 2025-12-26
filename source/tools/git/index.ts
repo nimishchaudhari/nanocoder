@@ -22,7 +22,6 @@ export type {
 	DiffAnalysis,
 	GeneratedCommit,
 	WorkflowStrategy,
-	BranchSuggestion,
 	PRTemplate,
 	EnhancedStatus,
 	SmartCommitInput,
@@ -30,13 +29,3 @@ export type {
 	BranchSuggestInput,
 	EnhancedStatusInput,
 } from './types';
-
-// Re-export utilities for potential use by other tools
-export {
-	execGit,
-	isGitRepository,
-	getCurrentBranch,
-	getDefaultBranch,
-	analyzeStagedChanges,
-	getEnhancedStatus,
-} from './utils';

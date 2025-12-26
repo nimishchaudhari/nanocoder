@@ -79,16 +79,6 @@ export type WorkflowStrategy =
 	| 'release-flow';
 
 /**
- * Branch suggestion result
- */
-export interface BranchSuggestion {
-	suggestedName: string;
-	workflowStrategy: WorkflowStrategy;
-	rationale: string;
-	alternatives: string[];
-}
-
-/**
  * PR template structure
  */
 export interface PRTemplate {

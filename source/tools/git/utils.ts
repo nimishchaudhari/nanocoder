@@ -376,7 +376,7 @@ export function suggestScope(files: FileChange[]): string | undefined {
 /**
  * Detect potential breaking changes in the diff
  */
-export async function detectBreakingChanges(
+async function detectBreakingChanges(
 	files: FileChange[],
 ): Promise<{isBreaking: boolean; reason?: string}> {
 	// For now, we'll check file patterns that commonly indicate breaking changes
