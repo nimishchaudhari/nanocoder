@@ -35,15 +35,11 @@ export async function execGit(args: string[]): Promise<string> {
 			if (code === 0) {
 				resolve(stdout.trim());
 			} else {
-				// Some git commands use stderr for non-error output
-				// Only reject if we have actual error indicators
-				if (stderr.includes('fatal:') || stderr.includes('error:')) {
-					reject(
-						new Error(stderr.trim() || `Git command failed with code ${code}`),
-					);
-				} else {
-					resolve(stdout.trim());
-				}
+				// Non-zero exit code indicates an error
+				// Include stderr in error message for context
+				const errorMessage =
+					stderr.trim() || `Git command failed with exit code ${code}`;
+				reject(new Error(errorMessage));
 			}
 		});
 
@@ -412,6 +408,37 @@ export async function analyzeStagedChanges(): Promise<DiffAnalysis> {
 	const diffStat = await execGit(['diff', '--staged', '--stat']);
 	const files = parseDiffStat(diffStat);
 
+	// Get name-status for accurate file status (A=added, M=modified, D=deleted, R=renamed)
+	const nameStatus = await execGit(['diff', '--staged', '--name-status']);
+	const statusLines = nameStatus.split('\n').filter(line => line.trim());
+
+	for (const line of statusLines) {
+		const parts = line.split('\t');
+		if (parts.length >= 2) {
+			const statusCode = parts[0][0]; // First char is status (A, M, D, R, C)
+			const path = parts.length === 3 ? parts[2] : parts[1]; // For renames, new path is third
+
+			const file = files.find(f => f.path === path);
+			if (file) {
+				switch (statusCode) {
+					case 'A':
+						file.status = 'added';
+						break;
+					case 'D':
+						file.status = 'deleted';
+						break;
+					case 'R':
+						file.status = 'renamed';
+						break;
+					case 'C':
+						file.status = 'copied';
+						break;
+					// M stays as 'modified' (default)
+				}
+			}
+		}
+	}
+
 	// Get numstat for accurate counts
 	const numstat = await execGit(['diff', '--staged', '--numstat']);
 	const numstatLines = numstat.split('\n').filter(line => line.trim());
@@ -419,11 +446,17 @@ export async function analyzeStagedChanges(): Promise<DiffAnalysis> {
 	for (const line of numstatLines) {
 		const parts = line.split('\t');
 		if (parts.length >= 3) {
-			const additions = parts[0] === '-' ? 0 : parseInt(parts[0], 10);
-			const deletions = parts[1] === '-' ? 0 : parseInt(parts[1], 10);
+			// Parse with NaN guard - default to 0 if parsing fails
+			const additionsRaw = parseInt(parts[0], 10);
+			const deletionsRaw = parseInt(parts[1], 10);
+			const additions =
+				parts[0] === '-' || Number.isNaN(additionsRaw) ? 0 : additionsRaw;
+			const deletions =
+				parts[1] === '-' || Number.isNaN(deletionsRaw) ? 0 : deletionsRaw;
 			const path = parts[2];
 
-			const file = files.find(f => f.path === path || f.path.includes(path));
+			// Use exact path matching to avoid substring false positives
+			const file = files.find(f => f.path === path);
 			if (file) {
 				file.additions = additions;
 				file.deletions = deletions;

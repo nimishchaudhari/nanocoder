@@ -6,6 +6,7 @@
  */
 
 import ToolMessage from '@/components/tool-message';
+import {getCurrentMode} from '@/context/mode-context';
 import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
@@ -229,12 +230,13 @@ const executeGitSmartCommit = async (
 		responseLines.push('');
 	}
 
-	if (args.dryRun) {
+	if (args.dryRun !== false) {
+		// Default to dry run mode for safety (dryRun: true by default)
 		responseLines.push('(Dry run - commit not created)');
 		responseLines.push('');
 		responseLines.push('To create this commit, run:');
 		responseLines.push(
-			`git commit -m "${commit.fullMessage.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`,
+			`git commit -m "${commit.fullMessage.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`,
 		);
 	} else {
 		// Actually create the commit
@@ -276,6 +278,12 @@ const gitSmartCommitCoreTool = tool({
 		},
 		required: [],
 	}),
+	// Requires approval when actually creating commits (dryRun=false)
+	needsApproval: (args: SmartCommitInput) => {
+		const mode = getCurrentMode();
+		// Only need approval when creating commit (dryRun explicitly false) and not in auto-accept mode
+		return args.dryRun === false && mode !== 'auto-accept';
+	},
 	execute: async (args, _options) => {
 		return await executeGitSmartCommit(args);
 	},

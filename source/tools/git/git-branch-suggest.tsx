@@ -42,6 +42,13 @@ function generateBranchName(
 ): string {
 	const normalizedDesc = normalizeForBranchName(description);
 
+	// Validate normalized description isn't empty (could happen with special-char-only input)
+	if (!normalizedDesc && !ticketId) {
+		throw new Error(
+			'Description must contain at least some alphanumeric characters',
+		);
+	}
+
 	// Map work types to conventional prefixes
 	const prefixMap: Record<BranchSuggestInput['workType'], string> = {
 		feature: 'feature',
@@ -60,7 +67,9 @@ function generateBranchName(
 		parts.push(ticketId.toUpperCase());
 	}
 
-	parts.push(normalizedDesc);
+	if (normalizedDesc) {
+		parts.push(normalizedDesc);
+	}
 
 	return parts.join('/');
 }
