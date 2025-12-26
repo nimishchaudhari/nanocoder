@@ -21,6 +21,7 @@ import {generateText, stepCountIs} from 'ai';
 import {convertToModelMessages} from '../converters/message-converter.js';
 import {
 	convertAISDKToolCalls,
+	generateToolCallId,
 	getToolResultOutput,
 } from '../converters/tool-converter.js';
 import {extractRootError} from '../error-handling/error-extractor.js';
@@ -154,8 +155,7 @@ export async function handleChat(
 						autoExecutedMessages.push({
 							role: 'tool' as const,
 							content: resultStr,
-							tool_call_id:
-								toolCall.toolCallId || `tool_${crypto.randomUUID()}`,
+							tool_call_id: toolCall.toolCallId || generateToolCallId(),
 							name: toolCall.toolName,
 						});
 					});
