@@ -56,7 +56,7 @@
 		"assets/nanocoder-vscode.vsix"
 	],
 	"dependencies": {
-		"@ai-sdk/openai-compatible": "2.0.0-beta.57",
+		"@ai-sdk/openai-compatible": "2.0.1",
 		"@anthropic-ai/tokenizer": "^0.0.4",
 		"@modelcontextprotocol/sdk": "^1.17.3",
 		"@nanocollective/get-md": "^1.0.1",
