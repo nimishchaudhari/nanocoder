@@ -1,6 +1,6 @@
-import type {ChatQueueProps} from '@/types/index';
 import {Box, Static} from 'ink';
 import {Fragment, memo, useMemo} from 'react';
+import type {ChatQueueProps} from '@/types/index';
 
 export default memo(function ChatQueue({
 	staticComponents = [],

@@ -1,11 +1,11 @@
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
-import {colors} from '@/config';
-import {getConfigPath} from '@/config/paths';
-import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {useState} from 'react';
+import {colors} from '@/config';
+import {getConfigPath} from '@/config/paths';
+import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 
 export type ConfigLocation = 'project' | 'global';
 

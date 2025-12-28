@@ -112,7 +112,10 @@
 			"ts": "module",
 			"tsx": "module"
 		},
-		"nodeArguments": ["--import=tsx", "--no-warnings"],
+		"nodeArguments": [
+			"--import=tsx",
+			"--no-warnings"
+		],
 		"files": [
 			"source/**/*.spec.ts",
 			"source/**/*.spec.tsx",
@@ -128,7 +131,9 @@
 		}
 	},
 	"c8": {
-		"exclude": ["source/app/App.tsx"]
+		"exclude": [
+			"source/app/App.tsx"
+		]
 	},
 	"pnpm": {
 		"overrides": {

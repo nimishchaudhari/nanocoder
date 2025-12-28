@@ -1,8 +1,7 @@
 import {readFileSync, writeFileSync} from 'fs';
 import {getClosestConfigFile} from '@/config/index';
-import {logError} from '@/utils/message-queue';
-
 import type {UserPreferences} from '@/types/index';
+import {logError} from '@/utils/message-queue';
 
 let PREFERENCES_PATH: string | null = null;
 let CACHED_CONFIG_DIR: string | undefined = undefined;

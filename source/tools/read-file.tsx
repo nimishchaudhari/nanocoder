@@ -1,20 +1,20 @@
 import {constants} from 'node:fs';
 import {access} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {Box, Text} from 'ink';
+import React from 'react';
 import ToolMessage from '@/components/tool-message';
 import {
 	CHARS_PER_TOKEN_ESTIMATE,
-	FILE_READ_CHUNKING_HINT_THRESHOLD_LINES,
 	FILE_READ_CHUNK_SIZE_LINES,
+	FILE_READ_CHUNKING_HINT_THRESHOLD_LINES,
 	FILE_READ_METADATA_THRESHOLD_LINES,
 } from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
-import {jsonSchema, tool} from '@/types/core';
 import type {NanocoderToolExport} from '@/types/core';
+import {jsonSchema, tool} from '@/types/core';
 import {getCachedFileContent} from '@/utils/file-cache';
 import {isValidFilePath, resolveFilePath} from '@/utils/path-validation';
-import {Box, Text} from 'ink';
-import React from 'react';
 
 const executeReadFile = async (args: {
 	path: string;

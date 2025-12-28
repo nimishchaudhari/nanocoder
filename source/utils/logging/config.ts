@@ -2,10 +2,9 @@
  * Environment-based configuration for Pino logger
  */
 
-import {platform} from 'os';
-import {homedir} from 'os';
+import {homedir, platform} from 'os';
 import {join} from 'path';
-import type {EnhancedLoggerConfig, LogLevel, LoggerConfig} from './types.js';
+import type {EnhancedLoggerConfig, LoggerConfig, LogLevel} from './types.js';
 
 /**
  * Get the default log directory based on platform

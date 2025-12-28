@@ -1,7 +1,7 @@
+import fs from 'fs/promises';
 import {getClosestConfigFile} from '@/config/index';
 import {MAX_PROMPT_HISTORY_SIZE} from '@/constants';
 import {logError} from '@/utils/message-queue';
-import fs from 'fs/promises';
 import type {InputState} from './types/hooks';
 
 const ENTRY_SEPARATOR = '\n---ENTRY_SEPARATOR---\n';

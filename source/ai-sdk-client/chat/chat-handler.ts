@@ -1,3 +1,5 @@
+import type {LanguageModel} from 'ai';
+import {generateText, stepCountIs} from 'ai';
 import {MAX_TOOL_STEPS} from '@/constants';
 import type {
 	AIProviderConfig,
@@ -16,8 +18,6 @@ import {
 	startMetrics,
 	withNewCorrelationContext,
 } from '@/utils/logging';
-import type {LanguageModel} from 'ai';
-import {generateText, stepCountIs} from 'ai';
 import {convertToModelMessages} from '../converters/message-converter.js';
 import {
 	convertAISDKToolCalls,

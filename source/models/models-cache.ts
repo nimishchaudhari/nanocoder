@@ -6,10 +6,10 @@
 import {constants} from 'node:fs';
 import {access, mkdir, readFile, writeFile} from 'node:fs/promises';
 import * as path from 'node:path';
+import {xdgCache} from 'xdg-basedir';
 import {CACHE_MODELS_EXPIRATION_MS} from '@/constants';
 import {formatError} from '@/utils/error-formatter';
 import {getLogger} from '@/utils/logging';
-import {xdgCache} from 'xdg-basedir';
 import type {CachedModelsData, ModelsDevDatabase} from './models-types.js';
 
 const DEFAULT_CACHE_DIR =
