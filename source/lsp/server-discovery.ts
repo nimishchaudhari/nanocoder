@@ -253,7 +253,7 @@ function findCommand(command: string): string | null {
 		return command;
 	} catch (error) {
 		// Not in PATH - expected for many servers
-		logger.trace({command, err: error}, 'Command not in PATH');
+		logger.debug({command, err: error}, 'Command not in PATH');
 	}
 
 	// Check local node_modules/.bin
@@ -282,7 +282,7 @@ function verifyServer(checkCommand: string): boolean {
 		});
 		return true;
 	} catch (error) {
-		logger.trace({checkCommand, err: error}, 'Server verification failed');
+		logger.debug({checkCommand, err: error}, 'Server verification failed');
 		return false;
 	}
 }
