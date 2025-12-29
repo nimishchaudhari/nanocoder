@@ -85,6 +85,9 @@ export default function App({
 
 	const handleExit = () => {
 		exit();
+		// Force exit - at security disclaimer stage, no services need cleanup
+		// TODO: Replace with ShutdownManager.gracefulShutdown() once #239 is implemented
+		process.exit(0);
 	};
 
 	// VS Code server integration
