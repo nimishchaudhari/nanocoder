@@ -10,7 +10,10 @@ import {
 	TIMEOUT_LSP_SPAWN_VERIFICATION_MS,
 	TIMEOUT_LSP_VERIFICATION_MS,
 } from '@/constants';
+import {createChildLogger} from '@/utils/logging';
 import type {LSPServerConfig} from './lsp-client';
+
+const logger = createChildLogger({module: 'lsp-discovery'});
 
 /**
  * Deno project configuration file names
@@ -248,8 +251,9 @@ function findCommand(command: string): string | null {
 	try {
 		execFileSync('which', [command], {stdio: 'ignore'});
 		return command;
-	} catch {
-		// Not in PATH
+	} catch (error) {
+		// Not in PATH - expected for many servers
+		logger.debug({command, err: error}, 'Command not in PATH');
 	}
 
 	// Check local node_modules/.bin
@@ -277,7 +281,8 @@ function verifyServer(checkCommand: string): boolean {
 			timeout: TIMEOUT_LSP_VERIFICATION_MS,
 		});
 		return true;
-	} catch {
+	} catch (error) {
+		logger.debug({checkCommand, err: error}, 'Server verification failed');
 		return false;
 	}
 }
