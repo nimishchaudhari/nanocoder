@@ -21,7 +21,7 @@ import type {
  * Type guard to check if a value is a Promise
  * Handles void returns properly by checking for specific Promise characteristics
  */
-function isPromise<T>(value: T | Promise<T> | void): value is Promise<T> {
+function _isPromise<T>(value: T | Promise<T> | void): value is Promise<T> {
 	return (
 		value !== null &&
 		value !== undefined &&
@@ -71,25 +71,21 @@ function createEnvironmentLogger(
 
 		const logFilePath = join(logDir, `nanocoder-${localDate}.log`);
 
-		const transportOptions: PinoTransportOptions = {
-			target: 'pino/file',
-			options: {
-				destination: logFilePath,
-				mkdir: true,
-			},
-		};
+		// Use pino.destination() instead of pino.transport() for synchronous flush support
+		const destination = pino.destination({
+			dest: logFilePath,
+			sync: false, // Async writes for performance
+			mkdir: true,
+		});
 
-		const transport = pino.transport(
-			transportOptions,
-		) as pino.DestinationStream;
-		const pinoLogger = pino(baseConfig, transport);
+		const pinoLogger = pino(baseConfig, destination);
 		const redactionRules = createRedactionRules(
 			Array.isArray(baseConfig.redact) ? baseConfig.redact : [],
 			true, // Enable email redaction
 			true, // Enable user ID redaction
 		);
 
-		return createEnhancedLogger(pinoLogger, undefined, redactionRules);
+		return createEnhancedLogger(pinoLogger, destination, redactionRules);
 	}
 
 	// This should never be reached with current configuration
@@ -104,7 +100,7 @@ function createEnvironmentLogger(
  */
 function createEnhancedLogger(
 	pinoLogger: PinoLogger,
-	_fileLogger?: PinoLogger,
+	destination?: pino.DestinationStream,
 	redactionRules?: PiiRedactionRules,
 ): Logger {
 	// Create a transformer for Pino logger with redaction rules
@@ -143,36 +139,36 @@ function createEnhancedLogger(
 		},
 
 		flush: async (): Promise<void> => {
-			if ('flush' in pinoLogger) {
-				const flushMethod = (
-					pinoLogger as PinoLogger & {
-						flush?: (() => void) | (() => Promise<void>);
-					}
-				).flush;
+			if (destination && 'flush' in destination) {
+				const flushMethod = destination.flush as (() => void) | undefined;
 				if (flushMethod && typeof flushMethod === 'function') {
-					const result = flushMethod();
-					if (isPromise(result)) {
-						await result;
-					}
+					flushMethod();
+				}
+			}
+		},
+
+		flushSync: (): void => {
+			if (destination && 'flushSync' in destination) {
+				const flushSyncMethod = destination.flushSync as
+					| (() => void)
+					| undefined;
+				if (flushSyncMethod && typeof flushSyncMethod === 'function') {
+					flushSyncMethod();
 				}
 			}
 		},
 
 		end: async (): Promise<void> => {
-			if ('end' in pinoLogger) {
-				const endMethod = (
-					pinoLogger as PinoLogger & {
-						end?: (() => void) | (() => Promise<void>);
-					}
-				).end;
+			if (destination && 'end' in destination) {
+				const endMethod = destination.end as (() => void) | undefined;
 				if (endMethod && typeof endMethod === 'function') {
-					const result = endMethod();
-					if (result instanceof Promise) {
-						await result;
-					}
+					endMethod();
 				}
 			}
 		},
+
+		// Store destination for direct access if needed
+		_destination: destination,
 	};
 }
 
@@ -222,31 +218,18 @@ function createEnhancedChild(
 		},
 
 		flush: async (): Promise<void> => {
-			if ('flush' in child) {
-				const flushMethod = (
-					child as PinoLogger & {flush?: (() => void) | (() => Promise<void>)}
-				).flush;
-				if (flushMethod && typeof flushMethod === 'function') {
-					const result = flushMethod();
-					if (isPromise(result)) {
-						await result;
-					}
-				}
-			}
+			// Child loggers don't have direct access to destination
+			// Flush is a no-op for children
+		},
+
+		flushSync: (): void => {
+			// Child loggers don't have direct access to destination
+			// FlushSync is a no-op for children
 		},
 
 		end: async (): Promise<void> => {
-			if ('end' in child) {
-				const endMethod = (
-					child as PinoLogger & {end?: (() => void) | (() => Promise<void>)}
-				).end;
-				if (endMethod && typeof endMethod === 'function') {
-					const result = endMethod();
-					if (result && typeof result === 'object' && 'then' in result) {
-						await result;
-					}
-				}
-			}
+			// Child loggers don't have direct access to destination
+			// End is a no-op for children
 		},
 	};
 }

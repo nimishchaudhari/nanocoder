@@ -56,6 +56,7 @@ function getLogger(): Logger {
 			child: () => _logger as Logger,
 			isLevelEnabled: () => false,
 			flush: async () => {},
+			flushSync: () => {},
 			end: async () => {},
 		};
 		void loggingModule.then(module => {

@@ -212,6 +212,7 @@ export class LoggerProvider {
 					this.createFallbackLogger(),
 				isLevelEnabled: (_level: string) => false,
 				flush: async () => Promise.resolve(),
+				flushSync: () => {},
 				end: async () => Promise.resolve(),
 			};
 		}
@@ -233,6 +234,7 @@ export class LoggerProvider {
 				this.createFallbackLogger(),
 			isLevelEnabled: (_level: string) => true,
 			flush: async () => Promise.resolve(),
+			flushSync: () => {},
 			end: async () => Promise.resolve(),
 		};
 	}
@@ -343,6 +345,15 @@ export class LoggerProvider {
 	public async flush(): Promise<void> {
 		if (this._logger) {
 			await this._logger.flush();
+		}
+	}
+
+	/**
+	 * Flush logs synchronously (for signal handlers)
+	 */
+	public flushSync(): void {
+		if (this._logger) {
+			this._logger.flushSync();
 		}
 	}
 

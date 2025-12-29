@@ -105,6 +105,13 @@ export async function flush(): Promise<void> {
 }
 
 /**
+ * Flush logs synchronously (for signal handlers)
+ */
+export function flushSync(): void {
+	loggerProvider.flushSync();
+}
+
+/**
  * End the logger and close all streams
  */
 export async function end(): Promise<void> {
@@ -112,22 +119,19 @@ export async function end(): Promise<void> {
 }
 
 // Setup graceful shutdown handlers
-process.on('SIGTERM', () => {
-	void (async () => {
-		log.info('\n[LOGGER] Received SIGTERM, flushing logs...');
-		await flush();
-		await end();
-		log.info('[LOGGER] Graceful shutdown completed');
-	})();
+// Using synchronous flushSync() for reliable log flushing on signals
+process.once('SIGTERM', () => {
+	log.info('\n[LOGGER] Received SIGTERM, flushing logs...');
+	flushSync();
+	process.stderr.write('[LOGGER] Graceful shutdown completed\n');
+	process.exit(0);
 });
 
-process.on('SIGINT', () => {
-	void (async () => {
-		log.info('\n[LOGGER] Received SIGINT, flushing logs...');
-		await flush();
-		await end();
-		log.info('[LOGGER] Graceful shutdown completed');
-	})();
+process.once('SIGINT', () => {
+	log.info('\n[LOGGER] Received SIGINT, flushing logs...');
+	flushSync();
+	process.stderr.write('[LOGGER] Graceful shutdown completed\n');
+	process.exit(0);
 });
 
 // Handle uncaught exceptions and unhandled rejections
