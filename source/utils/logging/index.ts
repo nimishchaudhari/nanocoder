@@ -107,7 +107,7 @@ export async function flush(): Promise<void> {
 /**
  * Flush logs synchronously (for signal handlers)
  */
-export function flushSync(): void {
+function flushSync(): void {
 	loggerProvider.flushSync();
 }
 
