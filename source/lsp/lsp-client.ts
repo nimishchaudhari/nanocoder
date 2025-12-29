@@ -42,6 +42,7 @@ interface PendingRequest {
 	resolve: (result: unknown) => void;
 	reject: (error: Error) => void;
 	method: string;
+	timeoutId: NodeJS.Timeout;
 }
 
 const logger = createChildLogger({module: 'lsp-client'});
@@ -122,6 +123,11 @@ export class LSPClient extends EventEmitter {
 		// Force kill if still running
 		if (this.process && !this.process.killed) {
 			this.process.kill();
+		}
+
+		// Clear all pending request timeouts
+		for (const pending of this.pendingRequests.values()) {
+			clearTimeout(pending.timeoutId);
 		}
 
 		this.process = null;
@@ -393,16 +399,16 @@ export class LSPClient extends EventEmitter {
 				params,
 			};
 
-			this.pendingRequests.set(id, {resolve, reject, method});
-			this.send(request);
-
 			// Timeout after 30 seconds
-			setTimeout(() => {
+			const timeoutId = setTimeout(() => {
 				if (this.pendingRequests.has(id)) {
 					this.pendingRequests.delete(id);
 					reject(new Error(`LSP request timeout: ${method}`));
 				}
 			}, 30000);
+
+			this.pendingRequests.set(id, {resolve, reject, method, timeoutId});
+			this.send(request);
 		});
 	}
 
@@ -472,6 +478,7 @@ export class LSPClient extends EventEmitter {
 		if ('id' in message && message.id !== null) {
 			const pending = this.pendingRequests.get(message.id);
 			if (pending) {
+				clearTimeout(pending.timeoutId);
 				this.pendingRequests.delete(message.id);
 				if (message.error) {
 					pending.reject(new Error(message.error.message));
