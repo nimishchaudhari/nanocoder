@@ -113,7 +113,10 @@ export class LSPClient extends EventEmitter {
 			this.sendNotification(LSPMethods.Exit, null);
 		} catch (error) {
 			// Errors during shutdown are expected and non-critical
-			logger.debug({err: error, server: this.config.name}, 'LSP shutdown error (non-critical)');
+			logger.debug(
+				{err: error, server: this.config.name},
+				'LSP shutdown error (non-critical)',
+			);
 		}
 
 		// Force kill if still running
@@ -287,7 +290,10 @@ export class LSPClient extends EventEmitter {
 				return result?.items || [];
 			} catch (error) {
 				// Fall back to cached diagnostics if pull not supported
-				logger.debug({err: error, uri}, 'Pull diagnostics not supported, using cached');
+				logger.debug(
+					{err: error, uri},
+					'Pull diagnostics not supported, using cached',
+				);
 				return [];
 			}
 		}
@@ -453,7 +459,10 @@ export class LSPClient extends EventEmitter {
 				this.handleMessage(message);
 			} catch (error) {
 				// Skip malformed JSON messages but log for debugging
-				logger.debug({err: error, content: content.substring(0, 100)}, 'Malformed JSON-RPC message');
+				logger.debug(
+					{err: error, content: content.substring(0, 100)},
+					'Malformed JSON-RPC message',
+				);
 			}
 		}
 	}
