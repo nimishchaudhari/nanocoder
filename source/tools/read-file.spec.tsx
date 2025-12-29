@@ -86,7 +86,7 @@ test('ReadFileFormatter shows metadata only indicator', async t => {
 
 		const output = lastFrame();
 		t.truthy(output);
-		t.regex(output!, /metadata only/);
+		t.regex(output!, /metadata\s+only/);
 	} finally {
 		rmSync(testDir, {recursive: true, force: true});
 	}
