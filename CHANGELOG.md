@@ -80,7 +80,12 @@
 
 - Fix: Silent configuration issues resolved. Thanks to @sanjeev55999999.
 
-- Fix: Issue #161, #162, #163, #165, #166, #167, #172 resolved. Thanks to @sanjeev55999999, @yashksaini-coder, @abhisek1221, and @Avtrkrb.
+
+- Fix: Added debug logging to empty catch blocks in LSP modules to improve error tracking and debugging. Thanks to @JimStenstrom.
+
+- Fix: Prevented process hang when exiting security disclaimer for better user experience. Thanks to @JimStenstrom.
+
+- Fix: Handled line wrap in read-file metadata test to ensure proper test reliability. Thanks to @JimStenstrom.
 
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
