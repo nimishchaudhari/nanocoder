@@ -336,7 +336,6 @@ function verifyLSPServerWithCommunication(
  * Prioritizes Deno over TypeScript LSP when in a Deno project
  * @param projectRoot The project root to check for Deno config (defaults to process.cwd())
  * @returns Ordered array of server definitions with Deno first if in a Deno project
- * @internal Exported for testing purposes
  */
 export function getOrderedServers(
 	projectRoot?: string,

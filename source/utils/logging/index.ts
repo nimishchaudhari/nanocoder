@@ -203,13 +203,13 @@ export {healthChecks} from './health-monitor/index.js';
 // Export log storage for tests
 export {globalLogStorage} from './log-query/index.js';
 // Internal exports that knip should ignore
-/** @internal */
-/** @internal */
-/** @internal */
 export {
+	/** @internal */
 	aiTracker,
 	globalRequestTracker,
+	/** @internal */
 	httpTracker,
+	/** @internal */
 	mcpTracker,
 } from './request-tracker.js';
 
