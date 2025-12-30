@@ -17,7 +17,7 @@ interface GetDiagnosticsArgs {
 async function getVSCodeDiagnostics(
 	filePath?: string,
 ): Promise<DiagnosticInfo[] | null> {
-	const server = getVSCodeServer();
+	const server = await getVSCodeServer();
 
 	// Convert to absolute path for VS Code
 	const absPath = filePath ? resolvePath(filePath) : undefined;
@@ -99,7 +99,7 @@ const executeGetDiagnostics = async (
 	args: GetDiagnosticsArgs,
 ): Promise<string> => {
 	// Prefer VS Code diagnostics when connected
-	const server = getVSCodeServer();
+	const server = await getVSCodeServer();
 	const hasConnections = server.hasConnections();
 
 	if (hasConnections) {
@@ -111,7 +111,7 @@ const executeGetDiagnostics = async (
 	}
 
 	// Fall back to local LSP
-	const lspManager = getLSPManager();
+	const lspManager = await getLSPManager();
 
 	if (!lspManager.isInitialized()) {
 		return 'No diagnostics source available. Either connect VS Code with --vscode flag, or install a language server.';

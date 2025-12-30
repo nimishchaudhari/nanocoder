@@ -133,8 +133,7 @@ export class DiffManager {
 			await vscode.window.showTextDocument(doc, {
 				preview: true,
 				preserveFocus: true,
-				viewColumn: vscode.ViewColumn.Beside,
-			});
+				});
 
 			// Restore terminal focus
 			if (activeTerminal) {

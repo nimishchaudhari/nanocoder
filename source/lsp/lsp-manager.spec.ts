@@ -223,28 +223,41 @@ test('LSPManager - can remove listeners', t => {
 });
 
 // Singleton tests
-test('getLSPManager - returns an LSPManager instance', t => {
-	const manager = getLSPManager();
+test('getLSPManager - returns an LSPManager instance', async t => {
+	const manager = await getLSPManager();
 	t.truthy(manager);
 	t.true(manager instanceof LSPManager);
 });
 
-test('getLSPManager - returns same instance on multiple calls', t => {
-	const manager1 = getLSPManager();
-	const manager2 = getLSPManager();
+test('getLSPManager - returns same instance on multiple calls', async t => {
+	const manager1 = await getLSPManager();
+	const manager2 = await getLSPManager();
 	t.is(manager1, manager2);
 });
 
-test('getLSPManager - accepts config on first call', t => {
-	const manager = getLSPManager({rootUri: 'file:///test'});
+test('getLSPManager - accepts config on first call', async t => {
+	const manager = await getLSPManager({rootUri: 'file:///test'});
 	t.truthy(manager);
+});
+
+test('getLSPManager - prevents race conditions with concurrent calls', async t => {
+	await resetLSPManager();
+	// Call getLSPManager multiple times concurrently
+	const [manager1, manager2, manager3] = await Promise.all([
+		getLSPManager(),
+		getLSPManager(),
+		getLSPManager(),
+	]);
+	// All should return the same instance
+	t.is(manager1, manager2);
+	t.is(manager2, manager3);
 });
 
 // resetLSPManager tests
 test('resetLSPManager - creates fresh instance after reset', async t => {
-	const manager1 = getLSPManager();
+	const manager1 = await getLSPManager();
 	await resetLSPManager();
-	const manager2 = getLSPManager();
+	const manager2 = await getLSPManager();
 
 	t.not(manager1, manager2);
 });

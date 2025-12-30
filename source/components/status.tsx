@@ -29,6 +29,9 @@ export default memo(function Status({
 	lspServersStatus,
 	customCommandsCount,
 	preferencesLoaded,
+	vscodeMode,
+	vscodePort,
+	vscodeRequestedPort,
 }: {
 	provider: string;
 	model: string;
@@ -39,6 +42,9 @@ export default memo(function Status({
 	lspServersStatus?: LSPConnectionStatus[];
 	customCommandsCount?: number;
 	preferencesLoaded?: boolean;
+	vscodeMode?: boolean;
+	vscodePort?: number | null;
+	vscodeRequestedPort?: number;
 }) {
 	const {boxWidth, isNarrow, truncatePath} = useResponsiveTerminal();
 	const colors = getThemeColors(theme);
@@ -61,6 +67,13 @@ export default memo(function Status({
 		if (connected > 0) return colors.warning;
 		return colors.error;
 	};
+
+	// VS Code port status
+	const showPortWarning =
+		vscodeMode &&
+		vscodePort &&
+		vscodeRequestedPort &&
+		vscodePort !== vscodeRequestedPort;
 
 	// Calculate max path length based on terminal size
 	const maxPathLength = isNarrow
@@ -106,6 +119,13 @@ export default memo(function Status({
 					{customCommandsCount !== undefined && customCommandsCount > 0 && (
 						<Text color={colors.secondary}>
 							✓ {customCommandsCount} custom commands
+						</Text>
+					)}
+					{vscodeMode && vscodePort && (
+						<Text color={showPortWarning ? colors.warning : colors.secondary}>
+							{showPortWarning
+								? `⚠ VS Code: port ${vscodeRequestedPort}→${vscodePort}`
+								: `✓ VS Code: port ${vscodePort}`}
 						</Text>
 					)}
 					{mcpTotal > 0 && (
@@ -191,6 +211,13 @@ export default memo(function Status({
 					{customCommandsCount !== undefined && customCommandsCount > 0 && (
 						<Text color={colors.secondary}>
 							✓ {customCommandsCount} custom commands loaded
+						</Text>
+					)}
+					{vscodeMode && vscodePort && (
+						<Text color={showPortWarning ? colors.warning : colors.secondary}>
+							{showPortWarning
+								? `⚠ VS Code server on port ${vscodePort} (requested ${vscodeRequestedPort} was in use)`
+								: `✓ VS Code server listening on port ${vscodePort}`}
 						</Text>
 					)}
 					{mcpTotal > 0 && (

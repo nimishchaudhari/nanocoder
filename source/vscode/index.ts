@@ -40,6 +40,7 @@ export {
 	closeAllDiffsInVSCode,
 	closeDiffInVSCode,
 	getVSCodeServer,
+	getVSCodeServerSync,
 	isVSCodeConnected,
 	type MessageHandler,
 	type PromptHandler,

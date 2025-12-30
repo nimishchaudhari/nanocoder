@@ -645,11 +645,23 @@ test('VSCodeServer broadcasts to all clients', async t => {
 // Tests for singleton functions
 // ============================================================================
 
-test('getVSCodeServer returns singleton instance', t => {
-	const server1 = getVSCodeServer();
-	const server2 = getVSCodeServer();
+test('getVSCodeServer returns singleton instance', async t => {
+	const server1 = await getVSCodeServer();
+	const server2 = await getVSCodeServer();
 
 	t.is(server1, server2);
+});
+
+test('getVSCodeServer prevents race conditions with concurrent calls', async t => {
+	// Call getVSCodeServer multiple times concurrently
+	const [server1, server2, server3] = await Promise.all([
+		getVSCodeServer(),
+		getVSCodeServer(),
+		getVSCodeServer(),
+	]);
+	// All should return the same instance
+	t.is(server1, server2);
+	t.is(server2, server3);
 });
 
 test('isVSCodeConnected returns false when no server', t => {
@@ -671,4 +683,62 @@ test('sendFileChangeToVSCode returns null when no connections', t => {
 
 	// May return null or string depending on singleton state from other tests
 	t.true(result === null || typeof result === 'string');
+});
+
+// ============================================================================
+// Tests for port fallback
+// ============================================================================
+
+test('VSCodeServer getPort returns the actual port', async t => {
+	const port = getNextPort();
+	const server = new VSCodeServer(port);
+	await server.start();
+
+	t.is(server.getPort(), port);
+
+	await server.stop();
+});
+
+test('VSCodeServer falls back to next port when requested port is in use', async t => {
+	const port = getNextPort();
+
+	// Start first server on the port
+	const server1 = new VSCodeServer(port);
+	const started1 = await server1.start();
+	t.true(started1);
+	t.is(server1.getPort(), port);
+
+	// Try to start second server on same port - should fall back
+	const server2 = new VSCodeServer(port);
+	const started2 = await server2.start();
+	t.true(started2);
+	t.not(server2.getPort(), port); // Should be different
+	t.is(server2.getPort(), port + 1); // Should be next port
+
+	await server1.stop();
+	await server2.stop();
+});
+
+test('VSCodeServer tries up to 10 alternative ports', async t => {
+	const basePort = getNextPort();
+
+	// Create 11 servers to occupy ports
+	const servers: VSCodeServer[] = [];
+
+	// Start first server on base port
+	for (let i = 0; i <= 10; i++) {
+		const server = new VSCodeServer(basePort + i);
+		await server.start();
+		servers.push(server);
+	}
+
+	// Try to start another server - should fail as all 11 ports (base + 10 alternatives) are taken
+	const failingServer = new VSCodeServer(basePort);
+	const started = await failingServer.start();
+	t.false(started);
+
+	// Clean up
+	for (const server of servers) {
+		await server.stop();
+	}
 });

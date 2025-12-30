@@ -15,6 +15,9 @@ export interface AppContainerProps {
 	lspServersStatus: LSPConnectionStatus[];
 	preferencesLoaded: boolean;
 	customCommandsCount: number;
+	vscodeMode?: boolean;
+	vscodePort?: number | null;
+	vscodeRequestedPort?: number;
 }
 
 /**
@@ -31,6 +34,9 @@ export function createStaticComponents({
 	lspServersStatus,
 	preferencesLoaded,
 	customCommandsCount,
+	vscodeMode,
+	vscodePort,
+	vscodeRequestedPort,
 }: AppContainerProps): React.ReactNode[] {
 	const components: React.ReactNode[] = [];
 
@@ -49,6 +55,9 @@ export function createStaticComponents({
 			lspServersStatus={lspServersStatus}
 			preferencesLoaded={preferencesLoaded}
 			customCommandsCount={customCommandsCount}
+			vscodeMode={vscodeMode}
+			vscodePort={vscodePort}
+			vscodeRequestedPort={vscodeRequestedPort}
 		/>,
 	);
 

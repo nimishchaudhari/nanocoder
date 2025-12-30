@@ -22,6 +22,8 @@ interface UseVSCodeServerProps {
 interface UseVSCodeServerReturn {
 	isConnected: boolean;
 	connectionCount: number;
+	actualPort: number | null;
+	requestedPort: number;
 	sendAssistantMessage: (content: string, isGenerating?: boolean) => void;
 	notifyFileChange: (
 		filePath: string,
@@ -48,6 +50,7 @@ export function useVSCodeServer({
 	const serverRef = useRef<VSCodeServer | null>(null);
 	const [isConnected, setIsConnected] = useState(false);
 	const [connectionCount, setConnectionCount] = useState(0);
+	const [actualPort, setActualPort] = useState<number | null>(null);
 
 	// Store callbacks in refs to avoid re-creating server on callback changes
 	const onPromptRef = useRef(onPrompt);
@@ -79,7 +82,7 @@ export function useVSCodeServer({
 		}
 
 		const initServer = async () => {
-			const server = getVSCodeServer(port);
+			const server = await getVSCodeServer(port);
 			serverRef.current = server;
 
 			// Set up callbacks using refs
@@ -110,6 +113,7 @@ export function useVSCodeServer({
 
 			// Start the server
 			await server.start();
+			setActualPort(server.getPort());
 		};
 
 		void initServer();
@@ -179,6 +183,8 @@ export function useVSCodeServer({
 	return {
 		isConnected,
 		connectionCount,
+		actualPort,
+		requestedPort: port,
 		sendAssistantMessage,
 		notifyFileChange,
 		requestDiagnostics,
