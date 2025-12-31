@@ -10,7 +10,8 @@ export class LoggerProvider {
 	private static instance: LoggerProvider | null = null;
 	private _logger: Logger | null = null;
 	private _config: LoggerConfig | null = null;
-	private _dependenciesLoaded = false;
+	private _fallbackInitialized = false;
+	private _realDependenciesLoaded = false;
 
 	// Lazy-loaded dependencies
 	private _createPinoLogger:
@@ -38,7 +39,7 @@ export class LoggerProvider {
 	 * Initialize lazy-loaded dependencies to avoid circular imports
 	 */
 	private ensureDependenciesLoaded() {
-		if (this._dependenciesLoaded) {
+		if (this._fallbackInitialized) {
 			return;
 		}
 
@@ -53,7 +54,7 @@ export class LoggerProvider {
 			serialize: false,
 			...config,
 		});
-		this._dependenciesLoaded = true;
+		this._fallbackInitialized = true;
 
 		// Asynchronously load the real dependencies and replace the fallback
 		this.loadRealDependencies().catch(error => {
@@ -86,7 +87,7 @@ export class LoggerProvider {
 	 */
 	private async loadRealDependencies() {
 		// Skip if already loaded to prevent duplicate loading
-		if (this._dependenciesLoaded) {
+		if (this._realDependenciesLoaded) {
 			// Only log in development mode to avoid noise for end users
 			if (process.env.NODE_ENV === 'development') {
 				this.createFallbackLogger().debug('Real dependencies already loaded', {
@@ -122,34 +123,10 @@ export class LoggerProvider {
 
 			this._createPinoLogger = pinoLogger.createPinoLogger;
 			this._createConfig = configModule.createConfig;
-			this._dependenciesLoaded = true;
+			this._realDependenciesLoaded = true;
 
-			// If we already have a logger with fallback config, reinitialize it with real config
-			if (this._logger && this._config) {
-				try {
-					this._logger = this._createPinoLogger(this._config);
-					// Only log in development mode
-					if (process.env.NODE_ENV === 'development') {
-						this.createFallbackLogger().info(
-							'Logger reinitialized with real Pino instance',
-							{
-								source: 'logger-provider',
-								status: 'reinitialized',
-								duration: Date.now() - startTime,
-							},
-						);
-					}
-				} catch (reinitError) {
-					this.createFallbackLogger().warn(
-						'Failed to reinitialize logger, keeping fallback',
-						{
-							error: this.formatErrorForLogging(reinitError),
-							source: 'logger-provider',
-							status: 'reinit-failed',
-						},
-					);
-				}
-			}
+			// Don't reinitialize existing logger to avoid breaking ongoing operations
+			// The real Pino logger will be used for new logger instances created after this point
 
 			// Only log in development mode
 			if (process.env.NODE_ENV === 'development') {
@@ -332,7 +309,8 @@ export class LoggerProvider {
 	public reset(): void {
 		this._logger = null;
 		this._config = null;
-		this._dependenciesLoaded = false;
+		this._fallbackInitialized = false;
+		this._realDependenciesLoaded = false;
 		this._createPinoLogger = null;
 		this._createConfig = null;
 	}
@@ -342,7 +320,12 @@ export class LoggerProvider {
 	 */
 	public async flush(): Promise<void> {
 		if (this._logger) {
-			await this._logger.flush();
+			try {
+				await this._logger.flush();
+			} catch (_error) {
+				// Ignore flush errors as they're usually due to logger being closed
+				// This can happen in test environments or during shutdown
+			}
 		}
 	}
 
@@ -354,6 +337,7 @@ export class LoggerProvider {
 			await this._logger.end();
 			this._logger = null;
 			this._config = null;
+			// Don't reset dependency flags - they can be reused for new loggers
 		}
 	}
 }

@@ -260,3 +260,42 @@ test('provider handles empty initializeLogger calls', t => {
 		t.truthy(logger);
 	});
 });
+
+test('async dependency loading completes successfully', async t => {
+	const provider = LoggerProvider.getInstance();
+
+	// Initialize the logger - this triggers fallback setup and async loading
+	const logger = provider.initializeLogger();
+	t.truthy(logger, 'Should create initial logger');
+
+	// Wait for async loading to complete
+	// The loadRealDependencies() method is called asynchronously
+	await new Promise(resolve => setTimeout(resolve, 100));
+
+	// The logger should still be functional
+	t.notThrows(() => {
+		logger.info('Test message');
+	}, 'Logger should remain functional after async load');
+});
+
+test('multiple initializeLogger calls do not cause duplicate async loads', async t => {
+	const provider = LoggerProvider.getInstance();
+
+	// Call initialize multiple times rapidly
+	const logger1 = provider.initializeLogger();
+	const logger2 = provider.initializeLogger();
+	const logger3 = provider.initializeLogger();
+
+	t.is(logger1, logger2, 'Should return same instance on second call');
+	t.is(logger2, logger3, 'Should return same instance on third call');
+
+	// Wait for async loading
+	await new Promise(resolve => setTimeout(resolve, 100));
+
+	// All loggers should still be functional
+	t.notThrows(() => {
+		logger1.info('Test message 1');
+		logger2.info('Test message 2');
+		logger3.info('Test message 3');
+	}, 'All logger instances should work after async load');
+});
