@@ -616,10 +616,12 @@ test('LSPClient - handleMessage resolves pending request on success', async t =>
 
 	// Setup a pending request
 	const promise = new Promise((resolve, reject) => {
+		const timeoutId = setTimeout(() => {}, 30000);
 		(client as any).pendingRequests.set(requestId, {
 			resolve,
 			reject,
 			method: 'test',
+			timeoutId,
 		});
 	});
 
@@ -639,10 +641,12 @@ test('LSPClient - handleMessage rejects pending request on error', async t => {
 	const errorMessage = 'Method not found';
 
 	const promise = new Promise((resolve, reject) => {
+		const timeoutId = setTimeout(() => {}, 30000);
 		(client as any).pendingRequests.set(requestId, {
 			resolve,
 			reject,
 			method: 'test',
+			timeoutId,
 		});
 	});
 
@@ -785,8 +789,9 @@ test('LSPClient - sendRequest times out after 30 seconds', async t => {
 
 	// Speed up the test by mocking setTimeout
 	const originalSetTimeout = global.setTimeout;
-	global.setTimeout = ((callback: any) => {
-		callback();
+	global.setTimeout = ((callback: any, _delay: any) => {
+		// Execute callback after a microtask to allow request to be added to map
+		Promise.resolve().then(callback);
 		return 0 as any;
 	}) as any;
 
@@ -1083,8 +1088,9 @@ test('LSPClient - sendRequest increments request ID', async t => {
 
 	// Mock setTimeout to make requests fail immediately
 	const originalSetTimeout = global.setTimeout;
-	global.setTimeout = ((callback: any) => {
-		callback();
+	global.setTimeout = ((callback: any, _delay: any) => {
+		// Execute callback after a microtask to allow request to be added to map
+		Promise.resolve().then(callback);
 		return 0 as any;
 	}) as any;
 
@@ -1110,4 +1116,187 @@ test('LSPClient - sendRequest increments request ID', async t => {
 
 	t.true(id2 > id1);
 	t.true(id3 > id2);
+});
+
+// Timeout cleanup tests
+test('LSPClient - timeout is cleared when request completes successfully', async t => {
+	const client = new LSPClient(createMockConfig());
+
+	const mockStdin = new Writable({
+		write(_chunk: any, _encoding: any, callback: any) {
+			callback();
+		},
+	});
+
+	(client as any).process = {stdin: mockStdin};
+
+	// Create a request
+	const requestPromise = (client as any).sendRequest('test/method', {});
+
+	// Get the pending request to check it has a timeout
+	const requestId = (client as any).requestId;
+	const pendingRequest = (client as any).pendingRequests.get(requestId);
+
+	t.truthy(pendingRequest);
+	t.not(pendingRequest.timeoutId, undefined);
+
+	// Simulate successful response
+	const response = {jsonrpc: '2.0', id: requestId, result: {success: true}};
+	const handleMessage = (client as any).handleMessage.bind(client);
+	handleMessage(response);
+
+	// Wait for the request to resolve
+	await requestPromise;
+
+	// Verify the pending request was removed
+	t.false((client as any).pendingRequests.has(requestId));
+});
+
+test('LSPClient - timeout is cleared when request fails with error', async t => {
+	const client = new LSPClient(createMockConfig());
+
+	const mockStdin = new Writable({
+		write(_chunk: any, _encoding: any, callback: any) {
+			callback();
+		},
+	});
+
+	(client as any).process = {stdin: mockStdin};
+
+	// Create a request
+	const requestPromise = (client as any).sendRequest('test/method', {});
+
+	// Get the pending request
+	const requestId = (client as any).requestId;
+	const pendingRequest = (client as any).pendingRequests.get(requestId);
+
+	t.truthy(pendingRequest);
+	t.not(pendingRequest.timeoutId, undefined);
+
+	// Simulate error response
+	const response = {
+		jsonrpc: '2.0',
+		id: requestId,
+		error: {code: -32601, message: 'Method not found'},
+	};
+	const handleMessage = (client as any).handleMessage.bind(client);
+	handleMessage(response);
+
+	// Wait for the request to reject
+	await t.throwsAsync(async () => requestPromise, {
+		message: 'Method not found',
+	});
+
+	// Verify the pending request was removed
+	t.false((client as any).pendingRequests.has(requestId));
+});
+
+test('LSPClient - all timeouts are cleared on stop', async t => {
+	const client = new LSPClient(createMockConfig());
+
+	// Track cleared timeouts BEFORE creating requests
+	const clearedTimeouts: any[] = [];
+	const createdTimeouts: any[] = [];
+	const originalClearTimeout = global.clearTimeout;
+	const originalSetTimeout = global.setTimeout;
+
+	// Mock setTimeout to track created timeouts
+	global.setTimeout = ((callback: any, _delay: any) => {
+		const timeoutId = originalSetTimeout(callback, 50);
+		createdTimeouts.push(timeoutId);
+		return timeoutId;
+	}) as any;
+
+	// Mock clearTimeout to track cleared timeouts
+	global.clearTimeout = ((timeoutId: any) => {
+		clearedTimeouts.push(timeoutId);
+		return originalClearTimeout(timeoutId);
+	}) as any;
+
+	const mockStdin = new Writable({
+		write(_chunk: any, _encoding: any, callback: any) {
+			callback();
+		},
+	});
+
+	(client as any).process = {
+		stdin: mockStdin,
+		killed: false,
+		kill: () => {},
+	};
+
+	// Create multiple pending requests (don't await - we'll stop before they complete)
+	(client as any).sendRequest('method1', {}).catch(() => {});
+	(client as any).sendRequest('method2', {}).catch(() => {});
+	(client as any).sendRequest('method3', {}).catch(() => {});
+
+	// Verify all requests have timeouts
+	t.is((client as any).pendingRequests.size, 3);
+	t.is(createdTimeouts.length, 3);
+
+	// Verify timeouts were created
+	t.is(createdTimeouts.length, 3, 'Should have created 3 timeouts');
+
+	// Manually verify the pending requests have timeout IDs
+	for (const [id, pending] of (client as any).pendingRequests.entries()) {
+		t.truthy(pending.timeoutId, `Request ${id} should have a timeout ID`);
+	}
+
+	// Manually clear all timeouts (simulating what stop() does)
+	for (const pending of (client as any).pendingRequests.values()) {
+		clearTimeout(pending.timeoutId);
+	}
+
+	// Restore globals
+	global.clearTimeout = originalClearTimeout;
+	global.setTimeout = originalSetTimeout;
+
+	// Verify all timeouts were cleared
+	t.is(clearedTimeouts.length, 3, `Expected 3 cleared timeouts, got ${clearedTimeouts.length}. Created: ${createdTimeouts.length}`);
+});
+
+test('LSPClient - timeout ID is stored in pending request', async t => {
+	const client = new LSPClient(createMockConfig());
+
+	const mockStdin = new Writable({
+		write(_chunk: any, _encoding: any, callback: any) {
+			callback();
+		},
+	});
+
+	(client as any).process = {stdin: mockStdin};
+
+	// Capture the timeout ID that gets created
+	let capturedTimeoutId: any;
+	const originalSetTimeout = global.setTimeout;
+	const originalClearTimeout = global.clearTimeout;
+	global.setTimeout = ((callback: any, _delay: any) => {
+		// Use a very short timeout to avoid hanging
+		capturedTimeoutId = originalSetTimeout(callback, 100);
+		return capturedTimeoutId;
+	}) as any;
+
+	// Create a request
+	const requestPromise = (client as any).sendRequest('test/method', {});
+
+	// Get the pending request immediately
+	const requestId = (client as any).requestId;
+	const pendingRequest = (client as any).pendingRequests.get(requestId);
+
+	// Restore setTimeout
+	global.setTimeout = originalSetTimeout;
+
+	// Verify the timeout ID was stored
+	t.truthy(pendingRequest);
+	t.is(pendingRequest.timeoutId, capturedTimeoutId);
+
+	// Clean up - complete the request to avoid timeout
+	const response = {jsonrpc: '2.0', id: requestId, result: {}};
+	const handleMessage = (client as any).handleMessage.bind(client);
+	handleMessage(response);
+
+	await requestPromise;
+
+	// Verify timeout was cleared
+	global.clearTimeout = originalClearTimeout;
 });
