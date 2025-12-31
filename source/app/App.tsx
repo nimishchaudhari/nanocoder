@@ -125,7 +125,7 @@ export default function App({
 		[logger],
 	);
 
-	useVSCodeServer({
+	const vscodeServer = useVSCodeServer({
 		enabled: vscodeMode,
 		port: vscodePort,
 		currentModel: appState.currentModel,
@@ -394,6 +394,9 @@ export default function App({
 				lspServersStatus: appState.lspServersStatus,
 				preferencesLoaded: appState.preferencesLoaded,
 				customCommandsCount: appState.customCommandsCount,
+				vscodeMode,
+				vscodePort: vscodeServer.actualPort,
+				vscodeRequestedPort: vscodeServer.requestedPort,
 			}),
 		[
 			shouldShowWelcome,
@@ -405,6 +408,9 @@ export default function App({
 			appState.lspServersStatus,
 			appState.preferencesLoaded,
 			appState.customCommandsCount,
+			vscodeMode,
+			vscodeServer.actualPort,
+			vscodeServer.requestedPort,
 		],
 	);
 

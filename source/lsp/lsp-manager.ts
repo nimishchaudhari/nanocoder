@@ -402,15 +402,28 @@ export class LSPManager extends EventEmitter {
 
 // Singleton instance
 let lspManagerInstance: LSPManager | null = null;
+let lspManagerInitPromise: Promise<LSPManager> | null = null;
 
 /**
  * Get or create the LSP manager singleton
+ * Uses promise-based initialization to prevent race conditions
  */
-export function getLSPManager(config?: LSPManagerConfig): LSPManager {
-	if (!lspManagerInstance) {
-		lspManagerInstance = new LSPManager(config);
+export async function getLSPManager(
+	config?: LSPManagerConfig,
+): Promise<LSPManager> {
+	if (lspManagerInstance) {
+		return lspManagerInstance;
 	}
-	return lspManagerInstance;
+
+	if (lspManagerInitPromise) {
+		return lspManagerInitPromise;
+	}
+
+	// Create manager synchronously to ensure instance is set immediately
+	lspManagerInstance = new LSPManager(config);
+	lspManagerInitPromise = Promise.resolve(lspManagerInstance);
+
+	return lspManagerInitPromise;
 }
 
 /**
@@ -421,4 +434,5 @@ export async function resetLSPManager(): Promise<void> {
 		await lspManagerInstance.shutdown();
 		lspManagerInstance = null;
 	}
+	lspManagerInitPromise = null;
 }

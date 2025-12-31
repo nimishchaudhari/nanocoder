@@ -14,7 +14,7 @@ import {MessageBuilder} from '@/utils/message-builder';
 import {parseToolArguments} from '@/utils/tool-args-parser';
 import {createCancellationResults} from '@/utils/tool-cancellation';
 import {displayToolResult} from '@/utils/tool-result-display';
-import {getVSCodeServer} from '@/vscode/index';
+import {getVSCodeServerSync} from '@/vscode/index';
 
 interface UseToolHandlerProps {
 	pendingToolCalls: ToolCall[];
@@ -92,7 +92,7 @@ export function useToolHandler({
 	const handleToolConfirmation = (confirmed: boolean) => {
 		if (!confirmed) {
 			// User cancelled - close all VS Code diffs
-			const vscodeServer = getVSCodeServer();
+			const vscodeServer = getVSCodeServerSync();
 			if (vscodeServer?.hasConnections()) {
 				vscodeServer.closeAllDiffs();
 			}
@@ -298,7 +298,7 @@ export function useToolHandler({
 	// Handle tool confirmation cancel
 	const handleToolConfirmationCancel = () => {
 		// Close all VS Code diffs when user cancels
-		const vscodeServer = getVSCodeServer();
+		const vscodeServer = getVSCodeServerSync();
 		if (vscodeServer?.hasConnections()) {
 			vscodeServer.closeAllDiffs();
 		}

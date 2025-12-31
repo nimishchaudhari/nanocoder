@@ -104,17 +104,15 @@ export function LSP({status}: LSPProps) {
 export const lspCommand: Command = {
 	name: 'lsp',
 	description: 'Show connected LSP servers and their status',
-	handler: (_args: string[], _messages, _metadata) => {
-		const lspManager = getLSPManager();
+	handler: async (_args: string[], _messages, _metadata) => {
+		const lspManager = await getLSPManager();
 
 		// Get the current status of LSP servers
 		const status = lspManager.getStatus();
 
-		return Promise.resolve(
-			React.createElement(LSP, {
-				key: `lsp-${Date.now()}`,
-				status: status,
-			}),
-		);
+		return React.createElement(LSP, {
+			key: `lsp-${Date.now()}`,
+			status: status,
+		});
 	},
 };

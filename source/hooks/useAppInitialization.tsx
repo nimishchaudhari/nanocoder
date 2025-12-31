@@ -191,7 +191,7 @@ export function useAppInitialization({
 
 	// Initialize LSP servers with auto-discovery
 	const initializeLSPServers = async () => {
-		const lspManager = getLSPManager({
+		const lspManager = await getLSPManager({
 			rootUri: `file://${process.cwd()}`,
 			autoDiscover: true,
 			// Use custom servers from config if provided

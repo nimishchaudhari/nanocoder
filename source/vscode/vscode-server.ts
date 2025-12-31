@@ -85,35 +85,87 @@ export class VSCodeServer {
 	constructor(private port: number = DEFAULT_PORT) {}
 
 	/**
-	 * Start the WebSocket server
+	 * Get the actual port the server is listening on
+	 */
+	getPort(): number {
+		return this.port;
+	}
+
+	/**
+	 * Try to start the WebSocket server on a specific port
+	 */
+	private async tryStartOnPort(port: number): Promise<boolean> {
+		return new Promise(resolve => {
+			try {
+				const wss = new WebSocketServer({
+					port,
+					host: '127.0.0.1', // Only accept local connections
+				});
+
+				wss.on('listening', () => {
+					this.wss = wss;
+					this.port = port;
+
+					this.wss.on('connection', ws => {
+						this.handleConnection(ws);
+					});
+
+					resolve(true);
+				});
+
+				wss.on('error', _error => {
+					wss.close();
+					resolve(false);
+				});
+			} catch (_error) {
+				resolve(false);
+			}
+		});
+	}
+
+	/**
+	 * Start the WebSocket server with automatic port fallback
+	 * If the requested port is in use, tries up to 10 alternative ports
 	 */
 	async start(): Promise<boolean> {
 		this.cliVersion = await getCliVersion();
 
-		return new Promise(resolve => {
-			try {
-				this.wss = new WebSocketServer({
-					port: this.port,
-					host: '127.0.0.1', // Only accept local connections
-				});
+		const logger = getLogger();
+		const requestedPort = this.port;
+		const maxRetries = 10;
 
-				this.wss.on('listening', () => {
-					resolve(true);
-				});
+		// Try the requested port first
+		const success = await this.tryStartOnPort(requestedPort);
+		if (success) {
+			logger.info(`VS Code server listening on port ${this.port}`);
+			return true;
+		}
 
-				this.wss.on('connection', ws => {
-					this.handleConnection(ws);
-				});
+		// If failed, try alternative ports
+		logger.warn(`Port ${requestedPort} is in use, trying alternative ports...`);
 
-				this.wss.on('error', _error => {
-					resolve(false);
-				});
-			} catch (error) {
-				const logger = getLogger();
-				logger.debug('WebSocket server failed to start', {error});
-				resolve(false);
+		for (let i = 1; i <= maxRetries; i++) {
+			const alternativePort = requestedPort + i;
+			const success = await this.tryStartOnPort(alternativePort);
+			if (success) {
+				logger.info(
+					`VS Code server listening on port ${this.port} (requested ${requestedPort} was in use)`,
+				);
+				return true;
 			}
-		});
+		}
+
+		// All ports failed
+		logger.error(
+			`Failed to start VS Code server. Tried ports ${requestedPort}-${requestedPort + maxRetries}`,
+		);
+		console.error(
+			`[VS Code] Could not start server. Ports ${requestedPort}-${requestedPort + maxRetries} are all in use.`,
+		);
+		console.error(
+			'[VS Code] Try closing other nanocoder instances or VS Code windows.',
+		);
+		return false;
 	}
 
 	/**
@@ -369,14 +421,35 @@ export class VSCodeServer {
 
 // Singleton instance for global access
 let serverInstance: VSCodeServer | null = null;
+let serverInitPromise: Promise<VSCodeServer> | null = null;
 
 /**
  * Get or create the VS Code server singleton
+ * Uses promise-based initialization to prevent race conditions
  */
-export function getVSCodeServer(port?: number): VSCodeServer {
-	if (!serverInstance) {
-		serverInstance = new VSCodeServer(port);
+export async function getVSCodeServer(port?: number): Promise<VSCodeServer> {
+	if (serverInstance) {
+		return serverInstance;
 	}
+
+	if (serverInitPromise) {
+		return serverInitPromise;
+	}
+
+	// Create server synchronously to ensure serverInstance is set immediately
+	// This is important for synchronous functions like sendFileChangeToVSCode
+	serverInstance = new VSCodeServer(port);
+	serverInitPromise = Promise.resolve(serverInstance);
+
+	return serverInitPromise;
+}
+
+/**
+ * Get the VS Code server instance if it exists (synchronous)
+ * Returns null if not yet initialized
+ * Use this when you need synchronous access and the server may not be initialized
+ */
+export function getVSCodeServerSync(): VSCodeServer | null {
 	return serverInstance;
 }
 
