@@ -189,6 +189,7 @@ export class LoggerProvider {
 					this.createFallbackLogger(),
 				isLevelEnabled: (_level: string) => false,
 				flush: async () => Promise.resolve(),
+				flushSync: () => {},
 				end: async () => Promise.resolve(),
 			};
 		}
@@ -210,6 +211,7 @@ export class LoggerProvider {
 				this.createFallbackLogger(),
 			isLevelEnabled: (_level: string) => true,
 			flush: async () => Promise.resolve(),
+			flushSync: () => {},
 			end: async () => Promise.resolve(),
 		};
 	}
@@ -326,6 +328,15 @@ export class LoggerProvider {
 				// Ignore flush errors as they're usually due to logger being closed
 				// This can happen in test environments or during shutdown
 			}
+		}
+	}
+
+	/**
+	 * Flush logs synchronously (for signal handlers)
+	 */
+	public flushSync(): void {
+		if (this._logger) {
+			this._logger.flushSync();
 		}
 	}
 

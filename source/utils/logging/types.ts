@@ -76,7 +76,9 @@ export interface Logger {
 	child(bindings: Record<string, unknown>): Logger;
 	isLevelEnabled(level: LogLevel): boolean;
 	flush(): Promise<void>;
+	flushSync(): void;
 	end(): Promise<void>;
+	_destination?: unknown;
 }
 
 export interface PiiRedactionRules {
