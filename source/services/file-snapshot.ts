@@ -26,7 +26,8 @@ export class FileSnapshotService {
 				const absolutePath = path.resolve(this.workspaceRoot, filePath); // nosemgrep
 				const content = await fs.readFile(absolutePath, 'utf-8');
 				const relativePath = path.relative(this.workspaceRoot, absolutePath);
-				snapshots.set(relativePath, content);
+				const normalizedPath = relativePath.split(path.sep).join('/');
+				snapshots.set(normalizedPath, content);
 			} catch (error) {
 				logWarning('Could not capture file', true, {
 					context: {
@@ -169,28 +170,81 @@ export class FileSnapshotService {
 
 			try {
 				let dirWritable = true;
+				let directoryExists = false;
+
 				try {
-					await fs.access(directory, fs.constants.W_OK);
-				} catch (_err) {
-					// Directory is not writable or does not exist, so try to create it
-					try {
-						await fs.mkdir(directory, {recursive: true});
-					} catch (mkdirError) {
-						dirWritable = false;
-						errors.push(
-							`Cannot create directory "${directory}": ${mkdirError instanceof Error ? mkdirError.message : 'Unknown error'}`,
-						);
+					const dirStats = await fs.stat(directory);
+					directoryExists = dirStats.isDirectory();
+				} catch {
+					const parentDir = path.dirname(directory);
+					let parentWritable = true;
+
+					if (parentDir !== directory) {
+						try {
+							const parentStats = await fs.stat(parentDir);
+							const parentMode = parentStats.mode;
+							// Check if any write permission bit is set - owner: 0o200, group: 0o020, others: 0o002
+							const parentHasWritePermission =
+								(parentMode & 0o200) !== 0 ||
+								(parentMode & 0o020) !== 0 ||
+								(parentMode & 0o002) !== 0;
+
+							if (!parentHasWritePermission) {
+								parentWritable = false;
+								dirWritable = false;
+								errors.push(
+									`Cannot create directory "${directory}": parent directory "${parentDir}" is read-only`,
+								);
+							}
+						} catch (_parentStatError) {
+							parentWritable = true;
+						}
+					}
+
+					if (parentWritable) {
+						try {
+							await fs.mkdir(directory, {recursive: true});
+							try {
+								const verifyStats = await fs.stat(directory);
+								directoryExists = verifyStats.isDirectory();
+							} catch {
+								dirWritable = false;
+								directoryExists = false;
+								errors.push(
+									`Cannot create directory "${directory}": directory creation failed`,
+								);
+							}
+						} catch (mkdirError) {
+							dirWritable = false;
+							directoryExists = false;
+							errors.push(
+								`Cannot create directory "${directory}": ${mkdirError instanceof Error ? mkdirError.message : 'Unknown error'}`,
+							);
+						}
+					} else {
+						directoryExists = false;
 					}
 				}
 
-				// After attempting to create the directory, verify it's writable
-				if (dirWritable) {
+				if (dirWritable && directoryExists) {
 					try {
-						await fs.access(directory, fs.constants.W_OK);
-					} catch (accessError) {
+						const dirStats = await fs.stat(directory);
+						const mode = dirStats.mode;
+						const hasWritePermission =
+							(mode & 0o200) !== 0 ||
+							(mode & 0o020) !== 0 ||
+							(mode & 0o002) !== 0;
+
+						if (!hasWritePermission) {
+							dirWritable = false;
+							errors.push(
+								`Directory "${directory}" is not writable: read-only permissions detected`,
+							);
+						}
+					} catch (statError) {
 						dirWritable = false;
 						errors.push(
-							`Directory "${directory}" is not writable: ${accessError instanceof Error ? accessError.message : 'Unknown error'}`,
+							`Directory "${directory}" is not writable: ${statError instanceof Error ? statError.message : 'Unknown error'}`,
 						);
 					}
 				}
@@ -202,7 +256,18 @@ export class FileSnapshotService {
 
 				if (existsSync(absolutePath)) {
 					try {
-						await fs.access(absolutePath, fs.constants.W_OK);
+						const fileStats = await fs.stat(absolutePath);
+						const mode = fileStats.mode;
+						const hasWritePermission =
+							(mode & 0o200) !== 0 ||
+							(mode & 0o020) !== 0 ||
+							(mode & 0o002) !== 0;
+
+						if (!hasWritePermission) {
+							errors.push(
+								`Cannot write to file "${absolutePath}": read-only permissions detected`,
+							);
+						}
 					} catch (fileError) {
 						errors.push(
 							`Cannot write to file "${absolutePath}": ${fileError instanceof Error ? fileError.message : 'Unknown error'}`,
