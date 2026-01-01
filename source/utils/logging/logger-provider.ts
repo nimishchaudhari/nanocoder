@@ -69,13 +69,10 @@ export class LoggerProvider {
 		// which uses thread-stream and real-require packages
 		if (LoggerProvider.isBunRuntime()) {
 			if (process.env.NODE_ENV === 'development') {
-				this.createFallbackLogger().info(
-					'Bun runtime detected - using fallback logger (Pino transport incompatible)',
-					{
-						source: 'logger-provider',
-						runtime: 'bun',
-						status: 'fallback-only',
-					},
+				// Use console directly since this._config is not yet set,
+				// so createFallbackLogger() would default to 'silent' level
+				console.info(
+					'[LOGGER_PROVIDER] Bun runtime detected - using fallback logger (Pino transport incompatible)',
 				);
 			}
 			return;
@@ -344,7 +341,6 @@ export class LoggerProvider {
 
 	/**
 	 * Flush any pending logs
-	 * Includes defensive error handling for shutdown edge cases
 	 */
 	public async flush(): Promise<void> {
 		if (this._logger) {
