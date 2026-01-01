@@ -1,7 +1,11 @@
 import React from 'react';
 import {parseInput} from '@/command-parser';
 import {commandRegistry} from '@/commands';
-import {ErrorMessage, InfoMessage} from '@/components/message-box';
+import {
+	ErrorMessage,
+	InfoMessage,
+	SuccessMessage,
+} from '@/components/message-box';
 import ToolMessage from '@/components/tool-message';
 import {
 	DELAY_COMMAND_COMPLETE_MS,
@@ -185,12 +189,23 @@ async function handleSpecialCommand(
 		onEnterConfigWizardMode,
 		onShowStatus,
 		onCommandComplete,
+		onAddToChatQueue,
+		getNextComponentKey,
 	} = options;
 
 	switch (commandName) {
 		case SPECIAL_COMMANDS.CLEAR:
 			await onClearMessages();
-			onCommandComplete?.();
+			// Show success message
+			onAddToChatQueue(
+				React.createElement(SuccessMessage, {
+					key: `clear-success-${getNextComponentKey()}`,
+					message: 'Chat cleared.',
+					hideBox: true,
+				}),
+			);
+			// Give React time to render before signaling completion
+			setTimeout(() => onCommandComplete?.(), DELAY_COMMAND_COMPLETE_MS);
 			return true;
 
 		case SPECIAL_COMMANDS.MODEL:
