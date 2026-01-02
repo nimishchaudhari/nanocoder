@@ -38,3 +38,17 @@ export type ThemePreset =
 	| 'volcanic-ash'
 	| 'cyberpunk-mint'
 	| 'dracula';
+
+export type TitleShape =
+	| 'rounded'
+	| 'square'
+	| 'double'
+	| 'pill'
+	| 'powerline-angled'
+	| 'powerline-curved'
+	| 'powerline-flame'
+	| 'powerline-block'
+	| 'arrow-left'
+	| 'arrow-right'
+	| 'arrow-double'
+	| 'angled-box';

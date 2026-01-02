@@ -320,6 +320,7 @@ export default function App({
 		setIsModelSelectionMode: appState.setIsModelSelectionMode,
 		setIsProviderSelectionMode: appState.setIsProviderSelectionMode,
 		setIsThemeSelectionMode: appState.setIsThemeSelectionMode,
+		setIsTitleShapeSelectionMode: appState.setIsTitleShapeSelectionMode,
 		setIsModelDatabaseMode: appState.setIsModelDatabaseMode,
 		setIsConfigWizardMode: appState.setIsConfigWizardMode,
 		addToChatQueue: appState.addToChatQueue,
@@ -357,6 +358,7 @@ export default function App({
 		enterModelSelectionMode: modeHandlers.enterModelSelectionMode,
 		enterProviderSelectionMode: modeHandlers.enterProviderSelectionMode,
 		enterThemeSelectionMode: modeHandlers.enterThemeSelectionMode,
+		enterTitleShapeSelectionMode: modeHandlers.enterTitleShapeSelectionMode,
 		enterModelDatabaseMode: modeHandlers.enterModelDatabaseMode,
 		enterConfigWizardMode: modeHandlers.enterConfigWizardMode,
 		handleChatMessage: chatHandler.handleChatMessage,
@@ -504,6 +506,7 @@ export default function App({
 						appState.isThemeSelectionMode ||
 						appState.isModelDatabaseMode ||
 						appState.isConfigWizardMode ||
+						appState.isTitleShapeSelectionMode ||
 						appState.isCheckpointLoadMode) && (
 						<ModalSelectors
 							isModelSelectionMode={appState.isModelSelectionMode}
@@ -512,6 +515,7 @@ export default function App({
 							isModelDatabaseMode={appState.isModelDatabaseMode}
 							isConfigWizardMode={appState.isConfigWizardMode}
 							isCheckpointLoadMode={appState.isCheckpointLoadMode}
+							isTitleShapeSelectionMode={appState.isTitleShapeSelectionMode}
 							client={appState.client}
 							currentModel={appState.currentModel}
 							currentProvider={appState.currentProvider}
@@ -523,6 +527,8 @@ export default function App({
 								modeHandlers.handleProviderSelectionCancel
 							}
 							onThemeSelect={modeHandlers.handleThemeSelect}
+							onTitleShapeSelect={modeHandlers.handleTitleShapeSelect}
+							onTitleShapeSelectionCancel={modeHandlers.handleTitleShapeSelectionCancel}
 							onThemeSelectionCancel={modeHandlers.handleThemeSelectionCancel}
 							onModelDatabaseCancel={modeHandlers.handleModelDatabaseCancel}
 							onConfigWizardComplete={modeHandlers.handleConfigWizardComplete}
@@ -540,6 +546,7 @@ export default function App({
 							appState.isThemeSelectionMode ||
 							appState.isModelDatabaseMode ||
 							appState.isConfigWizardMode ||
+							appState.isTitleShapeSelectionMode ||
 							appState.isCheckpointLoadMode
 						) && (
 							<ChatInput

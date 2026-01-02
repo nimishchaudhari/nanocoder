@@ -4,6 +4,7 @@ import CheckpointSelector from '@/components/checkpoint-selector';
 import ModelSelector from '@/components/model-selector';
 import ProviderSelector from '@/components/provider-selector';
 import ThemeSelector from '@/components/theme-selector';
+import TitleShapeSelector from '@/components/title-shape-selector';
 import type {CheckpointListItem, LLMClient} from '@/types';
 import {ConfigWizard} from '@/wizard/config-wizard';
 
@@ -15,6 +16,7 @@ export interface ModalSelectorsProps {
 	isModelDatabaseMode: boolean;
 	isConfigWizardMode: boolean;
 	isCheckpointLoadMode: boolean;
+	isTitleShapeSelectionMode: boolean;
 
 	// Current values
 	client: LLMClient | null;
@@ -36,6 +38,10 @@ export interface ModalSelectorsProps {
 	// Handlers - Theme Selection
 	onThemeSelect: (theme: import('@/types/ui').ThemePreset) => void;
 	onThemeSelectionCancel: () => void;
+
+	// Handlers - Title Shape Selection
+	onTitleShapeSelect: (shape: import('@/types/ui').TitleShape) => void;
+	onTitleShapeSelectionCancel: () => void;
 
 	// Handlers - Model Database
 	onModelDatabaseCancel: () => void;
@@ -60,6 +66,7 @@ export function ModalSelectors({
 	isModelDatabaseMode,
 	isConfigWizardMode,
 	isCheckpointLoadMode,
+	isTitleShapeSelectionMode,
 	client,
 	currentModel,
 	currentProvider,
@@ -75,6 +82,8 @@ export function ModalSelectors({
 	onConfigWizardCancel,
 	onCheckpointSelect,
 	onCheckpointCancel,
+	onTitleShapeSelect,
+	onTitleShapeSelectionCancel,
 }: ModalSelectorsProps): React.ReactElement | null {
 	if (isModelSelectionMode) {
 		return (
@@ -102,6 +111,15 @@ export function ModalSelectors({
 			<ThemeSelector
 				onThemeSelect={onThemeSelect}
 				onCancel={onThemeSelectionCancel}
+			/>
+		);
+	}
+
+	if (isTitleShapeSelectionMode) {
+		return (
+			<TitleShapeSelector
+				onComplete={onTitleShapeSelect}
+				onCancel={onTitleShapeSelectionCancel}
 			/>
 		);
 	}
