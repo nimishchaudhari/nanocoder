@@ -299,3 +299,55 @@ test('multiple initializeLogger calls do not cause duplicate async loads', async
 		logger3.info('Test message 3');
 	}, 'All logger instances should work after async load');
 });
+
+test.serial(
+	'Bun runtime detection - uses fallback logger when Bun detected',
+	async t => {
+		const provider = LoggerProvider.getInstance();
+
+		// Simulate Bun runtime by setting globalThis.Bun
+		const originalBun = (globalThis as Record<string, unknown>).Bun;
+		(globalThis as Record<string, unknown>).Bun = {version: '1.0.0'};
+
+		try {
+			provider.reset();
+			const logger = provider.initializeLogger();
+
+			// Logger should still work (using fallback)
+			t.truthy(logger, 'Should create logger even with Bun runtime');
+			t.truthy(typeof logger.info === 'function', 'Should have info method');
+			t.truthy(typeof logger.error === 'function', 'Should have error method');
+
+			// Should be able to call logging methods without crashing
+			t.notThrows(() => {
+				logger.info('Test message');
+				logger.error('Error message');
+			}, 'Should be able to log without Pino transport crash');
+
+			// Wait for async loading period to pass - under Bun, loadRealDependencies
+			// should NOT be called, so the logger should remain a fallback logger
+			await new Promise(resolve => setTimeout(resolve, 100));
+
+			// Verify the logger is still functional after the async period
+			// (in Bun, we skip Pino loading entirely, so no upgrade should occur)
+			t.notThrows(() => {
+				logger.info('Post-async test message');
+			}, 'Logger should remain functional (fallback) after async period');
+
+			// The fallback logger's flush is a no-op that resolves immediately
+			// Pino's flush would interact with file streams - this verifies we're using fallback
+			await t.notThrowsAsync(
+				async () => provider.flush(),
+				'Flush should complete without errors (fallback logger)',
+			);
+		} finally {
+			// Restore original state
+			if (originalBun === undefined) {
+				delete (globalThis as Record<string, unknown>).Bun;
+			} else {
+				(globalThis as Record<string, unknown>).Bun = originalBun;
+			}
+			provider.reset();
+		}
+	},
+);

@@ -26,6 +26,14 @@ export class LoggerProvider {
 	}
 
 	/**
+	 * Detect if running under Bun runtime
+	 * Bun's worker threads are incompatible with Pino's transport API
+	 */
+	private static isBunRuntime(): boolean {
+		return typeof (globalThis as Record<string, unknown>).Bun !== 'undefined';
+	}
+
+	/**
 	 * Get the singleton logger provider instance
 	 */
 	public static getInstance(): LoggerProvider {
@@ -55,6 +63,20 @@ export class LoggerProvider {
 			...config,
 		});
 		this._fallbackInitialized = true;
+
+		// Skip loading real Pino dependencies if running under Bun
+		// Bun's worker threads are incompatible with Pino's transport API (pino/file)
+		// which uses thread-stream and real-require packages
+		if (LoggerProvider.isBunRuntime()) {
+			if (process.env.NODE_ENV === 'development') {
+				// Use console directly since this._config is not yet set,
+				// so createFallbackLogger() would default to 'silent' level
+				console.info(
+					'[LOGGER_PROVIDER] Bun runtime detected - using fallback logger (Pino transport incompatible)',
+				);
+			}
+			return;
+		}
 
 		// Asynchronously load the real dependencies and replace the fallback
 		this.loadRealDependencies().catch(error => {
