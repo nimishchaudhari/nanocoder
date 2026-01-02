@@ -4,7 +4,7 @@ import path from 'path';
 import React from 'react';
 import {fileURLToPath} from 'url';
 import {commandRegistry} from '@/commands';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {Command} from '@/types/index';
@@ -43,10 +43,9 @@ function Help({
 	const boxWidth = useTerminalWidth();
 	const {colors} = useTheme();
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="/help"
-			shape="arrow-double"
-			icon="≡"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -102,7 +101,7 @@ function Help({
 					</Text>
 				))
 			)}
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }
 

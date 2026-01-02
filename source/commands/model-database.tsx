@@ -1,7 +1,7 @@
 import {Box, Text, useFocus, useInput} from 'ink';
 import {Tab, Tabs} from 'ink-tab';
 import React, {useEffect, useState} from 'react';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {
 	COST_SCORE_CHEAP,
 	COST_SCORE_EXPENSIVE,
@@ -153,39 +153,38 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 
 	if (loading) {
 		return (
-			<TitledBox
+			<TitledBoxWithPreferences
 				title="/model-database"
-				shape="double"
-				icon="≡"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
 				paddingY={1}
 			>
 				<Text color={colors.white}>Fetching models from OpenRouter...</Text>
-			</TitledBox>
+			</TitledBoxWithPreferences>
 		);
 	}
 
 	if (error) {
 		return (
-			<TitledBox
+			<TitledBoxWithPreferences
 				title="/model-database"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}
 				paddingY={1}
 			>
 				<Text color={colors.error}>Error: {error}</Text>
-			</TitledBox>
+			</TitledBoxWithPreferences>
 		);
 	}
 
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="/model-database"
-			shape="double"
-			icon="≡"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -227,7 +226,7 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 						: 'Type to search | Up/Down: Navigate | Tab: Switch tabs | Esc: Close'}
 				</Text>
 			</Box>
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }
 

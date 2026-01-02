@@ -1,3 +1,4 @@
+import type {TitleShape} from '@/components/ui/styled-title';
 import type {ThemePreset} from '@/types/ui';
 
 // AI provider configurations (OpenAI-compatible)
@@ -100,4 +101,5 @@ export interface UserPreferences {
 	lastUpdateCheck?: number;
 	selectedTheme?: ThemePreset;
 	trustedDirectories?: string[];
+	titleShape?: TitleShape;
 }

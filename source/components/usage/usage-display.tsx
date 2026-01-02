@@ -3,7 +3,7 @@
  */
 
 import {Box, Text} from 'ink';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import type {Message} from '@/types/core.js';
@@ -84,10 +84,9 @@ export function UsageDisplay({
 	const mainProgressWidth = Math.max(20, Math.min(60, boxWidth - 12));
 
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="Context Usage"
-			shape="rounded"
-			icon="≡"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.info}
 			paddingX={2}
@@ -288,6 +287,6 @@ export function UsageDisplay({
 					</Text>
 				</Text>
 			</Box>
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }

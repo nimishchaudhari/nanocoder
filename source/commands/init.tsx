@@ -3,7 +3,7 @@ import {Box, Text} from 'ink';
 import {join} from 'path';
 import React from 'react';
 import {ErrorMessage} from '@/components/message-box';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {colors} from '@/config/index';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {AgentsTemplateGenerator} from '@/init/agents-template-generator';
@@ -25,10 +25,9 @@ function InitSuccess({
 }) {
 	const boxWidth = useTerminalWidth();
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="Project Initialized"
-			shape="rounded"
-			icon="√"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -87,7 +86,7 @@ function InitSuccess({
 					The AGENTS.md file will help AI understand your project context.
 				</Text>
 			</Box>
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }
 

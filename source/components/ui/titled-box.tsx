@@ -1,6 +1,6 @@
 import type {BoxProps} from 'ink';
-import {Box, Text} from 'ink';
-import React from 'react';
+import {Box} from 'ink';
+import {getTitleShape} from '@/config/preferences';
 import {StyledTitle, type TitleShape} from './styled-title';
 
 export interface TitledBoxProps extends Omit<BoxProps, 'borderStyle'> {
@@ -66,5 +66,45 @@ export function TitledBox({
 				{children}
 			</Box>
 		</Box>
+	);
+}
+
+/**
+ * A titled box component that respects user's preferred title shape from preferences
+ * Falls back to the explicit shape if provided, then to user preference, then to 'pill'
+ */
+export function TitledBoxWithPreferences({
+	title,
+	borderColor,
+	shape,
+	icon,
+	reversePowerline = false,
+	children,
+	width,
+	paddingX,
+	paddingY,
+	flexDirection,
+	marginBottom,
+}: TitledBoxProps) {
+	// Get the user's preferred title shape from preferences
+	const preferredShape = getTitleShape();
+
+	// Use explicit shape if provided, otherwise use preferred shape, otherwise default to 'pill'
+	const finalShape = shape || preferredShape || 'pill';
+
+	return (
+		<TitledBox
+			title={title}
+			borderColor={borderColor}
+			shape={finalShape}
+			icon={icon}
+			reversePowerline={reversePowerline}
+			children={children}
+			width={width}
+			paddingX={paddingX}
+			paddingY={paddingY}
+			flexDirection={flexDirection}
+			marginBottom={marginBottom}
+		/>
 	);
 }

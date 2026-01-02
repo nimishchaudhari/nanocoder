@@ -17,6 +17,7 @@ import {
 	setupConfigCommand,
 	statusCommand,
 	themeCommand,
+	titleShapeCommand,
 	updateCommand,
 	usageCommand,
 } from '@/commands/index';
@@ -378,6 +379,7 @@ export function useAppInitialization({
 				statusCommand,
 				setupConfigCommand,
 				usageCommand,
+				titleShapeCommand,
 				checkpointCommand,
 			]);
 

@@ -5,7 +5,7 @@ import Gradient from 'ink-gradient';
 import path from 'path';
 import {memo} from 'react';
 import {fileURLToPath} from 'url';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 
@@ -50,15 +50,14 @@ export default memo(function WelcomeMessage() {
 					</Box>
 				</>
 			) : (
-				/* Normal/Wide terminal: full version with TitledBox */
+				/* Normal/Wide terminal: full version with TitledBoxWithPreferences */
 				<>
 					<Gradient colors={[colors.primary, colors.tool]}>
 						<BigText text="Nanocoder" font="tiny" />
 					</Gradient>
 
-					<TitledBox
+					<TitledBoxWithPreferences
 						title={`✻ Welcome to Nanocoder ${packageJson.version} ✻`}
-						shape="powerline-angled"
 						reversePowerline={true}
 						width={boxWidth}
 						borderColor={colors.primary}
@@ -89,7 +88,7 @@ export default memo(function WelcomeMessage() {
 							</Text>
 						</Box>
 						<Text color={colors.white}>/help for help</Text>
-					</TitledBox>
+					</TitledBoxWithPreferences>
 				</>
 			)}
 		</>
