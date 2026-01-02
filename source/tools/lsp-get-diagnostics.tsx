@@ -1,3 +1,5 @@
+import {constants} from 'node:fs';
+import {access} from 'node:fs/promises';
 import {resolve as resolvePath} from 'node:path';
 import {Box, Text} from 'ink';
 import React from 'react';
@@ -6,6 +8,7 @@ import ToolMessage from '@/components/tool-message';
 import {TIMEOUT_LSP_DIAGNOSTICS_MS} from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import {DiagnosticSeverity, getLSPManager} from '@/lsp/index';
+import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 import {type DiagnosticInfo, getVSCodeServer} from '@/vscode/index';
 
@@ -213,6 +216,11 @@ const getDiagnosticsCoreTool = tool({
 	// Low risk: read-only operation, never requires approval
 	needsApproval: false,
 	execute: async (args, _options) => {
+		// Run validator before execution (for auto-executed tools)
+		const validationResult = await getDiagnosticsValidator(args);
+		if (!validationResult.valid) {
+			return validationResult.error;
+		}
 		return await executeGetDiagnostics(args);
 	},
 });
@@ -274,8 +282,44 @@ const getDiagnosticsFormatter = (
 	return <GetDiagnosticsFormatter args={args} result={result} />;
 };
 
-export const getDiagnosticsTool = {
+const getDiagnosticsValidator = async (
+	args: GetDiagnosticsArgs,
+): Promise<{valid: true} | {valid: false; error: string}> => {
+	// If no path is provided, we're getting diagnostics for all open documents - always valid
+	if (!args.path) {
+		return {valid: true};
+	}
+
+	// Validate that the file exists
+	const absPath = resolvePath(args.path);
+
+	try {
+		await access(absPath, constants.F_OK);
+		return {valid: true};
+	} catch (error: unknown) {
+		if (
+			error &&
+			typeof error === 'object' &&
+			'code' in error &&
+			error.code === 'ENOENT'
+		) {
+			return {
+				valid: false,
+				error: `Error: File "${args.path}" does not exist. Please verify the file path and try again.`,
+			};
+		}
+		const errorMessage =
+			error instanceof Error ? error.message : 'Unknown error';
+		return {
+			valid: false,
+			error: `Error: Cannot access file "${args.path}": ${errorMessage}`,
+		};
+	}
+};
+
+export const getDiagnosticsTool: NanocoderToolExport = {
 	name: 'lsp_get_diagnostics' as const,
 	tool: getDiagnosticsCoreTool,
 	formatter: getDiagnosticsFormatter,
+	validator: getDiagnosticsValidator,
 };

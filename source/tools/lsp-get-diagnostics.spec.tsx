@@ -1,3 +1,6 @@
+import {mkdtemp, rm, writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import test from 'ava';
 import type {DiagnosticInfo} from '@/vscode/index';
 import {getDiagnosticsTool} from './lsp-get-diagnostics.js';
@@ -437,4 +440,76 @@ test('get_diagnostics formatter: handles result with no diagnostics keywords', a
 
 	t.is(errorCount, 0);
 	t.is(warningCount, 0);
+});
+
+// ============================================================================
+// Validator Tests
+// ============================================================================
+
+test('get_diagnostics validator: validates when no path provided', async t => {
+	const validator = getDiagnosticsTool.validator;
+	if (!validator) {
+		t.fail('Validator not defined');
+		return;
+	}
+
+	const result = await validator({});
+	t.deepEqual(result, {valid: true});
+});
+
+test('get_diagnostics validator: validates existing file', async t => {
+	const validator = getDiagnosticsTool.validator;
+	if (!validator) {
+		t.fail('Validator not defined');
+		return;
+	}
+
+	// Create a temporary directory and file
+	const tempDir = await mkdtemp(join(tmpdir(), 'lsp-diagnostics-test-'));
+	const testFile = join(tempDir, 'test.ts');
+
+	try {
+		await writeFile(testFile, 'const x = 1;');
+
+		const result = await validator({path: testFile});
+		t.deepEqual(result, {valid: true});
+	} finally {
+		// Clean up
+		await rm(tempDir, {recursive: true, force: true});
+	}
+});
+
+test('get_diagnostics validator: rejects non-existent file', async t => {
+	const validator = getDiagnosticsTool.validator;
+	if (!validator) {
+		t.fail('Validator not defined');
+		return;
+	}
+
+	const nonExistentPath = '/this/path/does/not/exist/test.ts';
+	const result = await validator({path: nonExistentPath});
+
+	t.is(result.valid, false);
+	if (!result.valid) {
+		t.true(result.error.includes('does not exist'));
+		t.true(result.error.includes(nonExistentPath));
+	}
+});
+
+test('get_diagnostics validator: provides helpful error message for missing file', async t => {
+	const validator = getDiagnosticsTool.validator;
+	if (!validator) {
+		t.fail('Validator not defined');
+		return;
+	}
+
+	const missingFile = 'missing-file.ts';
+	const result = await validator({path: missingFile});
+
+	t.is(result.valid, false);
+	if (!result.valid) {
+		t.true(result.error.startsWith('Error: ')); // Standard error prefix
+		t.true(result.error.includes('does not exist'));
+		t.true(result.error.includes('verify the file path'));
+	}
 });
