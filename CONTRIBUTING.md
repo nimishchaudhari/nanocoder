@@ -61,6 +61,73 @@ Before contributing, please:
    npm run dev
    ```
 
+### Using Dev Containers (Recommended)
+
+For a zero-setup, consistent development environment, we recommend using VS Code Dev Containers. This approach eliminates the need to install Node.js, pnpm, or other tools on your local machine.
+
+#### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+- [Visual Studio Code](https://code.visualstudio.com/) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+#### Quick Start
+
+1. **Clone the repository** (if not already done)
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/nanocoder.git
+   cd nanocoder
+   ```
+
+2. **Open in VS Code**
+   ```bash
+   code .
+   ```
+
+3. **Reopen in Container**
+   - When VS Code prompts "Reopen in Container", click **"Reopen in Container"**
+   - Or press `F1` and select `Dev Containers: Reopen in Container`
+
+4. **Wait for Automatic Setup**
+   - The container builds on first use (~2-3 minutes)
+   - Dependencies install automatically
+   - The project builds automatically
+   - Git hooks are configured automatically
+
+5. **Start Development**
+   ```bash
+   pnpm run dev  # Development mode with hot reload
+   pnpm test:all # Run all tests
+   pnpm run start # Start the application
+   ```
+
+#### What's Included
+
+The devcontainer comes pre-configured with:
+
+- **Node.js 20.x** - Pre-installed and ready
+- **pnpm 9.x** - Package manager with cached store
+- **Biome** - Formatter and linter (auto-formats on save)
+- **Zsh + Oh My Zsh** - Enhanced shell experience
+- **VS Code Extensions** - Biome, TypeScript, GitLens pre-installed
+- **Git Hooks** - Husky pre-commit hooks configured automatically
+- **Network Access** - Full connectivity for MCP server testing
+
+#### Benefits
+
+- **Zero Setup** - All tools pre-installed in container
+- **Consistent Environment** - Same tools and versions for all developers
+- **Isolated Development** - No conflicts with local tools
+- **Fast Setup** - Automated dependency installation
+- **Easy Cleanup** - Delete container to remove everything
+
+#### For More Information
+
+See [`.devcontainer/README.md`](.devcontainer/README.md) for:
+- Troubleshooting steps
+- Advanced configuration options
+- Git credential setup
+- Performance optimization tips
+
 ### Recommended Editor Setup
 
 For the best development experience, we recommend using VS Code with the **Biome extension** for automatic formatting and linting:
