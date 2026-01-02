@@ -3,6 +3,7 @@ import {existsSync} from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import {MAX_CHECKPOINT_FILES} from '@/constants';
+import {loadGitignore} from '@/utils/gitignore-loader';
 import {logWarning} from '@/utils/message-queue';
 
 /**
@@ -98,27 +99,8 @@ export class FileSnapshotService {
 
 			const allFiles = [...new Set([...modifiedFiles, ...untrackedFiles])];
 
-			const filtered = allFiles.filter(file => {
-				const ignorePatterns = [
-					'node_modules/',
-					'dist/',
-					'build/',
-					'.git/',
-					'.nanocoder/',
-					'coverage/',
-					'*.log',
-				];
-
-				return !ignorePatterns.some(pattern => {
-					if (pattern.endsWith('/')) {
-						return file.startsWith(pattern);
-					}
-					if (pattern.startsWith('*.')) {
-						return file.endsWith(pattern.slice(1));
-					}
-					return file.includes(pattern);
-				});
-			});
+			const ig = loadGitignore(this.workspaceRoot);
+			const filtered = allFiles.filter(file => !ig.ignores(file));
 
 			if (filtered.length > MAX_CHECKPOINT_FILES) {
 				logWarning(

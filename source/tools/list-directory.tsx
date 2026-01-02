@@ -6,12 +6,17 @@ import React from 'react';
 import ToolMessage from '@/components/tool-message';
 import {ThemeContext} from '@/hooks/useTheme';
 import {jsonSchema, tool} from '@/types/core';
+import {loadGitignore} from '@/utils/gitignore-loader';
 import {isValidFilePath, resolveFilePath} from '@/utils/path-validation';
+
+export {executeListDirectory};
 
 interface ListDirectoryArgs {
 	path?: string;
 	recursive?: boolean;
 	maxDepth?: number;
+	tree?: boolean;
+	showHiddenFiles?: boolean;
 }
 
 interface DirectoryEntry {
@@ -27,6 +32,8 @@ const executeListDirectory = async (
 	const dirPath = args.path || '.';
 	const recursive = args.recursive ?? false;
 	const maxDepth = args.maxDepth ?? 3;
+	const tree = args.tree ?? false;
+	const showHiddenFiles = args.showHiddenFiles ?? false;
 
 	// Validate path
 	if (!isValidFilePath(dirPath)) {
@@ -37,6 +44,7 @@ const executeListDirectory = async (
 
 	const cwd = process.cwd();
 	const resolvedPath = resolveFilePath(dirPath, cwd);
+	const ig = loadGitignore(cwd);
 
 	try {
 		const entries: DirectoryEntry[] = [];
@@ -52,18 +60,18 @@ const executeListDirectory = async (
 				const items = await readdir(currentPath, {withFileTypes: true});
 
 				for (const item of items) {
-					// Skip hidden files and common ignored directories
-					if (item.name.startsWith('.') && !dirPath.startsWith('.')) {
+					// Skip hidden files unless showHiddenFiles is true
+					if (
+						!showHiddenFiles &&
+						item.name.startsWith('.') &&
+						!dirPath.startsWith('.')
+					) {
 						continue;
 					}
 
-					// Skip common ignored directories
-					if (
-						item.isDirectory() &&
-						['node_modules', 'dist', 'build', '.git', 'coverage'].includes(
-							item.name,
-						)
-					) {
+					// Check if this item should be ignored using gitignore patterns
+					const itemPath = relativeTo ? join(relativeTo, item.name) : item.name;
+					if (ig.ignores(itemPath)) {
 						continue;
 					}
 
@@ -130,22 +138,34 @@ const executeListDirectory = async (
 		// Format output
 		let output = `Directory contents for "${dirPath}":\n\n`;
 
-		for (const entry of entries) {
-			const icon =
-				entry.type === 'directory'
-					? '📁 '
-					: entry.type === 'symlink'
-						? '🔗 '
-						: '📄 ';
-			const displayPath = recursive ? entry.relativePath : entry.name;
-			const sizeStr = entry.size
-				? ` (${entry.size.toLocaleString()} bytes)`
-				: '';
-			output += `${icon}${displayPath}${sizeStr}\n`;
+		if (tree) {
+			// Tree format: flat paths, one per line
+			for (const entry of entries) {
+				output += `${entry.relativePath}\n`;
+			}
+		} else {
+			// Standard format with icons
+			for (const entry of entries) {
+				const icon =
+					entry.type === 'directory'
+						? '📁 '
+						: entry.type === 'symlink'
+							? '🔗 '
+							: '📄 ';
+				const displayPath = recursive ? entry.relativePath : entry.name;
+				const sizeStr = entry.size
+					? ` (${entry.size.toLocaleString()} bytes)`
+					: '';
+				output += `${icon}${displayPath}${sizeStr}\n`;
+			}
 		}
 
 		if (recursive && entries.length > 0) {
 			output += `\n[Recursive: showing entries up to depth ${maxDepth}]`;
+		}
+
+		if (tree) {
+			output += `\n[Tree format: flat paths]`;
 		}
 
 		return output;
@@ -161,7 +181,7 @@ const executeListDirectory = async (
 
 const listDirectoryCoreTool = tool({
 	description:
-		'List directory contents. Shows files and subdirectories in a readable format. Use recursive=true to show nested directories. AUTO-ACCEPTED (no user approval needed). Great for exploring project structure without reading file contents.',
+		'List directory contents. Shows files and subdirectories in a readable format. Use recursive=true to show nested directories. Use tree=true for flat paths output (one per line). AUTO-ACCEPTED (no user approval needed). Great for exploring project structure without reading file contents.',
 	inputSchema: jsonSchema<ListDirectoryArgs>({
 		type: 'object',
 		properties: {
@@ -179,6 +199,16 @@ const listDirectoryCoreTool = tool({
 				type: 'number',
 				description:
 					'Maximum recursion depth when recursive=true (default: 3, min: 1, max: 10)',
+			},
+			tree: {
+				type: 'boolean',
+				description:
+					'If true, show flat paths output (one per line) instead of formatted tree. Great for LLM to see project structure.',
+			},
+			showHiddenFiles: {
+				type: 'boolean',
+				description:
+					'If true, include hidden files and directories (default: false). Use with caution to avoid exposing sensitive files like .env.',
 			},
 		},
 		required: [],
@@ -240,6 +270,20 @@ const ListDirectoryFormatter = React.memo(
 						<Text color={colors.white}>
 							yes (max depth: {args.maxDepth ?? 3})
 						</Text>
+					</Box>
+				)}
+
+				{args.tree && (
+					<Box>
+						<Text color={colors.secondary}>Format: </Text>
+						<Text color={colors.white}>tree</Text>
+					</Box>
+				)}
+
+				{args.showHiddenFiles && (
+					<Box>
+						<Text color={colors.secondary}>Hidden files: </Text>
+						<Text color={colors.white}>shown</Text>
 					</Box>
 				)}
 			</Box>
