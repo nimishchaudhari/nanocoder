@@ -172,7 +172,6 @@ export default memo(function Status({
 				<TitledBox
 					title="Status"
 					shape="powerline-curved"
-					icon="≡"
 					reversePowerline={true}
 					width={boxWidth}
 					borderColor={colors.info}

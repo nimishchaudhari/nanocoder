@@ -166,7 +166,9 @@ export function StyledTitle({
             <Text backgroundColor={borderColor} color={textColor} bold>
               {' '}{title}{' '}
             </Text>
-            {rightSymbol}
+            <Text color={textColor} bold>
+              {rightSymbol}
+            </Text>
           </Text>
         </Box>
       </Box>

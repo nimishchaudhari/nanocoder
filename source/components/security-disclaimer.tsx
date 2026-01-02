@@ -49,7 +49,6 @@ export default function SecurityDisclaimer({
 			<TitledBox
 				title="Security Warning"
 				shape="double"
-				icon="!"
 				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}
