@@ -86,6 +86,8 @@ export function UsageDisplay({
 	return (
 		<TitledBox
 			title="Context Usage"
+			shape="rounded"
+			icon="≡"
 			width={boxWidth}
 			borderColor={colors.info}
 			paddingX={2}

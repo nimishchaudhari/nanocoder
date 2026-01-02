@@ -65,6 +65,8 @@ export default memo(function ToolMessage({
 			) : (
 				<TitledBox
 					title={title || 'Tool Message'}
+					shape="arrow-right"
+					icon="⚙"
 					width={boxWidth}
 					borderColor={borderColor}
 					paddingX={2}

@@ -40,6 +40,8 @@ function CustomCommands({commands}: CustomCommandsProps) {
 	return (
 		<TitledBox
 			title="Custom Commands"
+			shape="square"
+			icon="[ ]"
 			width={75}
 			borderColor={colors.primary}
 			paddingX={2}

@@ -21,6 +21,8 @@ export function LSP({status}: LSPProps) {
 	return (
 		<TitledBox
 			title="/lsp"
+			shape="angled-box"
+			icon="○"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

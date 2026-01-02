@@ -45,6 +45,8 @@ function Help({
 	return (
 		<TitledBox
 			title="/help"
+			shape="arrow-double"
+			icon="≡"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

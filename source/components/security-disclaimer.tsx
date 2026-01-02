@@ -48,6 +48,8 @@ export default function SecurityDisclaimer({
 		<Box flexDirection="column" padding={1}>
 			<TitledBox
 				title="Security Warning"
+				shape="double"
+				icon="!"
 				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}

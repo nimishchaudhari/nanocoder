@@ -155,6 +155,8 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 		return (
 			<TitledBox
 				title="/model-database"
+				shape="double"
+				icon="≡"
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
@@ -182,6 +184,8 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 	return (
 		<TitledBox
 			title="/model-database"
+			shape="double"
+			icon="≡"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

@@ -33,6 +33,8 @@ export function MCP({toolManager}: MCPProps) {
 	return (
 		<TitledBox
 			title="/mcp"
+			shape="powerline-block"
+			icon="□"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}

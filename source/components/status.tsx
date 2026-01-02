@@ -171,6 +171,9 @@ export default memo(function Status({
 				/* Normal/Wide terminal: full layout with TitledBox */
 				<TitledBox
 					title="Status"
+					shape="powerline-curved"
+					icon="≡"
+					reversePowerline={true}
 					width={boxWidth}
 					borderColor={colors.info}
 					paddingX={2}

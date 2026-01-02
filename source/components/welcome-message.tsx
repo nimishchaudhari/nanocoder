@@ -39,7 +39,7 @@ export default memo(function WelcomeMessage() {
 					>
 						<Box marginBottom={1}>
 							<Text color={colors.primary} bold>
-								✻ Version {packageJson.version}
+								✻ Version {packageJson.version} ✻
 							</Text>
 						</Box>
 
@@ -57,7 +57,10 @@ export default memo(function WelcomeMessage() {
 					</Gradient>
 
 					<TitledBox
-						title={`✻ Welcome to Nanocoder ${packageJson.version}`}
+						title={`✻ Welcome to Nanocoder ${packageJson.version} ✻`}
+						shape="powerline-angled"
+						icon="∧"
+						reversePowerline={true}
 						width={boxWidth}
 						borderColor={colors.primary}
 						paddingX={2}

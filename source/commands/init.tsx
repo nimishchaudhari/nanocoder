@@ -27,6 +27,8 @@ function InitSuccess({
 	return (
 		<TitledBox
 			title="Project Initialized"
+			shape="rounded"
+			icon="√"
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
