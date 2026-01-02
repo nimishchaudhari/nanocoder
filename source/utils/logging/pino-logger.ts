@@ -162,7 +162,21 @@ function createEnhancedLogger(
 			if (destination && 'end' in destination) {
 				const endMethod = destination.end as (() => void) | undefined;
 				if (endMethod && typeof endMethod === 'function') {
-					endMethod();
+					try {
+						endMethod();
+					} catch (error: unknown) {
+						// Ignore errors when ending an already-closed or invalid stream
+						// This can happen when end() is called multiple times or the destination
+						// is in an invalid state (e.g., during test cleanup)
+						const errorMsg =
+							error instanceof Error ? error.message : String(error);
+						// Only log unexpected errors, not "destroyed" property access errors
+						if (!errorMsg.includes('destroyed')) {
+							console.warn(
+								`[Logger] Warning: Error ending destination stream: ${errorMsg}`,
+							);
+						}
+					}
 				}
 			}
 		},
