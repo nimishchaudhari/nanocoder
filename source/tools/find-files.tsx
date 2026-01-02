@@ -10,6 +10,7 @@ import {
 	MAX_FIND_FILES_RESULTS,
 } from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
+import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 import {loadGitignore} from '@/utils/gitignore-loader';
 
@@ -171,14 +172,14 @@ const executeFindFiles = async (args: FindFilesArgs): Promise<string> => {
 
 const findFilesCoreTool = tool({
 	description:
-		'Find files and directories by path pattern. AUTO-ACCEPTED (no user approval needed). Use this INSTEAD OF bash find/locate commands. Examples: "*.tsx" (all .tsx files), "src/**/*.ts" (recursive), "config*" (partial match). Returns a list of matching file and directory paths. Does NOT search file contents - use search_file_contents for that.',
+		'Find files and directories by path pattern. AUTO-ACCEPTED (no user approval needed). Use this INSTEAD OF bash find/locate/ls commands for file discovery. Examples: "*.tsx" (all .tsx files), "src/**/*.ts" (recursive in src/), "*.{ts,tsx}" (multiple extensions), "package.json" (exact file), "*config*" (files containing "config"), "source/tools/*.ts" (specific directory). Excludes node_modules, .git, dist, build automatically.',
 	inputSchema: jsonSchema<FindFilesArgs>({
 		type: 'object',
 		properties: {
 			pattern: {
 				type: 'string',
 				description:
-					'Glob pattern to match file and directory paths. Examples: "*.tsx" (all .tsx files), "src/**/*.ts" (all .ts in src/), "components/**" (all files/dirs in components/), "*.{ts,tsx}" (multiple extensions)',
+					'Glob pattern to match file and directory paths. Examples: "*.tsx" (all .tsx files), "src/**/*.ts" (recursive in src/), "*.{ts,tsx}" (multiple extensions), "package.json" (exact file), "*config*" (files containing "config"), "source/tools/*.ts" (specific directory)',
 			},
 			maxResults: {
 				type: 'number',
@@ -251,7 +252,7 @@ const findFilesFormatter = (
 	return <FindFilesFormatter args={args} result={result} />;
 };
 
-export const findFilesTool = {
+export const findFilesTool: NanocoderToolExport = {
 	name: 'find_files' as const,
 	tool: findFilesCoreTool,
 	formatter: findFilesFormatter,

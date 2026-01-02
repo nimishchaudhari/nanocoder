@@ -8,6 +8,7 @@ import React from 'react';
 import ToolMessage from '@/components/tool-message';
 import {getCurrentMode} from '@/context/mode-context';
 import {ThemeContext} from '@/hooks/useTheme';
+import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 import {getCachedFileContent, invalidateCache} from '@/utils/file-cache';
 import {normalizeIndentation} from '@/utils/indentation-normalizer';
@@ -275,7 +276,7 @@ const writeFileValidator = async (args: {
 	return {valid: true};
 };
 
-export const writeFileTool = {
+export const writeFileTool: NanocoderToolExport = {
 	name: 'write_file' as const,
 	tool: writeFileCoreTool,
 	formatter: writeFileFormatter,

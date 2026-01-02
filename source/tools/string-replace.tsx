@@ -8,6 +8,7 @@ import React from 'react';
 import ToolMessage from '@/components/tool-message';
 import {getColors} from '@/config/index';
 import {getCurrentMode} from '@/context/mode-context';
+import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 import type {Colors} from '@/types/index';
 import {getCachedFileContent, invalidateCache} from '@/utils/file-cache';
@@ -603,7 +604,7 @@ const stringReplaceValidator = async (
 	return {valid: true};
 };
 
-export const stringReplaceTool = {
+export const stringReplaceTool: NanocoderToolExport = {
 	name: 'string_replace' as const,
 	tool: stringReplaceCoreTool,
 	formatter: stringReplaceFormatter,

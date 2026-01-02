@@ -5,11 +5,10 @@ import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
 import {ThemeContext} from '@/hooks/useTheme';
+import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 import {loadGitignore} from '@/utils/gitignore-loader';
 import {isValidFilePath, resolveFilePath} from '@/utils/path-validation';
-
-export {executeListDirectory};
 
 interface ListDirectoryArgs {
 	path?: string;
@@ -181,7 +180,7 @@ const executeListDirectory = async (
 
 const listDirectoryCoreTool = tool({
 	description:
-		'List directory contents. Shows files and subdirectories in a readable format. Use recursive=true to show nested directories. Use tree=true for flat paths output (one per line). AUTO-ACCEPTED (no user approval needed). Great for exploring project structure without reading file contents.',
+		'List directory contents with file sizes. AUTO-ACCEPTED (no user approval needed). Use this INSTEAD OF bash ls/ls -la/ls -R commands. Use recursive=true with maxDepth for nested exploration. Use tree=true for flat paths (easier to parse). Best for: exploring unknown directories, seeing file sizes, understanding project structure. For finding specific files by pattern, use find_files instead.',
 	inputSchema: jsonSchema<ListDirectoryArgs>({
 		type: 'object',
 		properties: {
@@ -242,7 +241,14 @@ const ListDirectoryFormatter = React.memo(
 		) {
 			const lines = result.split('\n');
 			for (const line of lines) {
-				if (line.match(/^[📁🔗📄]/)) {
+				// Count lines with emojis (standard format) or paths (tree format)
+				if (
+					line.match(/^[📁🔗📄]/) ||
+					(args.tree &&
+						line.trim() &&
+						!line.startsWith('[') &&
+						!line.startsWith('Directory'))
+				) {
 					entryCount++;
 				}
 			}
@@ -294,7 +300,7 @@ const ListDirectoryFormatter = React.memo(
 );
 
 const listDirectoryFormatter = (
-	args: ListDirectoryFormatterProps['args'],
+	args: ListDirectoryArgs,
 	result?: string,
 ): React.ReactElement => {
 	if (result && result.startsWith('Error:')) {
@@ -303,7 +309,7 @@ const listDirectoryFormatter = (
 	return <ListDirectoryFormatter args={args} result={result} />;
 };
 
-export const listDirectoryTool = {
+export const listDirectoryTool: NanocoderToolExport = {
 	name: 'list_directory' as const,
 	tool: listDirectoryCoreTool,
 	formatter: listDirectoryFormatter,

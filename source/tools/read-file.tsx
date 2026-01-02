@@ -3,6 +3,7 @@ import {access, lstat, readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {Box, Text} from 'ink';
 import React from 'react';
+
 import ToolMessage from '@/components/tool-message';
 import {
 	CHARS_PER_TOKEN_ESTIMATE,
@@ -57,10 +58,9 @@ const executeReadFile = async (args: {
 					const cached = await getCachedFileContent(absPath);
 					const lines = cached.lines;
 					const content = cached.content;
-					const tokens = Math.ceil(content.length / CHARS_PER_TOKEN_ESTIMATE);
 
 					output += `Lines: ${lines.length.toLocaleString()}\n`;
-					output += `Estimated Tokens: ~${tokens.toLocaleString()}\n`;
+					output += `Estimated Tokens: ~${Math.ceil(content.length / CHARS_PER_TOKEN_ESTIMATE).toLocaleString()}\n`;
 
 					// Detect file type from extension
 					const fileType = getFileType(absPath);
@@ -141,9 +141,7 @@ const executeReadFile = async (args: {
 					output += `   - read_file({path: "${args.path}", start_line: ${start}, end_line: ${end}})\n`;
 				}
 				if (numChunks > 3) {
-					output += `   ... and ${
-						numChunks - 3
-					} more chunks to complete the file\n`;
+					output += `   ... and ${numChunks - 3} more chunks to complete the file\n`;
 				}
 			}
 
@@ -185,7 +183,7 @@ const executeReadFile = async (args: {
 
 const readFileCoreTool = tool({
 	description:
-		'Read file contents with line numbers. AUTO-ACCEPTED (no user approval needed). Use this INSTEAD OF bash cat/head/tail commands. PROGRESSIVE DISCLOSURE: First call without line ranges returns metadata (size, lines, tokens). For files >300 lines, you MUST call again with start_line/end_line to read content. Small files (<300 lines) return content directly. Use metadata_only=true to get file information without content.',
+		'Read file contents with line numbers. AUTO-ACCEPTED (no user approval needed). Use this INSTEAD OF bash cat/head/tail/less commands. PROGRESSIVE DISCLOSURE: Files ≤300 lines return content directly. Files >300 lines return metadata first - then call again with start_line/end_line to read specific sections. Use metadata_only=true for file info (size, lines, type) without reading content. Always prefer this over bash for any file reading.',
 	inputSchema: jsonSchema<{
 		path: string;
 		start_line?: number;
@@ -218,12 +216,19 @@ const readFileCoreTool = tool({
 	}),
 	// Low risk: read-only operation, never requires approval
 	needsApproval: false,
-	execute: async (args, _options) => {
+	execute: async (
+		args: {
+			path: string;
+			start_line?: number;
+			end_line?: number;
+			metadata_only?: boolean;
+		},
+		_options: {toolCallId: string; messages: unknown[]},
+	) => {
 		return await executeReadFile(args);
 	},
 });
 
-// Create a component that will re-render when theme changes
 const ReadFileFormatter = React.memo(
 	({
 		args,

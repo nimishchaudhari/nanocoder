@@ -11,6 +11,7 @@ import {
 	MAX_SEARCH_RESULTS,
 } from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
+import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 import {loadGitignore} from '@/utils/gitignore-loader';
 
@@ -139,9 +140,7 @@ const executeSearchFileContents = async (
 		}
 
 		// Format results with clear file:line format
-		let output = `Found ${matches.length} match${
-			matches.length === 1 ? '' : 'es'
-		}${truncated ? ` (showing first ${maxResults})` : ''}:\n\n`;
+		let output = `Found ${matches.length} match${matches.length === 1 ? '' : 'es'}${truncated ? ` (showing first ${maxResults})` : ''}:\n\n`;
 
 		for (const match of matches) {
 			output += `${match.file}:${match.line}\n`;
@@ -158,14 +157,14 @@ const executeSearchFileContents = async (
 
 const searchFileContentsCoreTool = tool({
 	description:
-		'Search for text or code inside files. AUTO-ACCEPTED (no user approval needed). Use this INSTEAD OF bash grep/rg commands. Supports regex patterns. Returns file:line with context. Use this to find where specific code, functions, variables, or text appears in the codebase.',
+		'Search for text or code inside files. AUTO-ACCEPTED (no user approval needed). Use this INSTEAD OF bash grep/rg/ag/ack commands. Supports extended regex (e.g., "foo|bar", "func(tion)?"). Returns file:line with matching content. Use to find: function definitions, variable usage, import statements, TODO comments. Case-insensitive by default (use caseSensitive=true for exact matching).',
 	inputSchema: jsonSchema<SearchFileContentsArgs>({
 		type: 'object',
 		properties: {
 			query: {
 				type: 'string',
 				description:
-					'Text or code to search for inside files. Supports extended regex (e.g., "foo|bar" for alternation, "func(tion)?" for optional groups). Examples: "handleSubmit", "import React", "TODO|FIXME", "class\\s+\\w+". Search is case-insensitive by default.',
+					'Text or code to search for inside files. Supports extended regex (e.g., "foo|bar" for alternation, "func(tion)?" for optional groups). Examples: "handleSubmit", "import React", "TODO|FIXME", "export (interface|type)" (find type exports), "useState\\(" (find React hooks). Case-insensitive by default.',
 			},
 			maxResults: {
 				type: 'number',
@@ -251,7 +250,7 @@ const searchFileContentsFormatter = (
 	return <SearchFileContentsFormatter args={args} result={result} />;
 };
 
-export const searchFileContentsTool = {
+export const searchFileContentsTool: NanocoderToolExport = {
 	name: 'search_file_contents' as const,
 	tool: searchFileContentsCoreTool,
 	formatter: searchFileContentsFormatter,
