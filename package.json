@@ -44,6 +44,8 @@
 		"test:lint": "biome lint .",
 		"test:lint:fix": "biome check --write --unsafe .",
 		"test:knip": "knip",
+		"test:audit": "pnpm audit --audit-level=high",
+		"test:security": "semgrep scan --config auto --error",
 		"format": "biome check --write .",
 		"format:check": "biome check .",
 		"build:vscode": "cd plugins/vscode && pnpm run build && pnpm exec vsce package --allow-missing-repository --skip-license --no-dependencies -o ../../assets/nanocoder-vscode.vsix",

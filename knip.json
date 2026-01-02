@@ -6,7 +6,7 @@
 		"sonic-boom",
 		"lint-staged"
 	],
-	"ignoreBinaries": ["vsce"],
+	"ignoreBinaries": ["vsce", "semgrep"],
 	"ignore": [
 		"nanocoder-dummy-file.ts",
 		"source/utils/message-queue.tsx",
