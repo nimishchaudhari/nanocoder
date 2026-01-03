@@ -4,12 +4,12 @@ import {Box, Text} from 'ink';
 import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
-import {CHARS_PER_TOKEN_ESTIMATE} from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 import {loadGitignore} from '@/utils/gitignore-loader';
 import {isValidFilePath, resolveFilePath} from '@/utils/path-validation';
+import {calculateTokens} from '@/utils/token-calculator';
 
 interface ListDirectoryArgs {
 	path?: string;
@@ -319,7 +319,7 @@ const listDirectoryFormatter = (
 	// Calculate tokens from the result
 	let tokens = 0;
 	if (result) {
-		tokens = Math.ceil(result.length / CHARS_PER_TOKEN_ESTIMATE);
+		tokens = calculateTokens(result);
 	}
 
 	return <ListDirectoryFormatter args={args} result={result} tokens={tokens} />;

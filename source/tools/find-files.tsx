@@ -6,7 +6,6 @@ import React from 'react';
 import ToolMessage from '@/components/tool-message';
 import {
 	BUFFER_FIND_FILES_BYTES,
-	CHARS_PER_TOKEN_ESTIMATE,
 	DEFAULT_FIND_FILES_RESULTS,
 	MAX_FIND_FILES_RESULTS,
 } from '@/constants';
@@ -14,6 +13,7 @@ import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 import {DEFAULT_IGNORE_DIRS, loadGitignore} from '@/utils/gitignore-loader';
+import {calculateTokens} from '@/utils/token-calculator';
 
 const execFileAsync = promisify(execFile);
 
@@ -214,9 +214,7 @@ const FindFilesFormatter = React.memo(
 		}
 
 		// Calculate tokens
-		const tokens = result
-			? Math.ceil(result.length / CHARS_PER_TOKEN_ESTIMATE)
-			: 0;
+		const tokens = result ? calculateTokens(result) : 0;
 
 		const messageContent = (
 			<Box flexDirection="column">

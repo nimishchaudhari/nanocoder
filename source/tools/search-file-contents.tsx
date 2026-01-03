@@ -7,7 +7,6 @@ import ToolMessage from '@/components/tool-message';
 import {
 	BUFFER_FIND_FILES_BYTES,
 	BUFFER_GREP_MULTIPLIER,
-	CHARS_PER_TOKEN_ESTIMATE,
 	DEFAULT_SEARCH_RESULTS,
 	MAX_SEARCH_RESULTS,
 } from '@/constants';
@@ -15,6 +14,7 @@ import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 import {DEFAULT_IGNORE_DIRS, loadGitignore} from '@/utils/gitignore-loader';
+import {calculateTokens} from '@/utils/token-calculator';
 
 const execFileAsync = promisify(execFile);
 
@@ -208,9 +208,7 @@ const SearchFileContentsFormatter = React.memo(
 		}
 
 		// Calculate tokens
-		const tokens = result
-			? Math.ceil(result.length / CHARS_PER_TOKEN_ESTIMATE)
-			: 0;
+		const tokens = result ? calculateTokens(result) : 0;
 
 		const messageContent = (
 			<Box flexDirection="column">

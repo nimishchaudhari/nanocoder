@@ -13,6 +13,7 @@ import {
 import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
+import {calculateTokens} from '@/utils/token-calculator';
 
 interface SearchArgs {
 	query: string;
@@ -145,7 +146,7 @@ const WebSearchFormatter = React.memo(
 		if (result) {
 			const matches = result.match(/^## \d+\./gm);
 			resultCount = matches ? matches.length : 0;
-			estimatedTokens = Math.ceil(result.length / 4);
+			estimatedTokens = calculateTokens(result);
 		}
 
 		const messageContent = (

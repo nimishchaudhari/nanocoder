@@ -6,7 +6,6 @@ import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
 import {
-	CHARS_PER_TOKEN_ESTIMATE,
 	FILE_READ_CHUNK_SIZE_LINES,
 	FILE_READ_CHUNKING_HINT_THRESHOLD_LINES,
 	FILE_READ_METADATA_THRESHOLD_LINES,
@@ -17,6 +16,7 @@ import {jsonSchema, tool} from '@/types/core';
 import {getCachedFileContent} from '@/utils/file-cache';
 import {getFileType} from '@/utils/file-type-detector';
 import {isValidFilePath, resolveFilePath} from '@/utils/path-validation';
+import {calculateTokens} from '@/utils/token-calculator';
 
 const executeReadFile = async (args: {
 	path: string;
@@ -60,7 +60,7 @@ const executeReadFile = async (args: {
 					const content = cached.content;
 
 					output += `Lines: ${lines.length.toLocaleString()}\n`;
-					output += `Estimated Tokens: ~${Math.ceil(content.length / CHARS_PER_TOKEN_ESTIMATE).toLocaleString()}\n`;
+					output += `Estimated Tokens: ~${calculateTokens(content).toLocaleString()}\n`;
 
 					// Detect file type from extension
 					const fileType = getFileType(absPath);
@@ -104,7 +104,7 @@ const executeReadFile = async (args: {
 		const lines = cached.lines;
 		const totalLines = lines.length;
 		const fileSize = content.length;
-		const estimatedTokens = Math.ceil(fileSize / CHARS_PER_TOKEN_ESTIMATE);
+		const estimatedTokens = calculateTokens(content);
 
 		// Progressive disclosure: metadata first for files >300 lines
 		// Small files can be read directly without ranges
@@ -355,12 +355,10 @@ const readFileFormatter = async (
 			let tokens: number;
 			if (isMetadataOnly) {
 				// For metadata, show estimated tokens of the FULL FILE
-				tokens = Math.ceil(content.length / CHARS_PER_TOKEN_ESTIMATE);
+				tokens = calculateTokens(content);
 			} else {
 				// For content reads, show tokens of what was actually returned
-				tokens = result
-					? Math.ceil(result.length / CHARS_PER_TOKEN_ESTIMATE)
-					: 0;
+				tokens = result ? calculateTokens(result) : 0;
 			}
 
 			fileInfo = {

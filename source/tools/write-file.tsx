@@ -14,6 +14,7 @@ import {getCachedFileContent, invalidateCache} from '@/utils/file-cache';
 import {normalizeIndentation} from '@/utils/indentation-normalizer';
 import {isValidFilePath, resolveFilePath} from '@/utils/path-validation';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
+import {calculateTokens} from '@/utils/token-calculator';
 import {
 	closeDiffInVSCode,
 	isVSCodeConnected,
@@ -37,7 +38,7 @@ const executeWriteFile = async (args: {
 	const lines = actualContent.split('\n');
 	const lineCount = lines.length;
 	const charCount = actualContent.length;
-	const estimatedTokens = Math.ceil(charCount / 4);
+	const estimatedTokens = calculateTokens(actualContent);
 
 	// Generate full file contents to show the model the current file state
 	let fileContext = '\n\nFile contents after write:\n';
@@ -97,7 +98,7 @@ const WriteFileFormatter = React.memo(({args}: {args: WriteFileArgs}) => {
 	const charCount = newContent.length;
 
 	// Estimate tokens (rough approximation: ~4 characters per token)
-	const estimatedTokens = Math.ceil(charCount / 4);
+	const estimatedTokens = calculateTokens(newContent);
 
 	// Normalize indentation for display
 	const lines = newContent.split('\n');
