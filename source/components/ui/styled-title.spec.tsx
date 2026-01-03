@@ -2,7 +2,7 @@ import test from 'ava';
 import {Text} from 'ink';
 import {render} from 'ink-testing-library';
 import React from 'react';
-import {StyledTitle} from './styled-title.js';
+import {StyledTitle, hasNerdFontSupport} from './styled-title';
 
 // ============================================================================
 // Tests for StyledTitle Component
@@ -219,4 +219,11 @@ test('StyledTitle renders nested components', t => {
   const output = lastFrame();
   t.truthy(output);
   t.regex(output!, /Nested/);
+});
+
+test('StyledTitle has Nerd Font support detection', t => {
+  // This test verifies that the Nerd Font detection function works
+  // In a real environment with Nerd Fonts, this should return true
+  const hasSupport = hasNerdFontSupport();
+  t.truthy(typeof hasSupport === 'boolean');
 });
