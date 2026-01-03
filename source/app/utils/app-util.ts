@@ -1,18 +1,15 @@
 import React from 'react';
 import {parseInput} from '@/command-parser';
 import {commandRegistry} from '@/commands';
+import BashProgress from '@/components/bash-progress';
 import {
 	ErrorMessage,
 	InfoMessage,
 	SuccessMessage,
 } from '@/components/message-box';
-import ToolMessage from '@/components/tool-message';
-import {
-	DELAY_COMMAND_COMPLETE_MS,
-	TRUNCATION_RESULT_STRING_LENGTH,
-} from '@/constants';
+import {DELAY_COMMAND_COMPLETE_MS} from '@/constants';
 import {CheckpointManager} from '@/services/checkpoint-manager';
-import {toolRegistry} from '@/tools/index';
+import {executeBashCommand, formatBashResultForLLM} from '@/tools/execute-bash';
 import type {LLMClient} from '@/types/core';
 import type {Message, MessageSubmissionOptions} from '@/types/index';
 
@@ -44,6 +41,7 @@ function getErrorMessage(error: unknown, fallback = 'Unknown error'): string {
 
 /**
  * Handles bash commands prefixed with !
+ * Uses the unified bash executor service for real-time progress updates
  */
 async function handleBashCommand(
 	bashCommand: string,
@@ -51,65 +49,59 @@ async function handleBashCommand(
 ): Promise<void> {
 	const {
 		onAddToChatQueue,
+		setLiveComponent,
+		setIsToolExecuting,
 		onCommandComplete,
 		getNextComponentKey,
 		setMessages,
 		messages,
-		setIsBashExecuting,
-		setCurrentBashCommand,
 	} = options;
 
-	// Set bash execution state to show spinner
-	setCurrentBashCommand(bashCommand);
-	setIsBashExecuting(true);
+	// Block user input while executing
+	setIsToolExecuting(true);
 
 	try {
-		// Execute the bash command
-		const resultString = await toolRegistry.execute_bash({
-			command: bashCommand,
-		});
+		// Start execution and get the execution ID
+		const {executionId, promise} = executeBashCommand(bashCommand);
 
-		// Parse the result
-		let result: {fullOutput: string; llmContext: string};
-		try {
-			result = JSON.parse(resultString) as {
-				fullOutput: string;
-				llmContext: string;
-			};
-		} catch {
-			// If parsing fails, treat as plain string
-			result = {
-				fullOutput: resultString,
-				llmContext:
-					resultString.length > TRUNCATION_RESULT_STRING_LENGTH
-						? resultString.substring(0, TRUNCATION_RESULT_STRING_LENGTH)
-						: resultString,
-			};
-		}
-
-		// Create a proper display of the command and its full output
-		const commandOutput = `$ ${bashCommand}
-${result.fullOutput || '(No output)'}`;
-
-		// Add the command and its output to the chat queue
-		onAddToChatQueue(
-			React.createElement(ToolMessage, {
-				key: `bash-result-${getNextComponentKey()}`,
-				message: commandOutput,
-				hideBox: true,
-				isBashMode: true,
+		// Set as live component for real-time updates (renders outside Static)
+		setLiveComponent(
+			React.createElement(BashProgress, {
+				key: `bash-progress-live-${getNextComponentKey()}`,
+				executionId,
+				command: bashCommand,
+				isLive: true,
 			}),
 		);
 
-		// Add the truncated output to the LLM context for future interactions
-		if (result.llmContext) {
+		// Wait for execution to complete
+		const result = await promise;
+
+		// Clear live component and add static completed version to chat queue
+		setLiveComponent(null);
+		onAddToChatQueue(
+			React.createElement(BashProgress, {
+				key: `bash-progress-complete-${getNextComponentKey()}`,
+				executionId,
+				command: bashCommand,
+				completedState: result,
+			}),
+		);
+
+		// Format result for LLM context
+		const llmContext = formatBashResultForLLM(result);
+
+		// Add the output to the LLM context for future interactions
+		if (llmContext) {
 			const userMessage: Message = {
 				role: 'user',
-				content: `Bash command output:\n\`\`\`\n$ ${bashCommand}\n${result.llmContext}\n\`\`\``,
+				content: `Bash command output:\n\`\`\`\n$ ${bashCommand}\n${llmContext}\n\`\`\``,
 			};
 			setMessages([...messages, userMessage]);
 		}
 	} catch (error: unknown) {
+		// Clear live component on error
+		setLiveComponent(null);
 		// Show error message if command fails
 		onAddToChatQueue(
 			React.createElement(ErrorMessage, {
@@ -118,10 +110,8 @@ ${result.fullOutput || '(No output)'}`;
 			}),
 		);
 	} finally {
-		// Clear bash execution state
-		setIsBashExecuting(false);
-		setCurrentBashCommand('');
-
+		// Re-enable user input
+		setIsToolExecuting(false);
 		// Signal completion for non-interactive mode
 		onCommandComplete?.();
 	}

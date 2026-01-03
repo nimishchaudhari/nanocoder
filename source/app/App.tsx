@@ -246,6 +246,7 @@ export default function App({
 		setIsToolExecuting: appState.setIsToolExecuting,
 		setMessages: appState.updateMessages,
 		addToChatQueue: appState.addToChatQueue,
+		setLiveComponent: appState.setLiveComponent,
 		getNextComponentKey: appState.getNextComponentKey,
 		resetToolConfirmationState: appState.resetToolConfirmationState,
 		onProcessAssistantResponse: chatHandler.processAssistantResponse,
@@ -274,10 +275,7 @@ export default function App({
 						hasPendingToolCalls: appState.pendingToolCalls.length > 0,
 						clientInitialized: !!appState.client,
 						mcpServersConnected: appState.mcpInitialized,
-						inputDisabled:
-							chatHandler.isGenerating ||
-							appState.isToolExecuting ||
-							appState.isBashExecuting,
+						inputDisabled: chatHandler.isGenerating || appState.isToolExecuting,
 					},
 				});
 			}, correlationId);
@@ -292,7 +290,6 @@ export default function App({
 		logger,
 		appState.developmentMode,
 		chatHandler.isGenerating,
-		appState.isBashExecuting,
 	]);
 
 	// Setup initialization
@@ -359,11 +356,11 @@ export default function App({
 		setIsCancelling: appState.setIsCancelling,
 		setDevelopmentMode: appState.setDevelopmentMode,
 		setIsConversationComplete: appState.setIsConversationComplete,
-		setIsBashExecuting: appState.setIsBashExecuting,
-		setCurrentBashCommand: appState.setCurrentBashCommand,
+		setIsToolExecuting: appState.setIsToolExecuting,
 		setIsCheckpointLoadMode: appState.setIsCheckpointLoadMode,
 		setCheckpointLoadData: appState.setCheckpointLoadData,
 		addToChatQueue: appState.addToChatQueue,
+		setLiveComponent: appState.setLiveComponent,
 		client: appState.client,
 		getMessageTokens: appState.getMessageTokens,
 		enterModelSelectionMode: modeHandlers.enterModelSelectionMode,
@@ -383,7 +380,6 @@ export default function App({
 		client: appState.client,
 		appState: {
 			isToolExecuting: appState.isToolExecuting,
-			isBashExecuting: appState.isBashExecuting,
 			isToolConfirmationMode: appState.isToolConfirmationMode,
 			isConversationComplete: appState.isConversationComplete,
 			messages: appState.messages,
@@ -510,6 +506,7 @@ export default function App({
 							startChat={appState.startChat}
 							staticComponents={staticComponents}
 							queuedComponents={appState.chatComponents}
+							liveComponent={appState.liveComponent}
 						/>
 
 						{/* Modal Selectors - rendered below chat history */}
@@ -567,8 +564,6 @@ export default function App({
 									isCancelling={appState.isCancelling}
 									isToolExecuting={appState.isToolExecuting}
 									isToolConfirmationMode={appState.isToolConfirmationMode}
-									isBashExecuting={appState.isBashExecuting}
-									currentBashCommand={appState.currentBashCommand}
 									pendingToolCalls={appState.pendingToolCalls}
 									currentToolIndex={appState.currentToolIndex}
 									mcpInitialized={appState.mcpInitialized}
@@ -579,9 +574,7 @@ export default function App({
 										appState.customCommandCache.keys(),
 									)}
 									inputDisabled={
-										chatHandler.isGenerating ||
-										appState.isToolExecuting ||
-										appState.isBashExecuting
+										chatHandler.isGenerating || appState.isToolExecuting
 									}
 									developmentMode={appState.developmentMode}
 									onToolConfirm={toolHandler.handleToolConfirmation}

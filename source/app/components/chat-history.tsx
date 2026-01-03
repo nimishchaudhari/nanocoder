@@ -9,6 +9,8 @@ export interface ChatHistoryProps {
 	staticComponents: React.ReactNode[];
 	/** Dynamic components added during the chat session */
 	queuedComponents: React.ReactNode[];
+	/** Live component that renders outside Static (for real-time updates) */
+	liveComponent?: React.ReactNode;
 }
 
 /**
@@ -25,6 +27,7 @@ export function ChatHistory({
 	startChat,
 	staticComponents,
 	queuedComponents,
+	liveComponent,
 }: ChatHistoryProps): React.ReactElement {
 	return (
 		<Box flexGrow={1} flexDirection="column" minHeight={0}>
@@ -34,6 +37,8 @@ export function ChatHistory({
 					queuedComponents={queuedComponents}
 				/>
 			)}
+			{/* Live component renders outside Static for real-time updates */}
+			{liveComponent && <Box marginLeft={-1}>{liveComponent}</Box>}
 		</Box>
 	);
 }

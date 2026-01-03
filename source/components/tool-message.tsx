@@ -11,12 +11,14 @@ export default memo(function ToolMessage({
 	hideTitle = false,
 	hideBox = false,
 	isBashMode = false,
+	isLive = false,
 }: {
 	title?: string;
 	message: string | React.ReactNode;
 	hideTitle?: boolean;
 	hideBox?: boolean;
 	isBashMode?: boolean;
+	isLive?: boolean;
 }) {
 	const boxWidth = useTerminalWidth();
 	const {colors} = useTheme();
@@ -33,7 +35,11 @@ export default memo(function ToolMessage({
 	return (
 		<>
 			{hideBox ? (
-				<Box width={boxWidth} flexDirection="column" marginBottom={1}>
+				<Box
+					width={boxWidth}
+					flexDirection="column"
+					marginBottom={isLive ? 0 : 1}
+				>
 					{isBashMode && (
 						<Text color={colors.tool} bold>
 							Bash Command Output

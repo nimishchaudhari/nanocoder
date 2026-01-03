@@ -1,8 +1,10 @@
 import React from 'react';
+import BashProgress from '@/components/bash-progress';
 import {ErrorMessage, InfoMessage} from '@/components/message-box';
 import {setCurrentMode as setCurrentModeContext} from '@/context/mode-context';
 import {ConversationContext} from '@/hooks/useAppState';
 import {getToolManager, processToolUse} from '@/message-handler';
+import {executeBashCommand, formatBashResultForLLM} from '@/tools/execute-bash';
 import {
 	DevelopmentMode,
 	LLMClient,
@@ -29,6 +31,7 @@ interface UseToolHandlerProps {
 	setIsToolExecuting: (executing: boolean) => void;
 	setMessages: (messages: Message[]) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
+	setLiveComponent: (component: React.ReactNode) => void;
 	getNextComponentKey: () => number;
 	resetToolConfirmationState: () => void;
 	onProcessAssistantResponse: (
@@ -53,6 +56,7 @@ export function useToolHandler({
 	setIsToolExecuting,
 	setMessages,
 	addToChatQueue,
+	setLiveComponent,
 	getNextComponentKey,
 	resetToolConfirmationState,
 	onProcessAssistantResponse,
@@ -258,19 +262,68 @@ export function useToolHandler({
 				);
 			}
 
-			const result = await processToolUse(currentTool);
+			// Check if tool has a streaming formatter (for real-time progress)
+			const streamingFormatter = toolManager?.getStreamingFormatter(
+				currentTool.function.name,
+			);
+
+			let result: ToolResult;
+
+			if (streamingFormatter) {
+				// Streaming tool (e.g., execute_bash) - handle specially
+				const parsedArgs = parseToolArguments(currentTool.function.arguments);
+				const commandStr = parsedArgs.command as string;
+
+				// Start execution first to get execution ID
+				const {executionId, promise} = executeBashCommand(commandStr);
+
+				// Set as live component (renders outside Static for real-time updates)
+				setLiveComponent(
+					<BashProgress
+						key={`streaming-tool-${currentTool.id}-${getNextComponentKey()}-${Date.now()}`}
+						executionId={executionId}
+						command={commandStr}
+						isLive={true}
+					/>,
+				);
+
+				// Wait for execution to complete
+				const bashResult = await promise;
+				const llmContent = formatBashResultForLLM(bashResult);
+
+				result = {
+					tool_call_id: currentTool.id,
+					role: 'tool' as const,
+					name: currentTool.function.name,
+					content: llmContent,
+				};
+
+				// Clear live component and add static completed result to chat queue
+				setLiveComponent(null);
+				addToChatQueue(
+					<BashProgress
+						key={`streaming-tool-complete-${currentTool.id}-${getNextComponentKey()}-${Date.now()}`}
+						executionId={executionId}
+						command={commandStr}
+						completedState={bashResult}
+					/>,
+				);
+			} else {
+				// Regular tool - use standard flow
+				result = await processToolUse(currentTool);
+
+				// Display the tool result
+				await displayToolResult(
+					currentTool,
+					result,
+					toolManager,
+					addToChatQueue,
+					getNextComponentKey,
+				);
+			}
 
 			const newResults = [...completedToolResults, result];
 			setCompletedToolResults(newResults);
-
-			// Display the tool result
-			await displayToolResult(
-				currentTool,
-				result,
-				toolManager,
-				addToChatQueue,
-				getNextComponentKey,
-			);
 
 			// Move to next tool or complete the process
 			if (currentToolIndex + 1 < pendingToolCalls.length) {

@@ -46,21 +46,22 @@ test('ExecuteBashFormatter renders with command', t => {
 	t.regex(output!, /echo "hello"/);
 });
 
-test('ExecuteBashFormatter displays output size', t => {
+test('ExecuteBashFormatter shows command for confirmation preview', t => {
 	const formatter = executeBashTool.formatter;
 	if (!formatter) {
 		t.fail('Formatter is not defined');
 		return;
 	}
 
-	const result = 'test output';
-	const element = formatter({command: 'echo test'}, result);
+	// Formatter is used for confirmation preview - only shows command, not output
+	const element = formatter({command: 'echo test'});
 	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
 
 	const output = lastFrame();
 	t.truthy(output);
-	t.regex(output!, /characters/);
-	t.regex(output!, /tokens/);
+	t.regex(output!, /execute_bash/);
+	t.regex(output!, /Command:/);
+	t.regex(output!, /echo test/);
 });
 
 test('ExecuteBashFormatter renders without result', t => {

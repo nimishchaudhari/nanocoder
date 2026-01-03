@@ -59,7 +59,6 @@ test('Non-interactive mode: exits when AI finishes processing prompt', t => {
 	const appStateComplete = {
 		isThinking: false,
 		isToolExecuting: false,
-		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: true,
 		messages: [
@@ -90,7 +89,6 @@ test('Non-interactive mode: does NOT exit while AI is still processing', t => {
 	const appStateThinking = {
 		isThinking: true, // Still generating response
 		isToolExecuting: false,
-		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: false,
 		messages: [{role: 'user', content: 'test'}],
@@ -113,7 +111,6 @@ test('Non-interactive mode: does NOT exit while tools are executing', t => {
 	const appStateExecutingTools = {
 		isThinking: false,
 		isToolExecuting: true, // Tools are running
-		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: false,
 		messages: [
@@ -139,7 +136,6 @@ test('Non-interactive mode: does NOT exit when conversation is incomplete', t =>
 	const appStateIncompleteConversation = {
 		isThinking: false,
 		isToolExecuting: false,
-		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: false, // Conversation not finished yet
 		messages: [
@@ -209,7 +205,6 @@ test('Non-interactive mode: exits with tool-approval reason when tool approval r
 	const appStateToolApprovalRequired = {
 		isThinking: false,
 		isToolExecuting: false,
-		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: true,
 		messages: [

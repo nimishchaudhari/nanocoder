@@ -18,6 +18,7 @@ import {writeFileTool} from '@/tools/write-file';
 import type {
 	AISDKCoreTool,
 	NanocoderToolExport,
+	StreamingFormatter,
 	ToolHandler,
 } from '@/types/index';
 
@@ -113,3 +114,15 @@ export const toolValidators: Record<
 		(args: any) => Promise<{valid: true} | {valid: false; error: string}>
 	>,
 );
+
+// Export streaming formatter registry for real-time progress tools
+export const toolStreamingFormatters: Record<string, StreamingFormatter> =
+	allTools.reduce(
+		(acc, t) => {
+			if ('streamingFormatter' in t && t.streamingFormatter) {
+				acc[t.name] = t.streamingFormatter;
+			}
+			return acc;
+		},
+		{} as Record<string, StreamingFormatter>,
+	);

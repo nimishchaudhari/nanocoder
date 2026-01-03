@@ -5,10 +5,6 @@ export interface AssistantMessageProps {
 	model: string;
 }
 
-export interface BashExecutionIndicatorProps {
-	command: string;
-}
-
 export interface ChatQueueProps {
 	staticComponents?: ReactNode[];
 	queuedComponents?: ReactNode[];

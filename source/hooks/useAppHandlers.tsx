@@ -51,8 +51,7 @@ interface UseAppHandlersProps {
 		updater: DevelopmentMode | ((prev: DevelopmentMode) => DevelopmentMode),
 	) => void;
 	setIsConversationComplete: (value: boolean) => void;
-	setIsBashExecuting: (value: boolean) => void;
-	setCurrentBashCommand: (value: string) => void;
+	setIsToolExecuting: (value: boolean) => void;
 	setIsCheckpointLoadMode: (value: boolean) => void;
 	setCheckpointLoadData: (
 		value: {
@@ -63,6 +62,7 @@ interface UseAppHandlersProps {
 
 	// Callbacks
 	addToChatQueue: (component: React.ReactNode) => void;
+	setLiveComponent: (component: React.ReactNode) => void;
 	client: LLMClient | null;
 	getMessageTokens: (message: Message) => number;
 
@@ -265,12 +265,12 @@ export function useAppHandlers(props: UseAppHandlersProps): AppHandlers {
 				onShowStatus: handleShowStatus,
 				onHandleChatMessage: props.handleChatMessage,
 				onAddToChatQueue: props.addToChatQueue,
+				setLiveComponent: props.setLiveComponent,
+				setIsToolExecuting: props.setIsToolExecuting,
 				onCommandComplete: () => props.setIsConversationComplete(true),
 				getNextComponentKey: props.getNextComponentKey,
 				setMessages: props.updateMessages,
 				messages: props.messages,
-				setIsBashExecuting: props.setIsBashExecuting,
-				setCurrentBashCommand: props.setCurrentBashCommand,
 				provider: props.currentProvider,
 				model: props.currentModel,
 				theme: props.currentTheme,
