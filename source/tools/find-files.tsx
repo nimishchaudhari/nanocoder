@@ -12,7 +12,7 @@ import {
 import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
-import {loadGitignore} from '@/utils/gitignore-loader';
+import {DEFAULT_IGNORE_DIRS, loadGitignore} from '@/utils/gitignore-loader';
 
 const execFileAsync = promisify(execFile);
 
@@ -80,18 +80,8 @@ async function findFilesByPattern(
 			findArgs.push('-name', pattern);
 		}
 
-		// Add exclusions
-		const exclusions = [
-			'*/node_modules/*',
-			'*/.git/*',
-			'*/dist/*',
-			'*/build/*',
-			'*/coverage/*',
-			'*/.next/*',
-			'*/.nuxt/*',
-			'*/out/*',
-			'*/.cache/*',
-		];
+		// Add exclusions - dynamically generated from DEFAULT_IGNORE_DIRS
+		const exclusions = DEFAULT_IGNORE_DIRS.map(dir => `*/${dir}/*`);
 
 		for (const exclusion of exclusions) {
 			findArgs.push('-not', '-path', exclusion);

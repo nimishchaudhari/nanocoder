@@ -30,7 +30,10 @@ const executeExecuteBash = async (args: {command: string}): Promise<string> => {
 			const exitCodeInfo = code !== null ? `EXIT_CODE: ${code}\n` : '';
 
 			if (stderr) {
-				fullOutput = `${exitCodeInfo}STDERR:\n${stderr}\nSTDOUT:\n${stdout}`;
+				fullOutput = `${exitCodeInfo}STDERR:
+${stderr}
+STDOUT:
+${stdout}`;
 			} else {
 				fullOutput = `${exitCodeInfo}${stdout}`;
 			}
@@ -55,7 +58,7 @@ const executeExecuteBash = async (args: {command: string}): Promise<string> => {
 
 const executeBashCoreTool = tool({
 	description:
-		'Execute a bash command. REQUIRES USER APPROVAL. Use ONLY for: building (npm run build), testing (npm test), running servers (npm run dev), installing dependencies (npm install), git operations (git status/diff/log). Do NOT use for file exploration - use find_files, list_directory, search_file_contents, or read_file instead (they are auto-accepted and faster).',
+		'Execute a bash command and return the output (use for running commands)',
 	inputSchema: jsonSchema<{command: string}>({
 		type: 'object',
 		properties: {
@@ -73,6 +76,7 @@ const executeBashCoreTool = tool({
 	},
 });
 
+// Create a component that will re-render when theme changes
 const ExecuteBashFormatter = React.memo(
 	({args, result}: {args: {command: string}; result?: string}) => {
 		const themeContext = React.useContext(ThemeContext);

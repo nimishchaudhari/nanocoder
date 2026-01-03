@@ -1,11 +1,9 @@
 import {exec} from 'node:child_process';
-import {existsSync, readFileSync} from 'node:fs';
-import {join} from 'node:path';
 import {promisify} from 'node:util';
-import ignore from 'ignore';
 import {BUFFER_FILE_LIST_BYTES, CACHE_FILE_LIST_TTL_MS} from '@/constants';
 import {formatError} from './error-formatter';
 import {fuzzyScoreFilePath} from './fuzzy-matching';
+import {loadGitignore} from './gitignore-loader';
 import {getLogger} from './logging';
 
 const execAsync = promisify(exec);
@@ -15,40 +13,6 @@ interface FileCompletion {
 	displayPath: string; // Shortened for display
 	score: number; // Fuzzy match score (higher = better match)
 	isDirectory: boolean;
-}
-
-/**
- * Load and parse .gitignore file, returns an ignore instance
- */
-function loadGitignore(cwd: string): ReturnType<typeof ignore> {
-	const ig = ignore();
-	const gitignorePath = join(cwd, '.gitignore');
-
-	// Always ignore common directories
-	ig.add([
-		'node_modules',
-		'.git',
-		'dist',
-		'build',
-		'coverage',
-		'.next',
-		'.nuxt',
-		'out',
-		'.cache',
-	]);
-
-	// Load .gitignore if it exists
-	if (existsSync(gitignorePath)) {
-		try {
-			const gitignoreContent = readFileSync(gitignorePath, 'utf-8');
-			ig.add(gitignoreContent);
-		} catch {
-			// Silently fail if we can't read .gitignore
-			// The hardcoded ignores above will still apply
-		}
-	}
-
-	return ig;
 }
 
 // Simple cache for file list

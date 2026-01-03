@@ -225,3 +225,59 @@ test('FileScanner - scan handles subdirectories', t => {
 	t.true(result.files.includes('src/components/Button.tsx'));
 	t.true(result.directories.includes('src/components'));
 });
+
+test('FileScanner - scan ignores .svn directory', t => {
+	mkdirSync(join(testDir, '.svn'), {recursive: true});
+	writeFileSync(join(testDir, '.svn', 'entries'), 'test', 'utf-8');
+
+	const scanner = new FileScanner(testDir);
+	const result = scanner.scan();
+
+	t.false(result.files.some(f => f.includes('.svn')));
+	t.false(result.directories.some(d => d.includes('.svn')));
+});
+
+test('FileScanner - scan ignores .hg directory', t => {
+	mkdirSync(join(testDir, '.hg'), {recursive: true});
+	writeFileSync(join(testDir, '.hg', 'store'), 'test', 'utf-8');
+
+	const scanner = new FileScanner(testDir);
+	const result = scanner.scan();
+
+	t.false(result.files.some(f => f.includes('.hg')));
+	t.false(result.directories.some(d => d.includes('.hg')));
+});
+
+test('FileScanner - scan ignores __pycache__ directory', t => {
+	mkdirSync(join(testDir, '__pycache__'), {recursive: true});
+	writeFileSync(join(testDir, '__pycache__', 'module.pyc'), 'test', 'utf-8');
+
+	const scanner = new FileScanner(testDir);
+	const result = scanner.scan();
+
+	t.false(result.files.some(f => f.includes('__pycache__')));
+	t.false(result.directories.some(d => d.includes('__pycache__')));
+});
+
+test('FileScanner - scan ignores .pytest_cache directory', t => {
+	mkdirSync(join(testDir, '.pytest_cache'), {recursive: true});
+	writeFileSync(join(testDir, '.pytest_cache', 'cache'), 'test', 'utf-8');
+
+	const scanner = new FileScanner(testDir);
+	const result = scanner.scan();
+
+	t.false(result.files.some(f => f.includes('.pytest_cache')));
+	t.false(result.directories.some(d => d.includes('.pytest_cache')));
+});
+
+test('FileScanner - scan ignores target directory', t => {
+	mkdirSync(join(testDir, 'target'), {recursive: true});
+	mkdirSync(join(testDir, 'target', 'debug'), {recursive: true});
+	writeFileSync(join(testDir, 'target', 'debug', 'app'), 'test', 'utf-8');
+
+	const scanner = new FileScanner(testDir);
+	const result = scanner.scan();
+
+	t.false(result.files.some(f => f.includes('target')));
+	t.false(result.directories.some(d => d.includes('target')));
+});

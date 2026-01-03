@@ -13,7 +13,7 @@ import {
 import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
-import {loadGitignore} from '@/utils/gitignore-loader';
+import {DEFAULT_IGNORE_DIRS, loadGitignore} from '@/utils/gitignore-loader';
 
 const execFileAsync = promisify(execFile);
 
@@ -48,17 +48,10 @@ async function searchFileContents(
 
 		// Add include and exclude patterns
 		grepArgs.push('--include=*');
-		grepArgs.push(
-			'--exclude-dir=node_modules',
-			'--exclude-dir=.git',
-			'--exclude-dir=dist',
-			'--exclude-dir=build',
-			'--exclude-dir=coverage',
-			'--exclude-dir=.next',
-			'--exclude-dir=.nuxt',
-			'--exclude-dir=out',
-			'--exclude-dir=.cache',
-		);
+		// Dynamically add exclusions from DEFAULT_IGNORE_DIRS
+		for (const dir of DEFAULT_IGNORE_DIRS) {
+			grepArgs.push(`--exclude-dir=${dir}`);
+		}
 
 		// Add the search query (no escaping needed with array-based args)
 		grepArgs.push(query);

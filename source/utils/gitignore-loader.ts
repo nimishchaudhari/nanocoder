@@ -5,17 +5,36 @@ import ignore from 'ignore';
 /**
  * Default directories to always ignore during file operations.
  * These are commonly large or irrelevant directories.
+ * Organized by ecosystem/purpose for maintainability.
  */
 const DEFAULT_IGNORE_DIRS = [
+	// JavaScript/TypeScript/Node.js
 	'node_modules',
-	'.git',
+	'.cache',
+
+	// Build outputs
 	'dist',
 	'build',
-	'coverage',
-	'.next',
-	'.nuxt',
 	'out',
-	'.cache',
+
+	// Framework-specific build outputs
+	'.next', // Next.js
+	'.nuxt', // Nuxt.js
+
+	// Python
+	'__pycache__',
+	'.pytest_cache',
+
+	// Rust/Java
+	'target',
+
+	// Test coverage
+	'coverage',
+
+	// Version control systems
+	'.git',
+	'.svn', // Subversion
+	'.hg', // Mercurial
 ];
 
 /**

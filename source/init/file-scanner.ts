@@ -1,6 +1,7 @@
-import {existsSync, readdirSync, readFileSync, statSync} from 'fs';
+import {readdirSync, statSync} from 'fs';
 import {basename, join, relative} from 'path';
 import {MAX_DIRECTORY_DEPTH, MAX_FILES_TO_SCAN} from '@/constants';
+import {loadGitignore} from '@/utils/gitignore-loader';
 
 interface ScanResult {
 	files: string[];
@@ -10,40 +11,12 @@ interface ScanResult {
 }
 
 export class FileScanner {
-	private gitignorePatterns: string[] = [];
+	private ignoreInstance: ReturnType<typeof loadGitignore>;
 	private maxFiles = MAX_FILES_TO_SCAN; // Prevent scanning massive codebases
 	private maxDepth = MAX_DIRECTORY_DEPTH; // Prevent infinite recursion
 
 	constructor(private rootPath: string) {
-		this.loadGitignore();
-	}
-
-	/**
-	 * Load and parse .gitignore patterns
-	 */
-	private loadGitignore(): void {
-		const gitignorePath = join(this.rootPath, '.gitignore');
-
-		if (!existsSync(gitignorePath)) {
-			return;
-		}
-
-		try {
-			const content = readFileSync(gitignorePath, 'utf-8');
-			this.gitignorePatterns = content
-				.split('\n')
-				.map(line => line.trim())
-				.filter(line => line && !line.startsWith('#'))
-				.map(pattern => {
-					// Convert gitignore patterns to simple regex patterns
-					return pattern
-						.replace(/\*/g, '.*') // * -> .*
-						.replace(/\?/g, '.') // ? -> .
-						.replace(/\/$/, ''); // Remove trailing slash
-				});
-		} catch {
-			// Ignore gitignore parsing errors
-		}
+		this.ignoreInstance = loadGitignore(rootPath);
 	}
 
 	/**
@@ -51,39 +24,11 @@ export class FileScanner {
 	 */
 	private shouldIgnore(filePath: string): boolean {
 		const relativePath = relative(this.rootPath, filePath);
-		const fileName = basename(filePath);
-
-		// Always ignore these directories
-		const alwaysIgnore = [
-			'node_modules',
-			'.git',
-			'.svn',
-			'.hg',
-			'dist',
-			'build',
-			'.next',
-			'.nuxt',
-			'__pycache__',
-			'.pytest_cache',
-			'target',
-			'coverage',
-		];
-
-		if (
-			alwaysIgnore.some(
-				ignored => relativePath.includes(ignored) || fileName === ignored,
-			)
-		) {
-			return true;
+		// ignore library requires non-empty paths
+		if (!relativePath || relativePath === '.') {
+			return false;
 		}
-
-		// Check gitignore patterns
-		return this.gitignorePatterns.some(pattern => {
-			// nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
-			// pattern comes from .gitignore file, not user input
-			const regex = new RegExp(`^${pattern}$`); // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
-			return regex.test(relativePath) || regex.test(fileName);
-		});
+		return this.ignoreInstance.ignores(relativePath);
 	}
 
 	/**

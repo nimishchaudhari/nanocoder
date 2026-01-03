@@ -18,11 +18,36 @@ test('loadGitignore ignores default directories', t => {
 });
 
 test('DEFAULT_IGNORE_DIRS contains expected directories', t => {
+	// JavaScript/TypeScript/Node.js
 	t.true(DEFAULT_IGNORE_DIRS.includes('node_modules'));
-	t.true(DEFAULT_IGNORE_DIRS.includes('.git'));
+	t.true(DEFAULT_IGNORE_DIRS.includes('.cache'));
+
+	// Build outputs
 	t.true(DEFAULT_IGNORE_DIRS.includes('dist'));
 	t.true(DEFAULT_IGNORE_DIRS.includes('build'));
+	t.true(DEFAULT_IGNORE_DIRS.includes('out'));
+
+	// Framework-specific
+	t.true(DEFAULT_IGNORE_DIRS.includes('.next'));
+	t.true(DEFAULT_IGNORE_DIRS.includes('.nuxt'));
+
+	// Python
+	t.true(DEFAULT_IGNORE_DIRS.includes('__pycache__'));
+	t.true(DEFAULT_IGNORE_DIRS.includes('.pytest_cache'));
+
+	// Rust/Java
+	t.true(DEFAULT_IGNORE_DIRS.includes('target'));
+
+	// Test coverage
 	t.true(DEFAULT_IGNORE_DIRS.includes('coverage'));
+
+	// Version control
+	t.true(DEFAULT_IGNORE_DIRS.includes('.git'));
+	t.true(DEFAULT_IGNORE_DIRS.includes('.svn'));
+	t.true(DEFAULT_IGNORE_DIRS.includes('.hg'));
+
+	// Verify count
+	t.is(DEFAULT_IGNORE_DIRS.length, 14);
 });
 
 test.serial('loadGitignore loads .gitignore patterns', async t => {
@@ -57,4 +82,24 @@ test.serial('loadGitignore works without .gitignore file', async t => {
 	} finally {
 		rmSync(testDir, {recursive: true, force: true});
 	}
+});
+
+test('loadGitignore ignores all language-specific directories', t => {
+	const ig = loadGitignore(process.cwd());
+
+	// Python
+	t.true(ig.ignores('__pycache__'));
+	t.true(ig.ignores('src/__pycache__/file.pyc'));
+	t.true(ig.ignores('.pytest_cache'));
+	t.true(ig.ignores('.pytest_cache/file'));
+
+	// Rust/Java
+	t.true(ig.ignores('target'));
+	t.true(ig.ignores('target/debug/app'));
+
+	// Version control
+	t.true(ig.ignores('.svn'));
+	t.true(ig.ignores('.svn/entries'));
+	t.true(ig.ignores('.hg'));
+	t.true(ig.ignores('.hg/store'));
 });
