@@ -6,6 +6,7 @@ import React from 'react';
 import ToolMessage from '@/components/tool-message';
 import {
 	BUFFER_FIND_FILES_BYTES,
+	CHARS_PER_TOKEN_ESTIMATE,
 	DEFAULT_FIND_FILES_RESULTS,
 	MAX_FIND_FILES_RESULTS,
 } from '@/constants';
@@ -212,6 +213,11 @@ const FindFilesFormatter = React.memo(
 			}
 		}
 
+		// Calculate tokens
+		const tokens = result
+			? Math.ceil(result.length / CHARS_PER_TOKEN_ESTIMATE)
+			: 0;
+
 		const messageContent = (
 			<Box flexDirection="column">
 				<Text color={colors.tool}>⚒ find_files</Text>
@@ -225,6 +231,13 @@ const FindFilesFormatter = React.memo(
 					<Text color={colors.secondary}>Results: </Text>
 					<Text color={colors.white}>{fileCount}</Text>
 				</Box>
+
+				{tokens > 0 && (
+					<Box>
+						<Text color={colors.secondary}>Tokens: </Text>
+						<Text color={colors.white}>~{tokens.toLocaleString()}</Text>
+					</Box>
+				)}
 			</Box>
 		);
 

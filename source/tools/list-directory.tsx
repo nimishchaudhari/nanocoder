@@ -4,6 +4,7 @@ import {Box, Text} from 'ink';
 import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
+import {CHARS_PER_TOKEN_ESTIMATE} from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
@@ -222,10 +223,11 @@ const listDirectoryCoreTool = tool({
 interface ListDirectoryFormatterProps {
 	args: ListDirectoryArgs;
 	result?: string;
+	tokens?: number;
 }
 
 const ListDirectoryFormatter = React.memo(
-	({args, result}: ListDirectoryFormatterProps) => {
+	({args, result, tokens}: ListDirectoryFormatterProps) => {
 		const themeContext = React.useContext(ThemeContext);
 		if (!themeContext) {
 			throw new Error('ThemeContext not found');
@@ -292,6 +294,13 @@ const ListDirectoryFormatter = React.memo(
 						<Text color={colors.white}>shown</Text>
 					</Box>
 				)}
+
+				{tokens !== undefined && tokens > 0 && (
+					<Box>
+						<Text color={colors.secondary}>Tokens: </Text>
+						<Text color={colors.white}>~{tokens.toLocaleString()}</Text>
+					</Box>
+				)}
 			</Box>
 		);
 
@@ -306,7 +315,14 @@ const listDirectoryFormatter = (
 	if (result && result.startsWith('Error:')) {
 		return <></>;
 	}
-	return <ListDirectoryFormatter args={args} result={result} />;
+
+	// Calculate tokens from the result
+	let tokens = 0;
+	if (result) {
+		tokens = Math.ceil(result.length / CHARS_PER_TOKEN_ESTIMATE);
+	}
+
+	return <ListDirectoryFormatter args={args} result={result} tokens={tokens} />;
 };
 
 export const listDirectoryTool: NanocoderToolExport = {

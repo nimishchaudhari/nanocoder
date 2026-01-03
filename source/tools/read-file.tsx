@@ -287,14 +287,16 @@ const ReadFileFormatter = React.memo(
 								{args.start_line || 1} - {args.end_line || fileInfo.totalLines}
 							</Text>
 						</Box>
-
-						<Box>
-							<Text color={colors.secondary}>Tokens: </Text>
-							<Text color={colors.white}>
-								~{fileInfo.tokens.toLocaleString()}
-							</Text>
-						</Box>
 					</>
+				)}
+
+				{!fileInfo.isMetadataOnly && (
+					<Box>
+						<Text color={colors.secondary}>Tokens: </Text>
+						<Text color={colors.white}>
+							~{fileInfo.tokens.toLocaleString()}
+						</Text>
+					</Box>
 				)}
 			</Box>
 		);
