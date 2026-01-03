@@ -41,7 +41,7 @@ test('title-shape-selector: shows current shape in the selection prompt', (t) =>
 		);
 
 		// Should show the current shape
-		t.regex(container.textContent, /current: Powerline Angled/);
+		t.regex(container.textContent, /current: Powerline Angled :-  Demo Title  \(Requires Nerd Fonts\)/);
 	});
 
 test('title-shape-selector: renders all available title shapes', (t) => {
@@ -59,9 +59,19 @@ test('title-shape-selector: renders all available title shapes', (t) => {
 			'Double',
 			'Pill',
 			'Powerline Angled',
+			'Powerline Angled Thin',
 			'Powerline Curved',
+			'Powerline Curved Thin',
 			'Powerline Flame',
+			'Powerline Flame Thin',
 			'Powerline Block',
+			'Powerline Block Thin',
+			'Powerline Segment',
+			'Powerline Segment Thin',
+			'Powerline Rect',
+			'Powerline Rect Thin',
+			'Powerline Graph',
+			'Powerline Block Alt',
 			'Arrow Left',
 			'Arrow Right',
 			'Arrow Double',

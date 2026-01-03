@@ -6,14 +6,24 @@ export type TitleShape =
 	| 'square'
 	| 'double'
 	| 'pill'
-	| 'powerline-angled'
-	| 'powerline-curved'
-	| 'powerline-flame'
-	| 'powerline-block'
 	| 'arrow-left'
 	| 'arrow-right'
 	| 'arrow-double'
-	| 'angled-box';
+	| 'angled-box'
+	| 'powerline-angled'
+	| 'powerline-angled-thin'
+	| 'powerline-curved'
+	| 'powerline-curved-thin'
+	| 'powerline-flame'
+	| 'powerline-flame-thin'
+	| 'powerline-block'
+	| 'powerline-block-thin'
+	| 'powerline-segment'
+	| 'powerline-segment-thin'
+	| 'powerline-rect'
+	| 'powerline-rect-thin'
+	| 'powerline-graph'
+	| 'powerline-block-alt';
 
 export interface StyledTitleProps extends Omit<BoxProps, 'borderStyle'> {
 	/** Title text to display */
@@ -68,30 +78,6 @@ const shapeCharacters = {
 		horizontal: ' ',
 		vertical: ' ',
 	},
-	'powerline-angled': {
-		left: '', // U+E0B0
-		right: '', // U+E0B2
-		thinLeft: '', // U+E0B1
-		thinRight: '', // U+E0B3
-	},
-	'powerline-curved': {
-		left: '', // U+E0B4
-		right: '', // U+E0B6
-		thinLeft: '', // U+E0B5
-		thinRight: '', // U+E0B7
-	},
-	'powerline-flame': {
-		left: '', // U+E0C0
-		right: '', // U+E0C1
-		thinLeft: '', // U+E0C2
-		thinRight: '', // U+E0C3
-	},
-	'powerline-block': {
-		left: '', // U+E0CE
-		right: '', // U+E0CF
-		thinLeft: '', // U+E0CD
-		thinRight: '', // U+E0D0
-	},
 	'arrow-left': {
 		left: '←',
 		right: '→',
@@ -114,6 +100,62 @@ const shapeCharacters = {
 		bottomRight: '╱',
 		horizontal: '─',
 		vertical: '│',
+	},
+	'powerline-angled': {
+		left: '', // U+E0B0
+		right: '', // U+E0B2
+	},
+	'powerline-angled-thin': {
+		left: '', // U+E0B1
+		right: '', // U+E0B3
+	},
+	'powerline-curved': {
+		left: '', // U+E0B4
+		right: '', // U+E0B6
+	},
+	'powerline-curved-thin': {
+		left: '', // U+E0B5
+		right: '', // U+E0B7
+	},
+	'powerline-flame': {
+		left: '', // U+E0C0
+		right: '', // U+E0C2
+	},
+	'powerline-flame-thin': {
+		left: '', // U+E0C1
+		right: '', // U+E0C3
+	},
+	'powerline-block': {
+		left: '', // U+E0BE
+		right: '', // U+E0BC
+	},
+	'powerline-block-thin': {
+		left: '', // U+E0BF
+		right: '', // U+E0BD
+	},
+	'powerline-segment': {
+		left: '', // U+E0C4
+		right: '', // U+E0C5
+	},
+	'powerline-segment-thin': {
+		left: '', // U+E0C6
+		right: '', // U+E0C7
+	},
+	'powerline-rect': {
+		left: '', // U+E0B8
+		right: '', // U+E0BA
+	},
+	'powerline-rect-thin': {
+		left: '', // U+E0B9
+		right: '', // U+E0BB
+	},
+	'powerline-graph': {
+		left: '', // U+E0C8
+		right: '', // U+E0CA
+	},
+	'powerline-block-alt': {
+		left: '', // U+E0D2
+		right: '', // U+E0D4
 	},
 };
 
@@ -148,8 +190,6 @@ export function StyledTitle({
 		const powerlineShapes = effectiveShapes as {
 			left: string;
 			right: string;
-			thinLeft: string;
-			thinRight: string;
 		};
 
 		// Determine symbol order based on reversePowerline prop

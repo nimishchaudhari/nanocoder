@@ -48,14 +48,66 @@ export default function TitleShapeSelector({
 		{label: 'Square :- ┌ Demo Title ┐', value: 'square'},
 		{label: 'Double :- ╔ Demo Title ╗', value: 'double'},
 		{label: 'Pill :- Demo Title', value: 'pill'},
-		{label: 'Powerline Angled :-  Demo Title  (Requires Nerd Fonts)', value: 'powerline-angled'},
-		{label: 'Powerline Curved :-  Demo Title  (Requires Nerd Fonts)', value: 'powerline-curved'},
-		{label: 'Powerline Flame :-  Demo Title  (Requires Nerd Fonts)', value: 'powerline-flame'},
-		{label: 'Powerline Block :-  Demo Title  (Requires Nerd Fonts)', value: 'powerline-block'},
 		{label: 'Arrow Left :- ← Demo Title →', value: 'arrow-left'},
 		{label: 'Arrow Right :- → Demo Title ←', value: 'arrow-right'},
 		{label: 'Arrow Double :- « Demo Title »', value: 'arrow-double'},
 		{label: 'Angled Box :- ╱ Demo Title ╲', value: 'angled-box'},
+		{
+			label: 'Powerline Angled :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-angled',
+		},
+		{
+			label: 'Powerline Angled Thin :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-angled-thin',
+		},
+		{
+			label: 'Powerline Curved :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-curved',
+		},
+		{
+			label: 'Powerline Curved Thin :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-curved-thin',
+		},
+		{
+			label: 'Powerline Flame :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-flame',
+		},
+		{
+			label: 'Powerline Flame Thin :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-flame-thin',
+		},
+		{
+			label: 'Powerline Block :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-block',
+		},
+		{
+			label: 'Powerline Block Thin :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-block-thin',
+		},
+		{
+			label: 'Powerline Segment :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-segment',
+		},
+		{
+			label: 'Powerline Segment Thin :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-segment-thin',
+		},
+		{
+			label: 'Powerline Rect :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-rect',
+		},
+		{
+			label: 'Powerline Rect Thin :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-rect-thin',
+		},
+		{
+			label: 'Powerline Graph :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-graph',
+		},
+		{
+			label: 'Powerline Block Alt :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-block-alt',
+		},
 	];
 
 	// Find index of current shape for initial selection
