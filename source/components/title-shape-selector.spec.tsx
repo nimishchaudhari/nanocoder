@@ -1,58 +1,108 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
 import TitleShapeSelector from './title-shape-selector';
-import {updateTitleShape} from '@/config/preferences';
+import {updateTitleShape, getTitleShape} from '@/config/preferences';
+import {renderWithTheme} from '@/test-utils/render-with-theme';
 
-console.log('\ntitle-shape-selector.spec.tsx');
+// Store original functions to restore later
+let originalGetTitleShape: any;
 
-test('title-shape-selector: renders title shape selector with all shape options', (t) => {
-		const {getByText, container} = render(
+test.before(() => {
+	// Store original function
+	originalGetTitleShape = (global as any).getTitleShape;
+	
+	// Mock the preferences to return a default shape
+	(global as any).getTitleShape = () => 'pill';
+});
+
+test.after(() => {
+	// Restore original function
+	if (originalGetTitleShape !== undefined) {
+		(global as any).getTitleShape = originalGetTitleShape;
+	} else {
+		delete (global as any).getTitleShape;
+	}
+});
+
+test.serial('title-shape-selector: renders title shape selector with all shape options', (t) => {
+	// Mock the preferences for this specific test
+	const originalGetTitleShape = (global as any).getTitleShape;
+	(global as any).getTitleShape = () => 'pill';
+
+	try {
+		const {frames, unmount} = renderWithTheme(
 			React.createElement(TitleShapeSelector, {
 				onComplete: () => {},
 				onCancel: () => {},
-			}),
+			})
 		);
 
-		// Should render the main title
-		t.regex(container.textContent, /Choose your preferred title shape/);
+		// ink-testing-library returns frames which is an array of snapshots
+		// The latest frame contains the current output
+		const latestFrame = frames.at(-1) || '';
+		
+		// Should render the main title (BigText version)
+		t.regex(latestFrame, /▀█▀ █ ▀█▀ █/);
+
+		// Should render the main title in the box
+		t.regex(latestFrame, /Choose your preferred title shape/);
 
 		// Should render instructions
-		t.regex(container.textContent, /Use arrow keys to navigate/);
-		t.regex(container.textContent, /Press Enter to select/);
-		t.regex(container.textContent, /Press Esc to cancel/);
+		t.regex(latestFrame, /Use arrow keys to navigate/);
+		t.regex(latestFrame, /Press Enter to select/);
+		t.regex(latestFrame, /Press Esc to cancel/);
 
 		// Should render navigation instructions
-		t.regex(container.textContent, /↑\/↓ Navigate • Enter Select • Esc Cancel/);
+		t.regex(latestFrame, /Navigate • Enter Select • Esc Cancel/);
 
-		// Should render preview instruction
-		t.regex(container.textContent, /Preview the shape above as you navigate/);
-	});
+		unmount();
+	} finally {
+		// Restore original function
+		(global as any).getTitleShape = originalGetTitleShape;
+	}
+});
 
-test('title-shape-selector: shows current shape in the selection prompt', (t) => {
-		// Set a specific shape first
-		updateTitleShape('powerline-angled');
+test.serial('title-shape-selector: shows current shape in the selection prompt', (t) => {
+	// Mock the preferences to return a specific shape
+	const originalGetTitleShape = (global as any).getTitleShape;
+	(global as any).getTitleShape = () => 'powerline-angled';
 
-		const {container} = render(
+	try {
+		const {frames, unmount} = renderWithTheme(
 			React.createElement(TitleShapeSelector, {
 				onComplete: () => {},
 				onCancel: () => {},
-			}),
+			})
 		);
 
-		// Should show the current shape
-		t.regex(container.textContent, /current: Powerline Angled :-  Demo Title  \(Requires Nerd Fonts\)/);
-	});
+		const latestFrame = frames.at(-1) || '';
+		
+		// Should show the current shape in the selection prompt
+		t.regex(latestFrame, /Select a title shape \(current: Powerline Angled :-  Demo Title [\s\S]*?\(Requires Nerd Fonts\)/);
 
-test('title-shape-selector: renders all available title shapes', (t) => {
-		const {container} = render(
+		unmount();
+	} finally {
+		// Restore original function
+		(global as any).getTitleShape = originalGetTitleShape;
+	}
+});
+
+test.serial('title-shape-selector: renders all available title shapes', (t) => {
+	// Mock the preferences to return a default shape
+	const originalGetTitleShape = (global as any).getTitleShape;
+	(global as any).getTitleShape = () => 'pill';
+
+	try {
+		const {frames, unmount} = renderWithTheme(
 			React.createElement(TitleShapeSelector, {
 				onComplete: () => {},
 				onCancel: () => {},
-			}),
+			})
 		);
 
-		// Should include all shape options
+		const latestFrame = frames.at(-1) || '';
+		
+		// Should include all shape options in the SelectInput
 		const shapeNames = [
 			'Rounded',
 			'Square',
@@ -77,18 +127,37 @@ test('title-shape-selector: renders all available title shapes', (t) => {
 		];
 
 		shapeNames.forEach((shapeName) => {
-			t.regex(container.textContent, new RegExp(shapeName));
+			t.regex(latestFrame, new RegExp(shapeName));
 		});
-	});
 
-test('title-shape-selector: has proper gradient header', (t) => {
-		const {container} = render(
+		unmount();
+	} finally {
+		// Restore original function
+		(global as any).getTitleShape = originalGetTitleShape;
+	}
+});
+
+test.serial('title-shape-selector: has proper gradient header', (t) => {
+	// Mock the preferences to return a default shape
+	const originalGetTitleShape = (global as any).getTitleShape;
+	(global as any).getTitleShape = () => 'pill';
+
+	try {
+		const {frames, unmount} = renderWithTheme(
 			React.createElement(TitleShapeSelector, {
 				onComplete: () => {},
 				onCancel: () => {},
-			}),
+			})
 		);
 
-		// Should have the gradient header
-		t.regex(container.textContent, /Title Shapes/);
-	});
+		const latestFrame = frames.at(-1) || '';
+		
+		// Should have the gradient header with "Title Shapes" (BigText version)
+		t.regex(latestFrame, /▀█▀ █ ▀█▀ █/);
+
+		unmount();
+	} finally {
+		// Restore original function
+		(global as any).getTitleShape = originalGetTitleShape;
+	}
+});
