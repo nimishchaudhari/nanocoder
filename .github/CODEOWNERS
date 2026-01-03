@@ -3,7 +3,7 @@
 
 # CLI specific files
 source/cli/ @will-lamerton @Avtrkrb
-source/commands/* @will-lamerton @Avtrkrb @JimStenstrom
+source/commands/* @will-lamerton @Avtrkrb
 
 # AI SDK client
 source/ai-sdk-client/* @will-lamerton @Avtrkrb @DenizOkcu
