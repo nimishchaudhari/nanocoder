@@ -97,6 +97,8 @@ export function useAppState() {
 		useState<boolean>(false);
 	const [isThemeSelectionMode, setIsThemeSelectionMode] =
 		useState<boolean>(false);
+	const [isTitleShapeSelectionMode, setIsTitleShapeSelectionMode] =
+		useState<boolean>(false);
 	const [isModelDatabaseMode, setIsModelDatabaseMode] =
 		useState<boolean>(false);
 	const [isConfigWizardMode, setIsConfigWizardMode] = useState<boolean>(false);
@@ -251,6 +253,7 @@ export function useAppState() {
 		isModelSelectionMode,
 		isProviderSelectionMode,
 		isThemeSelectionMode,
+		isTitleShapeSelectionMode,
 		isModelDatabaseMode,
 		isConfigWizardMode,
 		isCheckpointLoadMode,
@@ -293,6 +296,7 @@ export function useAppState() {
 		setIsModelSelectionMode,
 		setIsProviderSelectionMode,
 		setIsThemeSelectionMode,
+		setIsTitleShapeSelectionMode,
 		setIsModelDatabaseMode,
 		setIsConfigWizardMode,
 		setIsCheckpointLoadMode,

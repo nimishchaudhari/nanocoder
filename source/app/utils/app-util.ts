@@ -26,6 +26,7 @@ const SPECIAL_COMMANDS = {
 	SETUP_CONFIG: 'setup-config',
 	STATUS: 'status',
 	CHECKPOINT: 'checkpoint',
+	TITLE_SHAPE: 'title-shape',
 } as const;
 
 /** Checkpoint subcommands */
@@ -185,6 +186,7 @@ async function handleSpecialCommand(
 		onEnterModelSelectionMode,
 		onEnterProviderSelectionMode,
 		onEnterThemeSelectionMode,
+		onEnterTitleShapeSelectionMode,
 		onEnterModelDatabaseMode,
 		onEnterConfigWizardMode,
 		onShowStatus,
@@ -220,6 +222,11 @@ async function handleSpecialCommand(
 
 		case SPECIAL_COMMANDS.THEME:
 			onEnterThemeSelectionMode();
+			onCommandComplete?.();
+			return true;
+
+		case SPECIAL_COMMANDS.TITLE_SHAPE:
+			onEnterTitleShapeSelectionMode();
 			onCommandComplete?.();
 			return true;
 

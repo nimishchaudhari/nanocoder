@@ -1,4 +1,5 @@
 import {readFileSync, writeFileSync} from 'fs';
+import type {TitleShape} from '@/components/ui/styled-title';
 import {getClosestConfigFile} from '@/config/index';
 import type {UserPreferences} from '@/types/index';
 import {logError} from '@/utils/message-queue';
@@ -52,6 +53,17 @@ export function updateLastUsed(provider: string, model: string): void {
 	preferences.providerModels[provider] = model;
 
 	savePreferences(preferences);
+}
+
+export function updateTitleShape(shape: string): void {
+	const preferences = loadPreferences();
+	preferences.titleShape = shape as TitleShape;
+	savePreferences(preferences);
+}
+
+export function getTitleShape(): TitleShape | undefined {
+	const preferences = loadPreferences();
+	return preferences.titleShape;
 }
 
 export function getLastUsedModel(provider: string): string | undefined {

@@ -1,7 +1,7 @@
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {useEffect, useState} from 'react';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {LLMClient} from '@/types/core';
@@ -76,8 +76,9 @@ export default function ModelSelector({
 
 	if (loading) {
 		return (
-			<TitledBox
+			<TitledBoxWithPreferences
 				title="Model Selection"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
@@ -85,14 +86,15 @@ export default function ModelSelector({
 				marginBottom={1}
 			>
 				<Text color={colors.secondary}>Loading available models...</Text>
-			</TitledBox>
+			</TitledBoxWithPreferences>
 		);
 	}
 
 	if (error) {
 		return (
-			<TitledBox
+			<TitledBoxWithPreferences
 				title="Model Selection - Error"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}
@@ -108,13 +110,14 @@ export default function ModelSelector({
 						<Text color={colors.secondary}>Press Escape to cancel</Text>
 					</Box>
 				</Box>
-			</TitledBox>
+			</TitledBoxWithPreferences>
 		);
 	}
 
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="Select a Model"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -127,6 +130,6 @@ export default function ModelSelector({
 					<Text color={colors.secondary}>Press Escape to cancel</Text>
 				</Box>
 			</Box>
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }

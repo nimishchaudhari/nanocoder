@@ -6,10 +6,11 @@ import {
 	loadPreferences,
 	savePreferences,
 	updateLastUsed,
+	updateTitleShape,
 } from '@/config/preferences';
 import {getToolManager} from '@/message-handler';
 import {LLMClient, Message} from '@/types/core';
-import type {ThemePreset} from '@/types/ui';
+import type {ThemePreset, TitleShape} from '@/types/ui';
 
 interface UseModeHandlersProps {
 	client: LLMClient | null;
@@ -24,6 +25,7 @@ interface UseModeHandlersProps {
 	setIsModelSelectionMode: (mode: boolean) => void;
 	setIsProviderSelectionMode: (mode: boolean) => void;
 	setIsThemeSelectionMode: (mode: boolean) => void;
+	setIsTitleShapeSelectionMode: (mode: boolean) => void;
 	setIsModelDatabaseMode: (mode: boolean) => void;
 	setIsConfigWizardMode: (mode: boolean) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
@@ -46,6 +48,7 @@ export function useModeHandlers({
 	setIsModelSelectionMode,
 	setIsProviderSelectionMode,
 	setIsThemeSelectionMode,
+	setIsTitleShapeSelectionMode,
 	setIsModelDatabaseMode,
 	setIsConfigWizardMode,
 	addToChatQueue,
@@ -159,6 +162,22 @@ export function useModeHandlers({
 	// Helper function to enter theme selection mode
 	const enterThemeSelectionMode = () => {
 		setIsThemeSelectionMode(true);
+	};
+
+	// Helper function to enter title shape selection mode
+	const enterTitleShapeSelectionMode = () => {
+		setIsTitleShapeSelectionMode(true);
+	};
+
+	// Handle title shape selection
+	const handleTitleShapeSelect = (selectedShape: TitleShape) => {
+		updateTitleShape(selectedShape);
+		setIsTitleShapeSelectionMode(false);
+	};
+
+	// Handle title shape selection cancel
+	const handleTitleShapeSelectionCancel = () => {
+		setIsTitleShapeSelectionMode(false);
 	};
 
 	// Handle theme selection
@@ -287,6 +306,9 @@ export function useModeHandlers({
 		enterModelSelectionMode,
 		enterProviderSelectionMode,
 		enterThemeSelectionMode,
+		enterTitleShapeSelectionMode,
+		handleTitleShapeSelect,
+		handleTitleShapeSelectionCancel,
 		enterModelDatabaseMode,
 		enterConfigWizardMode,
 		handleModelSelect,

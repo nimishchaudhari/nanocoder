@@ -1,7 +1,7 @@
 import {Box, Text} from 'ink';
 import React, {memo} from 'react';
 
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 
@@ -63,8 +63,9 @@ export default memo(function ToolMessage({
 					)}
 				</Box>
 			) : (
-				<TitledBox
+				<TitledBoxWithPreferences
 					title={title || 'Tool Message'}
+					reversePowerline={true}
 					width={boxWidth}
 					borderColor={borderColor}
 					paddingX={2}
@@ -78,7 +79,7 @@ export default memo(function ToolMessage({
 							Output truncated to 4k characters to save context
 						</Text>
 					)}
-				</TitledBox>
+				</TitledBoxWithPreferences>
 			)}
 		</>
 	);

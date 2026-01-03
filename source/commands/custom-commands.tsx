@@ -1,6 +1,6 @@
 import {Box, Text} from 'ink';
 import React from 'react';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {CustomCommandLoader} from '@/custom-commands/loader';
 import {useTheme} from '@/hooks/useTheme';
 import type {Command, CustomCommand} from '@/types/index';
@@ -38,8 +38,9 @@ function CustomCommands({commands}: CustomCommandsProps) {
 	);
 
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="Custom Commands"
+			reversePowerline={true}
 			width={75}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -98,7 +99,7 @@ function CustomCommands({commands}: CustomCommandsProps) {
 					))}
 				</>
 			)}
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }
 

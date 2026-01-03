@@ -13,5 +13,6 @@ export * from '@/commands/provider';
 export * from '@/commands/setup-config';
 export * from '@/commands/status';
 export * from '@/commands/theme';
+export * from '@/commands/title-shape';
 export * from '@/commands/update';
 export * from '@/commands/usage';

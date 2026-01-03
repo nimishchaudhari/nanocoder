@@ -1,6 +1,6 @@
 import {Box, Text} from 'ink';
 import SelectInput from 'ink-select-input';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {defaultTheme, getThemeColors} from '@/config/themes';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 
@@ -46,8 +46,9 @@ export default function SecurityDisclaimer({
 
 	return (
 		<Box flexDirection="column" padding={1}>
-			<TitledBox
+			<TitledBoxWithPreferences
 				title="Security Warning"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}
@@ -67,7 +68,7 @@ export default function SecurityDisclaimer({
 					</Text>
 				</Box>
 				<SelectInput items={items} onSelect={handleSelect} />
-			</TitledBox>
+			</TitledBoxWithPreferences>
 		</Box>
 	);
 }

@@ -30,7 +30,7 @@ RUN npm install -g pnpm@${PNPM_VERSION}
 # Install Biome CLI globally for consistency
 RUN npm install -g @biomejs/biome
 
-# Install additional development tools
+# Install additional development tools and fonts
 RUN apt-get update && \
 	apt-get install -y \
 	jq \
@@ -42,8 +42,16 @@ RUN apt-get update && \
 	unzip \
 	build-essential \
 	python3 \
-	python3-pip && \
+	python3-pip \
+	fonts-firacode \
+	fonts-powerline && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Nerd Fonts for Powerline character support
+RUN mkdir -p ~/.local/share/fonts && \
+	wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/FiraCode.zip -O /tmp/FiraCode.zip && \
+	unzip -q /tmp/FiraCode.zip -d ~/.local/share/fonts && \
+	fc-cache -fv
 
 # Install oh-my-zsh for better terminal experience
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended && \

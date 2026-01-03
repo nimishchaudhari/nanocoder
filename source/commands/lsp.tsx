@@ -1,6 +1,6 @@
 import {Box, Text} from 'ink';
 import React from 'react';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {getLSPManager} from '@/lsp/lsp-manager';
@@ -19,8 +19,9 @@ export function LSP({status}: LSPProps) {
 	const {servers} = status;
 
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="/lsp"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -97,7 +98,7 @@ export function LSP({status}: LSPProps) {
 					})}
 				</>
 			)}
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }
 

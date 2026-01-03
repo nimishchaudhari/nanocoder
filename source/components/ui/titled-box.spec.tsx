@@ -205,3 +205,108 @@ test('TitledBox title appears before content box', t => {
 	// Title should appear before body in the output
 	t.true(titleIndex < bodyIndex);
 });
+
+// ============================================================================
+// New tests for shape functionality
+// ============================================================================
+
+test('TitledBox renders with rounded shape', t => {
+	const {lastFrame} = render(
+		<TitledBox title="Rounded" shape="rounded" borderColor="blue">
+			<Text>Content</Text>
+		</TitledBox>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Rounded/);
+	t.regex(output!, /╭/); // Should contain rounded corner
+});
+
+test('TitledBox renders with square shape', t => {
+	const {lastFrame} = render(
+		<TitledBox title="Square" shape="square" borderColor="green">
+			<Text>Content</Text>
+		</TitledBox>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Square/);
+	t.regex(output!, /┌/); // Should contain square corner
+});
+
+test('TitledBox renders with double shape', t => {
+	const {lastFrame} = render(
+		<TitledBox title="Double" shape="double" borderColor="cyan">
+			<Text>Content</Text>
+		</TitledBox>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Double/);
+	t.regex(output!, /╔/); // Should contain double corner
+});
+
+test('TitledBox renders with pill shape (default)', t => {
+	const {lastFrame} = render(
+		<TitledBox title="Pill" borderColor="magenta">
+			<Text>Content</Text>
+		</TitledBox>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Pill/);
+});
+
+test('TitledBox renders with powerline-angled shape', t => {
+	const {lastFrame} = render(
+		<TitledBox title="Powerline" shape="powerline-angled" borderColor="yellow">
+			<Text>Content</Text>
+		</TitledBox>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Powerline/);
+});
+
+test('TitledBox renders with arrow-left shape', t => {
+	const {lastFrame} = render(
+		<TitledBox title="Arrow" shape="arrow-left" borderColor="red">
+			<Text>Content</Text>
+		</TitledBox>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Arrow/);
+	t.regex(output!, /←/); // Should contain left arrow
+});
+
+test('TitledBox renders with icon', t => {
+	const {lastFrame} = render(
+		<TitledBox title="With Icon" shape="rounded" borderColor="blue" icon="✻">
+			<Text>Content</Text>
+		</TitledBox>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /✻/); // Should contain icon
+	t.regex(output!, /With Icon/);
+});
+
+test('TitledBox maintains backward compatibility with default pill shape', t => {
+	const {lastFrame} = render(
+		<TitledBox title="Backward Compat" borderColor="green">
+			<Text>Content</Text>
+		</TitledBox>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Backward Compat/);
+});

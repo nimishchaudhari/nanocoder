@@ -1,23 +1,33 @@
 import type {BoxProps} from 'ink';
-import {Box, Text} from 'ink';
-import React from 'react';
+import {Box} from 'ink';
+import {getTitleShape} from '@/config/preferences';
+import {StyledTitle, type TitleShape} from './styled-title';
 
 export interface TitledBoxProps extends Omit<BoxProps, 'borderStyle'> {
 	/** Title to display in the top border */
 	title: string;
 	/** Border color */
 	borderColor?: string;
+	/** Shape style for the title */
+	shape?: TitleShape;
+	/** Icon to display before title */
+	icon?: string;
+	/** Reverse powerline symbol order (right-left instead of left-right) */
+	reversePowerline?: boolean;
 	/** Children to render inside the box */
 	children: React.ReactNode;
 }
 
 /**
- * A simple titled box component that displays a title in pill style
+ * A simple titled box component that displays a title with stylized shapes
  * above a bordered box. Replacement for @mishieck/ink-titled-box.
  */
 export function TitledBox({
 	title,
 	borderColor,
+	shape = 'pill',
+	icon,
+	reversePowerline = false,
 	children,
 	width,
 	paddingX,
@@ -33,13 +43,16 @@ export function TitledBox({
 			marginBottom={marginBottom}
 			{...boxProps}
 		>
-			{/* Title row with pill styling */}
-			<Box>
-				<Text backgroundColor={borderColor} color="black" bold>
-					{' '}
-					{title}{' '}
-				</Text>
-			</Box>
+			{/* Title row with stylized shape */}
+			<StyledTitle
+				title={title}
+				shape={shape}
+				borderColor={borderColor}
+				textColor="black"
+				icon={icon}
+				reversePowerline={reversePowerline}
+				width={width}
+			/>
 
 			{/* Content box with border */}
 			<Box
@@ -53,5 +66,45 @@ export function TitledBox({
 				{children}
 			</Box>
 		</Box>
+	);
+}
+
+/**
+ * A titled box component that respects user's preferred title shape from preferences
+ * Falls back to the explicit shape if provided, then to user preference, then to 'pill'
+ */
+export function TitledBoxWithPreferences({
+	title,
+	borderColor,
+	shape,
+	icon,
+	reversePowerline = false,
+	children,
+	width,
+	paddingX,
+	paddingY,
+	flexDirection,
+	marginBottom,
+}: TitledBoxProps) {
+	// Get the user's preferred title shape from preferences
+	const preferredShape = getTitleShape();
+
+	// Use explicit shape if provided, otherwise use preferred shape, otherwise default to 'pill'
+	const finalShape = shape || preferredShape || 'pill';
+
+	return (
+		<TitledBox
+			title={title}
+			borderColor={borderColor}
+			shape={finalShape}
+			icon={icon}
+			reversePowerline={reversePowerline}
+			children={children}
+			width={width}
+			paddingX={paddingX}
+			paddingY={paddingY}
+			flexDirection={flexDirection}
+			marginBottom={marginBottom}
+		/>
 	);
 }

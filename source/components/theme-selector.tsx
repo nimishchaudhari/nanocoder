@@ -3,7 +3,7 @@ import BigText from 'ink-big-text';
 import Gradient from 'ink-gradient';
 import SelectInput from 'ink-select-input';
 import {useMemo, useState} from 'react';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {themes} from '@/config/themes';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
@@ -68,8 +68,9 @@ export default function ThemeSelector({
 				<BigText text="Themes" font="tiny" />
 			</Gradient>
 
-			<TitledBox
-				title="✻ Try out different themes!"
+			<TitledBoxWithPreferences
+				title="✻ Try out different themes! ✻"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
@@ -92,7 +93,7 @@ export default function ThemeSelector({
 					</Text>
 				</Box>
 				<Text color={colors.white}>/help for help</Text>
-			</TitledBox>
+			</TitledBoxWithPreferences>
 			<Box
 				borderStyle="round"
 				width={boxWidth}

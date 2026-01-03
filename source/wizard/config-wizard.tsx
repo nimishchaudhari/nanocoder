@@ -4,7 +4,7 @@ import {dirname} from 'node:path';
 import {Box, Text, useFocus, useInput} from 'ink';
 import Spinner from 'ink-spinner';
 import {useEffect, useState} from 'react';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {colors} from '@/config/index';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 import {logError} from '@/utils/message-queue';
@@ -340,8 +340,9 @@ export function ConfigWizard({
 	};
 
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="Configuration Wizard"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -377,6 +378,6 @@ export function ConfigWizard({
 						</Text>
 					</Box>
 				))}
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }

@@ -70,6 +70,7 @@ interface UseAppHandlersProps {
 	enterModelSelectionMode: () => void;
 	enterProviderSelectionMode: () => void;
 	enterThemeSelectionMode: () => void;
+	enterTitleShapeSelectionMode: () => void;
 	enterModelDatabaseMode: () => void;
 	enterConfigWizardMode: () => void;
 
@@ -260,6 +261,7 @@ export function useAppHandlers(props: UseAppHandlersProps): AppHandlers {
 				onEnterModelDatabaseMode: props.enterModelDatabaseMode,
 				onEnterConfigWizardMode: props.enterConfigWizardMode,
 				onEnterCheckpointLoadMode: enterCheckpointLoadMode,
+				onEnterTitleShapeSelectionMode: props.enterTitleShapeSelectionMode,
 				onShowStatus: handleShowStatus,
 				onHandleChatMessage: props.handleChatMessage,
 				onAddToChatQueue: props.addToChatQueue,

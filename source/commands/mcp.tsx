@@ -1,6 +1,6 @@
 import {Box, Text} from 'ink';
 import React from 'react';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {getToolManager} from '@/message-handler';
@@ -31,8 +31,9 @@ export function MCP({toolManager}: MCPProps) {
 	const connectedServers = toolManager?.getConnectedServers() || [];
 
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="/mcp"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -142,7 +143,7 @@ export function MCP({toolManager}: MCPProps) {
 					})}
 				</>
 			)}
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }
 
