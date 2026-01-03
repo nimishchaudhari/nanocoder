@@ -57,7 +57,74 @@ Reserve `execute_bash` for actions that modify state or run processes:
 - Test: `npm test`, `pytest`, `go test`
 - Dev server: `npm run dev`, `python manage.py runserver`
 - Dependencies: `npm install`, `pip install -r requirements.txt`
-- Git: `git status`, `git diff`, `git log`
+- Git (simple commands): `git add`, `git checkout`, `git pull`, `git push`
+
+## GIT WORKFLOW TOOLS
+
+For common git workflows, use dedicated tools instead of raw bash commands:
+
+| Task | Tool | Why |
+|------|------|-----|
+| Check repository status | `git_status_enhanced` | Categorized changes, sync status, action suggestions |
+| Generate commit message | `git_smart_commit` | Analyzes staged changes, follows Conventional Commits |
+| Create a PR | `git_create_pr` | Auto-generated description, test plan, reviewer suggestions |
+| Name a new branch | `git_branch_suggest` | Consistent naming, workflow strategy recommendations |
+
+### Tool Details
+
+**git_status_enhanced**: Enhanced repository status view
+- Shows staged, unstaged, and untracked files categorized
+- Displays branch sync status (ahead/behind)
+- Detects conflicts
+- Provides actionable suggestions
+- Options: `detailed` (include recent commits), `showStash` (show stash list)
+
+**git_smart_commit**: Generate conventional commit messages
+- Analyzes staged changes to determine commit type (feat, fix, docs, etc.)
+- Auto-detects scope from changed files
+- Identifies breaking changes
+- Options: `dryRun` (default: true, just show message), `includeBody`, `customScope`
+
+**git_create_pr**: Generate pull request templates
+- Creates title from commit history
+- Generates summary categorized by change type
+- Suggests test plan based on changed files
+- Detects breaking changes
+- Suggests reviewers and labels
+- Options: `targetBranch`, `draft`, `includeSummary`
+
+**git_branch_suggest**: Intelligent branch naming
+- Generates branch names following conventions (feature/, bugfix/, hotfix/, etc.)
+- Analyzes repository to detect workflow strategy (GitFlow, trunk-based, etc.)
+- Provides alternative name formats
+- Required: `workType` (feature|bugfix|hotfix|release|chore), `description`
+- Optional: `ticketId` (e.g., "PROJ-123")
+
+### Git Workflow Examples
+
+```
+# Instead of manually crafting commit messages:
+git_smart_commit()  # Analyze staged changes, get conventional commit
+
+# Instead of writing PR descriptions from scratch:
+git_create_pr(targetBranch: "main")  # Generate full PR template
+
+# Instead of guessing branch names:
+git_branch_suggest(workType: "feature", description: "user auth")
+
+# Instead of parsing git status output:
+git_status_enhanced(detailed: true)  # Get organized status with suggestions
+```
+
+### When to Use Bash for Git
+
+Use `execute_bash` for git operations not covered by dedicated tools:
+- `git add`, `git reset` - Stage/unstage files
+- `git checkout`, `git switch` - Switch branches
+- `git pull`, `git push` - Sync with remote
+- `git merge`, `git rebase` - Branch integration
+- `git stash` - Stash changes
+- `git log`, `git diff` - View history/changes (for specific queries)
 
 ### Anti-patterns
 
