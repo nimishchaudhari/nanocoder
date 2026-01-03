@@ -1,6 +1,7 @@
 import {render} from 'ink-testing-library';
 import React from 'react';
 import {ThemeContext} from '@/hooks/useTheme';
+import {TitleShapeContext} from '@/hooks/useTitleShape';
 import type {Colors, ThemePreset} from '@/types/ui';
 
 // Default test colors that match the structure used in the app
@@ -27,19 +28,27 @@ const testThemeContext = {
 	setCurrentTheme: () => {},
 };
 
+// Test title shape context value
+const testTitleShapeContext = {
+	currentTitleShape: 'pill' as const,
+	setCurrentTitleShape: () => {},
+};
+
 /**
- * Wrapper component that provides ThemeContext for tests
+ * Wrapper component that provides ThemeContext and TitleShapeContext for tests
  */
 function TestThemeProvider({children}: {children: React.ReactNode}) {
 	return (
-		<ThemeContext.Provider value={testThemeContext}>
-			{children}
-		</ThemeContext.Provider>
+		<TitleShapeContext.Provider value={testTitleShapeContext}>
+			<ThemeContext.Provider value={testThemeContext}>
+				{children}
+			</ThemeContext.Provider>
+		</TitleShapeContext.Provider>
 	);
 }
 
 /**
- * Render a component wrapped with ThemeContext for testing
+ * Render a component wrapped with ThemeContext and TitleShapeContext for testing
  */
 export function renderWithTheme(
 	element: React.ReactElement,

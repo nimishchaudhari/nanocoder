@@ -1,26 +1,11 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
-import {themes} from '../../config/themes.js';
-import {ThemeContext} from '../../hooks/useTheme.js';
+import {renderWithTheme} from '../../test-utils/render-with-theme.js';
 import type {Message} from '../../types/core.js';
 import type {TokenBreakdown} from '../../types/usage.js';
 import {UsageDisplay} from './usage-display.js';
 
 console.log(`\nusage-display.spec.tsx – ${React.version}`);
-
-// Mock ThemeProvider for testing
-const MockThemeProvider = ({children}: {children: React.ReactNode}) => {
-	const mockTheme = {
-		currentTheme: 'tokyo-night' as const,
-		colors: themes['tokyo-night'].colors,
-		setCurrentTheme: () => {},
-	};
-
-	return (
-		<ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
-	);
-};
 
 // Helper to create mock breakdown
 function createMockBreakdown(): TokenBreakdown {
@@ -56,19 +41,17 @@ function mockGetMessageTokens(message: Message): number {
 // ============================================================================
 
 test('UsageDisplay renders without crashing', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<UsageDisplay
-				provider="openai"
-				model="gpt-4"
-				contextLimit={8000}
-				currentTokens={2800}
-				breakdown={createMockBreakdown()}
-				messages={createMockMessages()}
-				tokenizerName="cl100k_base"
-				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+	const {lastFrame} = renderWithTheme(
+		<UsageDisplay
+			provider="openai"
+			model="gpt-4"
+			contextLimit={8000}
+			currentTokens={2800}
+			breakdown={createMockBreakdown()}
+			messages={createMockMessages()}
+			tokenizerName="cl100k_base"
+			getMessageTokens={mockGetMessageTokens}
+		/>,
 	);
 
 	const output = lastFrame();
@@ -76,19 +59,17 @@ test('UsageDisplay renders without crashing', t => {
 });
 
 test('UsageDisplay displays context usage header', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<UsageDisplay
-				provider="openai"
-				model="gpt-4"
-				contextLimit={8000}
-				currentTokens={2800}
-				breakdown={createMockBreakdown()}
-				messages={createMockMessages()}
-				tokenizerName="cl100k_base"
-				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+	const {lastFrame} = renderWithTheme(
+		<UsageDisplay
+			provider="openai"
+			model="gpt-4"
+			contextLimit={8000}
+			currentTokens={2800}
+			breakdown={createMockBreakdown()}
+			messages={createMockMessages()}
+			tokenizerName="cl100k_base"
+			getMessageTokens={mockGetMessageTokens}
+		/>,
 	);
 
 	const output = lastFrame();
@@ -97,19 +78,17 @@ test('UsageDisplay displays context usage header', t => {
 });
 
 test('UsageDisplay displays overall usage section', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<UsageDisplay
-				provider="openai"
-				model="gpt-4"
-				contextLimit={8000}
-				currentTokens={2800}
-				breakdown={createMockBreakdown()}
-				messages={createMockMessages()}
-				tokenizerName="cl100k_base"
-				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+	const {lastFrame} = renderWithTheme(
+		<UsageDisplay
+			provider="openai"
+			model="gpt-4"
+			contextLimit={8000}
+			currentTokens={2800}
+			breakdown={createMockBreakdown()}
+			messages={createMockMessages()}
+			tokenizerName="cl100k_base"
+			getMessageTokens={mockGetMessageTokens}
+		/>,
 	);
 
 	const output = lastFrame();
@@ -118,19 +97,17 @@ test('UsageDisplay displays overall usage section', t => {
 });
 
 test('UsageDisplay displays usage percentage', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<UsageDisplay
-				provider="openai"
-				model="gpt-4"
-				contextLimit={8000}
-				currentTokens={2800}
-				breakdown={createMockBreakdown()}
-				messages={createMockMessages()}
-				tokenizerName="cl100k_base"
-				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+	const {lastFrame} = renderWithTheme(
+		<UsageDisplay
+			provider="openai"
+			model="gpt-4"
+			contextLimit={8000}
+			currentTokens={2800}
+			breakdown={createMockBreakdown()}
+			messages={createMockMessages()}
+			tokenizerName="cl100k_base"
+			getMessageTokens={mockGetMessageTokens}
+		/>,
 	);
 
 	const output = lastFrame();
@@ -140,19 +117,17 @@ test('UsageDisplay displays usage percentage', t => {
 });
 
 test('UsageDisplay displays token counts', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<UsageDisplay
-				provider="openai"
-				model="gpt-4"
-				contextLimit={8000}
-				currentTokens={2800}
-				breakdown={createMockBreakdown()}
-				messages={createMockMessages()}
-				tokenizerName="cl100k_base"
-				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+	const {lastFrame} = renderWithTheme(
+		<UsageDisplay
+			provider="openai"
+			model="gpt-4"
+			contextLimit={8000}
+			currentTokens={2800}
+			breakdown={createMockBreakdown()}
+			messages={createMockMessages()}
+			tokenizerName="cl100k_base"
+			getMessageTokens={mockGetMessageTokens}
+		/>,
 	);
 
 	const output = lastFrame();
@@ -166,8 +141,7 @@ test('UsageDisplay displays token counts', t => {
 // ============================================================================
 
 test('UsageDisplay displays breakdown by category section', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -177,8 +151,7 @@ test('UsageDisplay displays breakdown by category section', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -187,8 +160,7 @@ test('UsageDisplay displays breakdown by category section', t => {
 });
 
 test('UsageDisplay displays system prompt category', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -198,8 +170,7 @@ test('UsageDisplay displays system prompt category', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -209,8 +180,7 @@ test('UsageDisplay displays system prompt category', t => {
 });
 
 test('UsageDisplay displays user messages category', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -220,8 +190,7 @@ test('UsageDisplay displays user messages category', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -231,8 +200,7 @@ test('UsageDisplay displays user messages category', t => {
 });
 
 test('UsageDisplay displays assistant messages category', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -242,8 +210,7 @@ test('UsageDisplay displays assistant messages category', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -253,8 +220,7 @@ test('UsageDisplay displays assistant messages category', t => {
 });
 
 test('UsageDisplay displays tool messages category', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -264,8 +230,7 @@ test('UsageDisplay displays tool messages category', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -275,8 +240,7 @@ test('UsageDisplay displays tool messages category', t => {
 });
 
 test('UsageDisplay displays tool definitions category', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -286,8 +250,7 @@ test('UsageDisplay displays tool definitions category', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -301,8 +264,7 @@ test('UsageDisplay displays tool definitions category', t => {
 // ============================================================================
 
 test('UsageDisplay displays model information section', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -312,8 +274,7 @@ test('UsageDisplay displays model information section', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -322,8 +283,7 @@ test('UsageDisplay displays model information section', t => {
 });
 
 test('UsageDisplay displays provider name', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="anthropic"
 				model="claude-3-opus"
@@ -333,8 +293,7 @@ test('UsageDisplay displays provider name', t => {
 				messages={createMockMessages()}
 				tokenizerName="claude_tokenizer"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -344,8 +303,7 @@ test('UsageDisplay displays provider name', t => {
 });
 
 test('UsageDisplay displays model name', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4-turbo"
@@ -355,8 +313,7 @@ test('UsageDisplay displays model name', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -366,8 +323,7 @@ test('UsageDisplay displays model name', t => {
 });
 
 test('UsageDisplay displays context limit', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -377,8 +333,7 @@ test('UsageDisplay displays context limit', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -388,8 +343,7 @@ test('UsageDisplay displays context limit', t => {
 });
 
 test('UsageDisplay displays tokenizer name', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -399,8 +353,7 @@ test('UsageDisplay displays tokenizer name', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -414,8 +367,7 @@ test('UsageDisplay displays tokenizer name', t => {
 // ============================================================================
 
 test('UsageDisplay displays recent activity section', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -425,8 +377,7 @@ test('UsageDisplay displays recent activity section', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -435,8 +386,7 @@ test('UsageDisplay displays recent activity section', t => {
 });
 
 test('UsageDisplay displays last 5 messages count', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -446,8 +396,7 @@ test('UsageDisplay displays last 5 messages count', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -457,8 +406,7 @@ test('UsageDisplay displays last 5 messages count', t => {
 });
 
 test('UsageDisplay displays largest message size', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -468,8 +416,7 @@ test('UsageDisplay displays largest message size', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -483,8 +430,7 @@ test('UsageDisplay displays largest message size', t => {
 // ============================================================================
 
 test('UsageDisplay displays available tokens', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -494,8 +440,7 @@ test('UsageDisplay displays available tokens', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -509,8 +454,7 @@ test('UsageDisplay displays available tokens', t => {
 // ============================================================================
 
 test('UsageDisplay handles null context limit', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -520,8 +464,7 @@ test('UsageDisplay handles null context limit', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -539,8 +482,7 @@ test('UsageDisplay handles zero current tokens', t => {
 		total: 0,
 	};
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -550,8 +492,7 @@ test('UsageDisplay handles zero current tokens', t => {
 				messages={[]}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -560,8 +501,7 @@ test('UsageDisplay handles zero current tokens', t => {
 });
 
 test('UsageDisplay handles empty messages array', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -571,8 +511,7 @@ test('UsageDisplay handles empty messages array', t => {
 				messages={[]}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -581,8 +520,7 @@ test('UsageDisplay handles empty messages array', t => {
 });
 
 test('UsageDisplay handles 100% usage', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -592,8 +530,7 @@ test('UsageDisplay handles 100% usage', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -603,8 +540,7 @@ test('UsageDisplay handles 100% usage', t => {
 });
 
 test('UsageDisplay handles over 100% usage', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -614,8 +550,7 @@ test('UsageDisplay handles over 100% usage', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -626,8 +561,7 @@ test('UsageDisplay handles over 100% usage', t => {
 
 test('UsageDisplay displays warning color for moderate usage', t => {
 	// 75% usage - in the warning range (70-89%)
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -637,8 +571,7 @@ test('UsageDisplay displays warning color for moderate usage', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -656,8 +589,7 @@ test('UsageDisplay handles very large token counts', t => {
 		total: 280000,
 	};
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="anthropic"
 				model="claude-3-opus"
@@ -667,8 +599,7 @@ test('UsageDisplay handles very large token counts', t => {
 				messages={createMockMessages()}
 				tokenizerName="claude_tokenizer"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -681,8 +612,7 @@ test('UsageDisplay handles very large token counts', t => {
 test('UsageDisplay handles single message', t => {
 	const messages: Message[] = [{role: 'user', content: 'Only message'}];
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -692,8 +622,7 @@ test('UsageDisplay handles single message', t => {
 				messages={messages}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -709,8 +638,7 @@ test('UsageDisplay handles fewer than 5 messages', t => {
 		{role: 'user', content: 'Message 3'},
 	];
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -720,8 +648,7 @@ test('UsageDisplay handles fewer than 5 messages', t => {
 				messages={messages}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -745,8 +672,7 @@ test('UsageDisplay calculates correct percentages for categories', t => {
 		total: 2800,
 	};
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -756,8 +682,7 @@ test('UsageDisplay calculates correct percentages for categories', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();
@@ -781,8 +706,7 @@ test('UsageDisplay handles zero tokens in a category', t => {
 		total: 1800,
 	};
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<UsageDisplay
 				provider="openai"
 				model="gpt-4"
@@ -792,8 +716,7 @@ test('UsageDisplay handles zero tokens in a category', t => {
 				messages={createMockMessages()}
 				tokenizerName="cl100k_base"
 				getMessageTokens={mockGetMessageTokens}
-			/>
-		</MockThemeProvider>,
+			/>,
 	);
 
 	const output = lastFrame();

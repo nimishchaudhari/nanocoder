@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {TitleShape} from '@/components/ui/styled-title';
 import {loadPreferences} from '@/config/preferences';
 import {defaultTheme} from '@/config/themes';
 import {CustomCommandExecutor} from '@/custom-commands/executor';
@@ -38,9 +39,10 @@ export interface ConversationContext {
 }
 
 export function useAppState() {
-	// Initialize theme from preferences
+	// Initialize theme and title shape from preferences
 	const preferences = loadPreferences();
 	const initialTheme = preferences.selectedTheme || defaultTheme;
+	const initialTitleShape = preferences.titleShape || 'pill';
 
 	const [client, setClient] = useState<LLMClient | null>(null);
 	const [messages, setMessages] = useState<Message[]>([]);
@@ -57,6 +59,8 @@ export function useAppState() {
 	const [currentProvider, setCurrentProvider] =
 		useState<string>('openai-compatible');
 	const [currentTheme, setCurrentTheme] = useState<ThemePreset>(initialTheme);
+	const [currentTitleShape, setCurrentTitleShape] =
+		useState<TitleShape>(initialTitleShape);
 	const [toolManager, setToolManager] = useState<ToolManager | null>(null);
 	const [customCommandLoader, setCustomCommandLoader] =
 		useState<CustomCommandLoader | null>(null);
@@ -236,6 +240,7 @@ export function useAppState() {
 		currentModel,
 		currentProvider,
 		currentTheme,
+		currentTitleShape,
 		toolManager,
 		customCommandLoader,
 		customCommandExecutor,
@@ -279,6 +284,7 @@ export function useAppState() {
 		setCurrentModel,
 		setCurrentProvider,
 		setCurrentTheme,
+		setCurrentTitleShape,
 		setToolManager,
 		setCustomCommandLoader,
 		setCustomCommandExecutor,

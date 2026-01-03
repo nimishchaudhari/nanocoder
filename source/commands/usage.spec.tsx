@@ -1,8 +1,6 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
-import {themes} from '../config/themes.js';
-import {ThemeContext} from '../hooks/useTheme.js';
+import {renderWithTheme} from '../test-utils/render-with-theme.js';
 import type {Message} from '../types/core.js';
 import {usageCommand} from './usage.js';
 
@@ -14,19 +12,6 @@ console.log(`\nusage.spec.tsx – ${React.version}`);
  * If CI fails due to network issues, we may need to add a proper mocking solution.
  * All tests have reasonable timeouts (default 10s) to prevent hanging.
  */
-
-// Mock ThemeProvider for testing
-const MockThemeProvider = ({children}: {children: React.ReactNode}) => {
-	const mockTheme = {
-		currentTheme: 'tokyo-night' as const,
-		colors: themes['tokyo-night'].colors,
-		setCurrentTheme: () => {},
-	};
-
-	return (
-		<ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
-	);
-};
 
 // Helper to create mock metadata
 function createMockMetadata(provider = 'test-provider', model = 'test-model') {
@@ -191,7 +176,7 @@ test('usage command renders without crashing', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	t.truthy(lastFrame());
 });
@@ -201,7 +186,7 @@ test('usage command displays provider name', async t => {
 	const metadata = createMockMetadata('openai', 'gpt-4');
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -213,7 +198,7 @@ test('usage command displays model name', async t => {
 	const metadata = createMockMetadata('anthropic', 'claude-3-opus');
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -225,7 +210,7 @@ test('usage command displays context usage header', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -237,7 +222,7 @@ test('usage command displays overall usage section', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -249,7 +234,7 @@ test('usage command displays category breakdown', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -261,7 +246,7 @@ test('usage command displays system prompt category', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -273,7 +258,7 @@ test('usage command displays user messages category', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -285,7 +270,7 @@ test('usage command displays assistant messages category', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -297,7 +282,7 @@ test('usage command displays tool messages category', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -309,7 +294,7 @@ test('usage command displays tool definitions category', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -321,7 +306,7 @@ test('usage command displays model information section', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -333,7 +318,7 @@ test('usage command displays recent activity section', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -345,7 +330,7 @@ test('usage command displays tokenizer name', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -358,7 +343,7 @@ test('usage command displays available tokens', async t => {
 	const metadata = createMockMetadata();
 
 	const result = await usageCommand.handler([], messages, metadata);
-	const {lastFrame} = render(<MockThemeProvider>{result}</MockThemeProvider>);
+	const {lastFrame} = renderWithTheme(result);
 
 	const output = lastFrame();
 	t.truthy(output);

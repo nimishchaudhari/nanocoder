@@ -5,9 +5,9 @@ import SelectInput from 'ink-select-input';
 import {useMemo, useState} from 'react';
 import type {TitleShape} from '@/components/ui/styled-title';
 import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
-import {getTitleShape, updateTitleShape} from '@/config/preferences';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
+import {useTitleShape} from '@/hooks/useTitleShape';
 
 interface TitleShapeOption {
 	label: string;
@@ -25,10 +25,10 @@ export default function TitleShapeSelector({
 }: TitleShapeSelectorProps) {
 	const boxWidth = useTerminalWidth();
 	const {colors} = useTheme();
+	const {currentTitleShape, setCurrentTitleShape} = useTitleShape();
 
-	// Get current title shape from preferences
-	const currentShape = getTitleShape() || 'pill';
-	const [originalShape] = useState<TitleShape>(currentShape);
+	// Store original shape for restore on cancel
+	const [originalShape] = useState<TitleShape>(currentTitleShape);
 
 	// Auto-focus to ensure keyboard navigation works
 	useFocus({autoFocus: true, id: 'title-shape-selector'});
@@ -37,17 +37,17 @@ export default function TitleShapeSelector({
 	useInput((_, key) => {
 		if (key.escape) {
 			// Restore original shape on cancel
-			updateTitleShape(originalShape);
+			setCurrentTitleShape(originalShape);
 			onCancel();
 		}
 	});
 
 	// Create title shape options
 	const shapeOptions: TitleShapeOption[] = [
+		{label: 'Pill :- Demo Title', value: 'pill'},
 		{label: 'Rounded :- ╭ Demo Title ╮', value: 'rounded'},
 		{label: 'Square :- ┌ Demo Title ┐', value: 'square'},
 		{label: 'Double :- ╔ Demo Title ╗', value: 'double'},
-		{label: 'Pill :- Demo Title', value: 'pill'},
 		{label: 'Arrow Left :- ← Demo Title →', value: 'arrow-left'},
 		{label: 'Arrow Right :- → Demo Title ←', value: 'arrow-right'},
 		{label: 'Arrow Double :- « Demo Title »', value: 'arrow-double'},
@@ -113,20 +113,20 @@ export default function TitleShapeSelector({
 	const [_currentIndex, _setCurrentIndex] = useState(initialIndex);
 
 	const handleSelect = (item: TitleShapeOption) => {
-		updateTitleShape(item.value);
+		setCurrentTitleShape(item.value);
 		onComplete(item.value);
 	};
 
 	// Handle shape preview during navigation
 	const handleHighlight = (item: TitleShapeOption) => {
 		// Update the shape temporarily for preview
-		updateTitleShape(item.value);
+		setCurrentTitleShape(item.value);
 	};
 
 	// Get the display name for current shape
-	const getCurrentShapeName = () => {
+	const _getCurrentShapeName = () => {
 		const currentOption = shapeOptions.find(
-			option => option.value === currentShape,
+			option => option.value === currentTitleShape,
 		);
 		return currentOption ? currentOption.label : 'Unknown';
 	};
@@ -179,9 +179,7 @@ export default function TitleShapeSelector({
 			>
 				<Box flexDirection="column">
 					<Box marginBottom={1}>
-						<Text color={colors.secondary}>
-							Select a title shape (current: {getCurrentShapeName()})
-						</Text>
+						<Text color={colors.secondary}>Select a title shape</Text>
 					</Box>
 
 					<Box marginBottom={1}>

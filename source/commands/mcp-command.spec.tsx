@@ -1,24 +1,10 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
-import {themes} from '../config/themes';
-import {ThemeContext} from '../hooks/useTheme';
+import {renderWithTheme} from '../test-utils/render-with-theme.js';
 import {ToolManager} from '../tools/tool-manager';
 import {MCP} from './mcp';
 
 console.log(`\nmcp-command.spec.tsx`);
-
-// Mock ThemeProvider for testing
-const MockThemeProvider = ({children}: {children: React.ReactNode}) => {
-	const mockTheme = {
-		currentTheme: 'tokyo-night' as const,
-		colors: themes['tokyo-night'].colors,
-		setCurrentTheme: () => {},
-	};
-	return (
-		<ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
-	);
-};
 
 // ============================================================================
 // Tests for Enhanced MCP Command Display
@@ -31,11 +17,7 @@ test('MCP command: shows no servers when none connected', t => {
 		getServerInfo: () => undefined,
 	} as unknown as ToolManager;
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<MCP toolManager={mockToolManager} />
-		</MockThemeProvider>,
-	);
+	const {lastFrame} = renderWithTheme(<MCP toolManager={mockToolManager} />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -64,11 +46,7 @@ test('MCP command: displays transport type icons', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<MCP toolManager={mockToolManager} />
-		</MockThemeProvider>,
-	);
+	const {lastFrame} = renderWithTheme(<MCP toolManager={mockToolManager} />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -97,11 +75,7 @@ test('MCP command: displays URLs for remote servers', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<MCP toolManager={mockToolManager} />
-		</MockThemeProvider>,
-	);
+	const {lastFrame} = renderWithTheme(<MCP toolManager={mockToolManager} />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -123,11 +97,7 @@ test('MCP command: displays server descriptions', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<MCP toolManager={mockToolManager} />
-		</MockThemeProvider>,
-	);
+	const {lastFrame} = renderWithTheme(<MCP toolManager={mockToolManager} />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -149,11 +119,7 @@ test('MCP command: displays server tags', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<MCP toolManager={mockToolManager} />
-		</MockThemeProvider>,
-	);
+	const {lastFrame} = renderWithTheme(<MCP toolManager={mockToolManager} />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -178,11 +144,7 @@ test('MCP command: displays tool information correctly', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<MCP toolManager={mockToolManager} />
-		</MockThemeProvider>,
-	);
+	const {lastFrame} = renderWithTheme(<MCP toolManager={mockToolManager} />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -209,11 +171,7 @@ test('MCP command: handles singular tool count', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<MCP toolManager={mockToolManager} />
-		</MockThemeProvider>,
-	);
+	const {lastFrame} = renderWithTheme(<MCP toolManager={mockToolManager} />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -235,11 +193,7 @@ test('MCP command: shows server count header', t => {
 		}),
 	} as unknown as ToolManager;
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<MCP toolManager={mockToolManager} />
-		</MockThemeProvider>,
-	);
+	const {lastFrame} = renderWithTheme(<MCP toolManager={mockToolManager} />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -255,11 +209,7 @@ test('MCP command: shows configuration examples', t => {
 		getServerInfo: () => undefined,
 	} as unknown as ToolManager;
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<MCP toolManager={mockToolManager} />
-		</MockThemeProvider>,
-	);
+	const {lastFrame} = renderWithTheme(<MCP toolManager={mockToolManager} />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -294,11 +244,7 @@ test('MCP command: uses transport type getTransportIcon function correctly', t =
 			}),
 		} as unknown as ToolManager;
 
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<MCP toolManager={mockToolManager} />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<MCP toolManager={mockToolManager} />);
 
 		const output = lastFrame();
 		t.truthy(output);

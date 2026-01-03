@@ -172,6 +172,16 @@ export function useModeHandlers({
 	// Handle title shape selection
 	const handleTitleShapeSelect = (selectedShape: TitleShape) => {
 		updateTitleShape(selectedShape);
+
+		// Add success message to chat queue
+		addToChatQueue(
+			<SuccessMessage
+				key={`title-shape-changed-${getNextComponentKey()}`}
+				message={`Title shape changed to: ${selectedShape}.`}
+				hideBox={true}
+			/>,
+		);
+
 		setIsTitleShapeSelectionMode(false);
 	};
 

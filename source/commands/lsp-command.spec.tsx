@@ -1,24 +1,10 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
-import {themes} from '../config/themes';
-import {ThemeContext} from '../hooks/useTheme';
+import {renderWithTheme} from '../test-utils/render-with-theme.js';
 import {type LSPInitResult, getLSPManager} from '../lsp/lsp-manager';
 import {LSP, lspCommand} from './lsp';
 
 console.log(`\nlsp-command.spec.tsx`);
-
-// Mock ThemeProvider for testing
-const MockThemeProvider = ({children}: {children: React.ReactNode}) => {
-	const mockTheme = {
-		currentTheme: 'tokyo-night' as const,
-		colors: themes['tokyo-night'].colors,
-		setCurrentTheme: () => {},
-	};
-	return (
-		<ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
-	);
-};
 
 // Mock LSP manager status
 const mockLSPStatus = {
@@ -52,10 +38,8 @@ test('LSP command: shows no servers when none connected', t => {
 		servers: [],
 	};
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<LSP status={emptyStatus} />
-		</MockThemeProvider>,
+	const {lastFrame} = renderWithTheme(
+		<LSP status={emptyStatus} />,
 	);
 
 	const output = lastFrame();
@@ -69,10 +53,8 @@ test('LSP command: shows no servers when none connected', t => {
 });
 
 test('LSP command: displays server status correctly', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<LSP status={mockLSPStatus} />
-		</MockThemeProvider>,
+	const {lastFrame} = renderWithTheme(
+		<LSP status={mockLSPStatus} />,
 	);
 
 	const output = lastFrame();
@@ -96,10 +78,8 @@ test('LSP command: displays server status correctly', t => {
 });
 
 test('LSP command: displays associated languages correctly', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<LSP status={mockLSPStatus} />
-		</MockThemeProvider>,
+	const {lastFrame} = renderWithTheme(
+		<LSP status={mockLSPStatus} />,
 	);
 
 	const output = lastFrame();
@@ -123,10 +103,8 @@ test('LSP command: handles single language correctly', t => {
 		],
 	};
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<LSP status={singleLangStatus} />
-		</MockThemeProvider>,
+	const {lastFrame} = renderWithTheme(
+		<LSP status={singleLangStatus} />,
 	);
 
 	const output = lastFrame();
@@ -146,10 +124,8 @@ test('LSP command: handles multiple languages correctly', t => {
 		],
 	};
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
-			<LSP status={multiLangStatus} />
-		</MockThemeProvider>,
+	const {lastFrame} = renderWithTheme(
+		<LSP status={multiLangStatus} />,
 	);
 
 	const output = lastFrame();
@@ -175,11 +151,7 @@ test('LSP command: shows correct status icons', t => {
 			],
 		};
 
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<LSP status={status} />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<LSP status={status} />);
 
 		const output = lastFrame();
 		t.truthy(output);
@@ -209,11 +181,7 @@ test('LSP command: shows correct status text', t => {
 			],
 		};
 
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<LSP status={status} />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<LSP status={status} />);
 
 		const output = lastFrame();
 		t.truthy(output);

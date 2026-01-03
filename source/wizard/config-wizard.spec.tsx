@@ -1,6 +1,6 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
+import {renderWithTheme} from '../test-utils/render-with-theme.js';
 import {ConfigWizard} from './config-wizard.js';
 
 // ============================================================================
@@ -10,7 +10,7 @@ import {ConfigWizard} from './config-wizard.js';
 console.log(`\nconfig-wizard.spec.tsx – ${React.version}`);
 
 test('ConfigWizard renders with title', t => {
-	const {lastFrame} = render(
+	const {lastFrame} = renderWithTheme(
 		<ConfigWizard projectDir="/tmp/test-project" onComplete={() => {}} />,
 	);
 
@@ -20,7 +20,7 @@ test('ConfigWizard renders with title', t => {
 });
 
 test('ConfigWizard shows initial location step', t => {
-	const {lastFrame} = render(
+	const {lastFrame} = renderWithTheme(
 		<ConfigWizard projectDir="/tmp/test-project" onComplete={() => {}} />,
 	);
 
@@ -29,7 +29,7 @@ test('ConfigWizard shows initial location step', t => {
 });
 
 test('ConfigWizard shows keyboard shortcuts', t => {
-	const {lastFrame} = render(
+	const {lastFrame} = renderWithTheme(
 		<ConfigWizard projectDir="/tmp/test-project" onComplete={() => {}} />,
 	);
 
@@ -39,7 +39,7 @@ test('ConfigWizard shows keyboard shortcuts', t => {
 });
 
 test('ConfigWizard shows location options', t => {
-	const {lastFrame} = render(
+	const {lastFrame} = renderWithTheme(
 		<ConfigWizard projectDir="/tmp/test-project" onComplete={() => {}} />,
 	);
 
@@ -51,7 +51,7 @@ test('ConfigWizard shows location options', t => {
 test('ConfigWizard renders without crashing when onCancel is provided', t => {
 	let cancelCalled = false;
 
-	const {lastFrame} = render(
+	const {lastFrame} = renderWithTheme(
 		<ConfigWizard
 			projectDir="/tmp/test-project"
 			onComplete={() => {}}
@@ -68,7 +68,7 @@ test('ConfigWizard renders without crashing when onCancel is provided', t => {
 test('ConfigWizard accepts projectDir prop', t => {
 	const projectDir = '/custom/project/path';
 
-	const {lastFrame} = render(
+	const {lastFrame} = renderWithTheme(
 		<ConfigWizard projectDir={projectDir} onComplete={() => {}} />,
 	);
 
@@ -77,7 +77,7 @@ test('ConfigWizard accepts projectDir prop', t => {
 });
 
 test('ConfigWizard renders TitledBox with correct border', t => {
-	const {lastFrame} = render(
+	const {lastFrame} = renderWithTheme(
 		<ConfigWizard projectDir="/tmp/test-project" onComplete={() => {}} />,
 	);
 
@@ -90,7 +90,7 @@ test('ConfigWizard renders TitledBox with correct border', t => {
 });
 
 test('ConfigWizard renders with correct initial state', t => {
-	const {frames} = render(
+	const {frames} = renderWithTheme(
 		<ConfigWizard projectDir="/tmp/test-project" onComplete={() => {}} />,
 	);
 

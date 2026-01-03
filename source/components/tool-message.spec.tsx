@@ -1,51 +1,26 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
 import {Text} from 'ink';
-import {themes} from '../config/themes';
-import {ThemeContext} from '../hooks/useTheme';
-import {UIStateProvider} from '../hooks/useUIState';
+import {renderWithTheme} from '../test-utils/render-with-theme.js';
 import ToolMessage from './tool-message';
 
 console.log('\ntool-message.spec.tsx');
-
-// Mock ThemeProvider for testing
-const MockThemeProvider = ({children}: {children: React.ReactNode}) => {
-	const mockTheme = {
-		currentTheme: 'tokyo-night' as const,
-		colors: themes['tokyo-night'].colors,
-		setCurrentTheme: () => {},
-	};
-
-	return <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>;
-};
-
-// Wrapper with all required providers
-const TestWrapper = ({children}: {children: React.ReactNode}) => (
-	<MockThemeProvider>
-		<UIStateProvider>{children}</UIStateProvider>
-	</MockThemeProvider>
-);
 
 // ============================================================================
 // Component Rendering Tests
 // ============================================================================
 
 test('ToolMessage renders without crashing', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test Tool" message="Test message" />
-		</TestWrapper>,
 	);
 
 	t.truthy(lastFrame());
 });
 
 test('ToolMessage renders with title in TitledBox', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Custom Title" message="Test message" />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -54,10 +29,8 @@ test('ToolMessage renders with title in TitledBox', t => {
 });
 
 test('ToolMessage renders with default title when not provided', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage message="Test message" />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -66,10 +39,8 @@ test('ToolMessage renders with default title when not provided', t => {
 });
 
 test('ToolMessage renders string message', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="Hello world" />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -78,10 +49,8 @@ test('ToolMessage renders string message', t => {
 });
 
 test('ToolMessage renders ReactNode message', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message={<Text>Hello world</Text>} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -94,10 +63,8 @@ test('ToolMessage renders ReactNode message', t => {
 // ============================================================================
 
 test('ToolMessage renders without box when hideBox is true', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="No box message" hideBox={true} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -109,10 +76,8 @@ test('ToolMessage renders without box when hideBox is true', t => {
 });
 
 test('ToolMessage displays Bash Command Output label when hideBox and isBashMode', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="Bash output" hideBox={true} isBashMode={true} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -121,10 +86,8 @@ test('ToolMessage displays Bash Command Output label when hideBox and isBashMode
 });
 
 test('ToolMessage displays truncation message when hideBox and isBashMode', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="Output" hideBox={true} isBashMode={true} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -133,10 +96,8 @@ test('ToolMessage displays truncation message when hideBox and isBashMode', t =>
 });
 
 test('ToolMessage does not display Bash label when hideBox without isBashMode', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="Regular output" hideBox={true} isBashMode={false} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -146,10 +107,8 @@ test('ToolMessage does not display Bash label when hideBox without isBashMode', 
 });
 
 test('ToolMessage does not display truncation when hideBox without isBashMode', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="Output" hideBox={true} isBashMode={false} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -162,10 +121,8 @@ test('ToolMessage does not display truncation when hideBox without isBashMode', 
 // ============================================================================
 
 test('ToolMessage renders without title when hideTitle is true', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Hidden Title" message="No title message" hideTitle={true} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -176,10 +133,8 @@ test('ToolMessage renders without title when hideTitle is true', t => {
 });
 
 test('ToolMessage displays truncation message when hideTitle and isBashMode', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="Output" hideTitle={true} isBashMode={true} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -188,10 +143,8 @@ test('ToolMessage displays truncation message when hideTitle and isBashMode', t 
 });
 
 test('ToolMessage does not display truncation when hideTitle without isBashMode', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="Output" hideTitle={true} isBashMode={false} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -204,10 +157,8 @@ test('ToolMessage does not display truncation when hideTitle without isBashMode'
 // ============================================================================
 
 test('ToolMessage displays truncation in TitledBox when isBashMode', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test Tool" message="Bash result" isBashMode={true} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -217,10 +168,8 @@ test('ToolMessage displays truncation in TitledBox when isBashMode', t => {
 });
 
 test('ToolMessage does not display truncation when isBashMode is false', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test Tool" message="Regular result" isBashMode={false} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -234,10 +183,8 @@ test('ToolMessage does not display truncation when isBashMode is false', t => {
 // ============================================================================
 
 test('ToolMessage renders with hideBox and hideTitle both true', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage message="Combined test" hideBox={true} hideTitle={true} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -247,30 +194,24 @@ test('ToolMessage renders with hideBox and hideTitle both true', t => {
 
 test('ToolMessage renders with isBashMode in all display modes', t => {
 	// Test with TitledBox (default)
-	const {lastFrame: frame1} = render(
-		<TestWrapper>
-			<ToolMessage title="Test" message="Output" isBashMode={true} />
-		</TestWrapper>,
+	const {lastFrame: frame1} = renderWithTheme(
+		<ToolMessage title="Test" message="Output" isBashMode={true} />,
 	);
 	const output1 = frame1();
 	t.truthy(output1);
 	t.regex(output1!, /Output truncated to 4k characters/);
 
 	// Test with hideBox
-	const {lastFrame: frame2} = render(
-		<TestWrapper>
-			<ToolMessage title="Test" message="Output" hideBox={true} isBashMode={true} />
-		</TestWrapper>,
+	const {lastFrame: frame2} = renderWithTheme(
+		<ToolMessage title="Test" message="Output" hideBox={true} isBashMode={true} />,
 	);
 	const output2 = frame2();
 	t.truthy(output2);
 	t.regex(output2!, /Output truncated to 4k characters/);
 
 	// Test with hideTitle
-	const {lastFrame: frame3} = render(
-		<TestWrapper>
-			<ToolMessage title="Test" message="Output" hideTitle={true} isBashMode={true} />
-		</TestWrapper>,
+	const {lastFrame: frame3} = renderWithTheme(
+		<ToolMessage title="Test" message="Output" hideTitle={true} isBashMode={true} />,
 	);
 	const output3 = frame3();
 	t.truthy(output3);
@@ -278,10 +219,8 @@ test('ToolMessage renders with isBashMode in all display modes', t => {
 });
 
 test('ToolMessage component structure is valid', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="Content" />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -290,10 +229,8 @@ test('ToolMessage component structure is valid', t => {
 });
 
 test('ToolMessage maintains consistent border color with theme', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="Content" />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -303,10 +240,8 @@ test('ToolMessage maintains consistent border color with theme', t => {
 });
 
 test('ToolMessage handles empty message', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message="" />
-		</TestWrapper>,
 	);
 
 	t.truthy(lastFrame());
@@ -314,10 +249,8 @@ test('ToolMessage handles empty message', t => {
 
 test('ToolMessage handles multiline message', t => {
 	const multilineMessage = 'Line 1\nLine 2\nLine 3';
-	const {lastFrame} = render(
-		<TestWrapper>
+	const {lastFrame} = renderWithTheme(
 			<ToolMessage title="Test" message={multilineMessage} />
-		</TestWrapper>,
 	);
 
 	const output = lastFrame();
@@ -329,14 +262,10 @@ test('ToolMessage memo prevents unnecessary re-renders', t => {
 	let renderCount = 0;
 	const TestComponent = () => {
 		renderCount++;
-		return (
-			<TestWrapper>
-				<ToolMessage title="Test" message="Content" />
-			</TestWrapper>
-		);
+		return <ToolMessage title="Test" message="Content" />;
 	};
 
-	const {lastFrame, rerender} = render(<TestComponent />);
+	const {lastFrame, rerender} = renderWithTheme(<TestComponent />);
 	const firstRender = lastFrame();
 	t.truthy(firstRender);
 	const initialCount = renderCount;

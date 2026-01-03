@@ -1,25 +1,10 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
-import {themes} from '../config/themes.js';
-import {ThemeContext} from '../hooks/useTheme.js';
+import {renderWithTheme} from '../test-utils/render-with-theme.js';
 import {clearModelCache} from '../model-database/model-fetcher.js';
 import {ModelDatabaseDisplay, modelDatabaseCommand} from './model-database.js';
 
 console.log(`\nmodel-database.spec.tsx – ${React.version}`);
-
-// Mock ThemeProvider for testing
-const MockThemeProvider = ({children}: {children: React.ReactNode}) => {
-	const mockTheme = {
-		currentTheme: 'tokyo-night' as const,
-		colors: themes['tokyo-night'].colors,
-		setCurrentTheme: () => {},
-	};
-
-	return (
-		<ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
-	);
-};
 
 // Helper to create mock OpenRouter API response
 function createMockOpenRouterResponse() {
@@ -119,11 +104,7 @@ test.serial('ModelDatabaseDisplay: shows loading state initially', async t => {
 	globalThis.fetch = () => fetchPromise;
 
 	try {
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		const output = lastFrame();
 		t.truthy(output);
@@ -157,11 +138,7 @@ test.serial(
 		};
 
 		try {
-			const {lastFrame} = render(
-				<MockThemeProvider>
-					<ModelDatabaseDisplay />
-				</MockThemeProvider>,
-			);
+			const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 			// Wait for fetch to complete
 			await new Promise(resolve => setTimeout(resolve, 100));
@@ -193,11 +170,7 @@ test.serial('ModelDatabaseDisplay: renders with model data', async t => {
 	};
 
 	try {
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		// Wait for async fetch to complete
 		await new Promise(resolve => setTimeout(resolve, 200));
@@ -222,11 +195,7 @@ test.serial('ModelDatabaseDisplay: displays model name', async t => {
 	};
 
 	try {
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -256,11 +225,7 @@ test.serial('ModelDatabaseDisplay: displays tab names', async t => {
 	};
 
 	try {
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -287,11 +252,7 @@ test.serial(
 		};
 
 		try {
-			const {lastFrame} = render(
-				<MockThemeProvider>
-					<ModelDatabaseDisplay />
-				</MockThemeProvider>,
-			);
+			const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 			await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -317,11 +278,7 @@ test.serial('ModelDatabaseDisplay: displays navigation help', async t => {
 	};
 
 	try {
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -351,11 +308,7 @@ test.serial('ModelDatabaseDisplay: displays model details', async t => {
 	};
 
 	try {
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -381,11 +334,7 @@ test.serial('ModelDatabaseDisplay: displays model count', async t => {
 	};
 
 	try {
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -420,11 +369,7 @@ test.serial('ModelDatabaseDisplay: calls onCancel callback', async t => {
 	};
 
 	try {
-		const {stdin} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay onCancel={onCancel} />
-			</MockThemeProvider>,
-		);
+		const {stdin} = renderWithTheme(<ModelDatabaseDisplay onCancel={onCancel} />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -457,11 +402,7 @@ test.serial('ModelDatabaseDisplay: calls onCancel on Enter key', async t => {
 	};
 
 	try {
-		const {stdin} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay onCancel={onCancel} />
-			</MockThemeProvider>,
-		);
+		const {stdin} = renderWithTheme(<ModelDatabaseDisplay onCancel={onCancel} />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -493,11 +434,7 @@ test.serial('ModelDatabaseDisplay: handles arrow key navigation', async t => {
 	};
 
 	try {
-		const {stdin, lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {stdin, lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -535,11 +472,7 @@ test.serial('ModelDatabaseDisplay: enters search mode on typing', async t => {
 	};
 
 	try {
-		const {stdin, lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {stdin, lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -572,11 +505,7 @@ test.serial(
 		};
 
 		try {
-			const {stdin, lastFrame} = render(
-				<MockThemeProvider>
-					<ModelDatabaseDisplay />
-				</MockThemeProvider>,
-			);
+			const {stdin, lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 			await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -618,11 +547,7 @@ test.serial(
 		};
 
 		try {
-			const {stdin, lastFrame} = render(
-				<MockThemeProvider>
-					<ModelDatabaseDisplay />
-				</MockThemeProvider>,
-			);
+			const {stdin, lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 			await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -663,11 +588,7 @@ test.serial('ModelDatabaseDisplay: handles empty model list', async t => {
 	};
 
 	try {
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -697,11 +618,7 @@ test.serial('ModelDatabaseDisplay: switches tabs on Tab key', async t => {
 	};
 
 	try {
-		const {stdin, lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {stdin, lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -739,11 +656,7 @@ test.serial('ModelDatabaseDisplay: displays command title', async t => {
 	};
 
 	try {
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<ModelDatabaseDisplay />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<ModelDatabaseDisplay />);
 
 		await new Promise(resolve => setTimeout(resolve, 200));
 
