@@ -54,6 +54,7 @@ export default memo(function ToolMessage({
 					paddingX={2}
 					paddingY={0}
 					flexDirection="column"
+					marginBottom={1}
 				>
 					{messageContent}
 					{isBashMode && (

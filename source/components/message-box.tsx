@@ -48,6 +48,7 @@ const MessageBox = memo(function MessageBox({
 					paddingX={2}
 					paddingY={0}
 					flexDirection="column"
+					marginBottom={1}
 				>
 					<Text color={color}>{message}</Text>
 				</Box>
@@ -60,6 +61,7 @@ const MessageBox = memo(function MessageBox({
 					paddingX={2}
 					paddingY={1}
 					flexDirection="column"
+					marginBottom={1}
 				>
 					<Text color={color}>{message}</Text>
 				</TitledBoxWithPreferences>
