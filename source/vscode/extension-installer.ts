@@ -5,9 +5,11 @@
 import {execSync, spawn} from 'child_process';
 import {existsSync} from 'fs';
 import {dirname, join} from 'path';
+import {platform} from 'process';
 import {fileURLToPath} from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const isWindows = platform === 'win32';
 
 /**
  * Get the path to the bundled VSIX file
@@ -34,7 +36,10 @@ export function getVsixPath(): string {
  */
 export function isVSCodeCliAvailable(): boolean {
 	try {
-		execSync('code --version', {stdio: 'ignore'});
+		execSync('code --version', {
+			stdio: 'ignore',
+			...(isWindows && {shell: 'cmd.exe'}),
+		});
 		return true;
 	} catch {
 		return false;
@@ -49,6 +54,7 @@ export function isExtensionInstalled(): boolean {
 		const output = execSync('code --list-extensions', {
 			encoding: 'utf-8',
 			stdio: ['pipe', 'pipe', 'ignore'],
+			...(isWindows && {shell: 'cmd.exe'}),
 		});
 		return output.toLowerCase().includes('nanocollective.nanocoder-vscode');
 	} catch {
@@ -81,6 +87,7 @@ export async function installExtension(): Promise<{
 		return new Promise(resolve => {
 			const child = spawn('code', ['--install-extension', vsixPath], {
 				stdio: ['ignore', 'pipe', 'pipe'],
+				shell: isWindows, // Required on Windows to find code.cmd
 			});
 
 			let stdout = '';

@@ -1,11 +1,14 @@
 import {type ChildProcess, spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import {EventEmitter} from 'node:events';
+import {platform} from 'node:process';
 
 import {
 	BASH_OUTPUT_PREVIEW_LENGTH,
 	INTERVAL_BASH_PROGRESS_MS,
 } from '@/constants';
+
+const isWindows = platform === 'win32';
 
 export interface BashExecutionState {
 	executionId: string;
@@ -45,7 +48,9 @@ export class BashExecutor extends EventEmitter {
 			error: null,
 		};
 
-		const proc = spawn('sh', ['-c', command]);
+		const proc = isWindows
+			? spawn('cmd', ['/c', command])
+			: spawn('sh', ['-c', command]);
 
 		// Collect output
 		proc.stdout.on('data', (data: Buffer) => {
