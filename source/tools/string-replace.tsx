@@ -13,6 +13,7 @@ import {jsonSchema, tool} from '@/types/core';
 import type {Colors} from '@/types/index';
 import {getCachedFileContent, invalidateCache} from '@/utils/file-cache';
 import {normalizeIndentation} from '@/utils/indentation-normalizer';
+import {areLinesSimlar, computeInlineDiff} from '@/utils/inline-diff';
 import {isValidFilePath, resolveFilePath} from '@/utils/path-validation';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
 import {
@@ -317,8 +318,7 @@ async function formatStringReplacePreview(
 		const normalizedContextAfter = normalizedLines.slice(lineIndex);
 
 		const contextBefore: React.ReactElement[] = [];
-		const removedLines: React.ReactElement[] = [];
-		const addedLines: React.ReactElement[] = [];
+		const diffLines: React.ReactElement[] = [];
 		const contextAfter: React.ReactElement[] = [];
 
 		// Show context before
@@ -340,50 +340,130 @@ async function formatStringReplacePreview(
 			);
 		}
 
-		// Show removed lines (old_str)
-		for (let i = 0; i < normalizedOldLines.length; i++) {
-			const lineNumStr = String(startLine + i).padStart(4, ' ');
-			const line = normalizedOldLines[i] || '';
-			let displayLine: string;
-			try {
-				displayLine = highlight(line, {language, theme: 'default'});
-			} catch {
-				displayLine = line;
+		// Build unified diff - only show lines that actually changed
+		let oldIdx = 0;
+		let newIdx = 0;
+		let diffKey = 0;
+
+		while (
+			oldIdx < normalizedOldLines.length ||
+			newIdx < normalizedNewLines.length
+		) {
+			const oldLine =
+				oldIdx < normalizedOldLines.length ? normalizedOldLines[oldIdx] : null;
+			const newLine =
+				newIdx < normalizedNewLines.length ? normalizedNewLines[newIdx] : null;
+
+			// Check if lines are identical - show as unchanged context
+			if (oldLine !== null && newLine !== null && oldLine === newLine) {
+				const lineNumStr = String(startLine + oldIdx).padStart(4, ' ');
+				diffLines.push(
+					<Text
+						key={`diff-${diffKey++}`}
+						color={themeColors.secondary}
+						wrap="wrap"
+					>
+						{lineNumStr} {oldLine}
+					</Text>,
+				);
+				oldIdx++;
+				newIdx++;
+			} else if (
+				oldLine !== null &&
+				newLine !== null &&
+				areLinesSimlar(oldLine, newLine)
+			) {
+				// Lines are similar but different - show inline diff with word-level highlighting
+				const segments = computeInlineDiff(oldLine, newLine);
+				const lineNumStr = String(startLine + oldIdx).padStart(4, ' ');
+
+				// Render removed line with inline highlights
+				const oldParts: React.ReactElement[] = [];
+				for (let s = 0; s < segments.length; s++) {
+					const seg = segments[s];
+					if (seg.type === 'unchanged' || seg.type === 'removed') {
+						oldParts.push(
+							<Text
+								key={`old-seg-${s}`}
+								bold={seg.type === 'removed'}
+								underline={seg.type === 'removed'}
+							>
+								{seg.text}
+							</Text>,
+						);
+					}
+				}
+
+				diffLines.push(
+					<Text
+						key={`diff-${diffKey++}`}
+						backgroundColor={themeColors.diffRemoved}
+						color={themeColors.diffRemovedText}
+						wrap="wrap"
+					>
+						{lineNumStr} - {oldParts}
+					</Text>,
+				);
+
+				// Render added line with inline highlights
+				const newParts: React.ReactElement[] = [];
+				for (let s = 0; s < segments.length; s++) {
+					const seg = segments[s];
+					if (seg.type === 'unchanged' || seg.type === 'added') {
+						newParts.push(
+							<Text
+								key={`new-seg-${s}`}
+								bold={seg.type === 'added'}
+								underline={seg.type === 'added'}
+							>
+								{seg.text}
+							</Text>,
+						);
+					}
+				}
+
+				diffLines.push(
+					<Text
+						key={`diff-${diffKey++}`}
+						backgroundColor={themeColors.diffAdded}
+						color={themeColors.diffAddedText}
+						wrap="wrap"
+					>
+						{lineNumStr} + {newParts}
+					</Text>,
+				);
+
+				oldIdx++;
+				newIdx++;
+			} else if (oldLine !== null) {
+				// Show removed line
+				const lineNumStr = String(startLine + oldIdx).padStart(4, ' ');
+				diffLines.push(
+					<Text
+						key={`diff-${diffKey++}`}
+						backgroundColor={themeColors.diffRemoved}
+						color={themeColors.diffRemovedText}
+						wrap="wrap"
+					>
+						{lineNumStr} - {oldLine}
+					</Text>,
+				);
+				oldIdx++;
+			} else if (newLine !== null) {
+				// Show added line
+				const lineNumStr = String(startLine + newIdx).padStart(4, ' ');
+				diffLines.push(
+					<Text
+						key={`diff-${diffKey++}`}
+						backgroundColor={themeColors.diffAdded}
+						color={themeColors.diffAddedText}
+						wrap="wrap"
+					>
+						{lineNumStr} + {newLine}
+					</Text>,
+				);
+				newIdx++;
 			}
-
-			removedLines.push(
-				<Text
-					key={`remove-${i}`}
-					backgroundColor={themeColors.diffRemoved}
-					color={themeColors.diffRemovedText}
-					wrap="wrap"
-				>
-					{lineNumStr} - {displayLine}
-				</Text>,
-			);
-		}
-
-		// Show added lines (new_str)
-		for (let i = 0; i < normalizedNewLines.length; i++) {
-			const lineNumStr = String(startLine + i).padStart(4, ' ');
-			const line = normalizedNewLines[i] || '';
-			let displayLine: string;
-			try {
-				displayLine = highlight(line, {language, theme: 'default'});
-			} catch {
-				displayLine = line;
-			}
-
-			addedLines.push(
-				<Text
-					key={`add-${i}`}
-					backgroundColor={themeColors.diffAdded}
-					color={themeColors.diffAddedText}
-					wrap="wrap"
-				>
-					{lineNumStr} + {displayLine}
-				</Text>,
-			);
 		}
 
 		// Show context after
@@ -434,8 +514,7 @@ async function formatStringReplacePreview(
 					</Text>
 					<Box flexDirection="column">
 						{contextBefore}
-						{removedLines}
-						{addedLines}
+						{diffLines}
 						{contextAfter}
 					</Box>
 				</Box>
