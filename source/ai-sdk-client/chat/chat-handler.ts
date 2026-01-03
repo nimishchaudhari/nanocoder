@@ -1,5 +1,11 @@
 import type {LanguageModel} from 'ai';
-import {generateText, stepCountIs} from 'ai';
+import {
+	generateText,
+	InvalidToolInputError,
+	NoSuchToolError,
+	stepCountIs,
+	ToolCallRepairError,
+} from 'ai';
 import {MAX_TOOL_STEPS} from '@/constants';
 import type {
 	AIProviderConfig,
@@ -236,12 +242,61 @@ export async function handleChat(
 				throw new Error('Operation was cancelled');
 			}
 
+			// Handle tool-specific errors - NoSuchToolError
+			if (error instanceof NoSuchToolError) {
+				logger.error('Tool not found', {
+					toolName: error.toolName,
+					model: currentModel,
+					correlationId,
+					provider: providerConfig.name,
+				});
+
+				// Provide helpful error message with available tools
+				const availableTools = Object.keys(tools).join(', ');
+				const errorMessage = availableTools
+					? `Tool "$\{error.toolName\}" does not exist. Available tools: $\{availableTools\}`
+					: `Tool "$\{error.toolName\}" does not exist and no tools are currently loaded.`;
+
+				throw new Error(errorMessage);
+			}
+
+			// Handle tool-specific errors - InvalidToolInputError
+			if (error instanceof InvalidToolInputError) {
+				logger.error('Invalid tool input', {
+					toolName: error.toolName,
+					model: currentModel,
+					correlationId,
+					provider: providerConfig.name,
+					validationError: error.message,
+				});
+
+				// Provide clear validation error
+				throw new Error(
+					`Invalid arguments for tool "$\{error.toolName\}": $\{error.message\}`,
+				);
+			}
+
+			// Handle tool-specific errors - ToolCallRepairError
+			if (error instanceof ToolCallRepairError) {
+				logger.error('Tool call repair failed', {
+					toolName: error.originalError.toolName,
+					model: currentModel,
+					correlationId,
+					provider: providerConfig.name,
+					repairError: error.message,
+				});
+
+				// Fall through to general error handling
+				// Don't throw here - let the general handler provide context
+			}
+
 			// Log the error with performance metrics
 			logger.error('Chat request failed', {
 				model: currentModel,
 				duration: `${finalMetrics.duration.toFixed(2)}ms`,
 				error: error instanceof Error ? error.message : error,
 				errorName: error instanceof Error ? error.name : 'Unknown',
+				errorType: error?.constructor?.name || 'Unknown',
 				correlationId,
 				provider: providerConfig.name,
 				memoryDelta: formatMemoryUsage(

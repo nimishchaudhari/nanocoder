@@ -8,6 +8,7 @@ import {TRUNCATION_OUTPUT_LIMIT} from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
+import {calculateTokens} from '@/utils/token-calculator';
 
 const executeExecuteBash = async (args: {command: string}): Promise<string> => {
 	return new Promise((resolve, reject) => {
@@ -100,7 +101,7 @@ const ExecuteBashFormatter = React.memo(
 		let estimatedTokens = 0;
 		if (result) {
 			outputSize = result.length;
-			estimatedTokens = Math.ceil(outputSize / 4); // ~4 characters per token
+			estimatedTokens = calculateTokens(result);
 		}
 
 		const messageContent = (

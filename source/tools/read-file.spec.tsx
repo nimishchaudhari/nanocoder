@@ -33,7 +33,7 @@ function TestThemeProvider({children}: {children: React.ReactNode}) {
 // ============================================================================
 
 test('ReadFileFormatter renders with path', async t => {
-	const testDir = join(process.cwd(), 'test-read-formatter-temp');
+	const testDir = join(process.cwd(), 'test-fmt');
 
 	try {
 		mkdirSync(testDir, {recursive: true});
@@ -811,4 +811,84 @@ test('read_file tool has formatter function', t => {
 
 test('read_file tool has validator function', t => {
 	t.is(typeof readFileTool.validator, 'function');
+});
+
+// ============================================================================
+// Tests for read_file Handler - metadata_only Feature
+// ============================================================================
+
+test.serial('read_file metadata_only returns file info without content', async t => {
+	t.timeout(10000);
+	const testDir = join(process.cwd(), 'test-meta');
+
+	try {
+		mkdirSync(testDir, {recursive: true});
+		writeFileSync(join(testDir, 'test.ts'), 'const x = 1;\nconst y = 2;');
+
+		const result = await readFileTool.tool.execute!(
+			{
+				path: join(testDir, 'test.ts'),
+				metadata_only: true,
+			},
+			{toolCallId: 'test', messages: []},
+		);
+
+		t.regex(result, /File Information for/);
+		t.regex(result, /Type: file/);
+		t.regex(result, /Size:/);
+		t.regex(result, /Lines:/);
+		t.regex(result, /File Type: TypeScript/);
+		t.regex(result, /Encoding:/);
+		// Should NOT include actual file content
+		t.false(result.includes('const x = 1'));
+	} finally {
+		rmSync(testDir, {recursive: true, force: true});
+	}
+});
+
+test.serial('read_file metadata_only handles directories', async t => {
+	t.timeout(10000);
+	const testDir = join(process.cwd(), 'test-meta-dir');
+
+	try {
+		mkdirSync(testDir, {recursive: true});
+		mkdirSync(join(testDir, 'subdir'), {recursive: true});
+
+		const result = await readFileTool.tool.execute!(
+			{
+				path: join(testDir, 'subdir'),
+				metadata_only: true,
+			},
+			{toolCallId: 'test', messages: []},
+		);
+
+		t.regex(result, /Type: directory/);
+		t.regex(result, /list_directory/);
+	} finally {
+		rmSync(testDir, {recursive: true, force: true});
+	}
+});
+
+test.serial('read_file metadata_only shows last modified time', async t => {
+	t.timeout(10000);
+	const testDir = join(process.cwd(), 'test-meta-time');
+
+	try {
+		mkdirSync(testDir, {recursive: true});
+		writeFileSync(join(testDir, 'test.ts'), 'content');
+
+		const result = await readFileTool.tool.execute!(
+			{
+				path: join(testDir, 'test.ts'),
+				metadata_only: true,
+			},
+			{toolCallId: 'test', messages: []},
+		);
+
+		t.regex(result, /Last Modified:/);
+		// ISO format: YYYY-MM-DDTHH:MM:SS
+		t.regex(result, /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+	} finally {
+		rmSync(testDir, {recursive: true, force: true});
+	}
 });

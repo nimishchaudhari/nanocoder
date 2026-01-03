@@ -1,8 +1,5 @@
 import {execFile} from 'node:child_process';
-import {existsSync, readFileSync} from 'node:fs';
-import {join} from 'node:path';
 import {promisify} from 'node:util';
-import ignore from 'ignore';
 import {Box, Text} from 'ink';
 import React from 'react';
 
@@ -13,43 +10,12 @@ import {
 	MAX_FIND_FILES_RESULTS,
 } from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
+import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
+import {DEFAULT_IGNORE_DIRS, loadGitignore} from '@/utils/gitignore-loader';
+import {calculateTokens} from '@/utils/token-calculator';
 
 const execFileAsync = promisify(execFile);
-
-/**
- * Load and parse .gitignore file, returns an ignore instance
- */
-function loadGitignore(cwd: string): ReturnType<typeof ignore> {
-	const ig = ignore();
-	const gitignorePath = join(cwd, '.gitignore');
-
-	// Always ignore common directories
-	ig.add([
-		'node_modules',
-		'.git',
-		'dist',
-		'build',
-		'coverage',
-		'.next',
-		'.nuxt',
-		'out',
-		'.cache',
-	]);
-
-	// Load .gitignore if it exists
-	if (existsSync(gitignorePath)) {
-		try {
-			const gitignoreContent = readFileSync(gitignorePath, 'utf-8');
-			ig.add(gitignoreContent);
-		} catch {
-			// Silently fail if we can't read .gitignore
-			// The hardcoded ignores above will still apply
-		}
-	}
-
-	return ig;
-}
 
 /**
  * Find files matching a glob pattern using find command
@@ -115,18 +81,8 @@ async function findFilesByPattern(
 			findArgs.push('-name', pattern);
 		}
 
-		// Add exclusions
-		const exclusions = [
-			'*/node_modules/*',
-			'*/.git/*',
-			'*/dist/*',
-			'*/build/*',
-			'*/coverage/*',
-			'*/.next/*',
-			'*/.nuxt/*',
-			'*/out/*',
-			'*/.cache/*',
-		];
+		// Add exclusions - dynamically generated from DEFAULT_IGNORE_DIRS
+		const exclusions = DEFAULT_IGNORE_DIRS.map(dir => `*/${dir}/*`);
 
 		for (const exclusion of exclusions) {
 			findArgs.push('-not', '-path', exclusion);
@@ -207,14 +163,14 @@ const executeFindFiles = async (args: FindFilesArgs): Promise<string> => {
 
 const findFilesCoreTool = tool({
 	description:
-		'Find files and directories by path pattern or name. Use glob patterns like "*.tsx", "**/*.ts", "src/**/*.js", or "*.{ts,tsx}". Returns a list of matching file and directory paths. Does NOT search file contents - use search_file_contents for that.',
+		'Find files and directories by path pattern. AUTO-ACCEPTED (no user approval needed). Use this INSTEAD OF bash find/locate/ls commands for file discovery. Examples: "*.tsx" (all .tsx files), "src/**/*.ts" (recursive in src/), "*.{ts,tsx}" (multiple extensions), "package.json" (exact file), "*config*" (files containing "config"), "source/tools/*.ts" (specific directory). Excludes node_modules, .git, dist, build automatically.',
 	inputSchema: jsonSchema<FindFilesArgs>({
 		type: 'object',
 		properties: {
 			pattern: {
 				type: 'string',
 				description:
-					'Glob pattern to match file and directory paths. Examples: "*.tsx" (all .tsx files), "src/**/*.ts" (all .ts in src/), "components/**" (all files/dirs in components/), "*.{ts,tsx}" (multiple extensions)',
+					'Glob pattern to match file and directory paths. Examples: "*.tsx" (all .tsx files), "src/**/*.ts" (recursive in src/), "*.{ts,tsx}" (multiple extensions), "package.json" (exact file), "*config*" (files containing "config"), "source/tools/*.ts" (specific directory)',
 			},
 			maxResults: {
 				type: 'number',
@@ -257,6 +213,9 @@ const FindFilesFormatter = React.memo(
 			}
 		}
 
+		// Calculate tokens
+		const tokens = result ? calculateTokens(result) : 0;
+
 		const messageContent = (
 			<Box flexDirection="column">
 				<Text color={colors.tool}>⚒ find_files</Text>
@@ -270,6 +229,13 @@ const FindFilesFormatter = React.memo(
 					<Text color={colors.secondary}>Results: </Text>
 					<Text color={colors.white}>{fileCount}</Text>
 				</Box>
+
+				{tokens > 0 && (
+					<Box>
+						<Text color={colors.secondary}>Tokens: </Text>
+						<Text color={colors.white}>~{tokens.toLocaleString()}</Text>
+					</Box>
+				)}
 			</Box>
 		);
 
@@ -287,7 +253,7 @@ const findFilesFormatter = (
 	return <FindFilesFormatter args={args} result={result} />;
 };
 
-export const findFilesTool = {
+export const findFilesTool: NanocoderToolExport = {
 	name: 'find_files' as const,
 	tool: findFilesCoreTool,
 	formatter: findFilesFormatter,

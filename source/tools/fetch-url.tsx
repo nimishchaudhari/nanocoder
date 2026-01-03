@@ -5,7 +5,9 @@ import React from 'react';
 import ToolMessage from '@/components/tool-message';
 import {MAX_URL_CONTENT_BYTES} from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
+import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
+import {calculateTokens} from '@/utils/token-calculator';
 
 interface FetchArgs {
 	url: string;
@@ -78,7 +80,7 @@ const FetchUrlFormatter = React.memo(
 
 		if (result) {
 			contentSize = result.length;
-			estimatedTokens = Math.ceil(contentSize / 4);
+			estimatedTokens = calculateTokens(result);
 			wasTruncated = result.includes('[Content truncated');
 		}
 
@@ -164,7 +166,7 @@ const fetchUrlValidator = (
 	}
 };
 
-export const fetchUrlTool = {
+export const fetchUrlTool: NanocoderToolExport = {
 	name: 'fetch_url' as const,
 	tool: fetchUrlCoreTool,
 	formatter: fetchUrlFormatter,
