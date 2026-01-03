@@ -1,8 +1,8 @@
 import {Text} from 'ink';
 import React from 'react';
+import TitleShapeSelector from '@/components/title-shape-selector';
 import {colors} from '@/config/index';
 import {updateTitleShape} from '@/config/preferences';
-import TitleShapeSelector from '@/components/title-shape-selector';
 import type {Command} from '@/types/index';
 
 export const titleShapeCommand: Command = {
@@ -13,7 +13,7 @@ export const titleShapeCommand: Command = {
 			// Show interactive selector when no arguments provided
 			return Promise.resolve(
 				React.createElement(TitleShapeSelector, {
-					onComplete: (shape) => {
+					onComplete: shape => {
 						return React.createElement(
 							Text,
 							{color: colors.success},
@@ -24,7 +24,7 @@ export const titleShapeCommand: Command = {
 						return React.createElement(
 							Text,
 							{color: colors.info},
-							'Title shape selection cancelled. Current shape retained.'
+							'Title shape selection cancelled. Current shape retained.',
 						);
 					},
 				}),

@@ -3,11 +3,11 @@ import BigText from 'ink-big-text';
 import Gradient from 'ink-gradient';
 import SelectInput from 'ink-select-input';
 import {useMemo, useState} from 'react';
+import type {TitleShape} from '@/components/ui/styled-title';
 import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
+import {getTitleShape, updateTitleShape} from '@/config/preferences';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
-import {getTitleShape, updateTitleShape} from '@/config/preferences';
-import type {TitleShape} from '@/components/ui/styled-title';
 
 interface TitleShapeOption {
 	label: string;
@@ -25,14 +25,14 @@ export default function TitleShapeSelector({
 }: TitleShapeSelectorProps) {
 	const boxWidth = useTerminalWidth();
 	const {colors} = useTheme();
-	
+
 	// Get current title shape from preferences
 	const currentShape = getTitleShape() || 'pill';
 	const [originalShape] = useState<TitleShape>(currentShape);
-	
+
 	// Auto-focus to ensure keyboard navigation works
 	useFocus({autoFocus: true, id: 'title-shape-selector'});
-	
+
 	// Handle escape key to cancel
 	useInput((_, key) => {
 		if (key.escape) {
@@ -44,18 +44,18 @@ export default function TitleShapeSelector({
 
 	// Create title shape options
 	const shapeOptions: TitleShapeOption[] = [
-		{label: 'Rounded (╭─╮)', value: 'rounded'},
-		{label: 'Square (┌─┐)', value: 'square'},
-		{label: 'Double (╔─╗)', value: 'double'},
-		{label: 'Pill (smooth)', value: 'pill'},
-		{label: 'Powerline Angled ( )', value: 'powerline-angled'},
-		{label: 'Powerline Curved ( )', value: 'powerline-curved'},
-		{label: 'Powerline Flame ( )', value: 'powerline-flame'},
-		{label: 'Powerline Block ( )', value: 'powerline-block'},
-		{label: 'Arrow Left (← →)', value: 'arrow-left'},
-		{label: 'Arrow Right (→ ←)', value: 'arrow-right'},
-		{label: 'Arrow Double (« »)', value: 'arrow-double'},
-		{label: 'Angled Box (╱ ╲)', value: 'angled-box'},
+		{label: 'Rounded :- ╭ Demo Title ╮', value: 'rounded'},
+		{label: 'Square :- ┌ Demo Title ┐', value: 'square'},
+		{label: 'Double :- ╔ Demo Title ╗', value: 'double'},
+		{label: 'Pill :- Demo Title', value: 'pill'},
+		{label: 'Powerline Angled :-  Demo Title  (Requires Nerd Fonts)', value: 'powerline-angled'},
+		{label: 'Powerline Curved :-  Demo Title  (Requires Nerd Fonts)', value: 'powerline-curved'},
+		{label: 'Powerline Flame :-  Demo Title  (Requires Nerd Fonts)', value: 'powerline-flame'},
+		{label: 'Powerline Block :-  Demo Title  (Requires Nerd Fonts)', value: 'powerline-block'},
+		{label: 'Arrow Left :- ← Demo Title →', value: 'arrow-left'},
+		{label: 'Arrow Right :- → Demo Title ←', value: 'arrow-right'},
+		{label: 'Arrow Double :- « Demo Title »', value: 'arrow-double'},
+		{label: 'Angled Box :- ╱ Demo Title ╲', value: 'angled-box'},
 	];
 
 	// Find index of current shape for initial selection
@@ -64,7 +64,7 @@ export default function TitleShapeSelector({
 			option => option.value === originalShape,
 		);
 		return index >= 0 ? index : 0;
-	}, [originalShape, shapeOptions]);
+	}, [originalShape]);
 
 	const [_currentIndex, _setCurrentIndex] = useState(initialIndex);
 
@@ -81,7 +81,9 @@ export default function TitleShapeSelector({
 
 	// Get the display name for current shape
 	const getCurrentShapeName = () => {
-		const currentOption = shapeOptions.find(option => option.value === currentShape);
+		const currentOption = shapeOptions.find(
+			option => option.value === currentShape,
+		);
 		return currentOption ? currentOption.label : 'Unknown';
 	};
 
@@ -90,24 +92,6 @@ export default function TitleShapeSelector({
 			<Gradient colors={[colors.primary, colors.tool]}>
 				<BigText text="Title Shapes" font="tiny" />
 			</Gradient>
-
-			{/* Live Demo Title - updates as user navigates */}
-			<Box marginBottom={1}>
-				<TitledBoxWithPreferences
-					title="✻ Demo Title - Watch Me Change! ✻"
-					reversePowerline={true}
-					width={boxWidth}
-					borderColor={colors.primary}
-					paddingX={2}
-					paddingY={1}
-				>
-					<Box>
-						<Text color={colors.secondary}>
-							This title shape updates in real-time as you navigate the options below!
-						</Text>
-					</Box>
-				</TitledBoxWithPreferences>
-			</Box>
 
 			<TitledBoxWithPreferences
 				title="✻ Choose your preferred title shape! ✻"
@@ -127,7 +111,7 @@ export default function TitleShapeSelector({
 						1. Use arrow keys to navigate through the shape options.
 					</Text>
 					<Text color={colors.secondary}>
-						2. Watch the demo title above update in real-time as you navigate!
+						2. Each option shows a preview of how the title will look.
 					</Text>
 					<Text color={colors.secondary}>
 						3. Press Enter to select your preferred shape.
@@ -159,12 +143,6 @@ export default function TitleShapeSelector({
 					<Box marginBottom={1}>
 						<Text color={colors.secondary}>
 							↑/↓ Navigate • Enter Select • Esc Cancel
-						</Text>
-					</Box>
-
-					<Box marginBottom={1}>
-						<Text color={colors.secondary}>
-							👆 Watch the demo title above change as you navigate! 👆
 						</Text>
 					</Box>
 

@@ -221,7 +221,7 @@ export function StyledTitle({
 		);
 	}
 
-	// Traditional box-style rendering
+	// Traditional box-style rendering (single line like powerline/arrow styles)
 	const boxShapes = effectiveShapes as {
 		topLeft: string;
 		topRight: string;
@@ -235,27 +235,15 @@ export function StyledTitle({
 		<Box width={width} {...boxProps}>
 			<Box>
 				{icon && <Text>{icon} </Text>}
-				<Text backgroundColor={borderColor} color={textColor} bold>
+				<Text color={textColor} bold>
 					{boxShapes.topLeft}
-					<Text backgroundColor={borderColor} color={textColor} bold>
-						{boxShapes.horizontal.repeat(Math.max(0, title.length + 2))}
-					</Text>
+				</Text>
+				<Text backgroundColor={borderColor} color={textColor} bold>
+					{' '}
+					{title}{' '}
+				</Text>
+				<Text color={textColor} bold>
 					{boxShapes.topRight}
-				</Text>
-				<Text backgroundColor={borderColor} color={textColor} bold>
-					{boxShapes.vertical}
-					<Text backgroundColor={borderColor} color={textColor} bold>
-						{' '}
-						{title}{' '}
-					</Text>
-					{boxShapes.vertical}
-				</Text>
-				<Text backgroundColor={borderColor} color={textColor} bold>
-					{boxShapes.bottomLeft}
-					<Text backgroundColor={borderColor} color={textColor} bold>
-						{boxShapes.horizontal.repeat(Math.max(0, title.length + 2))}
-					</Text>
-					{boxShapes.bottomRight}
 				</Text>
 			</Box>
 		</Box>

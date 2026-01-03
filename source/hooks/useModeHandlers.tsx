@@ -6,11 +6,11 @@ import {
 	loadPreferences,
 	savePreferences,
 	updateLastUsed,
+	updateTitleShape,
 } from '@/config/preferences';
 import {getToolManager} from '@/message-handler';
 import {LLMClient, Message} from '@/types/core';
 import type {ThemePreset, TitleShape} from '@/types/ui';
-import {updateTitleShape} from '@/config/preferences';
 
 interface UseModeHandlersProps {
 	client: LLMClient | null;

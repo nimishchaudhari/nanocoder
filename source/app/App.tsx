@@ -528,7 +528,9 @@ export default function App({
 							}
 							onThemeSelect={modeHandlers.handleThemeSelect}
 							onTitleShapeSelect={modeHandlers.handleTitleShapeSelect}
-							onTitleShapeSelectionCancel={modeHandlers.handleTitleShapeSelectionCancel}
+							onTitleShapeSelectionCancel={
+								modeHandlers.handleTitleShapeSelectionCancel
+							}
 							onThemeSelectionCancel={modeHandlers.handleThemeSelectionCancel}
 							onModelDatabaseCancel={modeHandlers.handleModelDatabaseCancel}
 							onConfigWizardComplete={modeHandlers.handleConfigWizardComplete}
