@@ -12,18 +12,16 @@ export type TitleShape =
 	| 'angled-box'
 	| 'powerline-angled'
 	| 'powerline-angled-thin'
+	| 'powerline-block'
+	| 'powerline-block-alt'
 	| 'powerline-curved'
 	| 'powerline-curved-thin'
 	| 'powerline-flame'
 	| 'powerline-flame-thin'
-	| 'powerline-block'
-	| 'powerline-block-thin'
-	| 'powerline-segment'
-	| 'powerline-segment-thin'
-	| 'powerline-rect'
-	| 'powerline-rect-thin'
 	| 'powerline-graph'
-	| 'powerline-block-alt';
+	| 'powerline-ribbon'
+	| 'powerline-segment'
+	| 'powerline-segment-thin';
 
 export interface StyledTitleProps extends Omit<BoxProps, 'borderStyle'> {
 	/** Title text to display */
@@ -129,9 +127,9 @@ const shapeCharacters = {
 		left: '', // U+E0BE
 		right: '', // U+E0BC
 	},
-	'powerline-block-thin': {
-		left: '', // U+E0BF
-		right: '', // U+E0BD
+	'powerline-block-alt': {
+		left: '', // U+E0B8
+		right: '', // U+E0BA
 	},
 	'powerline-segment': {
 		left: '', // U+E0C4
@@ -141,19 +139,11 @@ const shapeCharacters = {
 		left: '', // U+E0C6
 		right: '', // U+E0C7
 	},
-	'powerline-rect': {
-		left: '', // U+E0B8
-		right: '', // U+E0BA
-	},
-	'powerline-rect-thin': {
-		left: '', // U+E0B9
-		right: '', // U+E0BB
-	},
 	'powerline-graph': {
 		left: '', // U+E0C8
 		right: '', // U+E0CA
 	},
-	'powerline-block-alt': {
+	'powerline-ribbon': {
 		left: '', // U+E0D2
 		right: '', // U+E0D4
 	},
@@ -204,14 +194,14 @@ export function StyledTitle({
 			<Box width={width} {...boxProps}>
 				<Box>
 					{icon && <Text>{icon} </Text>}
-					<Text color={textColor} bold>
+					<Text color={borderColor} bold>
 						{leftSymbol}
 					</Text>
 					<Text backgroundColor={borderColor} color={textColor} bold>
 						{' '}
 						{title}{' '}
 					</Text>
-					<Text color={textColor} bold>
+					<Text color={borderColor} bold>
 						{rightSymbol}
 					</Text>
 				</Box>

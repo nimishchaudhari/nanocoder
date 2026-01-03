@@ -61,6 +61,14 @@ export default function TitleShapeSelector({
 			value: 'powerline-angled-thin',
 		},
 		{
+			label: 'Powerline Block :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-block',
+		},
+		{
+			label: 'Powerline Block Alt :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-block-alt',
+		},
+		{
 			label: 'Powerline Curved :-  Demo Title  (Requires Nerd Fonts)',
 			value: 'powerline-curved',
 		},
@@ -77,12 +85,12 @@ export default function TitleShapeSelector({
 			value: 'powerline-flame-thin',
 		},
 		{
-			label: 'Powerline Block :-  Demo Title  (Requires Nerd Fonts)',
-			value: 'powerline-block',
+			label: 'Powerline Graph :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-graph',
 		},
 		{
-			label: 'Powerline Block Thin :-  Demo Title  (Requires Nerd Fonts)',
-			value: 'powerline-block-thin',
+			label: 'Powerline Ribbon :-  Demo Title  (Requires Nerd Fonts)',
+			value: 'powerline-ribbon',
 		},
 		{
 			label: 'Powerline Segment :-  Demo Title  (Requires Nerd Fonts)',
@@ -91,22 +99,6 @@ export default function TitleShapeSelector({
 		{
 			label: 'Powerline Segment Thin :-  Demo Title  (Requires Nerd Fonts)',
 			value: 'powerline-segment-thin',
-		},
-		{
-			label: 'Powerline Rect :-  Demo Title  (Requires Nerd Fonts)',
-			value: 'powerline-rect',
-		},
-		{
-			label: 'Powerline Rect Thin :-  Demo Title  (Requires Nerd Fonts)',
-			value: 'powerline-rect-thin',
-		},
-		{
-			label: 'Powerline Graph :-  Demo Title  (Requires Nerd Fonts)',
-			value: 'powerline-graph',
-		},
-		{
-			label: 'Powerline Block Alt :-  Demo Title  (Requires Nerd Fonts)',
-			value: 'powerline-block-alt',
 		},
 	];
 
