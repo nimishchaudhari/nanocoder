@@ -105,7 +105,7 @@ const WriteFileFormatter = React.memo(({args}: {args: WriteFileArgs}) => {
 	const normalizedLines = normalizeIndentation(lines);
 
 	const messageContent = (
-		<Box flexDirection="column" backgroundColor={colors.base}>
+		<Box flexDirection="column">
 			<Text color={colors.tool}>⚒ write_file</Text>
 
 			<Box>
