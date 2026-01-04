@@ -114,6 +114,8 @@
 
 - Fix: High severity qs vulnerability patched via pnpm override. Thanks to @Pahari47.
 
+- Fix: Removed line numbers from tagging files and read_file tool as it confused models when pattern matching content changes.
+
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
 # 1.19.2
