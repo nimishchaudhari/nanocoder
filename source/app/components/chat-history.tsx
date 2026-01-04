@@ -1,6 +1,7 @@
 import {Box} from 'ink';
 import React from 'react';
 import ChatQueue from '@/components/chat-queue';
+import {useTheme} from '@/hooks/useTheme';
 
 export interface ChatHistoryProps {
 	/** Whether the chat has started (ready to display) */
@@ -29,8 +30,15 @@ export function ChatHistory({
 	queuedComponents,
 	liveComponent,
 }: ChatHistoryProps): React.ReactElement {
+	const {colors} = useTheme();
+
 	return (
-		<Box flexGrow={1} flexDirection="column" minHeight={0}>
+		<Box
+			flexGrow={1}
+			flexDirection="column"
+			minHeight={0}
+			backgroundColor={colors.base}
+		>
 			{startChat && (
 				<ChatQueue
 					staticComponents={staticComponents}

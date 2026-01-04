@@ -1,5 +1,6 @@
 import type {BoxProps} from 'ink';
 import {Box} from 'ink';
+import {useTheme} from '@/hooks/useTheme';
 import {useTitleShape} from '@/hooks/useTitleShape';
 import {StyledTitle, type TitleShape} from './styled-title';
 
@@ -88,6 +89,7 @@ export function TitledBoxWithPreferences({
 }: TitledBoxProps) {
 	// Get the user's preferred title shape from context
 	const {currentTitleShape} = useTitleShape();
+	const {colors} = useTheme();
 
 	// Use explicit shape if provided, otherwise use preferred shape, otherwise default to 'pill'
 	const finalShape = shape || currentTitleShape || 'pill';
@@ -105,6 +107,7 @@ export function TitledBoxWithPreferences({
 			paddingY={paddingY}
 			flexDirection={flexDirection}
 			marginBottom={marginBottom}
+			backgroundColor={colors.base}
 		/>
 	);
 }
