@@ -90,14 +90,14 @@ const FetchUrlFormatter = React.memo(
 
 				<Box>
 					<Text color={colors.secondary}>URL: </Text>
-					<Text color={colors.white}>{url}</Text>
+					<Text color={colors.text}>{url}</Text>
 				</Box>
 
 				{result && (
 					<>
 						<Box>
 							<Text color={colors.secondary}>Content: </Text>
-							<Text color={colors.white}>
+							<Text color={colors.text}>
 								{contentSize.toLocaleString()} characters (~{estimatedTokens}{' '}
 								tokens)
 							</Text>

@@ -376,21 +376,21 @@ const GitBranchSuggestFormatter = React.memo(
 				{args.ticketId && (
 					<Box>
 						<Text color={colors.secondary}>Ticket: </Text>
-						<Text color={colors.white}>{args.ticketId}</Text>
+						<Text color={colors.text}>{args.ticketId}</Text>
 					</Box>
 				)}
 
 				{suggestedBranch && (
 					<Box>
 						<Text color={colors.secondary}>Branch: </Text>
-						<Text color={colors.white}>{suggestedBranch}</Text>
+						<Text color={colors.text}>{suggestedBranch}</Text>
 					</Box>
 				)}
 
 				{workflow && (
 					<Box>
 						<Text color={colors.secondary}>Workflow: </Text>
-						<Text color={colors.white}>{workflow}</Text>
+						<Text color={colors.text}>{workflow}</Text>
 					</Box>
 				)}
 			</Box>

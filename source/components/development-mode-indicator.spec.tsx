@@ -12,8 +12,8 @@ const mockColors = {
 	error: '#FF0000',
 	success: '#00FF00',
 	tool: '#FF00FF',
-	white: '#FFFFFF',
-	black: '#000000',
+	text: '#FFFFFF',
+	base: '#000000',
 };
 
 // ============================================================================

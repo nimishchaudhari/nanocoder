@@ -155,26 +155,26 @@ const WebSearchFormatter = React.memo(
 
 				<Box>
 					<Text color={colors.secondary}>Query: </Text>
-					<Text color={colors.white}>{query}</Text>
+					<Text color={colors.text}>{query}</Text>
 				</Box>
 
 				<Box>
 					<Text color={colors.secondary}>Engine: </Text>
-					<Text color={colors.white}>Brave Search</Text>
+					<Text color={colors.text}>Brave Search</Text>
 				</Box>
 
 				{result && (
 					<>
 						<Box>
 							<Text color={colors.secondary}>Results: </Text>
-							<Text color={colors.white}>
+							<Text color={colors.text}>
 								{resultCount} / {maxResults} results
 							</Text>
 						</Box>
 
 						<Box>
 							<Text color={colors.secondary}>Output: </Text>
-							<Text color={colors.white}>~{estimatedTokens} tokens</Text>
+							<Text color={colors.text}>~{estimatedTokens} tokens</Text>
 						</Box>
 					</>
 				)}

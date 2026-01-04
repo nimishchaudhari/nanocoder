@@ -1,6 +1,6 @@
 export interface Colors {
-	white: string;
-	black: string;
+	text: string;
+	base: string;
 	primary: string;
 	tool: string;
 	secondary: string;

@@ -45,7 +45,7 @@ export default function SecurityDisclaimer({
 	};
 
 	return (
-		<Box flexDirection="column" padding={1}>
+		<Box flexDirection="column" padding={1} backgroundColor={colors.base}>
 			<TitledBoxWithPreferences
 				title="Security Warning"
 				reversePowerline={true}

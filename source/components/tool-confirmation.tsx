@@ -146,7 +146,7 @@ export default function ToolConfirmation({
 							{React.isValidElement(formatterPreview) ? (
 								formatterPreview
 							) : (
-								<Text color={colors.white}>{String(formatterPreview)}</Text>
+								<Text color={colors.text}>{String(formatterPreview)}</Text>
 							)}
 						</Box>
 					</Box>

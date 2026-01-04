@@ -161,7 +161,7 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 				paddingX={2}
 				paddingY={1}
 			>
-				<Text color={colors.white}>Fetching models from OpenRouter...</Text>
+				<Text color={colors.text}>Fetching models from OpenRouter...</Text>
 			</TitledBoxWithPreferences>
 		);
 	}
@@ -370,28 +370,28 @@ function ModelItem({model, colors}: {model: ModelEntry; colors: Colors}) {
 			</Box>
 			<Box marginLeft={2} flexDirection="column">
 				<Box flexDirection="column">
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>ID: </Text>
 						<Text dimColor>{model.id}</Text>
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Author: </Text>
 						{model.author}
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Context: </Text>
 						{model.size} tokens
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Type: </Text>
 						{model.local ? 'Open Weights' : 'Proprietary'}
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Cost: </Text>
 						<Text color={costInfo.color}>{costInfo.label}</Text>
 						<Text dimColor> - {model.costDetails}</Text>
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Tools: </Text>
 						{model.hasToolSupport ? (
 							<Text color={colors.success}>Supported</Text>
@@ -399,7 +399,7 @@ function ModelItem({model, colors}: {model: ModelEntry; colors: Colors}) {
 							<Text dimColor>Not supported</Text>
 						)}
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Added: </Text>
 						{formatDate(model.created)}
 					</Text>

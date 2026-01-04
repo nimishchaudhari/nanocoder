@@ -88,7 +88,7 @@ export default function ThemeSelector({
 				marginBottom={1}
 			>
 				<Box paddingBottom={1}>
-					<Text color={colors.white}>Tips for getting started:</Text>
+					<Text color={colors.text}>Tips for getting started:</Text>
 				</Box>
 				<Box paddingBottom={1} flexDirection="column">
 					<Text color={colors.secondary}>
@@ -101,7 +101,7 @@ export default function ThemeSelector({
 						3. The CLI will remember your choice next time.
 					</Text>
 				</Box>
-				<Text color={colors.white}>/help for help</Text>
+				<Text color={colors.text}>/help for help</Text>
 			</TitledBoxWithPreferences>
 			<Box
 				borderStyle="round"

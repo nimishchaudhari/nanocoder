@@ -110,18 +110,18 @@ const WriteFileFormatter = React.memo(({args}: {args: WriteFileArgs}) => {
 
 			<Box>
 				<Text color={colors.secondary}>Path: </Text>
-				<Text color={colors.white}>{path}</Text>
+				<Text color={colors.text}>{path}</Text>
 			</Box>
 			<Box>
 				<Text color={colors.secondary}>Size: </Text>
-				<Text color={colors.white}>
+				<Text color={colors.text}>
 					{lineCount} lines, {charCount} characters (~{estimatedTokens} tokens)
 				</Text>
 			</Box>
 
 			{newContent.length > 0 ? (
 				<Box flexDirection="column" marginTop={1}>
-					<Text color={colors.white}>File content:</Text>
+					<Text color={colors.text}>File content:</Text>
 					{normalizedLines.map((line: string, i: number) => {
 						const lineNumStr = String(i + 1).padStart(4, ' ');
 						const ext = path.split('.').pop()?.toLowerCase() ?? '';

@@ -107,7 +107,7 @@ export default function BashProgress({
 			{!state.isComplete && state.outputPreview && (
 				<Box flexDirection="column">
 					<Text color={colors.secondary}>Output: </Text>
-					<Text color={colors.white} dimColor>
+					<Text color={colors.text} dimColor>
 						{state.outputPreview}
 					</Text>
 				</Box>
@@ -116,7 +116,7 @@ export default function BashProgress({
 			{state.isComplete && (
 				<Box>
 					<Text color={colors.secondary}>Tokens: </Text>
-					<Text color={colors.white}>~{estimatedTokens}</Text>
+					<Text color={colors.text}>~{estimatedTokens}</Text>
 				</Box>
 			)}
 		</Box>

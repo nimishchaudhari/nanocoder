@@ -44,7 +44,7 @@ function InitSuccess({
 			{analysis && (
 				<>
 					<Box marginBottom={1}>
-						<Text color={colors.white} bold>
+						<Text color={colors.text} bold>
 							Project Analysis:
 						</Text>
 					</Box>
@@ -65,7 +65,7 @@ function InitSuccess({
 			)}
 
 			<Box marginBottom={1}>
-				<Text color={colors.white} bold>
+				<Text color={colors.text} bold>
 					Files Created:
 				</Text>
 			</Box>
@@ -78,7 +78,7 @@ function InitSuccess({
 
 			<Box marginTop={1} flexDirection="column">
 				<Box marginBottom={1}>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						Your project is now ready for AI-assisted development!
 					</Text>
 				</Box>

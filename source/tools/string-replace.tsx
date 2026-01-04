@@ -211,7 +211,7 @@ async function formatStringReplacePreview(
 					<Box flexDirection="column" marginTop={1}>
 						<Text color={themeColors.secondary}>Searching for:</Text>
 						{old_str.split('\n').map((line, i) => (
-							<Text key={i} color={themeColors.white}>
+							<Text key={i} color={themeColors.text}>
 								{line}
 							</Text>
 						))}
@@ -243,7 +243,7 @@ async function formatStringReplacePreview(
 					<Box flexDirection="column" marginTop={1}>
 						<Text color={themeColors.secondary}>Searching for:</Text>
 						{old_str.split('\n').map((line, i) => (
-							<Text key={i} color={themeColors.white}>
+							<Text key={i} color={themeColors.text}>
 								{line}
 							</Text>
 						))}
@@ -502,7 +502,7 @@ async function formatStringReplacePreview(
 
 				<Box>
 					<Text color={themeColors.secondary}>Location: </Text>
-					<Text color={themeColors.white}>{rangeDesc}</Text>
+					<Text color={themeColors.text}>{rangeDesc}</Text>
 				</Box>
 
 				<Box flexDirection="column" marginTop={1}>

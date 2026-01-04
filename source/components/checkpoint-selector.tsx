@@ -78,7 +78,7 @@ export default function CheckpointSelector({
 			>
 				<Box flexDirection="column">
 					<Box marginBottom={1}>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							You have {currentMessageCount} message(s) in the current session.
 						</Text>
 					</Box>
@@ -108,7 +108,7 @@ export default function CheckpointSelector({
 					</Box>
 
 					<Box marginBottom={1}>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							[Y] Yes, create backup [N] No, skip backup [Esc] Cancel
 						</Text>
 					</Box>
@@ -142,7 +142,7 @@ export default function CheckpointSelector({
 				marginBottom={1}
 			>
 				<Box flexDirection="column">
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						No checkpoints found. Create one with /checkpoint create [name]
 					</Text>
 					<Box marginTop={1}>
