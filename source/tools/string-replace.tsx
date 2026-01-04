@@ -169,7 +169,7 @@ async function formatStringReplacePreview(
 		// In result mode, skip validation since file has already been modified
 		if (isResult) {
 			const messageContent = (
-				<Box flexDirection="column">
+				<Box flexDirection="column" backgroundColor={themeColors.base}>
 					<Text color={themeColors.tool}>⚒ string_replace</Text>
 
 					<Box>
@@ -193,7 +193,7 @@ async function formatStringReplacePreview(
 
 		if (occurrences === 0) {
 			const errorContent = (
-				<Box flexDirection="column">
+				<Box flexDirection="column" backgroundColor={themeColors.base}>
 					<Text color={themeColors.tool}>⚒ string_replace</Text>
 
 					<Box>
@@ -223,7 +223,7 @@ async function formatStringReplacePreview(
 
 		if (occurrences > 1) {
 			const errorContent = (
-				<Box flexDirection="column">
+				<Box flexDirection="column" backgroundColor={themeColors.base}>
 					<Text color={themeColors.tool}>⚒ string_replace</Text>
 
 					<Box>
@@ -492,7 +492,7 @@ async function formatStringReplacePreview(
 				: `lines ${startLine}-${endLine}`;
 
 		const messageContent = (
-			<Box flexDirection="column">
+			<Box flexDirection="column" backgroundColor={themeColors.base}>
 				<Text color={themeColors.tool}>⚒ string_replace</Text>
 
 				<Box>
@@ -524,7 +524,7 @@ async function formatStringReplacePreview(
 		return <ToolMessage message={messageContent} hideBox={true} />;
 	} catch (error) {
 		const errorContent = (
-			<Box flexDirection="column">
+			<Box flexDirection="column" backgroundColor={themeColors.base}>
 				<Text color={themeColors.tool}>⚒ string_replace</Text>
 
 				<Box>
