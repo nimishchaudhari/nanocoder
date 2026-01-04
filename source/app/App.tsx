@@ -428,11 +428,7 @@ export default function App({
 		logger.debug('Directory trust check in progress');
 
 		return (
-			<Box
-				flexDirection="column"
-				padding={1}
-				backgroundColor={themeContextValue.colors.base}
-			>
+			<Box flexDirection="column" padding={1}>
 				<Text color={themeContextValue.colors.secondary}>
 					<Spinner type="dots" /> Checking directory trust...
 				</Text>
@@ -448,11 +444,7 @@ export default function App({
 		});
 
 		return (
-			<Box
-				flexDirection="column"
-				padding={1}
-				backgroundColor={themeContextValue.colors.base}
-			>
+			<Box flexDirection="column" padding={1}>
 				<Text color={themeContextValue.colors.error}>
 					⚠️ Error checking directory trust: {isTrustedError}
 				</Text>
@@ -484,11 +476,7 @@ export default function App({
 
 		return (
 			<ThemeContext.Provider value={themeContextValue}>
-				<Box
-					flexDirection="column"
-					padding={1}
-					backgroundColor={themeContextValue.colors.base}
-				>
+				<Box flexDirection="column" padding={1}>
 					<WelcomeMessage />
 					<VSCodeExtensionPrompt
 						onComplete={() => {
@@ -512,12 +500,7 @@ export default function App({
 		<ThemeContext.Provider value={themeContextValue}>
 			<TitleShapeContext.Provider value={titleShapeContextValue}>
 				<UIStateProvider>
-					<Box
-						flexDirection="column"
-						padding={1}
-						width="100%"
-						backgroundColor={themeContextValue.colors.base}
-					>
+					<Box flexDirection="column" padding={1} width="100%">
 						{/* Chat History - ALWAYS rendered to keep Static content stable */}
 						<ChatHistory
 							startChat={appState.startChat}

@@ -110,7 +110,6 @@ export default function ThemeSelector({
 				paddingX={2}
 				paddingY={1}
 				marginBottom={1}
-				backgroundColor={colors.base}
 			>
 				<Box flexDirection="column">
 					<Box marginBottom={1}>

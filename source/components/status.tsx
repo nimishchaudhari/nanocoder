@@ -91,7 +91,6 @@ export default memo(function Status({
 					borderColor={colors.info}
 					paddingY={1}
 					paddingX={2}
-					backgroundColor={colors.base}
 				>
 					<Text color={colors.info}>
 						<Text bold={true}>CWD: </Text>
