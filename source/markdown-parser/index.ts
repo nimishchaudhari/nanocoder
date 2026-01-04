@@ -4,6 +4,11 @@ import type {Colors} from '../types/markdown-parser.js';
 import {decodeHtmlEntities} from './html-entities.js';
 import {parseMarkdownTable} from './table-parser.js';
 
+// Helper function to get compatible color from theme (handles both old and new naming)
+function getColor(themeColors: Colors, colorProperty: keyof Colors): string {
+	return (themeColors as any)[colorProperty] || '#ffffff'; // fallback to white
+}
+
 // Basic markdown parser for terminal
 export function parseMarkdown(text: string, themeColors: Colors): string {
 	// First decode HTML entities

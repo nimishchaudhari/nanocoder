@@ -31,8 +31,8 @@ function MockThemeProvider({
 
 	// Mock colors for testing
 	const colors: Colors = {
-		white: '#ffffff',
-		black: '#000000',
+		text: '#ffffff',
+		base: '#000000',
 		primary: '#ff0000',
 		tool: '#00ff00',
 		secondary: '#888888',
