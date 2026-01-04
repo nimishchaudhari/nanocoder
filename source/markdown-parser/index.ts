@@ -5,7 +5,7 @@ import {decodeHtmlEntities} from './html-entities.js';
 import {parseMarkdownTable} from './table-parser.js';
 
 // Helper function to get compatible color from theme (handles both old and new naming)
-function getColor(themeColors: Colors, colorProperty: keyof Colors): string {
+function _getColor(themeColors: Colors, colorProperty: keyof Colors): string {
 	return (themeColors as any)[colorProperty] || '#ffffff'; // fallback to white
 }
 
