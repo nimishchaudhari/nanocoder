@@ -85,10 +85,18 @@ export async function installExtension(): Promise<{
 		const vsixPath = getVsixPath();
 
 		return new Promise(resolve => {
-			const child = spawn('code', ['--install-extension', vsixPath], {
-				stdio: ['ignore', 'pipe', 'pipe'],
-				shell: isWindows, // Required on Windows to find code.cmd
-			});
+			const spawnOptions = isWindows
+				? {
+						stdio: ['ignore', 'pipe', 'pipe'] as const,
+						shell: true, // Required on Windows to find code.cmd
+					}
+				: {stdio: ['ignore', 'pipe', 'pipe'] as const};
+
+			const child = spawn(
+				'code',
+				['--install-extension', vsixPath],
+				spawnOptions,
+			);
 
 			let stdout = '';
 			let stderr = '';
