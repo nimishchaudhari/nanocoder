@@ -1,5 +1,6 @@
 import type {BoxProps} from 'ink';
 import {Box, Text} from 'ink';
+import {useTheme} from '@/hooks/useTheme';
 
 export type TitleShape =
 	| 'rounded'
@@ -188,7 +189,7 @@ export function StyledTitle({
 	title,
 	shape = 'rounded',
 	borderColor,
-	textColor = 'black',
+	textColor,
 	icon,
 	padding = 1,
 	width = 'auto',
@@ -196,6 +197,10 @@ export function StyledTitle({
 	...boxProps
 }: StyledTitleProps) {
 	const shapes = shapeCharacters[shape];
+	const {colors} = useTheme();
+
+	// Use provided textColor or fall back to theme's base color
+	const effectiveTextColor = textColor || colors.base;
 
 	// Fallback to rounded shape if unknown shape is provided
 	const effectiveShapes = shapes || shapeCharacters.rounded;
@@ -231,7 +236,7 @@ export function StyledTitle({
 					<Text color={borderColor} bold>
 						{leftSymbol}
 					</Text>
-					<Text backgroundColor={borderColor} color={textColor} bold>
+					<Text backgroundColor={borderColor} color={effectiveTextColor} bold>
 						{' '}
 						{title}{' '}
 					</Text>
@@ -255,14 +260,14 @@ export function StyledTitle({
 			<Box width={width} {...boxProps}>
 				<Box>
 					{icon && <Text>{icon} </Text>}
-					<Text color={textColor} bold>
+					<Text color={effectiveTextColor} bold>
 						{arrowShapes.left}
 					</Text>
-					<Text backgroundColor={borderColor} color={textColor} bold>
+					<Text backgroundColor={borderColor} color={effectiveTextColor} bold>
 						{' '}
 						{title}{' '}
 					</Text>
-					<Text color={textColor} bold>
+					<Text color={effectiveTextColor} bold>
 						{arrowShapes.right}
 					</Text>
 				</Box>
@@ -276,7 +281,7 @@ export function StyledTitle({
 			<Box width={width} {...boxProps}>
 				<Box>
 					{icon && <Text>{icon} </Text>}
-					<Text backgroundColor={borderColor} color={textColor} bold>
+					<Text backgroundColor={borderColor} color={effectiveTextColor} bold>
 						{' '}
 						{title}{' '}
 					</Text>
@@ -299,14 +304,14 @@ export function StyledTitle({
 		<Box width={width} {...boxProps}>
 			<Box>
 				{icon && <Text>{icon} </Text>}
-				<Text color={textColor} bold>
+				<Text color={effectiveTextColor} bold>
 					{boxShapes.topLeft}
 				</Text>
-				<Text backgroundColor={borderColor} color={textColor} bold>
+				<Text backgroundColor={borderColor} color={effectiveTextColor} bold>
 					{' '}
 					{title}{' '}
 				</Text>
-				<Text color={textColor} bold>
+				<Text color={effectiveTextColor} bold>
 					{boxShapes.topRight}
 				</Text>
 			</Box>

@@ -4,6 +4,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'tokyo-night': {
 		name: 'tokyo-night',
 		displayName: 'Tokyo Night',
+		themeType: 'dark',
 		colors: {
 			text: '#c0caf5',
 			base: '#1a1b26',
@@ -23,6 +24,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'synthwave-84': {
 		name: 'synthwave-84',
 		displayName: "Synthwave '84",
+		themeType: 'dark',
 		colors: {
 			text: '#f8f8f2',
 			base: '#2b213a',
@@ -42,6 +44,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'forest-night': {
 		name: 'forest-night',
 		displayName: 'Forest Night',
+		themeType: 'dark',
 		colors: {
 			text: '#d3c6aa',
 			base: '#2d353b',
@@ -61,6 +64,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'material-ocean': {
 		name: 'material-ocean',
 		displayName: 'Material Ocean',
+		themeType: 'dark',
 		colors: {
 			text: '#b3e5fc',
 			base: '#0d1117',
@@ -80,6 +84,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'sunset-glow': {
 		name: 'sunset-glow',
 		displayName: 'Sunset Glow',
+		themeType: 'dark',
 		colors: {
 			text: '#fdf4dc',
 			base: '#2d1b14',
@@ -99,6 +104,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'nord-frost': {
 		name: 'nord-frost',
 		displayName: 'Nord Frost',
+		themeType: 'dark',
 		colors: {
 			text: '#eceff4',
 			base: '#2e3440',
@@ -118,6 +124,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'rose-pine-dawn': {
 		name: 'rose-pine-dawn',
 		displayName: 'Rosé Pine Dawn',
+		themeType: 'light',
 		colors: {
 			text: '#575279',
 			base: '#faf4ed',
@@ -137,6 +144,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'neon-jungle': {
 		name: 'neon-jungle',
 		displayName: 'Neon Jungle',
+		themeType: 'dark',
 		colors: {
 			text: '#e0ffe0',
 			base: '#0d1f0d',
@@ -156,6 +164,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'midnight-amethyst': {
 		name: 'midnight-amethyst',
 		displayName: 'Midnight Amethyst',
+		themeType: 'dark',
 		colors: {
 			text: '#e6e6fa',
 			base: '#0f0a1a',
@@ -175,6 +184,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'desert-mirage': {
 		name: 'desert-mirage',
 		displayName: 'Desert Mirage',
+		themeType: 'dark',
 		colors: {
 			text: '#fff8dc',
 			base: '#2f1b14',
@@ -194,6 +204,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'cherry-blossom': {
 		name: 'cherry-blossom',
 		displayName: 'Cherry Blossom',
+		themeType: 'light',
 		colors: {
 			text: '#5a5a5a',
 			base: '#fef7f0',
@@ -213,6 +224,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'electric-storm': {
 		name: 'electric-storm',
 		displayName: 'Electric Storm',
+		themeType: 'dark',
 		colors: {
 			text: '#f0f0f0',
 			base: '#1c1c1c',
@@ -232,6 +244,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'deep-sea': {
 		name: 'deep-sea',
 		displayName: 'Deep Sea',
+		themeType: 'dark',
 		colors: {
 			text: '#b0e0e6',
 			base: '#000080',
@@ -251,6 +264,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'volcanic-ash': {
 		name: 'volcanic-ash',
 		displayName: 'Volcanic Ash',
+		themeType: 'dark',
 		colors: {
 			text: '#dcdcdc',
 			base: '#2f2f2f',
@@ -270,6 +284,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'cyberpunk-mint': {
 		name: 'cyberpunk-mint',
 		displayName: 'Cyberpunk Mint',
+		themeType: 'dark',
 		colors: {
 			text: '#f0fff0',
 			base: '#000000',
@@ -289,6 +304,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	dracula: {
 		name: 'dracula',
 		displayName: 'Dracula',
+		themeType: 'dark',
 		colors: {
 			text: '#f8f8f2',
 			base: '#282a36',
@@ -308,6 +324,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'catppuccin-latte': {
 		name: 'catppuccin-latte',
 		displayName: 'Catppuccin Latte',
+		themeType: 'light',
 		colors: {
 			text: '#4c4f69',
 			base: '#eff1f5',
@@ -328,6 +345,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'catppuccin-frappe': {
 		name: 'catppuccin-frappe',
 		displayName: 'Catppuccin Frappé',
+		themeType: 'dark',
 		colors: {
 			text: '#c6d0f5',
 			base: '#303446',
@@ -348,6 +366,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'catppuccin-macchiato': {
 		name: 'catppuccin-macchiato',
 		displayName: 'Catppuccin Macchiato',
+		themeType: 'dark',
 		colors: {
 			text: '#cad3f5',
 			base: '#24273a',
@@ -368,6 +387,7 @@ export const themes: Record<ThemePreset, Theme> = {
 	'catppuccin-mocha': {
 		name: 'catppuccin-mocha',
 		displayName: 'Catppuccin Mocha',
+		themeType: 'dark',
 		colors: {
 			text: '#cdd6f4',
 			base: '#1e1e2e',

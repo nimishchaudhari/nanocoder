@@ -21,6 +21,7 @@ export interface Theme {
 	name: string;
 	displayName: string;
 	colors: Colors;
+	themeType: 'light' | 'dark';
 }
 
 export type ThemePreset =

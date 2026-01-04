@@ -1,5 +1,6 @@
 import type {BoxProps} from 'ink';
 import {Box} from 'ink';
+import {useTheme} from '@/hooks/useTheme';
 import {useTitleShape} from '@/hooks/useTitleShape';
 import {StyledTitle, type TitleShape} from './styled-title';
 
@@ -36,6 +37,8 @@ export function TitledBox({
 	marginBottom,
 	...boxProps
 }: TitledBoxProps) {
+	const {colors} = useTheme();
+
 	return (
 		<Box
 			flexDirection="column"
@@ -48,7 +51,7 @@ export function TitledBox({
 				title={title}
 				shape={shape}
 				borderColor={borderColor}
-				textColor="black"
+				textColor={colors.base}
 				icon={icon}
 				reversePowerline={reversePowerline}
 				width={width}

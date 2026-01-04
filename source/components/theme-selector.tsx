@@ -41,8 +41,11 @@ export default function ThemeSelector({
 	const themeOptions: ThemeOption[] = Object.values(themes).map(theme => ({
 		label:
 			theme.displayName +
-			(theme.name === originalTheme ? ' (current)' : '') +
-			(hasCustomGradients(theme.colors) ? ' ✨' : ''),
+			' [' +
+			theme.themeType.charAt(0).toUpperCase() +
+			theme.themeType.slice(1) +
+			']' +
+			(theme.name === originalTheme ? ' (current)' : ''),
 		value: theme.name as ThemePreset,
 	}));
 
