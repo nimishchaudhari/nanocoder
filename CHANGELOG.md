@@ -1,5 +1,11 @@
 # 1.20.0
 
+Happy New Year! We all hope you had a great holidays and are feeling refreshed ready for 2026 🌟
+
+- Added Catpuccin themes (Latte, Frappe, Macchiato, Mocha) with gradient color support. Thanks to @Avtrkrb.
+
+- Added VS Code context menu integration - you can now right-click selected code and ask Nanocoder about it directly.
+
 - Added comprehensive testing achieving 90%+ code coverage across components, hooks, tools, and utilities. Tests now include unit and integration coverage for critical paths.
 
 - Added automated PR checks workflow with format, type, lint, and test validation. Pull requests now get automatic quality checks. Thanks to @Avtrkrb.
