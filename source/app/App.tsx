@@ -476,21 +476,23 @@ export default function App({
 
 		return (
 			<ThemeContext.Provider value={themeContextValue}>
-				<Box flexDirection="column" padding={1}>
-					<WelcomeMessage />
-					<VSCodeExtensionPrompt
-						onComplete={() => {
-							logger.info('VS Code extension prompt completed');
-							setShowExtensionPrompt(false);
-							setExtensionPromptComplete(true);
-						}}
-						onSkip={() => {
-							logger.info('VS Code extension prompt skipped');
-							setShowExtensionPrompt(false);
-							setExtensionPromptComplete(true);
-						}}
-					/>
-				</Box>
+				<TitleShapeContext.Provider value={titleShapeContextValue}>
+					<Box flexDirection="column" padding={1}>
+						<WelcomeMessage />
+						<VSCodeExtensionPrompt
+							onComplete={() => {
+								logger.info('VS Code extension prompt completed');
+								setShowExtensionPrompt(false);
+								setExtensionPromptComplete(true);
+							}}
+							onSkip={() => {
+								logger.info('VS Code extension prompt skipped');
+								setShowExtensionPrompt(false);
+								setExtensionPromptComplete(true);
+							}}
+						/>
+					</Box>
+				</TitleShapeContext.Provider>
 			</ThemeContext.Provider>
 		);
 	}
