@@ -157,14 +157,8 @@ const executeReadFile = async (args: {
 		// Extract the lines to return
 		const linesToReturn = lines.slice(startLine - 1, endLine);
 
-		// Return content with line numbers for precise editing
-		let result = '';
-		for (let i = 0; i < linesToReturn.length; i++) {
-			const lineNum = String(startLine + i).padStart(4, ' ');
-			result += `${lineNum}: ${linesToReturn[i]}\n`;
-		}
-
-		return result.slice(0, -1); // Remove trailing newline
+		// Return content without line numbers for clean content-based editing
+		return linesToReturn.join('\n');
 	} catch (error: unknown) {
 		// Handle file not found and other filesystem errors
 		if (
