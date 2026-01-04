@@ -5,11 +5,13 @@ import type {Colors} from '@/types/ui';
  * @param colors Theme colors object
  * @returns Array of gradient colors
  */
-export function getGradientColors(colors: Colors): string[] {
-	return colors.gradientColors && colors.gradientColors.length > 0
-		? colors.gradientColors
-		: [colors.primary, colors.tool];
-}
+
+// ToDo: Use these as part of theme enhancements in the future
+// export function getGradientColors(colors: Colors): string[] {
+// 	return colors.gradientColors && colors.gradientColors.length > 0
+// 		? colors.gradientColors
+// 		: [colors.primary, colors.tool];
+// }
 
 /**
  * Create a CSS gradient string from gradient colors
@@ -17,13 +19,15 @@ export function getGradientColors(colors: Colors): string[] {
  * @param direction Gradient direction (default: 'to right')
  * @returns CSS gradient string
  */
-export function createGradient(
-	colors: Colors,
-	direction: string = 'to right',
-): string {
-	const gradientColors = getGradientColors(colors);
-	return `linear-gradient(${direction}, ${gradientColors.join(', ')})`;
-}
+
+// ToDo: Use these as part of theme enhancements in the future
+// export function createGradient(
+// 	colors: Colors,
+// 	direction: string = 'to right',
+// ): string {
+// 	const gradientColors = getGradientColors(colors);
+// 	return `linear-gradient(${direction}, ${gradientColors.join(', ')})`;
+// }
 
 /**
  * Get a specific gradient color by index
@@ -31,10 +35,12 @@ export function createGradient(
  * @param index Color index
  * @returns Gradient color or fallback color
  */
-export function getGradientColor(colors: Colors, index: number = 0): string {
-	const gradientColors = getGradientColors(colors);
-	return gradientColors[index % gradientColors.length];
-}
+
+// ToDo: Use these as part of theme enhancements in the future
+// export function getGradientColor(colors: Colors, index: number = 0): string {
+// 	const gradientColors = getGradientColors(colors);
+// 	return gradientColors[index % gradientColors.length];
+// }
 
 /**
  * Check if theme has custom gradient colors defined
