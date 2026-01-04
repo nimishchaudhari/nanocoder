@@ -68,7 +68,7 @@ export default memo(function UserMessage({message}: UserMessageProps) {
 								{segments.map((segment, segIndex) => (
 									<Text
 										key={segIndex}
-										color={segment.isPlaceholder ? colors.info : colors.white}
+										color={segment.isPlaceholder ? colors.info : colors.text}
 										bold={segment.isPlaceholder}
 									>
 										{segment.text}

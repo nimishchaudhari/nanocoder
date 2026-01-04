@@ -83,8 +83,8 @@ test('execute - stores command in result state', async t => {
 
 test('execute - creates output preview from last 150 chars', async t => {
 	const executor = createExecutor();
-	// Generate output longer than 150 chars
-	const {promise} = executor.execute('printf "%0.s-" {1..200}');
+	// Generate output longer than 150 chars using a portable command
+	const {promise} = executor.execute('seq 200 | xargs -I {} printf "-"');
 	const result = await promise;
 
 	t.true(result.fullOutput.length >= 150);

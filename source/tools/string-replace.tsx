@@ -169,7 +169,7 @@ async function formatStringReplacePreview(
 		// In result mode, skip validation since file has already been modified
 		if (isResult) {
 			const messageContent = (
-				<Box flexDirection="column">
+				<Box flexDirection="column" backgroundColor={themeColors.base}>
 					<Text color={themeColors.tool}>⚒ string_replace</Text>
 
 					<Box>
@@ -193,7 +193,7 @@ async function formatStringReplacePreview(
 
 		if (occurrences === 0) {
 			const errorContent = (
-				<Box flexDirection="column">
+				<Box flexDirection="column" backgroundColor={themeColors.base}>
 					<Text color={themeColors.tool}>⚒ string_replace</Text>
 
 					<Box>
@@ -211,7 +211,7 @@ async function formatStringReplacePreview(
 					<Box flexDirection="column" marginTop={1}>
 						<Text color={themeColors.secondary}>Searching for:</Text>
 						{old_str.split('\n').map((line, i) => (
-							<Text key={i} color={themeColors.white}>
+							<Text key={i} color={themeColors.text}>
 								{line}
 							</Text>
 						))}
@@ -223,7 +223,7 @@ async function formatStringReplacePreview(
 
 		if (occurrences > 1) {
 			const errorContent = (
-				<Box flexDirection="column">
+				<Box flexDirection="column" backgroundColor={themeColors.base}>
 					<Text color={themeColors.tool}>⚒ string_replace</Text>
 
 					<Box>
@@ -243,7 +243,7 @@ async function formatStringReplacePreview(
 					<Box flexDirection="column" marginTop={1}>
 						<Text color={themeColors.secondary}>Searching for:</Text>
 						{old_str.split('\n').map((line, i) => (
-							<Text key={i} color={themeColors.white}>
+							<Text key={i} color={themeColors.text}>
 								{line}
 							</Text>
 						))}
@@ -492,7 +492,7 @@ async function formatStringReplacePreview(
 				: `lines ${startLine}-${endLine}`;
 
 		const messageContent = (
-			<Box flexDirection="column">
+			<Box flexDirection="column" backgroundColor={themeColors.base}>
 				<Text color={themeColors.tool}>⚒ string_replace</Text>
 
 				<Box>
@@ -502,7 +502,7 @@ async function formatStringReplacePreview(
 
 				<Box>
 					<Text color={themeColors.secondary}>Location: </Text>
-					<Text color={themeColors.white}>{rangeDesc}</Text>
+					<Text color={themeColors.text}>{rangeDesc}</Text>
 				</Box>
 
 				<Box flexDirection="column" marginTop={1}>
@@ -524,7 +524,7 @@ async function formatStringReplacePreview(
 		return <ToolMessage message={messageContent} hideBox={true} />;
 	} catch (error) {
 		const errorContent = (
-			<Box flexDirection="column">
+			<Box flexDirection="column" backgroundColor={themeColors.base}>
 				<Text color={themeColors.tool}>⚒ string_replace</Text>
 
 				<Box>

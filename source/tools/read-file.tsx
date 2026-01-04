@@ -256,7 +256,7 @@ const ReadFileFormatter = React.memo(
 
 				<Box>
 					<Text color={colors.secondary}>Path: </Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						{path}{' '}
 						{fileInfo.isMetadataOnly && (
 							<Text color={colors.info}>(metadata only)</Text>
@@ -268,7 +268,7 @@ const ReadFileFormatter = React.memo(
 					<>
 						<Box>
 							<Text color={colors.secondary}>Total lines: </Text>
-							<Text color={colors.white}>
+							<Text color={colors.text}>
 								{fileInfo.totalLines.toLocaleString()}
 							</Text>
 						</Box>
@@ -277,7 +277,7 @@ const ReadFileFormatter = React.memo(
 					<>
 						<Box>
 							<Text color={colors.secondary}>Lines: </Text>
-							<Text color={colors.white}>
+							<Text color={colors.text}>
 								{args.start_line || 1} - {args.end_line || fileInfo.totalLines}
 							</Text>
 						</Box>
@@ -287,9 +287,7 @@ const ReadFileFormatter = React.memo(
 				{!fileInfo.isMetadataOnly && (
 					<Box>
 						<Text color={colors.secondary}>Tokens: </Text>
-						<Text color={colors.white}>
-							~{fileInfo.tokens.toLocaleString()}
-						</Text>
+						<Text color={colors.text}>~{fileInfo.tokens.toLocaleString()}</Text>
 					</Box>
 				)}
 			</Box>

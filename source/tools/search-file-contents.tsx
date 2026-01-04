@@ -216,25 +216,25 @@ const SearchFileContentsFormatter = React.memo(
 
 				<Box>
 					<Text color={colors.secondary}>Query: </Text>
-					<Text color={colors.white}>{args.query}</Text>
+					<Text color={colors.text}>{args.query}</Text>
 				</Box>
 
 				{args.caseSensitive && (
 					<Box>
 						<Text color={colors.secondary}>Case sensitive: </Text>
-						<Text color={colors.white}>yes</Text>
+						<Text color={colors.text}>yes</Text>
 					</Box>
 				)}
 
 				<Box>
 					<Text color={colors.secondary}>Matches: </Text>
-					<Text color={colors.white}>{matchCount}</Text>
+					<Text color={colors.text}>{matchCount}</Text>
 				</Box>
 
 				{tokens > 0 && (
 					<Box>
 						<Text color={colors.secondary}>Tokens: </Text>
-						<Text color={colors.white}>~{tokens.toLocaleString()}</Text>
+						<Text color={colors.text}>~{tokens.toLocaleString()}</Text>
 					</Box>
 				)}
 			</Box>

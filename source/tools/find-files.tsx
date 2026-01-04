@@ -222,18 +222,18 @@ const FindFilesFormatter = React.memo(
 
 				<Box>
 					<Text color={colors.secondary}>Pattern: </Text>
-					<Text color={colors.white}>{args.pattern}</Text>
+					<Text color={colors.text}>{args.pattern}</Text>
 				</Box>
 
 				<Box>
 					<Text color={colors.secondary}>Results: </Text>
-					<Text color={colors.white}>{fileCount}</Text>
+					<Text color={colors.text}>{fileCount}</Text>
 				</Box>
 
 				{tokens > 0 && (
 					<Box>
 						<Text color={colors.secondary}>Tokens: </Text>
-						<Text color={colors.white}>~{tokens.toLocaleString()}</Text>
+						<Text color={colors.text}>~{tokens.toLocaleString()}</Text>
 					</Box>
 				)}
 			</Box>

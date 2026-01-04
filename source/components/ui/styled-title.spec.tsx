@@ -1,6 +1,6 @@
 import test from 'ava';
 import {Text} from 'ink';
-import {render} from 'ink-testing-library';
+import {renderWithTheme} from '@/test-utils/render-with-theme';
 import React from 'react';
 import {StyledTitle, hasNerdFontSupport} from './styled-title';
 
@@ -11,7 +11,7 @@ import {StyledTitle, hasNerdFontSupport} from './styled-title';
 console.log(`\nstyled-title.spec.tsx – ${React.version}`);
 
 test('StyledTitle renders with default rounded shape', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Test Title" borderColor="blue" />,
   );
 
@@ -22,7 +22,7 @@ test('StyledTitle renders with default rounded shape', t => {
 });
 
 test('StyledTitle renders with square shape', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Square Title" shape="square" borderColor="green" />,
   );
 
@@ -33,7 +33,7 @@ test('StyledTitle renders with square shape', t => {
 });
 
 test('StyledTitle renders with double shape', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Double Title" shape="double" borderColor="cyan" />,
   );
 
@@ -44,7 +44,7 @@ test('StyledTitle renders with double shape', t => {
 });
 
 test('StyledTitle renders with pill shape (original style)', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Pill Title" shape="pill" borderColor="magenta" />,
   );
 
@@ -54,7 +54,7 @@ test('StyledTitle renders with pill shape (original style)', t => {
 });
 
 test('StyledTitle renders with powerline-angled shape', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Powerline" shape="powerline-angled" borderColor="yellow" />,
   );
 
@@ -65,7 +65,7 @@ test('StyledTitle renders with powerline-angled shape', t => {
 });
 
 test('StyledTitle renders with powerline-curved shape', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Curved" shape="powerline-curved" borderColor="white" />,
   );
 
@@ -75,7 +75,7 @@ test('StyledTitle renders with powerline-curved shape', t => {
 });
 
 test('StyledTitle renders with arrow-left shape', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Arrow" shape="arrow-left" borderColor="red" />,
   );
 
@@ -86,7 +86,7 @@ test('StyledTitle renders with arrow-left shape', t => {
 });
 
 test('StyledTitle renders with arrow-right shape', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Arrow" shape="arrow-right" borderColor="blue" />,
   );
 
@@ -97,7 +97,7 @@ test('StyledTitle renders with arrow-right shape', t => {
 });
 
 test('StyledTitle renders with arrow-double shape', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Double" shape="arrow-double" borderColor="green" />,
   );
 
@@ -108,7 +108,7 @@ test('StyledTitle renders with arrow-double shape', t => {
 });
 
 test('StyledTitle renders with angled-box shape', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Angled" shape="angled-box" borderColor="cyan" />,
   );
 
@@ -119,7 +119,7 @@ test('StyledTitle renders with angled-box shape', t => {
 });
 
 test('StyledTitle renders with icon', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="With Icon" shape="rounded" borderColor="magenta" icon="✻" />,
   );
 
@@ -130,7 +130,7 @@ test('StyledTitle renders with icon', t => {
 });
 
 test('StyledTitle renders with custom text color', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Custom Color" shape="square" borderColor="yellow" textColor="red" />,
   );
 
@@ -140,7 +140,7 @@ test('StyledTitle renders with custom text color', t => {
 });
 
 test('StyledTitle renders with custom width', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Wide Title" shape="rounded" borderColor="white" width={50} />,
   );
 
@@ -151,7 +151,7 @@ test('StyledTitle renders with custom width', t => {
 
 test('StyledTitle renders with long title', t => {
   const longTitle = 'This is a very long title that might overflow';
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title={longTitle} shape="rounded" borderColor="red" />,
   );
 
@@ -161,7 +161,7 @@ test('StyledTitle renders with long title', t => {
 });
 
 test('StyledTitle renders with empty title', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="" shape="rounded" borderColor="blue" />,
   );
 
@@ -170,7 +170,7 @@ test('StyledTitle renders with empty title', t => {
 });
 
 test('StyledTitle renders with special characters in title', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="✻ Special & <Title>" shape="rounded" borderColor="green" />,
   );
 
@@ -181,7 +181,7 @@ test('StyledTitle renders with special characters in title', t => {
 });
 
 test('StyledTitle renders with all props combined', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle
       title="Full Props"
       shape="powerline-curved"
@@ -199,7 +199,7 @@ test('StyledTitle renders with all props combined', t => {
 });
 
 test('StyledTitle falls back to rounded shape for unknown shape', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Unknown" shape="unknown-shape" as="unknown" borderColor="red" />,
   );
 
@@ -210,7 +210,7 @@ test('StyledTitle falls back to rounded shape for unknown shape', t => {
 });
 
 test('StyledTitle renders nested components', t => {
-  const {lastFrame} = render(
+  const {lastFrame} = renderWithTheme(
     <StyledTitle title="Nested" shape="rounded" borderColor="magenta">
       <Text color="red">Additional content</Text>
     </StyledTitle>,

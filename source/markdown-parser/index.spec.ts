@@ -11,7 +11,7 @@ const mockColors: Colors = {
 	error: '#ef4444',
 	warning: '#f59e0b',
 	info: '#3b82f6',
-	white: '#ffffff',
+	text: '#ffffff',
 	tool: '#8b5cf6',
 };
 

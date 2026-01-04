@@ -43,7 +43,7 @@ export default memo(function WelcomeMessage() {
 							</Text>
 						</Box>
 
-						<Text color={colors.white}>Quick tips:</Text>
+						<Text color={colors.text}>Quick tips:</Text>
 						<Text color={colors.secondary}>• Use natural language</Text>
 						<Text color={colors.secondary}>• /help for commands</Text>
 						<Text color={colors.secondary}>• Ctrl+C to quit</Text>
@@ -67,7 +67,7 @@ export default memo(function WelcomeMessage() {
 						marginBottom={1}
 					>
 						<Box paddingBottom={1}>
-							<Text color={colors.white}>Tips for getting started:</Text>
+							<Text color={colors.text}>Tips for getting started:</Text>
 						</Box>
 						<Box paddingBottom={1} flexDirection="column">
 							<Text color={colors.secondary}>
@@ -87,7 +87,7 @@ export default memo(function WelcomeMessage() {
 								4. Type /exit or press Ctrl+C to quit.
 							</Text>
 						</Box>
-						<Text color={colors.white}>/help for help</Text>
+						<Text color={colors.text}>/help for help</Text>
 					</TitledBoxWithPreferences>
 				</>
 			)}

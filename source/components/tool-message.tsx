@@ -25,7 +25,7 @@ export default memo(function ToolMessage({
 	// Handle both string and ReactNode messages
 	const messageContent =
 		typeof message === 'string' ? (
-			<Text color={colors.white}>{message}</Text>
+			<Text color={colors.text}>{message}</Text>
 		) : (
 			message
 		);
@@ -64,7 +64,7 @@ export default memo(function ToolMessage({
 				>
 					{messageContent}
 					{isBashMode && (
-						<Text color={colors.white} dimColor>
+						<Text color={colors.text} dimColor>
 							Output truncated to 4k characters to save context
 						</Text>
 					)}

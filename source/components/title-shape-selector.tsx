@@ -148,7 +148,7 @@ export default function TitleShapeSelector({
 				marginBottom={1}
 			>
 				<Box paddingBottom={1}>
-					<Text color={colors.white}>Tips for getting started:</Text>
+					<Text color={colors.text}>Tips for getting started:</Text>
 				</Box>
 				<Box paddingBottom={1} flexDirection="column">
 					<Text color={colors.secondary}>
@@ -167,7 +167,7 @@ export default function TitleShapeSelector({
 						5. The CLI will remember your choice for all title boxes.
 					</Text>
 				</Box>
-				<Text color={colors.white}>/help for help</Text>
+				<Text color={colors.text}>/help for help</Text>
 			</TitledBoxWithPreferences>
 			<Box
 				borderStyle="round"

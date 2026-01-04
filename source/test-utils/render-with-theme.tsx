@@ -8,8 +8,8 @@ import type {Colors, ThemePreset} from '@/types/ui';
 const testColors: Colors = {
 	primary: 'blue',
 	secondary: 'gray',
-	white: 'white',
-	black: 'black',
+	text: 'white',
+	base: 'black',
 	info: 'cyan',
 	warning: 'yellow',
 	error: 'red',
@@ -17,8 +17,8 @@ const testColors: Colors = {
 	tool: 'magenta',
 	diffAdded: 'green',
 	diffRemoved: 'red',
-	diffAddedText: 'white',
-	diffRemovedText: 'white',
+	diffAddedText: 'text',
+	diffRemovedText: 'text',
 };
 
 // Test theme context value

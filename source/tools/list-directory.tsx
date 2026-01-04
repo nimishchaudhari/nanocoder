@@ -262,20 +262,20 @@ const ListDirectoryFormatter = React.memo(
 
 				<Box>
 					<Text color={colors.secondary}>Path: </Text>
-					<Text color={colors.white}>{args.path || '.'}</Text>
+					<Text color={colors.text}>{args.path || '.'}</Text>
 				</Box>
 
 				{entryCount > 0 && (
 					<Box>
 						<Text color={colors.secondary}>Entries: </Text>
-						<Text color={colors.white}>{entryCount}</Text>
+						<Text color={colors.text}>{entryCount}</Text>
 					</Box>
 				)}
 
 				{args.recursive && (
 					<Box>
 						<Text color={colors.secondary}>Recursive: </Text>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							yes (max depth: {args.maxDepth ?? 3})
 						</Text>
 					</Box>
@@ -284,21 +284,21 @@ const ListDirectoryFormatter = React.memo(
 				{args.tree && (
 					<Box>
 						<Text color={colors.secondary}>Format: </Text>
-						<Text color={colors.white}>tree</Text>
+						<Text color={colors.text}>tree</Text>
 					</Box>
 				)}
 
 				{args.showHiddenFiles && (
 					<Box>
 						<Text color={colors.secondary}>Hidden files: </Text>
-						<Text color={colors.white}>shown</Text>
+						<Text color={colors.text}>shown</Text>
 					</Box>
 				)}
 
 				{tokens !== undefined && tokens > 0 && (
 					<Box>
 						<Text color={colors.secondary}>Tokens: </Text>
-						<Text color={colors.white}>~{tokens.toLocaleString()}</Text>
+						<Text color={colors.text}>~{tokens.toLocaleString()}</Text>
 					</Box>
 				)}
 			</Box>

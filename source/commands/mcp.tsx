@@ -44,12 +44,12 @@ export function MCP({toolManager}: MCPProps) {
 			{connectedServers.length === 0 ? (
 				<>
 					<Box marginBottom={1}>
-						<Text color={colors.white} bold>
+						<Text color={colors.text} bold>
 							No MCP servers connected
 						</Text>
 					</Box>
 
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						To connect MCP servers, add them to your{' '}
 						<Text color={colors.primary}>agents.config.json</Text> file:
 					</Text>
@@ -103,7 +103,7 @@ export function MCP({toolManager}: MCPProps) {
 						return (
 							<Box key={index} marginBottom={1}>
 								<Box flexDirection="column">
-									<Text color={colors.white}>
+									<Text color={colors.text}>
 										• {transportIcon}{' '}
 										<Text color={colors.primary}>{serverName}</Text>:{' '}
 										<Text color={colors.secondary}>

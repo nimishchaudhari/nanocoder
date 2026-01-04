@@ -318,7 +318,7 @@ const GitStatusEnhancedFormatter = React.memo(
 				{summary && (
 					<Box>
 						<Text color={colors.secondary}>Status: </Text>
-						<Text color={hasConflicts ? colors.error : colors.white}>
+						<Text color={hasConflicts ? colors.error : colors.text}>
 							{summary}
 						</Text>
 					</Box>
@@ -333,7 +333,7 @@ const GitStatusEnhancedFormatter = React.memo(
 				{args.detailed && (
 					<Box>
 						<Text color={colors.secondary}>Mode: </Text>
-						<Text color={colors.white}>detailed</Text>
+						<Text color={colors.text}>detailed</Text>
 					</Box>
 				)}
 			</Box>

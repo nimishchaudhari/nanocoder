@@ -247,23 +247,23 @@ const GetDiagnosticsFormatter = React.memo(
 				{args.path ? (
 					<Box>
 						<Text color={colors.secondary}>Path: </Text>
-						<Text color={colors.white}>{args.path}</Text>
+						<Text color={colors.text}>{args.path}</Text>
 					</Box>
 				) : (
 					<Box>
 						<Text color={colors.secondary}>Scope: </Text>
-						<Text color={colors.white}>All open documents</Text>
+						<Text color={colors.text}>All open documents</Text>
 					</Box>
 				)}
 
 				{result && (
 					<Box>
 						<Text color={colors.secondary}>Found: </Text>
-						<Text color={errorCount > 0 ? colors.error : colors.white}>
+						<Text color={errorCount > 0 ? colors.error : colors.text}>
 							{errorCount} errors
 						</Text>
 						<Text color={colors.secondary}>, </Text>
-						<Text color={warningCount > 0 ? colors.warning : colors.white}>
+						<Text color={warningCount > 0 ? colors.warning : colors.text}>
 							{warningCount} warnings
 						</Text>
 					</Box>

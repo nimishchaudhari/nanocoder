@@ -342,7 +342,7 @@ const GitSmartCommitFormatter = React.memo(
 					<>
 						<Box>
 							<Text color={colors.secondary}>Files: </Text>
-							<Text color={colors.white}>{filesChanged}</Text>
+							<Text color={colors.text}>{filesChanged}</Text>
 						</Box>
 
 						{commitType && (
@@ -357,7 +357,7 @@ const GitSmartCommitFormatter = React.memo(
 							<Box flexDirection="column" marginTop={1}>
 								<Text color={colors.secondary}>Message:</Text>
 								<Box marginLeft={2}>
-									<Text color={colors.white}>{commitMessage}</Text>
+									<Text color={colors.text}>{commitMessage}</Text>
 								</Box>
 							</Box>
 						)}

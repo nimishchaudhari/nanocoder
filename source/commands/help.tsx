@@ -59,7 +59,7 @@ function Help({
 				</Text>
 			</Box>
 
-			<Text color={colors.white}>
+			<Text color={colors.text}>
 				A local-first CLI coding agent that brings the power of agentic coding
 				tools like Claude Code and Gemini CLI to local models or controlled APIs
 				like OpenRouter.
@@ -78,13 +78,13 @@ function Help({
 					Common Tasks:
 				</Text>
 			</Box>
-			<Text color={colors.white}>
+			<Text color={colors.text}>
 				{' '}
 				• Ask questions about your codebase {'>'} How does foo.py work?
 			</Text>
-			<Text color={colors.white}> • Edit files {'>'} Update bar.ts to...</Text>
-			<Text color={colors.white}> • Fix errors {'>'} cargo build</Text>
-			<Text color={colors.white}> • Run commands {'>'} /help</Text>
+			<Text color={colors.text}> • Edit files {'>'} Update bar.ts to...</Text>
+			<Text color={colors.text}> • Fix errors {'>'} cargo build</Text>
+			<Text color={colors.text}> • Run commands {'>'} /help</Text>
 
 			<Box marginTop={1}>
 				<Text color={colors.primary} bold>
@@ -92,10 +92,10 @@ function Help({
 				</Text>
 			</Box>
 			{commands.length === 0 ? (
-				<Text color={colors.white}> No commands available.</Text>
+				<Text color={colors.text}> No commands available.</Text>
 			) : (
 				commands.map((cmd, index) => (
-					<Text key={index} color={colors.white}>
+					<Text key={index} color={colors.text}>
 						{' '}
 						• /{cmd.name} - {cmd.description}
 					</Text>

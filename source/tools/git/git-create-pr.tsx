@@ -450,14 +450,14 @@ const GitCreatePRFormatter = React.memo(
 				{args.draft && (
 					<Box>
 						<Text color={colors.secondary}>Draft: </Text>
-						<Text color={colors.white}>Yes</Text>
+						<Text color={colors.text}>Yes</Text>
 					</Box>
 				)}
 
 				{title && (
 					<Box>
 						<Text color={colors.secondary}>Title: </Text>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							{title.length > 40 ? title.substring(0, 40) + '...' : title}
 						</Text>
 					</Box>
@@ -467,7 +467,7 @@ const GitCreatePRFormatter = React.memo(
 					<Box flexDirection="column" marginTop={1}>
 						<Text color={colors.secondary}>Description:</Text>
 						<Box marginLeft={2}>
-							<Text color={colors.white}>{description}</Text>
+							<Text color={colors.text}>{description}</Text>
 						</Box>
 					</Box>
 				)}

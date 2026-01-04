@@ -51,12 +51,12 @@ function CustomCommands({commands}: CustomCommandsProps) {
 			{commands.length === 0 ? (
 				<>
 					<Box marginBottom={1}>
-						<Text color={colors.white} bold>
+						<Text color={colors.text} bold>
 							No custom commands found
 						</Text>
 					</Box>
 
-					<Text color={colors.white}>To create custom commands:</Text>
+					<Text color={colors.text}>To create custom commands:</Text>
 
 					<Text color={colors.secondary}>
 						1. Create a <Text color={colors.primary}>.nanocoder/commands</Text>{' '}
@@ -86,14 +86,14 @@ function CustomCommands({commands}: CustomCommandsProps) {
 			) : (
 				<>
 					<Box marginBottom={1}>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							Found {commands.length} custom command
 							{commands.length !== 1 ? 's' : ''}:
 						</Text>
 					</Box>
 
 					{sortedCommands.map((cmd, index) => (
-						<Text key={index} color={colors.white}>
+						<Text key={index} color={colors.text}>
 							• {formatCommand(cmd)}
 						</Text>
 					))}
