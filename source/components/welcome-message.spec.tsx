@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+import {fileURLToPath} from 'url';
 import test from 'ava';
 import React from 'react';
 import {renderWithTheme} from '../test-utils/render-with-theme.js';
@@ -5,8 +8,13 @@ import WelcomeMessage from './welcome-message';
 
 console.log('\nwelcome-message.spec.tsx');
 
-// Version from package.json (1.19.2) - using actual version since fs is not mocked
-const VERSION = '1.19.2';
+// Read version from package.json dynamically to avoid hardcoding
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const packageJson = JSON.parse(
+	fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'),
+) as {version: string};
+const VERSION = packageJson.version;
 
 // ============================================================================
 // Narrow Terminal Tests (width < 60)
