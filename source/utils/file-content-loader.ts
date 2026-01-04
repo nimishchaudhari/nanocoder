@@ -91,11 +91,8 @@ export async function loadFileContent(
 			selectedLines = allLines;
 		}
 
-		// Format with line numbers
-		const formattedContent = formatFileContentWithLineNumbers(
-			selectedLines,
-			lineRange?.start || 1,
-		);
+		// Format with path header (no line numbers)
+		const formattedContent = formatFileContent(selectedLines, filePath);
 
 		// Calculate metadata
 		const size = content.length;
@@ -132,48 +129,8 @@ export async function loadFileContent(
 }
 
 /**
- * Format file lines with line numbers
+ * Format file content with path header (no line numbers for clean content-based editing)
  */
-function formatFileContentWithLineNumbers(
-	lines: string[],
-	startLineNumber: number,
-): string {
-	let result = '';
-	for (let i = 0; i < lines.length; i++) {
-		const lineNum = String(startLineNumber + i).padStart(4, ' ');
-		result += `${lineNum}: ${lines[i]}\n`;
-	}
-	return result.slice(0, -1); // Remove trailing newline
-}
-
-/**
- * Format file content with header for LLM context
- * Used when assembling the prompt
- */
-export function formatFileForContext(result: FileContentResult): string {
-	if (!result.success || !result.content) {
-		return `Error loading file: ${result.metadata.path}`;
-	}
-
-	const {path, lineCount, lineRange, tokens} = result.metadata;
-
-	let header: string;
-	if (lineRange) {
-		const rangeStr = lineRange.end
-			? `${lineRange.start}-${lineRange.end}`
-			: `${lineRange.start}`;
-		header = `=== File: ${path} (Lines ${rangeStr}) ===`;
-	} else {
-		header = `=== File: ${path} ===`;
-	}
-
-	const footer = '='.repeat(header.length);
-
-	const stats = lineRange
-		? `Lines: ${lineRange.start}${
-				lineRange.end ? `-${lineRange.end}` : ''
-			} (${lineCount} lines, ~${tokens} tokens)`
-		: `Lines: ${lineCount}, ~${tokens} tokens`;
-
-	return `${header}\n${stats}\n\n${result.content}\n${footer}`;
+function formatFileContent(lines: string[], filePath: string): string {
+	return `Path: ${filePath}\n\n${lines.join('\n')}`;
 }
