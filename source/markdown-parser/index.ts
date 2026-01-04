@@ -6,7 +6,8 @@ import {parseMarkdownTable} from './table-parser.js';
 
 // Helper function to get compatible color from theme (handles both old and new naming)
 function _getColor(themeColors: Colors, colorProperty: keyof Colors): string {
-	return (themeColors as any)[colorProperty] || '#ffffff'; // fallback to white
+	const color = themeColors[colorProperty];
+	return color || '#ffffff'; // fallback to white
 }
 
 // Basic markdown parser for terminal
