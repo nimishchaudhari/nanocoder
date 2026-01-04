@@ -8,6 +8,7 @@ import {themes} from '@/config/themes';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import type {ThemePreset} from '@/types/ui';
+import {hasCustomGradients} from '@/utils/gradient-utils';
 
 interface ThemeSelectorProps {
 	onThemeSelect: (theme: ThemePreset) => void;
@@ -39,7 +40,9 @@ export default function ThemeSelector({
 	// Create theme options from available themes
 	const themeOptions: ThemeOption[] = Object.values(themes).map(theme => ({
 		label:
-			theme.displayName + (theme.name === originalTheme ? ' (current)' : ''),
+			theme.displayName +
+			(theme.name === originalTheme ? ' (current)' : '') +
+			(hasCustomGradients(theme.colors) ? ' ✨' : ''),
 		value: theme.name as ThemePreset,
 	}));
 
@@ -64,7 +67,13 @@ export default function ThemeSelector({
 
 	return (
 		<>
-			<Gradient colors={[colors.primary, colors.tool]}>
+			<Gradient
+				colors={
+					hasCustomGradients(colors)
+						? colors.gradientColors
+						: [colors.primary, colors.tool]
+				}
+			>
 				<BigText text="Themes" font="tiny" />
 			</Gradient>
 

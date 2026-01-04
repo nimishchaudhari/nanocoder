@@ -13,6 +13,8 @@ export interface Colors {
 	diffRemoved: string;
 	diffAddedText: string;
 	diffRemovedText: string;
+	// Gradient colors (optional)
+	gradientColors?: string[];
 }
 
 export interface Theme {
@@ -37,7 +39,11 @@ export type ThemePreset =
 	| 'deep-sea'
 	| 'volcanic-ash'
 	| 'cyberpunk-mint'
-	| 'dracula';
+	| 'dracula'
+	| 'catppuccin-latte'
+	| 'catppuccin-frappe'
+	| 'catppuccin-macchiato'
+	| 'catppuccin-mocha';
 
 export type TitleShape =
 	| 'rounded'
