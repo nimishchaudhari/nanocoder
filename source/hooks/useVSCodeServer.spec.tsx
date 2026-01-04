@@ -301,6 +301,9 @@ test('UseVSCodeServerProps interface accepts optional props', t => {
 			_context?: {
 				filePath?: string;
 				selection?: string;
+				fileName?: string;
+				startLine?: number;
+				endLine?: number;
 				cursorPosition?: {line: number; character: number};
 			},
 		) => {},
@@ -321,6 +324,9 @@ test('onPrompt callback receives correct parameters', t => {
 		| {
 				filePath?: string;
 				selection?: string;
+				fileName?: string;
+				startLine?: number;
+				endLine?: number;
 				cursorPosition?: {line: number; character: number};
 		  }
 		| undefined;
@@ -330,6 +336,9 @@ test('onPrompt callback receives correct parameters', t => {
 		context?: {
 			filePath?: string;
 			selection?: string;
+			fileName?: string;
+			startLine?: number;
+			endLine?: number;
 			cursorPosition?: {line: number; character: number};
 		},
 	) => {
@@ -347,6 +356,46 @@ test('onPrompt callback receives correct parameters', t => {
 	t.is(receivedContext?.filePath, '/test.ts');
 	t.is(receivedContext?.selection, 'selected text');
 	t.deepEqual(receivedContext?.cursorPosition, {line: 10, character: 5});
+});
+
+test('onPrompt callback receives VS Code line info', t => {
+	let receivedContext:
+		| {
+				filePath?: string;
+				selection?: string;
+				fileName?: string;
+				startLine?: number;
+				endLine?: number;
+				cursorPosition?: {line: number; character: number};
+		  }
+		| undefined;
+
+	const onPrompt = (
+		_prompt: string,
+		context?: {
+			filePath?: string;
+			selection?: string;
+			fileName?: string;
+			startLine?: number;
+			endLine?: number;
+			cursorPosition?: {line: number; character: number};
+		},
+	) => {
+		receivedContext = context;
+	};
+
+	onPrompt('What does this do?', {
+		filePath: '/path/to/App.tsx',
+		selection: 'const x = 1;',
+		fileName: 'App.tsx',
+		startLine: 10,
+		endLine: 15,
+		cursorPosition: {line: 10, character: 0},
+	});
+
+	t.is(receivedContext?.fileName, 'App.tsx');
+	t.is(receivedContext?.startLine, 10);
+	t.is(receivedContext?.endLine, 15);
 });
 
 test('onPrompt callback works without context', t => {

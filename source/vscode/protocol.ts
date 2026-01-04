@@ -88,6 +88,9 @@ export interface SendPromptMessage {
 	context?: {
 		filePath?: string;
 		selection?: string;
+		fileName?: string;
+		startLine?: number;
+		endLine?: number;
 		cursorPosition?: {line: number; character: number};
 	};
 }

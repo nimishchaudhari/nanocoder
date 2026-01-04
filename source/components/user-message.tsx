@@ -3,6 +3,14 @@ import {memo} from 'react';
 import {useTheme} from '@/hooks/useTheme';
 import type {UserMessageProps} from '@/types/index';
 
+// Strip VS Code context blocks from display (code is still sent to LLM)
+function stripVSCodeContext(message: string): string {
+	return message.replace(
+		/<!--vscode-context-->[\s\S]*?<!--\/vscode-context-->/g,
+		'',
+	);
+}
+
 // Parse a line and return segments with file placeholders highlighted
 function parseLineWithPlaceholders(line: string) {
 	const segments: Array<{text: string; isPlaceholder: boolean}> = [];
@@ -42,7 +50,9 @@ function parseLineWithPlaceholders(line: string) {
 export default memo(function UserMessage({message}: UserMessageProps) {
 	const {colors} = useTheme();
 
-	const lines = message.split('\n');
+	// Strip VS Code context blocks from display
+	const displayMessage = stripVSCodeContext(message);
+	const lines = displayMessage.split('\n');
 
 	return (
 		<Box flexDirection="column" marginBottom={1}>

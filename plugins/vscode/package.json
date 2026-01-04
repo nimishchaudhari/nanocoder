@@ -2,7 +2,7 @@
 	"name": "nanocoder-vscode",
 	"displayName": "Nanocoder",
 	"description": "VS Code integration for Nanocoder - local-first AI coding assistant",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"publisher": "nanocollective",
 	"repository": {
 		"type": "git",
@@ -50,46 +50,17 @@
 				"command": "nanocoder.askAboutCode",
 				"title": "Ask Nanocoder about this",
 				"category": "Nanocoder"
-			},
-			{
-				"command": "nanocoder.explainCode",
-				"title": "Explain this code",
-				"category": "Nanocoder"
-			},
-			{
-				"command": "nanocoder.refactorCode",
-				"title": "Refactor this code",
-				"category": "Nanocoder"
 			}
 		],
 		"menus": {
 			"editor/context": [
 				{
-					"submenu": "nanocoder.submenu",
-					"group": "nanocoder"
-				}
-			],
-			"nanocoder.submenu": [
-				{
 					"command": "nanocoder.askAboutCode",
-					"when": "editorHasSelection"
-				},
-				{
-					"command": "nanocoder.explainCode",
-					"when": "editorHasSelection"
-				},
-				{
-					"command": "nanocoder.refactorCode",
-					"when": "editorHasSelection"
+					"when": "editorHasSelection",
+					"group": "nanocoder"
 				}
 			]
 		},
-		"submenus": [
-			{
-				"id": "nanocoder.submenu",
-				"label": "Nanocoder"
-			}
-		],
 		"configuration": {
 			"title": "Nanocoder",
 			"properties": {

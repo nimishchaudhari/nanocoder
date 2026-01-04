@@ -4,7 +4,7 @@ import UserMessage from '@/components/user-message';
 import {promptHistory} from '@/prompt-history';
 import type {Message} from '@/types/core';
 import {MessageBuilder} from '@/utils/message-builder';
-import {processPromptTemplate} from '@/utils/prompt-processor';
+import {assemblePrompt, processPromptTemplate} from '@/utils/prompt-processor';
 import {processAssistantResponse} from './conversation/conversation-loop';
 import {createResetStreamingState} from './state/streaming-state';
 import type {ChatHandlerReturn, UseChatHandlerProps} from './types';
@@ -125,9 +125,15 @@ export function useChatHandler({
 
 		// For display purposes, try to get the placeholder version from history
 		// This preserves the nice placeholder display in chat history
+		// Only use history entry if the assembled prompt matches the current message
+		// (VS Code prompts bypass history, so we shouldn't use stale history entries)
 		const history = promptHistory.getHistory();
 		const lastEntry = history[history.length - 1];
-		const displayMessage = lastEntry?.displayValue || message;
+		const assembledFromHistory = lastEntry
+			? assemblePrompt(lastEntry)
+			: undefined;
+		const displayMessage =
+			assembledFromHistory === message ? lastEntry.displayValue : message;
 
 		// Add user message to chat using display version (with placeholders)
 		addToChatQueue(

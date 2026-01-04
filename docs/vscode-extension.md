@@ -1,6 +1,10 @@
 # VS Code Extension
 
-Nanocoder includes a VS Code extension that provides live diff previews of file changes directly in your editor. When the AI suggests file modifications, you can see exactly what will change before approving.
+Nanocoder includes a VS Code extension that integrates your editor with the CLI. Key features include:
+
+- **Ask About Code**: Right-click selected code to ask Nanocoder questions directly from VS Code
+- **Live Diff Preview**: See proposed file changes in VS Code's diff viewer before approving
+- **Diagnostics Sharing**: VS Code's LSP diagnostics are shared with Nanocoder for context
 
 ## Installation
 
@@ -63,10 +67,24 @@ If you prefer to install manually or the automatic installation doesn't work:
 
 4. **Approve or reject changes**: Use the Nanocoder CLI to approve or reject the changes. The diff preview is read-only and for visualization only.
 
-5. **Status bar**: The Nanocoder status bar item shows connection status:
+5. **Ask about code**: Select code, right-click, and choose "Ask Nanocoder about this" to send questions about specific code to the CLI.
+
+6. **Status bar**: The Nanocoder status bar item shows connection status:
    - `$(plug) Nanocoder` - Not connected (click to connect)
    - `$(check) Nanocoder` - Connected to CLI
    - `$(sync~spin) Connecting...` - Connection in progress
+
+## Ask About Code
+
+The "Ask Nanocoder about this" feature lets you quickly get help with specific code:
+
+1. **Select code** in any file
+2. **Right-click** and choose "Ask Nanocoder about this"
+3. **Enter your question** in the input box that appears
+4. The question and code are sent to the Nanocoder CLI
+5. Nanocoder responds with full context of your selected code
+
+In the CLI, you'll see your question with a highlighted placeholder showing the file and line range (e.g., `[@App.tsx (lines 10-25)]`). The full code is sent to the AI for analysis but kept compact in the display.
 
 ## Configuration
 
@@ -92,11 +110,12 @@ The extension can be configured in VS Code settings (`Cmd+,` / `Ctrl+,`):
 
 Access these commands via the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`):
 
-| Command                                | Description                                  |
-| -------------------------------------- | -------------------------------------------- |
-| `Nanocoder: Connect to Nanocoder`      | Manually connect to running Nanocoder CLI    |
-| `Nanocoder: Disconnect from Nanocoder` | Disconnect from CLI                          |
-| `Nanocoder: Start Nanocoder CLI`       | Open terminal and start `nanocoder --vscode` |
+| Command                                | Description                                    |
+| -------------------------------------- | ---------------------------------------------- |
+| `Nanocoder: Connect to Nanocoder`      | Manually connect to running Nanocoder CLI      |
+| `Nanocoder: Disconnect from Nanocoder` | Disconnect from CLI                            |
+| `Nanocoder: Start Nanocoder CLI`       | Open terminal and start `nanocoder --vscode`   |
+| `Nanocoder: Ask Nanocoder about this`  | Ask about selected code (also in context menu) |
 
 ## Troubleshooting
 
