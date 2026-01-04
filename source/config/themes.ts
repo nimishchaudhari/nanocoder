@@ -349,18 +349,18 @@ export const themes: Record<ThemePreset, Theme> = {
 		colors: {
 			text: '#c6d0f5',
 			base: '#303446',
-			primary: '#ca9ee6',
-			tool: '#8caaee',
+			primary: '#ea999c', // Flamingo - warm pink accent
+			tool: '#81c8be', // Teal
 			secondary: '#b5bfe2',
 			success: '#a6d189',
 			error: '#e78284',
-			info: '#85c1dc',
+			info: '#99d1db', // Sapphire
 			warning: '#e5c890',
 			diffAdded: '#a6d189',
 			diffRemoved: '#e78284',
 			diffAddedText: '#a6d189',
 			diffRemovedText: '#e78284',
-			gradientColors: ['#f2d5cf', '#ca9ee6', '#8caaee'],
+			gradientColors: ['#ea999c', '#81c8be', '#99d1db'],
 		},
 	},
 	'catppuccin-macchiato': {
@@ -370,18 +370,18 @@ export const themes: Record<ThemePreset, Theme> = {
 		colors: {
 			text: '#cad3f5',
 			base: '#24273a',
-			primary: '#c6a0f6',
-			tool: '#8aadf4',
+			primary: '#f5a97f', // Peach - warm orange accent
+			tool: '#91d7e3', // Sky
 			secondary: '#b8c0e0',
 			success: '#a6da95',
 			error: '#ed8796',
-			info: '#7dc4e4',
+			info: '#8aadf4', // Blue
 			warning: '#eed49f',
 			diffAdded: '#a6da95',
 			diffRemoved: '#ed8796',
 			diffAddedText: '#a6da95',
 			diffRemovedText: '#ed8796',
-			gradientColors: ['#f4dbd6', '#c6a0f6', '#8aadf4'],
+			gradientColors: ['#f5a97f', '#91d7e3', '#8aadf4'],
 		},
 	},
 	'catppuccin-mocha': {
@@ -391,12 +391,12 @@ export const themes: Record<ThemePreset, Theme> = {
 		colors: {
 			text: '#cdd6f4',
 			base: '#1e1e2e',
-			primary: '#cba6f7',
-			tool: '#89b4fa',
+			primary: '#cba6f7', // Mauve - classic purple accent
+			tool: '#89b4fa', // Blue
 			secondary: '#bac2de',
 			success: '#a6e3a1',
 			error: '#f38ba8',
-			info: '#74c7ec',
+			info: '#74c7ec', // Sapphire
 			warning: '#f9e2af',
 			diffAdded: '#a6e3a1',
 			diffRemoved: '#f38ba8',
