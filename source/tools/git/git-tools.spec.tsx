@@ -267,6 +267,63 @@ test('GitSmartCommitFormatter handles commit mode', t => {
 	t.regex(output!, /commit/);
 });
 
+test('GitSmartCommitFormatter displays hammer icon', t => {
+	const formatter = gitSmartCommitTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter is not defined');
+		return;
+	}
+
+	const element = formatter(
+		{dryRun: true},
+		'=== Smart Commit Analysis ===\nFiles changed: 3',
+	);
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /⚒/); // Hammer icon
+	t.regex(output!, /git_smart_commit/);
+});
+
+test('GitSmartCommitFormatter shows commit type and message', t => {
+	const formatter = gitSmartCommitTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter is not defined');
+		return;
+	}
+
+	const element = formatter(
+		{dryRun: true},
+		'=== Smart Commit Analysis ===\nFiles changed: 5\n=== Generated Commit Message ===\n\nfeat(auth): add user authentication',
+	);
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Type: feat/);
+	t.regex(output!, /Message:/);
+	t.regex(output!, /add user authentication/);
+});
+
+test('GitSmartCommitFormatter handles breaking changes', t => {
+	const formatter = gitSmartCommitTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter is not defined');
+		return;
+	}
+
+	const element = formatter(
+		{dryRun: true},
+		'=== Smart Commit Analysis ===\nFiles changed: 2\n=== Generated Commit Message ===\n\nfeat!: remove deprecated API\n\nBREAKING CHANGE: API has changed',
+	);
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /BREAKING/);
+});
+
 // ============================================================================
 // Tests for git_create_pr Tool Definition
 // ============================================================================
@@ -328,6 +385,63 @@ test('GitCreatePRFormatter shows draft indicator', t => {
 	const output = lastFrame();
 	t.truthy(output);
 	t.regex(output!, /Draft.*Yes/i);
+});
+
+test('GitCreatePRFormatter displays hammer icon', t => {
+	const formatter = gitCreatePRTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter is not defined');
+		return;
+	}
+
+	const element = formatter(
+		{targetBranch: 'main', draft: false},
+		'Branch: feature -> main\n--- Title ---\nAdd new feature',
+	);
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /⚒/); // Hammer icon
+	t.regex(output!, /git_create_pr/);
+});
+
+test('GitCreatePRFormatter shows description preview', t => {
+	const formatter = gitCreatePRTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter is not defined');
+		return;
+	}
+
+	const element = formatter(
+		{targetBranch: 'main'},
+		'Branch: feature -> main\n--- Title ---\nImplement user auth\n--- Description ---\n## Summary\n- Add login\n- Add register',
+	);
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Title:/);
+	t.regex(output!, /Description:/);
+	t.regex(output!, /Add login/);
+});
+
+test('GitCreatePRFormatter shows breaking changes warning', t => {
+	const formatter = gitCreatePRTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter is not defined');
+		return;
+	}
+
+	const element = formatter(
+		{targetBranch: 'main'},
+		'Branch: feature -> main\n--- Title ---\nAdd breaking change\n## Breaking Changes\n- Remove deprecated API',
+	);
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Breaking Changes/i);
 });
 
 // ============================================================================
@@ -446,6 +560,43 @@ test('GitStatusEnhancedFormatter shows conflicts warning', t => {
 	const output = lastFrame();
 	t.truthy(output);
 	t.regex(output!, /Conflicts/i);
+});
+
+test('GitStatusEnhancedFormatter displays hammer icon', t => {
+	const formatter = gitStatusEnhancedTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter is not defined');
+		return;
+	}
+
+	const element = formatter(
+		{detailed: true},
+		'Branch: main\nSummary: Working tree clean',
+	);
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /⚒/); // Hammer icon
+	t.regex(output!, /git_status_enhanced/);
+});
+
+test('GitStatusEnhancedFormatter shows detailed mode', t => {
+	const formatter = gitStatusEnhancedTool.formatter;
+	if (!formatter) {
+		t.fail('Formatter is not defined');
+		return;
+	}
+
+	const element = formatter(
+		{detailed: true},
+		'Branch: main\nSummary: 1 file modified',
+	);
+	const {lastFrame} = render(<TestThemeProvider>{element}</TestThemeProvider>);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /detailed/);
 });
 
 // ============================================================================

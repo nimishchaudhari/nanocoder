@@ -281,8 +281,8 @@ const gitSmartCommitCoreTool = tool({
 	// Requires approval when actually creating commits (dryRun=false)
 	needsApproval: (args: SmartCommitInput) => {
 		const mode = getCurrentMode();
-		// Only need approval when creating commit (dryRun explicitly false) and not in auto-accept mode
-		return args.dryRun === false && mode !== 'auto-accept';
+		// Always need approval (except auto-accept) so user can see the generated commit message first
+		return mode !== 'auto-accept';
 	},
 	execute: async (args, _options) => {
 		return await executeGitSmartCommit(args);
@@ -298,38 +298,63 @@ const GitSmartCommitFormatter = React.memo(
 		}
 		const {colors} = themeContext;
 
+		const [preview, setPreview] = React.useState<string | null>(null);
+		const [isLoading, setIsLoading] = React.useState(false);
+
+		// Generate preview before execution (when no result)
+		React.useEffect(() => {
+			if (!result && !preview && !isLoading) {
+				const generatePreview = async () => {
+					setIsLoading(true);
+					try {
+						// Run the same logic to generate a preview
+						const previewResult = await executeGitSmartCommit(args);
+						setPreview(previewResult);
+					} catch {
+						// Silently fail on preview generation errors
+					} finally {
+						setIsLoading(false);
+					}
+				};
+				void generatePreview();
+			}
+		}, [result, preview, isLoading, args]);
+
+		// Use either the actual result or the preview
+		const displayResult = result || preview;
+
 		// Parse result for display
 		let filesChanged = 0;
 		let commitType = '';
 		let commitMessage = '';
 		let isBreaking = false;
 
-		if (result) {
-			const filesMatch = result.match(/Files changed: (\d+)/);
+		if (displayResult) {
+			const filesMatch = displayResult.match(/Files changed: (\d+)/);
 			if (filesMatch) filesChanged = parseInt(filesMatch[1], 10);
 
 			// Extract commit type from the generated message
-			const typeMatch = result.match(
+			const typeMatch = displayResult.match(
 				/^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)/m,
 			);
 			if (typeMatch) commitType = typeMatch[1];
 
 			// Extract the full commit message (between === Generated Commit Message === and the next section)
-			const messageMatch = result.match(
-				/=== Generated Commit Message ===\n\n([\s\S]*?)(?:\n\n(?:WARNING:|$$Dry run|\(Dry run|To create|Commit created)|$)/,
+			const messageMatch = displayResult.match(
+				/=== Generated Commit Message ===\n\n([\s\S]*?)(?:\n\n(?:WARNING:|$Dry run|\(Dry run|To create|Commit created)|$)/,
 			);
 			if (messageMatch) {
 				commitMessage = messageMatch[1].trim();
 			}
 
 			isBreaking =
-				result.includes('BREAKING CHANGE') ||
-				result.includes('breaking change');
+				displayResult.includes('BREAKING CHANGE') ||
+				displayResult.includes('breaking change');
 		}
 
 		const messageContent = (
 			<Box flexDirection="column">
-				<Text color={colors.tool}>git_smart_commit</Text>
+				<Text color={colors.tool}>⚒ git_smart_commit</Text>
 
 				<Box>
 					<Text color={colors.secondary}>Mode: </Text>
@@ -338,7 +363,13 @@ const GitSmartCommitFormatter = React.memo(
 					</Text>
 				</Box>
 
-				{result && (
+				{isLoading && (
+					<Box>
+						<Text color={colors.secondary}>Generating preview...</Text>
+					</Box>
+				)}
+
+				{displayResult && (
 					<>
 						<Box>
 							<Text color={colors.secondary}>Files: </Text>
@@ -354,10 +385,12 @@ const GitSmartCommitFormatter = React.memo(
 						)}
 
 						{commitMessage && (
-							<Box flexDirection="column" marginTop={1}>
+							<Box flexDirection="column">
 								<Text color={colors.secondary}>Message:</Text>
 								<Box marginLeft={2}>
-									<Text color={colors.text}>{commitMessage}</Text>
+									<Text color={colors.text} italic>
+										{commitMessage}
+									</Text>
 								</Box>
 							</Box>
 						)}
