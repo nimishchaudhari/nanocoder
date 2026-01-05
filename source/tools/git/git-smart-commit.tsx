@@ -307,8 +307,12 @@ const GitSmartCommitFormatter = React.memo(
 				const generatePreview = async () => {
 					setIsLoading(true);
 					try {
-						// Run the same logic to generate a preview
-						const previewResult = await executeGitSmartCommit(args);
+						// Run the same logic to generate a preview, but always use dryRun=true
+						// to prevent accidentally creating commits before user approval
+						const previewResult = await executeGitSmartCommit({
+							...args,
+							dryRun: true,
+						});
 						setPreview(previewResult);
 					} catch {
 						// Silently fail on preview generation errors
@@ -339,9 +343,9 @@ const GitSmartCommitFormatter = React.memo(
 			);
 			if (typeMatch) commitType = typeMatch[1];
 
-			// Extract the full commit message (between === Generated Commit Message === and the next section)
+			// Extract the full commit message (between === Generated Commit Message === and the next section or end)
 			const messageMatch = displayResult.match(
-				/=== Generated Commit Message ===\n\n([\s\S]*?)(?:\n\n(?:WARNING:|$Dry run|\(Dry run|To create|Commit created)|$)/,
+				/=== Generated Commit Message ===\n\n([\s\S]*?)(?:\n\n(?:WARNING:|\(Dry run|To create|Commit created)|$)/,
 			);
 			if (messageMatch) {
 				commitMessage = messageMatch[1].trim();

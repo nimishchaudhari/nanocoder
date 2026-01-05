@@ -235,14 +235,18 @@ async function formatStringReplacePreview(
 		}
 
 		// Find location of the match in the file
-		const matchIndex = fileContent.indexOf(old_str);
+		// In result mode, old_str no longer exists - find new_str instead
+		const searchStr = isResult ? new_str : old_str;
+		const matchIndex = fileContent.indexOf(searchStr);
 		const beforeContent = fileContent.substring(0, matchIndex);
 		const beforeLines = beforeContent.split('\n');
 		const startLine = beforeLines.length;
 
 		const oldStrLines = old_str.split('\n');
 		const newStrLines = new_str.split('\n');
-		const endLine = startLine + oldStrLines.length - 1;
+		// In result mode, the file contains new_str, so use its length for endLine
+		const contentLines = isResult ? newStrLines : oldStrLines;
+		const endLine = startLine + contentLines.length - 1;
 
 		const allLines = fileContent.split('\n');
 		const contextLines = 3;
@@ -252,23 +256,32 @@ async function formatStringReplacePreview(
 		// Collect all lines to be displayed for normalization
 		const linesToNormalize: string[] = [];
 
-		// Context before
+		// Context before - always from file
 		for (let i = showStart; i < startLine - 1; i++) {
 			linesToNormalize.push(allLines[i] || '');
 		}
 
-		// Old lines
+		// Old lines - always from old_str (not in file after execution)
 		for (let i = 0; i < oldStrLines.length; i++) {
 			linesToNormalize.push(oldStrLines[i] || '');
 		}
 
-		// New lines
-		for (let i = 0; i < newStrLines.length; i++) {
-			linesToNormalize.push(newStrLines[i] || '');
+		// New lines - in result mode, read from file; in preview mode, use new_str
+		if (isResult) {
+			for (let i = 0; i < newStrLines.length; i++) {
+				linesToNormalize.push(allLines[startLine - 1 + i] || '');
+			}
+		} else {
+			for (let i = 0; i < newStrLines.length; i++) {
+				linesToNormalize.push(newStrLines[i] || '');
+			}
 		}
 
-		// Context after
-		for (let i = endLine; i <= showEnd; i++) {
+		// Context after - in result mode, start after new content
+		const contextAfterStart = isResult
+			? startLine - 1 + newStrLines.length
+			: endLine;
+		for (let i = contextAfterStart; i <= showEnd; i++) {
 			linesToNormalize.push(allLines[i] || '');
 		}
 
