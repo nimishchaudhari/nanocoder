@@ -1,3 +1,9 @@
+# 1.20.1
+
+Fix: React Context Error - useTitleShape must be used within a TitleShapeProvider
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 # 1.20.0
 
 Happy New Year! We all hope you had a great holidays and are feeling refreshed ready for 2026 🌟
