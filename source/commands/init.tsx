@@ -227,8 +227,8 @@ export const initCommand: Command = {
 			const analyzer = new ProjectAnalyzer(cwd);
 			const analysis = analyzer.analyze();
 
-			// Extract existing AI configuration files
-			const rulesExtractor = new ExistingRulesExtractor(cwd);
+			// Extract existing AI configuration files (skip AGENTS.md when force regenerating)
+			const rulesExtractor = new ExistingRulesExtractor(cwd, forceRegenerate);
 			const existingRules = rulesExtractor.extractExistingRules();
 
 			// Create AGENTS.md based on analysis and existing rules
