@@ -25,7 +25,7 @@ importers:
         specifier: ^1.17.3
         version: 1.25.1(hono@4.11.3)(zod@4.3.4)
       '@nanocollective/get-md':
-        specifier: ^1.0.1
+        specifier: ^1.0.2
         version: 1.0.3
       ai:
         specifier: 6.0.6
