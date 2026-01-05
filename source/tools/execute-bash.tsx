@@ -97,7 +97,9 @@ function ExecuteBashFormatterComponent({
 			<Text color={colors.tool}>⚒ execute_bash</Text>
 			<Box>
 				<Text color={colors.secondary}>Command: </Text>
-				<Text color={colors.primary}>{command}</Text>
+				<Box marginLeft={1}>
+					<Text color={colors.primary}>{command}</Text>
+				</Box>
 			</Box>
 		</Box>
 	);

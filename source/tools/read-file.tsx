@@ -256,12 +256,14 @@ const ReadFileFormatter = React.memo(
 
 				<Box>
 					<Text color={colors.secondary}>Path: </Text>
-					<Text color={colors.text}>
-						{path}{' '}
-						{fileInfo.isMetadataOnly && (
-							<Text color={colors.info}>(metadata only)</Text>
-						)}
-					</Text>
+					<Box marginLeft={1}>
+						<Text color={colors.text}>
+							{path}{' '}
+							{fileInfo.isMetadataOnly && (
+								<Text color={colors.info}>(metadata only)</Text>
+							)}
+						</Text>
+					</Box>
 				</Box>
 
 				{fileInfo.isMetadataOnly ? (

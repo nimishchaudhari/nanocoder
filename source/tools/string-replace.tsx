@@ -167,90 +167,71 @@ async function formatStringReplacePreview(
 		const language = getLanguageFromExtension(ext);
 
 		// In result mode, skip validation since file has already been modified
-		if (isResult) {
-			const messageContent = (
-				<Box flexDirection="column">
-					<Text color={themeColors.tool}>⚒ string_replace</Text>
-
-					<Box>
-						<Text color={themeColors.secondary}>Path: </Text>
-						<Text color={themeColors.primary}>{path}</Text>
-					</Box>
-
-					<Box flexDirection="column" marginTop={1}>
-						<Text color={themeColors.success}>
-							✓ String replacement completed successfully
-						</Text>
-					</Box>
-				</Box>
-			);
-
-			return <ToolMessage message={messageContent} hideBox={true} />;
-		}
-
 		// Preview mode - validate old_str exists and is unique
-		const occurrences = fileContent.split(old_str).length - 1;
+		if (!isResult) {
+			const occurrences = fileContent.split(old_str).length - 1;
 
-		if (occurrences === 0) {
-			const errorContent = (
-				<Box flexDirection="column">
-					<Text color={themeColors.tool}>⚒ string_replace</Text>
+			if (occurrences === 0) {
+				const errorContent = (
+					<Box flexDirection="column" marginBottom={1}>
+						<Text color={themeColors.tool}>⚒ string_replace</Text>
 
-					<Box>
-						<Text color={themeColors.secondary}>Path: </Text>
-						<Text color={themeColors.primary}>{path}</Text>
-					</Box>
+						<Box>
+							<Text color={themeColors.secondary}>Path: </Text>
+							<Text color={themeColors.primary}>{path}</Text>
+						</Box>
 
-					<Box flexDirection="column" marginTop={1}>
-						<Text color={themeColors.error}>
-							✗ Error: Content not found in file. The file may have changed
-							since you last read it.
-						</Text>
-					</Box>
-
-					<Box flexDirection="column" marginTop={1}>
-						<Text color={themeColors.secondary}>Searching for:</Text>
-						{old_str.split('\n').map((line, i) => (
-							<Text key={i} color={themeColors.text}>
-								{line}
+						<Box flexDirection="column" marginTop={1}>
+							<Text color={themeColors.error}>
+								✗ Error: Content not found in file. The file may have changed
+								since you last read it.
 							</Text>
-						))}
+						</Box>
+
+						<Box flexDirection="column" marginTop={1}>
+							<Text color={themeColors.secondary}>Searching for:</Text>
+							{old_str.split('\n').map((line, i) => (
+								<Text key={i} color={themeColors.text}>
+									{line}
+								</Text>
+							))}
+						</Box>
 					</Box>
-				</Box>
-			);
-			return <ToolMessage message={errorContent} hideBox={true} />;
-		}
+				);
+				return <ToolMessage message={errorContent} hideBox={true} />;
+			}
 
-		if (occurrences > 1) {
-			const errorContent = (
-				<Box flexDirection="column">
-					<Text color={themeColors.tool}>⚒ string_replace</Text>
+			if (occurrences > 1) {
+				const errorContent = (
+					<Box flexDirection="column">
+						<Text color={themeColors.tool}>⚒ string_replace</Text>
 
-					<Box>
-						<Text color={themeColors.secondary}>Path: </Text>
-						<Text color={themeColors.primary}>{path}</Text>
-					</Box>
+						<Box>
+							<Text color={themeColors.secondary}>Path: </Text>
+							<Text color={themeColors.primary}>{path}</Text>
+						</Box>
 
-					<Box flexDirection="column" marginTop={1}>
-						<Text color={themeColors.error}>
-							✗ Error: Found {occurrences} matches
-						</Text>
-						<Text color={themeColors.secondary}>
-							Add more surrounding context to make the match unique.
-						</Text>
-					</Box>
-
-					<Box flexDirection="column" marginTop={1}>
-						<Text color={themeColors.secondary}>Searching for:</Text>
-						{old_str.split('\n').map((line, i) => (
-							<Text key={i} color={themeColors.text}>
-								{line}
+						<Box flexDirection="column" marginTop={1}>
+							<Text color={themeColors.error}>
+								✗ Error: Found {occurrences} matches
 							</Text>
-						))}
+							<Text color={themeColors.secondary}>
+								Add more surrounding context to make the match unique.
+							</Text>
+						</Box>
+
+						<Box flexDirection="column" marginTop={1}>
+							<Text color={themeColors.secondary}>Searching for:</Text>
+							{old_str.split('\n').map((line, i) => (
+								<Text key={i} color={themeColors.text}>
+									{line}
+								</Text>
+							))}
+						</Box>
 					</Box>
-				</Box>
-			);
-			return <ToolMessage message={errorContent} hideBox={true} />;
+				);
+				return <ToolMessage message={errorContent} hideBox={true} />;
+			}
 		}
 
 		// Find location of the match in the file
