@@ -460,11 +460,13 @@ export default function App({
 		logger.debug('Directory trust check in progress');
 
 		return (
-			<Box flexDirection="column" padding={1}>
-				<Text color={themeContextValue.colors.secondary}>
-					<Spinner type="dots" /> Checking directory trust...
-				</Text>
-			</Box>
+			<ThemeContext.Provider value={themeContextValue}>
+				<Box flexDirection="column" padding={1}>
+					<Text color={themeContextValue.colors.secondary}>
+						<Spinner type="dots" /> Checking directory trust...
+					</Text>
+				</Box>
+			</ThemeContext.Provider>
 		);
 	}
 
@@ -476,14 +478,16 @@ export default function App({
 		});
 
 		return (
-			<Box flexDirection="column" padding={1}>
-				<Text color={themeContextValue.colors.error}>
-					⚠️ Error checking directory trust: {isTrustedError}
-				</Text>
-				<Text color={themeContextValue.colors.secondary}>
-					Please restart the application or check your permissions.
-				</Text>
-			</Box>
+			<ThemeContext.Provider value={themeContextValue}>
+				<Box flexDirection="column" padding={1}>
+					<Text color={themeContextValue.colors.error}>
+						⚠️ Error checking directory trust: {isTrustedError}
+					</Text>
+					<Text color={themeContextValue.colors.secondary}>
+						Please restart the application or check your permissions.
+					</Text>
+				</Box>
+			</ThemeContext.Provider>
 		);
 	}
 
@@ -492,7 +496,14 @@ export default function App({
 		logger.info('Directory not trusted, showing security disclaimer');
 
 		return (
-			<SecurityDisclaimer onConfirm={handleConfirmTrust} onExit={handleExit} />
+			<ThemeContext.Provider value={themeContextValue}>
+				<TitleShapeContext.Provider value={titleShapeContextValue}>
+					<SecurityDisclaimer
+						onConfirm={handleConfirmTrust}
+						onExit={handleExit}
+					/>
+				</TitleShapeContext.Provider>
+			</ThemeContext.Provider>
 		);
 	}
 
