@@ -79,10 +79,17 @@ async function searchFileContents(
 					continue;
 				}
 
+				// Truncate long lines to prevent token explosion
+				const MAX_CONTENT_LENGTH = 300;
+				let content = match[3].trim();
+				if (content.length > MAX_CONTENT_LENGTH) {
+					content = content.slice(0, MAX_CONTENT_LENGTH) + '…';
+				}
+
 				matches.push({
 					file: filePath,
 					line: parseInt(match[2], 10),
-					content: match[3].trim(),
+					content,
 				});
 
 				// Stop once we have enough matches

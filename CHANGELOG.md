@@ -1,3 +1,9 @@
+# 1.20.3
+
+- Fixed `search_file_contents` returning excessive tokens by truncating long matching lines to 300 characters. Previously, searching in files with long lines (minified JS, base64 data, etc.) could return ~100k tokens for just 30 matches.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 # 1.20.2
 
 - Added preview generation to git workflow tools (`git-status-enhanced`, `git-smart-commit`, `git-create-pr`) showing results before execution.
