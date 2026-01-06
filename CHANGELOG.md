@@ -2,6 +2,8 @@
 
 - Fixed `search_file_contents` returning excessive tokens by truncating long matching lines to 300 characters. Previously, searching in files with long lines (minified JS, base64 data, etc.) could return ~100k tokens for just 30 matches.
 
+- Added validation to `read_file` to reject minified/binary files (lines >10,000 characters). These files consume excessive tokens without providing useful information to the model. Use `metadata_only=true` to still check file properties.
+
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
 # 1.20.2

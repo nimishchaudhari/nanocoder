@@ -565,6 +565,66 @@ test.serial('read_file validator rejects end_line > file length', async t => {
 	}
 });
 
+test.serial(
+	'read_file validator rejects files with minified/binary content',
+	async t => {
+		t.timeout(10000);
+		const testDir = join(process.cwd(), 'test-read-validate-minified-temp');
+		const originalCwd = process.cwd();
+
+		try {
+			mkdirSync(testDir, {recursive: true});
+			// Create a file with a very long line (>10,000 chars)
+			const longLine = 'x'.repeat(15000);
+			writeFileSync(join(testDir, 'minified.js'), longLine);
+			process.chdir(testDir);
+
+			const result = await readFileTool.validator!({
+				path: 'minified.js',
+			});
+
+			t.false(result.valid);
+			if (!result.valid) {
+				t.regex(result.error, /minified or binary content/);
+				t.regex(result.error, /15,000 characters/);
+			}
+		} finally {
+			process.chdir(originalCwd);
+			rmSync(testDir, {recursive: true, force: true});
+		}
+	},
+);
+
+test.serial(
+	'read_file validator allows metadata_only for minified files',
+	async t => {
+		t.timeout(10000);
+		const testDir = join(
+			process.cwd(),
+			'test-read-validate-minified-metadata-temp',
+		);
+		const originalCwd = process.cwd();
+
+		try {
+			mkdirSync(testDir, {recursive: true});
+			// Create a file with a very long line (>10,000 chars)
+			const longLine = 'x'.repeat(15000);
+			writeFileSync(join(testDir, 'minified.js'), longLine);
+			process.chdir(testDir);
+
+			const result = await readFileTool.validator!({
+				path: 'minified.js',
+				metadata_only: true,
+			});
+
+			t.true(result.valid);
+		} finally {
+			process.chdir(originalCwd);
+			rmSync(testDir, {recursive: true, force: true});
+		}
+	},
+);
+
 // ============================================================================
 // Tests for read_file Handler - Error Handling
 // ============================================================================

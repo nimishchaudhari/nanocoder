@@ -9,6 +9,7 @@ import {
 	FILE_READ_CHUNK_SIZE_LINES,
 	FILE_READ_CHUNKING_HINT_THRESHOLD_LINES,
 	FILE_READ_METADATA_THRESHOLD_LINES,
+	MAX_LINE_LENGTH_CHARS,
 } from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
@@ -431,6 +432,26 @@ const readFileValidator = async (args: {
 					valid: false,
 					error: `⚒ end_line (${args.end_line}) exceeds file length (${totalLines} lines)`,
 				};
+			}
+		}
+
+		// Check for minified/binary content (very long lines)
+		// Skip this check for metadata_only requests
+		if (!args.metadata_only) {
+			const cached = await getCachedFileContent(absPath);
+			const startLine = args.start_line ? Math.max(1, args.start_line) : 1;
+			const endLine = args.end_line
+				? Math.min(cached.lines.length, args.end_line)
+				: cached.lines.length;
+
+			for (let i = startLine - 1; i < endLine; i++) {
+				const line = cached.lines[i];
+				if (line && line.length > MAX_LINE_LENGTH_CHARS) {
+					return {
+						valid: false,
+						error: `⚒ File "${args.path}" contains minified or binary content (line ${i + 1} has ${line.length.toLocaleString()} characters). This file cannot be read as it would consume excessive tokens without providing useful information.`,
+					};
+				}
 			}
 		}
 
