@@ -12,7 +12,7 @@
 }:
 
 let
-  version = "1.20.2";
+  version = "1.20.3";
 in
 
 stdenv.mkDerivation (finalAttrs: {
@@ -23,7 +23,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "nano-collective";
     repo = "nanocoder";
     rev = "v${version}";
-    sha256 = "sha256-afK3A3UHAyRB1TR1O9/LyRqIXAF6G1rirruejH95KhU=";
+    sha256 = "sha256-ZACyi8f63v9lw4xYd90r+MYTt9wMFa9CDY/YZXGtH5Q=";
   };
 
   nativeBuildInputs = [
