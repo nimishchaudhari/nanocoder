@@ -1,3 +1,19 @@
+# 1.20.2
+
+- Added preview generation to git workflow tools (`git-status-enhanced`, `git-smart-commit`, `git-create-pr`) showing results before execution.
+
+- Fixed `string-replace` line number display in result mode - now correctly shows line numbers of new content after replacement.
+
+- Added hammer icon (⚒) to git tool formatters for visual consistency.
+
+- Improved formatting in `bash-progress`, `execute-bash`, and `read-file` tools with better spacing and layout.
+
+- Simplified `string-replace` validation logic and removed redundant success messages.
+
+- Fix: Running `/init --force` added duplication to `AGENTS.md`.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 # 1.20.1
 
 Fix: React Context Error - useTitleShape must be used within a TitleShapeProvider
