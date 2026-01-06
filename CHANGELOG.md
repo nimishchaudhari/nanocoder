@@ -4,6 +4,8 @@
 
 - Added validation to `read_file` to reject minified/binary files (lines >10,000 characters). These files consume excessive tokens without providing useful information to the model. Use `metadata_only=true` to still check file properties.
 
+- Fixed `web_search` result count display showing mismatched values (e.g., "10 / 5 results"). The formatter now correctly uses the same default as the search execution.
+
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
 # 1.20.2

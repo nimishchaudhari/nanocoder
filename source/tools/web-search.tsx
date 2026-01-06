@@ -8,7 +8,6 @@ import {
 	DEFAULT_WEB_SEARCH_RESULTS,
 	MAX_WEB_SEARCH_QUERY_LENGTH,
 	TIMEOUT_WEB_SEARCH_MS,
-	WEB_SEARCH_DISPLAY_RESULTS,
 } from '@/constants';
 import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
@@ -138,7 +137,7 @@ const WebSearchFormatter = React.memo(
 		}
 		const {colors} = themeContext;
 		const query = args.query || 'unknown';
-		const maxResults = args.max_results ?? WEB_SEARCH_DISPLAY_RESULTS;
+		const maxResults = args.max_results ?? DEFAULT_WEB_SEARCH_RESULTS;
 
 		// Parse result to count actual results
 		let resultCount = 0;

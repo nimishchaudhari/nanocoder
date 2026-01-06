@@ -61,7 +61,6 @@ export const MAX_LINE_LENGTH_CHARS = 10_000; // Lines longer than this are likel
 export const PATH_LENGTH_NARROW_TERMINAL = 30;
 export const PATH_LENGTH_NORMAL_TERMINAL = 60;
 export const TABLE_COLUMN_MIN_WIDTH = 10;
-export const WEB_SEARCH_DISPLAY_RESULTS = 5;
 
 // === TOKEN THRESHOLDS (percentages - useChatHandler) ===
 export const TOKEN_THRESHOLD_WARNING_PERCENT = 80;
