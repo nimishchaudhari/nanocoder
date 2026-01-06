@@ -6,6 +6,8 @@
 
 - Fixed `web_search` result count display showing mismatched values (e.g., "10 / 5 results"). The formatter now correctly uses the same default as the search execution.
 
+- Improved `web_search` and `fetch_url` formatter layouts to match `execute_bash` style with consistent column alignment and spacing.
+
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 
 # 1.20.2
