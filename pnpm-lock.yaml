@@ -22,7 +22,7 @@ importers:
         specifier: ^0.0.4
         version: 0.0.4
       '@modelcontextprotocol/sdk':
-        specifier: ^1.25.1
+        specifier: ^1.25.2
         version: 1.25.2(hono@4.11.3)(zod@4.3.4)
       '@nanocollective/get-md':
         specifier: ^1.0.2
