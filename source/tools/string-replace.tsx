@@ -7,6 +7,7 @@ import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
 import {getColors} from '@/config/index';
+import {isNanocoderToolAlwaysAllowed} from '@/config/nanocoder-tools-config';
 import {getCurrentMode} from '@/context/mode-context';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
@@ -133,8 +134,13 @@ const stringReplaceCoreTool = tool({
 		},
 		required: ['path', 'old_str', 'new_str'],
 	}),
-	// Medium risk: file write operation, requires approval except in auto-accept mode
+	// Medium risk: file write operation, requires approval except in auto-accept mode or if configured in nanocoderTools.alwaysAllow
 	needsApproval: () => {
+		// Check if this tool is configured to always be allowed
+		if (isNanocoderToolAlwaysAllowed('string_replace')) {
+			return false;
+		}
+
 		const mode = getCurrentMode();
 		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
 	},

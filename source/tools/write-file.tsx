@@ -6,6 +6,7 @@ import {Box, Text} from 'ink';
 import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
+import {isNanocoderToolAlwaysAllowed} from '@/config/nanocoder-tools-config';
 import {getCurrentMode} from '@/context/mode-context';
 import {ThemeContext} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
@@ -69,8 +70,13 @@ const writeFileCoreTool = tool({
 		},
 		required: ['path', 'content'],
 	}),
-	// Medium risk: file write operation, requires approval except in auto-accept mode
+	// Medium risk: file write operation, requires approval except in auto-accept mode or if configured in nanocoderTools.alwaysAllow
 	needsApproval: () => {
+		// Check if this tool is configured to always be allowed
+		if (isNanocoderToolAlwaysAllowed('write_file')) {
+			return false;
+		}
+
 		const mode = getCurrentMode();
 		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
 	},
