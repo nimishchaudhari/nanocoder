@@ -6,11 +6,6 @@ on:
   schedule:
     - cron: '0 */6 * * *'  # Every 6 hours
 
-# Allow this workflow to be called by other workflows and inherit secrets
-# Also inherit secrets when triggered manually or by schedule
-# Note: PAT_TOKEN must be in repository secrets
-secrets: inherit
-
 permissions:
   contents: write
 
