@@ -142,7 +142,7 @@ export function MCP({toolManager}: MCPProps) {
 									)} */}
 
 									{serverTools.length > 0 && (
-										<Text color={colors.secondary}>
+										<Text color={colors.tool}>
 											Tools:{' '}
 											{serverTools
 												.map((t: {name: string}) => t.name)

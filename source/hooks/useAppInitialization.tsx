@@ -14,6 +14,7 @@ import {
 	modelCommand,
 	modelDatabaseCommand,
 	providerCommand,
+	quitCommand,
 	setupConfigCommand,
 	statusCommand,
 	themeCommand,
@@ -385,6 +386,7 @@ export function useAppInitialization({
 				usageCommand,
 				titleShapeCommand,
 				checkpointCommand,
+				quitCommand,
 			]);
 
 			// Now start with the properly initialized objects (excluding MCP)
