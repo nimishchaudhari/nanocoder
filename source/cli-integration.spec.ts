@@ -10,7 +10,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 export function runCliCommand(args: string[]): string {
 	try {
 		const cliPath = join(__dirname, '..', 'dist', 'cli.js');
-		const result = execSync(`node ${cliPath} ${args.join(' ')}`, {
+		const result = execSync('node', [cliPath, ...args], {
 			encoding: 'utf8',
 			stdio: ['pipe', 'pipe', 'pipe'],
 		});
@@ -65,7 +65,7 @@ test('CLI integration: -h flag returns help text', t => {
 test('CLI integration: version and help flags exit with code 0', t => {
 	// Test that both flags exit successfully
 	try {
-		execSync('node dist/cli.js --version', {stdio: ['pipe', 'pipe', 'pipe']});
+		execSync('node', ['dist/cli.js', '--version'], {stdio: ['pipe', 'pipe', 'pipe']});
 		t.pass('--version exits with code 0');
 	} catch (error: any) {
 		if (error.status !== 0) {
@@ -74,7 +74,7 @@ test('CLI integration: version and help flags exit with code 0', t => {
 	}
 	
 	try {
-		execSync('node dist/cli.js --help', {stdio: ['pipe', 'pipe', 'pipe']});
+		execSync('node', ['dist/cli.js', '--help'], {stdio: ['pipe', 'pipe', 'pipe']});
 		t.pass('--help exits with code 0');
 	} catch (error: any) {
 		if (error.status !== 0) {
