@@ -1,6 +1,7 @@
 import {Box, Text} from 'ink';
 import React from 'react';
 import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
+import {getMcpServerSources, getSourceLabel} from '@/config/mcp-config-loader';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {getToolManager} from '@/message-handler';
@@ -100,12 +101,25 @@ export function MCP({toolManager}: MCPProps) {
 							serverInfo?.transport || 'stdio',
 						);
 
+						// Get the source information for this server
+						const mcpServerSources = getMcpServerSources();
+						const serverSource = mcpServerSources.find(
+							item => item.server.name === serverName,
+						);
+						const sourceLabel = serverSource
+							? getSourceLabel(serverSource.source)
+							: '';
+
 						return (
 							<Box key={index} marginBottom={1}>
 								<Box flexDirection="column">
 									<Text color={colors.text}>
 										• {transportIcon}{' '}
-										<Text color={colors.primary}>{serverName}</Text>:{' '}
+										<Text color={colors.primary}>{serverName}</Text>
+										{sourceLabel && (
+											<Text color={colors.secondary}> {sourceLabel}</Text>
+										)}
+										:{' '}
 										<Text color={colors.secondary}>
 											({serverInfo?.transport?.toUpperCase() || 'STDIO'})
 										</Text>{' '}

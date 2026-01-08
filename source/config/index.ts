@@ -4,6 +4,7 @@ import {homedir} from 'os';
 import {dirname, join} from 'path';
 import {fileURLToPath} from 'url';
 import {substituteEnvVars} from '@/config/env-substitution';
+import {loadAllMCPConfigs, loadAllProviderConfigs} from '@/config/mcp-config-loader';
 import {getConfigPath} from '@/config/paths';
 import {loadPreferences} from '@/config/preferences';
 import {defaultTheme, getThemeColors} from '@/config/themes';
@@ -100,28 +101,20 @@ function createDefaultConfFile(filePath: string, fileName: string): void {
 
 // Function to load app configuration from agents.config.json if it exists
 function loadAppConfig(): AppConfig {
-	const agentsJsonPath = getClosestConfigFile('agents.config.json');
+	// Load providers from the new hierarchical configuration system
+	const providers = loadAllProviderConfigs();
 
-	try {
-		const rawData = readFileSync(agentsJsonPath, 'utf-8');
-		const agentsData = JSON.parse(rawData) as {nanocoder?: AppConfig};
+	// Load MCP servers from the new hierarchical configuration system
+	const mcpServersWithSource = loadAllMCPConfigs();
+	const mcpServers = mcpServersWithSource.map(item => ({
+		...item.server,
+		source: item.source,
+	}));
 
-		// Apply environment variable substitution
-		const processedData = substituteEnvVars(agentsData);
-
-		if (processedData.nanocoder) {
-			return {
-				providers: processedData.nanocoder.providers ?? [],
-				mcpServers: processedData.nanocoder.mcpServers ?? [],
-			};
-		}
-	} catch (error) {
-		logWarning(
-			`Failed to load agents.config.json: ${error instanceof Error ? error.message : String(error)}`,
-		);
-	}
-
-	return {};
+	return {
+		providers,
+		mcpServers,
+	};
 }
 
 export let appConfig = loadAppConfig();

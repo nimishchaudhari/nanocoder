@@ -26,6 +26,63 @@ Nanocoder supports three transport types for MCP servers:
 
 ## Configuration Examples
 
+### Project-Level Configuration
+
+Nanocoder now supports project-level MCP configuration files for team collaboration:
+
+- **`.mcp.json`** - Primary project-level config in project root
+- **`mcp.json`** - Alternative project-level config in project root
+- **`.nanocoder/mcp.json`** - Nanocoder-specific directory config
+- **`.claude/mcp.json`** - Claude Code compatibility config
+- **`.nanocoder/mcp.local.json`** - Local overrides (gitignored, highest priority)
+
+Project-level configs take precedence over the global `agents.config.json`.
+
+**Example `.mcp.json` (Array Format):**
+```json
+{
+  "mcpServers": [
+    {
+      "name": "filesystem",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "./src"],
+      "description": "Project filesystem access",
+      "env": {
+        "ALLOWED_PATHS": "./src"
+      }
+    }
+  ]
+}
+```
+
+**Example `.mcp.json` (Claude Code Object Format):**
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "./src"],
+      "description": "Project filesystem access",
+      "env": {
+        "ALLOWED_PATHS": "./src"
+      }
+    },
+    "github": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "$GITHUB_TOKEN"
+      }
+    }
+  }
+}
+```
+
+The Claude Code format (object with named keys) is fully supported alongside the traditional array format.
+
 ### Local stdio Servers
 
 #### File System Access

@@ -481,7 +481,68 @@ For complete documentation, see [Pino Logging Guide](docs/pino-logging.md).
 
 ### MCP (Model Context Protocol) Servers
 
-Nanocoder supports connecting to MCP servers to extend its capabilities with additional tools. Configure MCP servers in your `agents.config.json`:
+Nanocoder supports connecting to MCP servers to extend its capabilities with additional tools. You can configure MCP servers using either the traditional `agents.config.json` file or new project-level configuration files.
+
+#### Project-Level Configuration (Recommended for Teams)
+
+Nanocoder now supports project-level MCP configuration files that enable team collaboration:
+
+- **`.mcp.json`** - Primary project-level config in project root
+- **`mcp.json`** - Alternative project-level config in project root
+- **`.nanocoder/mcp.json`** - Nanocoder-specific directory config
+- **`.claude/mcp.json`** - Claude Code compatibility config
+- **`.nanocoder/mcp.local.json`** - Local overrides (gitignored, highest priority)
+
+Project-level configs take precedence over the global `agents.config.json`.
+
+**Example `.mcp.json` (Array Format):**
+```json
+{
+  "mcpServers": [
+    {
+      "name": "filesystem",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "./src"],
+      "description": "Project filesystem access",
+      "env": {
+        "ALLOWED_PATHS": "./src"
+      }
+    }
+  ]
+}
+```
+
+**Example `.mcp.json` (Claude Code Object Format):**
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "./src"],
+      "description": "Project filesystem access",
+      "env": {
+        "ALLOWED_PATHS": "./src"
+      }
+    },
+    "github": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "$GITHUB_TOKEN"
+      }
+    }
+  }
+}
+```
+
+The Claude Code format (object with named keys) is fully supported alongside the traditional array format.
+
+#### Global Configuration
+
+You can still use the traditional `agents.config.json` for user-level configuration:
 
 ```json
 {
@@ -533,18 +594,14 @@ Nanocoder supports connecting to MCP servers to extend its capabilities with add
 - **For http/websocket transport:**
   - `url`: Server endpoint URL
   - `timeout`: Connection timeout in milliseconds (optional)
-
-**Transport Types:**
-
-- **stdio**: Local command-line servers (most common)
-- **http**: Remote HTTP API endpoints
-- **websocket**: Real-time WebSocket connections
+- `description`: Optional description for the server
+- `tags`: Optional tags for categorization
 
 When MCP servers are configured, Nanocoder will:
 
 - Automatically connect to all configured servers on startup
 - Make all server tools available to the AI model
-- Show connected servers and their tools with the `/mcp` command
+- Show connected servers and their tools with the `/mcp` command (including configuration source level)
 - Display transport type and connection details in configuration summary
 
 Popular MCP servers:
@@ -558,7 +615,7 @@ Popular MCP servers:
 - **Sequential Thinking**: Advanced reasoning (http)
 - [View more MCP servers](https://github.com/modelcontextprotocol/servers)
 
-> **Note**: MCP server configuration follows the same location hierarchy as AI provider setup above. Use `/setup-config` for an interactive configuration wizard with templates for both local and remote MCP servers, or manually edit `agents.config.json` at the project level (current directory) or user level (platform-specific paths listed above).
+> **Note**: MCP server configuration follows the same location hierarchy as AI provider setup above. Use `/setup-config` for an interactive configuration wizard with templates for both local and remote MCP servers. The `/mcp` command now shows the configuration source level (e.g., [project], [global]) next to each server name.
 
 ### User Preferences
 
