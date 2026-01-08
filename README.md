@@ -181,6 +181,46 @@ pnpm run dev
 
 ## Usage
 
+### CLI Options
+
+Nanocoder supports standard CLI arguments for quick information and help:
+
+```bash
+# Show version information
+nanocoder --version
+nanocoder -v
+
+# Show help and available options
+nanocoder --help
+nanocoder -h
+```
+
+**CLI Options Reference:**
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--version` | `-v` | Display the installed version number |
+| `--help` | `-h` | Show usage information and available options |
+| `--vscode` | | Run in VS Code mode (for extension) |
+| `--vscode-port` | | Specify VS Code server port |
+| `run` | | Run in non-interactive mode |
+
+**Common Use Cases:**
+
+```bash
+# Check version in scripts
+echo "Nanocoder version: $(nanocoder --version)"
+
+# Get help in CI/CD pipelines
+nanocoder --help
+
+# Quick version check
+nanocoder -v
+
+# Discover available options
+nanocoder -h
+```
+
 ### Interactive Mode
 
 To start Nanocoder in interactive mode (the default), simply run:
