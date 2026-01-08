@@ -33,7 +33,7 @@ export function MCP({toolManager}: MCPProps) {
 
 	return (
 		<TitledBoxWithPreferences
-			title="/mcp"
+			title="Model Context Protocol Server"
 			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
