@@ -615,7 +615,7 @@ Popular MCP servers:
 - **Sequential Thinking**: Advanced reasoning (http)
 - [View more MCP servers](https://github.com/modelcontextprotocol/servers)
 
-> **Note**: MCP server configuration follows the same location hierarchy as AI provider setup above. Use `/setup-config` for an interactive configuration wizard with templates for both local and remote MCP servers. The `/mcp` command now shows the configuration source level (e.g., [project], [global]) next to each server name.
+> **Note**: MCP server configuration follows the same hierarchical loading as AI providers, supporting both project-level and global configurations. Use `/setup-config` for an interactive configuration wizard with templates for both local and remote MCP servers. The `/mcp` command now shows the configuration source level (e.g., [project], [global]) next to each server name. Both providers and MCP servers are loaded from all available configuration levels and merged together, with project-level configurations taking precedence over global ones.
 
 ### User Preferences
 

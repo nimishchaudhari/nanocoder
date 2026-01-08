@@ -1,6 +1,6 @@
 import {existsSync, readFileSync} from 'fs';
-import {join} from 'path';
 import {homedir} from 'os';
+import {join} from 'path';
 import {substituteEnvVars} from '@/config/env-substitution';
 import {getConfigPath} from '@/config/paths';
 import type {MCPServerConfig} from '@/types/config';
@@ -73,15 +73,21 @@ export function loadProjectMCPConfig(): MCPServerWithSource[] {
 					mcpServers = config.nanocoder.mcpServers;
 				} else if (Array.isArray(config.mcpServers)) {
 					mcpServers = config.mcpServers;
-				} else if (config.mcpServers && typeof config.mcpServers === 'object' && !Array.isArray(config.mcpServers)) {
+				} else if (
+					config.mcpServers &&
+					typeof config.mcpServers === 'object' &&
+					!Array.isArray(config.mcpServers)
+				) {
 					// Claude Code format: { "serverName": { ...serverConfig } }
-					mcpServers = Object.entries(config.mcpServers).map(([name, serverConfig]) => {
-						// Add the name to the server config if it's not already there
-						return {
-							name,
-							...(serverConfig as object)
-						};
-					});
+					mcpServers = Object.entries(config.mcpServers).map(
+						([name, serverConfig]) => {
+							// Add the name to the server config if it's not already there
+							return {
+								name,
+								...(serverConfig as object),
+							};
+						},
+					);
 				} else {
 					mcpServers = [];
 				}
@@ -129,33 +135,32 @@ export function loadProjectMCPConfig(): MCPServerWithSource[] {
  * This function mimics the path resolution logic from getClosestConfigFile
  */
 export function loadGlobalMCPConfig(): MCPServerWithSource[] {
-	// Try to find the config file using the same logic as getClosestConfigFile
+	// Use the same path resolution logic as getClosestConfigFile but only for global locations
+	// (avoiding CWD which is handled by project-level loading)
 	const configDir = getConfigPath();
 
-	// First, lets check for a working directory config
-	const cwdPath = join(process.cwd(), 'agents.config.json');
-	if (existsSync(cwdPath)) {
-		return loadMCPConfigFromFile(cwdPath, 'global-config');
-	}
-
-	// Next lets check the $HOME for a hidden file. This should only be for
+	// First, lets check the $HOME for a hidden file. This should only be for
 	// legacy support
 	const homePath = join(homedir(), '.agents.config.json');
 	if (existsSync(homePath)) {
 		return loadMCPConfigFromFile(homePath, 'global-config');
 	}
 
-	// Last, lets look for an user level config.
+	// Next, lets look for a user level config.
 	const configPath = join(configDir, 'agents.config.json');
 	if (existsSync(configPath)) {
 		return loadMCPConfigFromFile(configPath, 'global-config');
 	}
 
+	// Note: We don't check CWD here as that's handled by project-level loading
 	return [];
 }
 
 // Helper function to load MCP config from a specific file
-function loadMCPConfigFromFile(filePath: string, source: ConfigSource): MCPServerWithSource[] {
+function loadMCPConfigFromFile(
+	filePath: string,
+	source: ConfigSource,
+): MCPServerWithSource[] {
 	try {
 		const rawData = readFileSync(filePath, 'utf-8');
 		const config = JSON.parse(rawData);
@@ -163,15 +168,22 @@ function loadMCPConfigFromFile(filePath: string, source: ConfigSource): MCPServe
 		let mcpServers;
 		if (config.nanocoder && Array.isArray(config.nanocoder.mcpServers)) {
 			mcpServers = config.nanocoder.mcpServers;
-		} else if (config.nanocoder && config.nanocoder.mcpServers && typeof config.nanocoder.mcpServers === 'object' && !Array.isArray(config.nanocoder.mcpServers)) {
+		} else if (
+			config.nanocoder &&
+			config.nanocoder.mcpServers &&
+			typeof config.nanocoder.mcpServers === 'object' &&
+			!Array.isArray(config.nanocoder.mcpServers)
+		) {
 			// Claude Code format: { "serverName": { ...serverConfig } }
-			mcpServers = Object.entries(config.nanocoder.mcpServers).map(([name, serverConfig]) => {
-				// Add the name to the server config if it's not already there
-				return {
-					name,
-					...(serverConfig as object)
-				};
-			});
+			mcpServers = Object.entries(config.nanocoder.mcpServers).map(
+				([name, serverConfig]) => {
+					// Add the name to the server config if it's not already there
+					return {
+						name,
+						...(serverConfig as object),
+					};
+				},
+			);
 		} else {
 			mcpServers = [];
 		}
@@ -199,7 +211,7 @@ function loadMCPConfigFromFile(filePath: string, source: ConfigSource): MCPServe
 						tags: typedServer.tags,
 						enabled: typedServer.enabled,
 					},
-					source
+					source,
 				};
 			});
 		}
@@ -272,95 +284,99 @@ export function getSourceLabel(source: ConfigSource): string {
  * This mirrors the approach used for MCP servers to support hierarchical loading
  */
 export function loadAllProviderConfigs(): any[] {
-  const projectProviders = loadProjectProviderConfigs();
-  const globalProviders = loadGlobalProviderConfigs();
+	const projectProviders = loadProjectProviderConfigs();
+	const globalProviders = loadGlobalProviderConfigs();
 
-  // Merge providers with project providers taking precedence over global ones
-  // If a provider with the same name exists in both, project version wins
-  const providerMap = new Map<string, any>();
+	// Merge providers with project providers taking precedence over global ones
+	// If a provider with the same name exists in both, project version wins
+	const providerMap = new Map<string, any>();
 
-  // Add global providers first (lower priority)
-  for (const provider of globalProviders) {
-    providerMap.set(provider.name, provider);
-  }
+	// Add global providers first (lower priority)
+	for (const provider of globalProviders) {
+		providerMap.set(provider.name, provider);
+	}
 
-  // Add project providers (higher priority) - they will override global ones
-  for (const provider of projectProviders) {
-    providerMap.set(provider.name, provider);
-  }
+	// Add project providers (higher priority) - they will override global ones
+	for (const provider of projectProviders) {
+		providerMap.set(provider.name, provider);
+	}
 
-  return Array.from(providerMap.values());
+	return Array.from(providerMap.values());
 }
 
 /**
  * Load provider configurations from project-level files
  */
 function loadProjectProviderConfigs(): any[] {
-  // Try to find provider configs in project-level config files
-  const configPath = join(process.cwd(), 'agents.config.json');
+	// Try to find provider configs in project-level config files
+	const configPath = join(process.cwd(), 'agents.config.json');
 
-  if (existsSync(configPath)) {
-    try {
-      const rawData = readFileSync(configPath, 'utf-8');
-      const config = JSON.parse(rawData);
+	if (existsSync(configPath)) {
+		try {
+			const rawData = readFileSync(configPath, 'utf-8');
+			const config = JSON.parse(rawData);
 
-      if (config.nanocoder && Array.isArray(config.nanocoder.providers)) {
-        return config.nanocoder.providers;
-      } else if (Array.isArray(config.providers)) {
-        return config.providers;
-      }
-    } catch (error) {
-      logError(`Failed to load project provider config from ${configPath}: ${String(error)}`);
-    }
-  }
+			if (config.nanocoder && Array.isArray(config.nanocoder.providers)) {
+				return config.nanocoder.providers;
+			} else if (Array.isArray(config.providers)) {
+				return config.providers;
+			}
+		} catch (error) {
+			logError(
+				`Failed to load project provider config from ${configPath}: ${String(error)}`,
+			);
+		}
+	}
 
-  return [];
+	return [];
 }
 
 /**
  * Load provider configurations from global config files using the same path resolution as the original system
  */
 function loadGlobalProviderConfigs(): any[] {
-  // Use the same path resolution logic as getClosestConfigFile
-  const configDir = getConfigPath();
+	// Use the same path resolution logic as getClosestConfigFile
+	const configDir = getConfigPath();
 
-  // Check the $HOME for a hidden file. This should only be for legacy support
-  const homePath = join(homedir(), '.agents.config.json');
-  if (existsSync(homePath)) {
-    const providers = loadProviderConfigFromFile(homePath);
-    if (providers.length > 0) {
-      return providers;
-    }
-  }
+	// Check the $HOME for a hidden file. This should only be for legacy support
+	const homePath = join(homedir(), '.agents.config.json');
+	if (existsSync(homePath)) {
+		const providers = loadProviderConfigFromFile(homePath);
+		if (providers.length > 0) {
+			return providers;
+		}
+	}
 
-  // Next, lets look for a user level config.
-  const configPath = join(configDir, 'agents.config.json');
-  if (existsSync(configPath)) {
-    return loadProviderConfigFromFile(configPath);
-  }
+	// Next, lets look for a user level config.
+	const configPath = join(configDir, 'agents.config.json');
+	if (existsSync(configPath)) {
+		return loadProviderConfigFromFile(configPath);
+	}
 
-  // Note: We don't check CWD here as that's handled by project-level loading
-  return [];
+	// Note: We don't check CWD here as that's handled by project-level loading
+	return [];
 }
 
 // Helper function to load provider config from a specific file
 function loadProviderConfigFromFile(filePath: string): any[] {
-  try {
-    const rawData = readFileSync(filePath, 'utf-8');
-    const config = JSON.parse(rawData);
+	try {
+		const rawData = readFileSync(filePath, 'utf-8');
+		const config = JSON.parse(rawData);
 
-    if (config.nanocoder && Array.isArray(config.nanocoder.providers)) {
-      // Apply environment variable substitution
-      const processedProviders = substituteEnvVars(config.nanocoder.providers);
-      return processedProviders;
-    } else if (Array.isArray(config.providers)) {
-      // Apply environment variable substitution
-      const processedProviders = substituteEnvVars(config.providers);
-      return processedProviders;
-    }
-  } catch (error) {
-    logError(`Failed to load provider config from ${filePath}: ${String(error)}`);
-  }
+		if (config.nanocoder && Array.isArray(config.nanocoder.providers)) {
+			// Apply environment variable substitution
+			const processedProviders = substituteEnvVars(config.nanocoder.providers);
+			return processedProviders;
+		} else if (Array.isArray(config.providers)) {
+			// Apply environment variable substitution
+			const processedProviders = substituteEnvVars(config.providers);
+			return processedProviders;
+		}
+	} catch (error) {
+		logError(
+			`Failed to load provider config from ${filePath}: ${String(error)}`,
+		);
+	}
 
-  return [];
+	return [];
 }
