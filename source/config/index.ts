@@ -1,15 +1,17 @@
 import {config as loadEnv} from 'dotenv';
-import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'fs';
+import {existsSync, mkdirSync, writeFileSync} from 'fs';
 import {homedir} from 'os';
 import {dirname, join} from 'path';
 import {fileURLToPath} from 'url';
-import {substituteEnvVars} from '@/config/env-substitution';
-import {loadAllMCPConfigs, loadAllProviderConfigs} from '@/config/mcp-config-loader';
+import {
+	loadAllMCPConfigs,
+	loadAllProviderConfigs,
+} from '@/config/mcp-config-loader';
 import {getConfigPath} from '@/config/paths';
 import {loadPreferences} from '@/config/preferences';
 import {defaultTheme, getThemeColors} from '@/config/themes';
 import type {AppConfig, Colors} from '@/types/index';
-import {logError, logWarning} from '@/utils/message-queue';
+import {logError} from '@/utils/message-queue';
 
 // Load .env file from working directory (shell environment takes precedence)
 // Suppress dotenv console output by temporarily redirecting stdout

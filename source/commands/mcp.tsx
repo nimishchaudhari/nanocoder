@@ -128,20 +128,18 @@ export function MCP({toolManager}: MCPProps) {
 									</Text>
 
 									{serverInfo?.url && (
-										<Text color={colors.secondary}>URL: {serverInfo.url}</Text>
+										<Text color={colors.info}>URL: {serverInfo.url}</Text>
 									)}
 
 									{serverInfo?.description && (
-										<Text color={colors.secondary}>
-											{serverInfo.description}
-										</Text>
+										<Text color={colors.success}>{serverInfo.description}</Text>
 									)}
 
-									{serverInfo?.tags && serverInfo.tags.length > 0 && (
+									{/* {serverInfo?.tags && serverInfo.tags.length > 0 && (
 										<Text color={colors.secondary}>
 											Tags: {serverInfo.tags.map(tag => `#${tag}`).join(' ')}
 										</Text>
-									)}
+									)} */}
 
 									{serverTools.length > 0 && (
 										<Text color={colors.secondary}>

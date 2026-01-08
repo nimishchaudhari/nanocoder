@@ -1,7 +1,7 @@
 import {existsSync} from 'fs';
 import {join} from 'path';
 import {AISDKClient} from '@/ai-sdk-client';
-import {appConfig, getClosestConfigFile} from '@/config/index';
+import {getClosestConfigFile} from '@/config/index';
 import {loadAllProviderConfigs} from '@/config/mcp-config-loader';
 import {loadPreferences} from '@/config/preferences';
 import {TIMEOUT_PROVIDER_CONNECTION_MS} from '@/constants';

@@ -76,7 +76,6 @@ export function validateMCPConfigSecurity(mcpServers: MCPServerConfig[]): void {
 	}
 }
 
-
 /**
  * Validate that project-level config files don't contain sensitive data
  */

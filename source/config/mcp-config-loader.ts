@@ -3,7 +3,7 @@ import {homedir} from 'os';
 import {join} from 'path';
 import {substituteEnvVars} from '@/config/env-substitution';
 import {getConfigPath} from '@/config/paths';
-import type {MCPServerConfig} from '@/types/config';
+import type {MCPServerConfig, ProviderConfig} from '@/types/config';
 import {logError} from '@/utils/message-queue';
 
 // Configuration source types for tracking where each config came from
@@ -96,7 +96,7 @@ export function loadProjectMCPConfig(): MCPServerWithSource[] {
 					// Apply environment variable substitution
 					const processedServers = substituteEnvVars(mcpServers);
 
-					return processedServers.map((server: any) => {
+					return processedServers.map((server: unknown) => {
 						// Type assertion to MCPServerConfig since we know the structure after env substitution
 						const typedServer = server as MCPServerConfig;
 						return {
@@ -192,7 +192,7 @@ function loadMCPConfigFromFile(
 			// Apply environment variable substitution
 			const processedServers = substituteEnvVars(mcpServers);
 
-			return processedServers.map((server: any) => {
+			return processedServers.map((server: unknown) => {
 				// Type assertion to MCPServerConfig since we know the structure after env substitution
 				const typedServer = server as MCPServerConfig;
 				return {
@@ -283,13 +283,13 @@ export function getSourceLabel(source: ConfigSource): string {
  * Load provider configurations from all available levels (project and global)
  * This mirrors the approach used for MCP servers to support hierarchical loading
  */
-export function loadAllProviderConfigs(): any[] {
+export function loadAllProviderConfigs(): ProviderConfig[] {
 	const projectProviders = loadProjectProviderConfigs();
 	const globalProviders = loadGlobalProviderConfigs();
 
 	// Merge providers with project providers taking precedence over global ones
 	// If a provider with the same name exists in both, project version wins
-	const providerMap = new Map<string, any>();
+	const providerMap = new Map<string, ProviderConfig>();
 
 	// Add global providers first (lower priority)
 	for (const provider of globalProviders) {
@@ -307,7 +307,7 @@ export function loadAllProviderConfigs(): any[] {
 /**
  * Load provider configurations from project-level files
  */
-function loadProjectProviderConfigs(): any[] {
+function loadProjectProviderConfigs(): ProviderConfig[] {
 	// Try to find provider configs in project-level config files
 	const configPath = join(process.cwd(), 'agents.config.json');
 
@@ -317,9 +317,15 @@ function loadProjectProviderConfigs(): any[] {
 			const config = JSON.parse(rawData);
 
 			if (config.nanocoder && Array.isArray(config.nanocoder.providers)) {
-				return config.nanocoder.providers;
+				// Apply environment variable substitution
+				const processedProviders = substituteEnvVars(
+					config.nanocoder.providers,
+				);
+				return processedProviders;
 			} else if (Array.isArray(config.providers)) {
-				return config.providers;
+				// Apply environment variable substitution
+				const processedProviders = substituteEnvVars(config.providers);
+				return processedProviders;
 			}
 		} catch (error) {
 			logError(
@@ -334,7 +340,7 @@ function loadProjectProviderConfigs(): any[] {
 /**
  * Load provider configurations from global config files using the same path resolution as the original system
  */
-function loadGlobalProviderConfigs(): any[] {
+function loadGlobalProviderConfigs(): ProviderConfig[] {
 	// Use the same path resolution logic as getClosestConfigFile
 	const configDir = getConfigPath();
 
@@ -358,7 +364,7 @@ function loadGlobalProviderConfigs(): any[] {
 }
 
 // Helper function to load provider config from a specific file
-function loadProviderConfigFromFile(filePath: string): any[] {
+function loadProviderConfigFromFile(filePath: string): ProviderConfig[] {
 	try {
 		const rawData = readFileSync(filePath, 'utf-8');
 		const config = JSON.parse(rawData);

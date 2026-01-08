@@ -1,8 +1,8 @@
 import test from 'ava';
 import {writeFileSync, mkdirSync, rmSync} from 'fs';
-import {join} from 'path';
 import {tmpdir} from 'os';
-import {loadProjectMCPConfig, loadGlobalMCPConfig, mergeMCPConfigs, getSourceLabel, loadAllProviderConfigs, loadProjectProviderConfigs, loadGlobalProviderConfigs} from '@/config/mcp-config-loader';
+import {join} from 'path';
+import {loadAllMCPConfigs, loadGlobalMCPConfig, loadProjectMCPConfig, getSourceLabel, loadAllProviderConfigs, loadGlobalProviderConfigs, loadProjectProviderConfigs, mergeMCPConfigs} from '@/config/mcp-config-loader';
 
 test.beforeEach(t => {
 	// Create a temporary directory for testing
