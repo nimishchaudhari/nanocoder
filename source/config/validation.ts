@@ -12,13 +12,13 @@ export function validateMCPConfigSecurity(mcpServers: MCPServerConfig[]): void {
 			for (const [key, value] of Object.entries(server.env)) {
 				// Check if the value is hardcoded (not an environment variable reference)
 				if (
-					(typeof value === 'string' &&
-						!value.startsWith('$') && // Not an environment variable reference
-						key.toLowerCase().includes('token')) ||
-					key.toLowerCase().includes('key') ||
-					key.toLowerCase().includes('secret') ||
-					key.toLowerCase().includes('password') ||
-					key.toLowerCase().includes('auth')
+					typeof value === 'string' &&
+					!value.startsWith('$') && // Not an environment variable reference
+					(key.toLowerCase().includes('token') ||
+						key.toLowerCase().includes('key') ||
+						key.toLowerCase().includes('secret') ||
+						key.toLowerCase().includes('password') ||
+						key.toLowerCase().includes('auth'))
 				) {
 					logWarning(
 						`Security warning: Hardcoded credential detected in MCP server "${server.name}" for environment variable "${key}". ` +
