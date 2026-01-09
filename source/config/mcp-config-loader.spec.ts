@@ -235,54 +235,91 @@ test('loadProjectMCPConfig - prioritizes higher priority configs', t => {
 
 test('loadGlobalMCPConfig - loads from agents.config.json', t => {
 	const testDir = t.context.testDir as string;
-	
-	const config = {
-		nanocoder: {
-			mcpServers: [
-				{
-					name: 'global-server',
-					transport: 'stdio',
-					command: 'npx',
-					args: ['global-server']
-				}
-			]
+
+	// Create the config file in the user config directory location for this test
+	// by temporarily setting NANOCODER_CONFIG_DIR to the test directory
+	const originalConfigDir = process.env.NANOCODER_CONFIG_DIR;
+	try {
+		process.env.NANOCODER_CONFIG_DIR = testDir;
+
+		const config = {
+			nanocoder: {
+				mcpServers: [
+					{
+						name: 'global-server',
+						transport: 'stdio',
+						command: 'npx',
+						args: ['global-server']
+					}
+				]
+			}
+		};
+
+		writeFileSync(join(testDir, 'agents.config.json'), JSON.stringify(config));
+
+		const result = loadGlobalMCPConfig();
+		// The result may include additional servers from user's actual global config,
+		// so we check that at least the test server is present
+		const testServer = result.find(server => server.server.name === 'global-server');
+		t.truthy(testServer, 'Test server should be found');
+		t.is(testServer?.server.name, 'global-server');
+		t.is(testServer?.source, 'global-config');
+	} finally {
+		// Restore original config directory environment variable
+		if (originalConfigDir !== undefined) {
+			process.env.NANOCODER_CONFIG_DIR = originalConfigDir;
+		} else {
+			delete process.env.NANOCODER_CONFIG_DIR;
 		}
-	};
-	
-	writeFileSync(join(testDir, 'agents.config.json'), JSON.stringify(config));
-	
-	const result = loadGlobalMCPConfig();
-	t.is(result.length, 1);
-	t.is(result[0].server.name, 'global-server');
-	t.is(result[0].source, 'global-config');
+	}
 });
 
 test('loadGlobalMCPConfig - loads Claude Code format from agents.config.json', t => {
 	const testDir = t.context.testDir as string;
-	
-	const config = {
-		nanocoder: {
-			mcpServers: {
-				'global-server': {
-					transport: 'stdio',
-					command: 'npx',
-					args: ['global-server']
-				},
-				'another-global': {
-					transport: 'http',
-					url: 'http://global:8080'
+
+	// Create the config file in the user config directory location for this test
+	// by temporarily setting NANOCODER_CONFIG_DIR to the test directory
+	const originalConfigDir = process.env.NANOCODER_CONFIG_DIR;
+	try {
+		process.env.NANOCODER_CONFIG_DIR = testDir;
+
+		const config = {
+			nanocoder: {
+				mcpServers: {
+					'global-server': {
+						transport: 'stdio',
+						command: 'npx',
+						args: ['global-server']
+					},
+					'another-global': {
+						transport: 'http',
+						url: 'http://global:8080'
+					}
 				}
 			}
+		};
+
+		writeFileSync(join(testDir, 'agents.config.json'), JSON.stringify(config));
+
+		const result = loadGlobalMCPConfig();
+		// The result may include additional servers from user's actual global config,
+		// so we check that at least the test servers are present
+		const testServer1 = result.find(server => server.server.name === 'global-server');
+		const testServer2 = result.find(server => server.server.name === 'another-global');
+
+		t.truthy(testServer1, 'First test server should be found');
+		t.truthy(testServer2, 'Second test server should be found');
+		t.is(testServer1?.server.transport, 'stdio');
+		t.is(testServer2?.server.transport, 'http');
+		t.is(testServer1?.source, 'global-config');
+	} finally {
+		// Restore original config directory environment variable
+		if (originalConfigDir !== undefined) {
+			process.env.NANOCODER_CONFIG_DIR = originalConfigDir;
+		} else {
+			delete process.env.NANOCODER_CONFIG_DIR;
 		}
-	};
-	
-	writeFileSync(join(testDir, 'agents.config.json'), JSON.stringify(config));
-	
-	const result = loadGlobalMCPConfig();
-	t.is(result.length, 2);
-	t.is(result[0].server.name, 'global-server');
-	t.is(result[1].server.name, 'another-global');
-	t.is(result[0].source, 'global-config');
+	}
 });
 
 test('mergeMCPConfigs - project configs override global configs', t => {
@@ -355,59 +392,85 @@ test('getSourceLabel - returns correct labels', t => {
 
 test('loadAllProviderConfigs - loads providers from both project and global configs', t => {
 	const testDir = t.context.testDir as string;
-	
-	// Create project-level config
-	const projectConfig = {
-		nanocoder: {
-			providers: [
-				{
-					name: 'project-provider',
-					baseUrl: 'http://project.example.com',
-					apiKey: 'project-key',
-					models: ['model-1']
-				}
-			]
-		}
-	};
-	writeFileSync(join(testDir, 'agents.config.json'), JSON.stringify(projectConfig));
-	
-	const result = loadAllProviderConfigs();
-	t.is(result.length, 1);
-	t.is(result[0].name, 'project-provider');
+
+	// Temporarily change working directory to test directory for this test
+	const originalCwd = process.cwd();
+	try {
+		process.chdir(testDir);
+
+		// Create project-level config
+		const projectConfig = {
+			nanocoder: {
+				providers: [
+					{
+						name: 'project-provider',
+						baseUrl: 'http://project.example.com',
+						apiKey: 'project-key',
+						models: ['model-1']
+					}
+				]
+			}
+		};
+		writeFileSync(join(testDir, 'agents.config.json'), JSON.stringify(projectConfig));
+
+		const result = loadAllProviderConfigs();
+		// Result may include additional providers from user's actual global config,
+		// so we check that at least the test provider is present
+		const testProvider = result.find(provider => provider.name === 'project-provider');
+		t.truthy(testProvider, 'Test provider should be found');
+		t.is(testProvider?.name, 'project-provider');
+	} finally {
+		// Restore original working directory
+		process.chdir(originalCwd);
+	}
 });
 
 test('loadAllProviderConfigs - merges providers from project and global with project taking precedence', t => {
 	const testDir = t.context.testDir as string;
-	
-	// Create project-level config with a provider that also exists in global
-	const projectConfig = {
-		nanocoder: {
-			providers: [
-				{
-					name: 'shared-provider',
-					baseUrl: 'http://project.example.com',
-					apiKey: 'project-key',
-					models: ['project-model']
-				},
-				{
-					name: 'project-only',
-					baseUrl: 'http://project-only.example.com',
-					apiKey: 'project-only-key',
-					models: ['project-only-model']
-				}
-			]
-		}
-	};
-	writeFileSync(join(testDir, 'agents.config.json'), JSON.stringify(projectConfig));
-	
-	const result = loadAllProviderConfigs();
-	t.is(result.length, 2);
-	
-	const sharedProvider = result.find(p => p.name === 'shared-provider');
-	t.is(sharedProvider?.baseUrl, 'http://project.example.com'); // Project version should win
-	t.is(sharedProvider?.apiKey, 'project-key');
-	t.is(sharedProvider?.models[0], 'project-model');
-	
-	const projectOnly = result.find(p => p.name === 'project-only');
-	t.is(projectOnly?.baseUrl, 'http://project-only.example.com');
+
+	// Temporarily change working directory to test directory for this test
+	const originalCwd = process.cwd();
+	try {
+		process.chdir(testDir);
+
+		// Create project-level config with a provider that also exists in global
+		const projectConfig = {
+			nanocoder: {
+				providers: [
+					{
+						name: 'shared-provider',
+						baseUrl: 'http://project.example.com',
+						apiKey: 'project-key',
+						models: ['project-model']
+					},
+					{
+						name: 'project-only',
+						baseUrl: 'http://project-only.example.com',
+						apiKey: 'project-only-key',
+						models: ['project-only-model']
+					}
+				]
+			}
+		};
+		writeFileSync(join(testDir, 'agents.config.json'), JSON.stringify(projectConfig));
+
+		const result = loadAllProviderConfigs();
+		// Result may include additional providers from user's actual global config,
+		// so we check that at least the test providers are present
+		const sharedProvider = result.find(p => p.name === 'shared-provider');
+		const projectOnly = result.find(p => p.name === 'project-only');
+
+		t.truthy(sharedProvider, 'Shared provider should be found');
+		t.truthy(projectOnly, 'Project-only provider should be found');
+
+		// Verify that project version takes precedence for shared provider
+		t.is(sharedProvider?.baseUrl, 'http://project.example.com'); // Project version should win
+		t.is(sharedProvider?.apiKey, 'project-key');
+		t.is(sharedProvider?.models[0], 'project-model');
+
+		t.is(projectOnly?.baseUrl, 'http://project-only.example.com');
+	} finally {
+		// Restore original working directory
+		process.chdir(originalCwd);
+	}
 });
