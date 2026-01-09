@@ -22,7 +22,13 @@ test('Status renders narrow layout without crashing', t => {
 	process.stdout.columns = 50;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} />
+			<Status
+				{...defaultProps}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	t.truthy(lastFrame());
@@ -35,7 +41,13 @@ test('Status shows CWD in narrow layout', t => {
 	process.stdout.columns = 50;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} />
+			<Status
+				{...defaultProps}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -51,7 +63,14 @@ test('Status shows model in narrow layout', t => {
 	process.stdout.columns = 50;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} model="test-model" />
+			<Status
+				{...defaultProps}
+				model="test-model"
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -67,7 +86,14 @@ test('Status shows theme in narrow layout', t => {
 	process.stdout.columns = 50;
 
 	const {lastFrame} = renderWithTheme(
-		<Status {...defaultProps} theme="tokyo-night" />,
+		<Status
+			{...defaultProps}
+			theme="tokyo-night"
+			confDirMap={{
+				'agents.config.json': '/mock/path/agents.config.json',
+				'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+			}}
+		/>,
 	);
 
 	const output = lastFrame();
@@ -84,7 +110,14 @@ test('Status shows AGENTS.md status in narrow layout', t => {
 
 	// Test without AGENTS.md (default)
 	const {lastFrame: frame1} = renderWithTheme(
-		<Status {...defaultProps} agentsMdLoaded={false} />,
+		<Status
+			{...defaultProps}
+			agentsMdLoaded={false}
+			confDirMap={{
+				'agents.config.json': '/mock/path/agents.config.json',
+				'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+			}}
+		/>,
 	);
 	const output1 = frame1();
 	t.truthy(output1);
@@ -98,7 +131,14 @@ test('Status shows preferences loaded in narrow layout', t => {
 	process.stdout.columns = 50;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} preferencesLoaded={true} />
+			<Status
+				{...defaultProps}
+				preferencesLoaded={true}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -113,7 +153,14 @@ test('Status shows custom commands count in narrow layout', t => {
 	process.stdout.columns = 50;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} customCommandsCount={5} />
+			<Status
+				{...defaultProps}
+				customCommandsCount={5}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -128,7 +175,14 @@ test('Status does not show custom commands when count is 0', t => {
 	process.stdout.columns = 50;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} customCommandsCount={0} />
+			<Status
+				{...defaultProps}
+				customCommandsCount={0}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -149,7 +203,14 @@ test('Status shows MCP status in narrow layout', t => {
 	];
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} mcpServersStatus={mcpStatus} />
+			<Status
+				{...defaultProps}
+				mcpServersStatus={mcpStatus}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -169,7 +230,14 @@ test('Status shows partial MCP connection in narrow layout', t => {
 	];
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} mcpServersStatus={mcpStatus} />
+			<Status
+				{...defaultProps}
+				mcpServersStatus={mcpStatus}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -189,7 +257,14 @@ test('Status shows LSP status in narrow layout', t => {
 	];
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} lspServersStatus={lspStatus} />
+			<Status
+				{...defaultProps}
+				lspServersStatus={lspStatus}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -211,7 +286,14 @@ test('Status shows update info in narrow layout', t => {
 	};
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} updateInfo={updateInfo} />
+			<Status
+				{...defaultProps}
+				updateInfo={updateInfo}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -234,7 +316,14 @@ test('Status shows update message when no command in narrow layout', t => {
 	};
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} updateInfo={updateInfo} />
+			<Status
+				{...defaultProps}
+				updateInfo={updateInfo}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -253,7 +342,13 @@ test('Status renders normal layout with TitledBox', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} />
+			<Status
+				{...defaultProps}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -269,7 +364,14 @@ test('Status shows provider in normal layout', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} provider="test-provider" />
+			<Status
+				{...defaultProps}
+				provider="test-provider"
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -285,7 +387,13 @@ test('Status shows config path in normal layout', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} />
+			<Status
+				{...defaultProps}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -301,7 +409,14 @@ test('Status shows AGENTS.md message in normal layout', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} agentsMdLoaded={true} />
+			<Status
+				{...defaultProps}
+				agentsMdLoaded={true}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -316,7 +431,14 @@ test('Status shows no AGENTS.md message in normal layout', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} agentsMdLoaded={false} />
+			<Status
+				{...defaultProps}
+				agentsMdLoaded={false}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -332,7 +454,14 @@ test('Status shows custom commands loaded in normal layout', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} customCommandsCount={3} />
+			<Status
+				{...defaultProps}
+				customCommandsCount={3}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -353,7 +482,14 @@ test('Status shows failed MCP servers in normal layout', t => {
 	];
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} mcpServersStatus={mcpStatus} />
+			<Status
+				{...defaultProps}
+				mcpServersStatus={mcpStatus}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -375,7 +511,14 @@ test('Status shows failed LSP servers in normal layout', t => {
 	];
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} lspServersStatus={lspStatus} />
+			<Status
+				{...defaultProps}
+				lspServersStatus={lspStatus}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -391,7 +534,14 @@ test('Status handles no MCP servers', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} mcpServersStatus={[]} />
+			<Status
+				{...defaultProps}
+				mcpServersStatus={[]}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -407,7 +557,14 @@ test('Status handles no LSP servers', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} lspServersStatus={[]} />
+			<Status
+				{...defaultProps}
+				lspServersStatus={[]}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -423,7 +580,13 @@ test('Status handles undefined MCP/LSP status', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} />
+			<Status
+				{...defaultProps}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -449,7 +612,14 @@ test('Status handles update info with command in normal layout', t => {
 	};
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} updateInfo={updateInfo} />
+			<Status
+				{...defaultProps}
+				updateInfo={updateInfo}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -473,7 +643,14 @@ test('Status handles update info with message in normal layout', t => {
 	};
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} updateInfo={updateInfo} />
+			<Status
+				{...defaultProps}
+				updateInfo={updateInfo}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -488,7 +665,14 @@ test('Status handles null updateInfo', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} updateInfo={null} />
+			<Status
+				{...defaultProps}
+				updateInfo={null}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -504,7 +688,13 @@ test('Status handles undefined updateInfo', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} />
+			<Status
+				{...defaultProps}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -525,7 +715,14 @@ test('Status handles updateInfo with hasUpdate false', t => {
 	};
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} updateInfo={updateInfo} />
+			<Status
+				{...defaultProps}
+				updateInfo={updateInfo}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -552,7 +749,14 @@ test('Status works with different themes', t => {
 
 	for (const theme of themes_to_test) {
 		const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} theme={theme} />,
+			<Status
+				{...defaultProps}
+				theme={theme}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>,
 		);
 
 		const output = lastFrame();
@@ -572,7 +776,14 @@ test('Status handles undefined customCommandsCount', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} customCommandsCount={undefined} />
+			<Status
+				{...defaultProps}
+				customCommandsCount={undefined}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -587,7 +798,14 @@ test('Status handles undefined preferencesLoaded', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} preferencesLoaded={undefined} />
+			<Status
+				{...defaultProps}
+				preferencesLoaded={undefined}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -602,7 +820,14 @@ test('Status handles undefined agentsMdLoaded', t => {
 	process.stdout.columns = 80;
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} agentsMdLoaded={undefined} />
+			<Status
+				{...defaultProps}
+				agentsMdLoaded={undefined}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -621,7 +846,14 @@ test('Status handles server with no error message', t => {
 	];
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} mcpServersStatus={mcpStatus} />
+			<Status
+				{...defaultProps}
+				mcpServersStatus={mcpStatus}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();
@@ -638,7 +870,14 @@ test('Status handles very long model names', t => {
 	const longModel = 'anthropic/claude-3-opus-very-long-model-name-that-might-truncate';
 
 	const {lastFrame} = renderWithTheme(
-			<Status {...defaultProps} model={longModel} />
+			<Status
+				{...defaultProps}
+				model={longModel}
+				confDirMap={{
+					'agents.config.json': '/mock/path/agents.config.json',
+					'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+				}}
+			/>
 	);
 
 	const output = lastFrame();

@@ -1,5 +1,6 @@
 import test from 'ava';
 import {validateMCPConfigSecurity, validateProjectConfigSecurity} from '@/config/validation';
+import {logWarning} from '@/utils/message-queue';
 import type {MCPServerConfig} from '@/types/config';
 
 test('validateMCPConfigSecurity - warns about hardcoded credentials in env vars', t => {
@@ -15,16 +16,17 @@ test('validateMCPConfigSecurity - warns about hardcoded credentials in env vars'
 			}
 		}
 	];
-	
-	// Capture console warnings
-	const originalWarn = console.warn;
+
+	// Capture log warnings by temporarily replacing the logWarning function
+	const originalLogWarning = (globalThis as any).logWarning || logWarning;
 	const warnings: string[] = [];
-	console.warn = (msg: string) => warnings.push(msg);
-	
+	(globalThis as any).logWarning = (msg: string) => warnings.push(msg);
+
 	validateMCPConfigSecurity(mcpServers);
-	
-	console.warn = originalWarn;
-	
+
+	// Restore original logWarning function
+	(globalThis as any).logWarning = originalLogWarning;
+
 	t.is(warnings.length, 1);
 	t.true(warnings[0].includes('Hardcoded credential detected'));
 	t.true(warnings[0].includes('test-server'));
@@ -43,16 +45,17 @@ test('validateMCPConfigSecurity - warns about hardcoded credentials in auth', t 
 			}
 		}
 	];
-	
-	// Capture console warnings
-	const originalWarn = console.warn;
+
+	// Capture log warnings by temporarily replacing the logWarning function
+	const originalLogWarning = (globalThis as any).logWarning || logWarning;
 	const warnings: string[] = [];
-	console.warn = (msg: string) => warnings.push(msg);
-	
+	(globalThis as any).logWarning = (msg: string) => warnings.push(msg);
+
 	validateMCPConfigSecurity(mcpServers);
-	
-	console.warn = originalWarn;
-	
+
+	// Restore original logWarning function
+	(globalThis as any).logWarning = originalLogWarning;
+
 	t.is(warnings.length, 1);
 	t.true(warnings[0].includes('Hardcoded API key detected'));
 	t.true(warnings[0].includes('auth-server'));
@@ -71,15 +74,16 @@ test('validateMCPConfigSecurity - warns about hardcoded headers', t => {
 		}
 	];
 	
-	// Capture console warnings
-	const originalWarn = console.warn;
+	// Capture log warnings by temporarily replacing the logWarning function
+	const originalLogWarning = (globalThis as any).logWarning || logWarning;
 	const warnings: string[] = [];
-	console.warn = (msg: string) => warnings.push(msg);
-	
+	(globalThis as any).logWarning = (msg: string) => warnings.push(msg);
+
 	validateMCPConfigSecurity(mcpServers);
-	
-	console.warn = originalWarn;
-	
+
+	// Restore original logWarning function
+	(globalThis as any).logWarning = originalLogWarning;
+
 	t.is(warnings.length, 1);
 	t.true(warnings[0].includes('Hardcoded header value detected'));
 	t.true(warnings[0].includes('header-server'));
@@ -100,15 +104,16 @@ test('validateMCPConfigSecurity - does not warn for environment variable referen
 		}
 	];
 	
-	// Capture console warnings
-	const originalWarn = console.warn;
+	// Capture log warnings by temporarily replacing the logWarning function
+	const originalLogWarning = (globalThis as any).logWarning || logWarning;
 	const warnings: string[] = [];
-	console.warn = (msg: string) => warnings.push(msg);
-	
+	(globalThis as any).logWarning = (msg: string) => warnings.push(msg);
+
 	validateMCPConfigSecurity(mcpServers);
-	
-	console.warn = originalWarn;
-	
+
+	// Restore original logWarning function
+	(globalThis as any).logWarning = originalLogWarning;
+
 	t.is(warnings.length, 0);
 });
 
@@ -136,15 +141,16 @@ test('validateProjectConfigSecurity - only validates project-level configs', t =
 		}
 	];
 	
-	// Capture console warnings
-	const originalWarn = console.warn;
+	// Capture log warnings by temporarily replacing the logWarning function
+	const originalLogWarning = (globalThis as any).logWarning || logWarning;
 	const warnings: string[] = [];
-	console.warn = (msg: string) => warnings.push(msg);
-	
+	(globalThis as any).logWarning = (msg: string) => warnings.push(msg);
+
 	validateProjectConfigSecurity(mcpServers);
-	
-	console.warn = originalWarn;
-	
+
+	// Restore original logWarning function
+	(globalThis as any).logWarning = originalLogWarning;
+
 	// Should only warn about the project-level config
 	t.is(warnings.length, 1);
 	t.true(warnings[0].includes('project-server'));
