@@ -137,7 +137,16 @@
 	"c8": {
 		"exclude": [
 			"source/app/App.tsx"
-		]
+		],
+		"reporter": [
+			"text",
+			"json-summary",
+			"lcov"
+		],
+		"lines": 80,
+		"functions": 0,
+		"branches": 0,
+		"statements": 0
 	},
 	"pnpm": {
 		"overrides": {
