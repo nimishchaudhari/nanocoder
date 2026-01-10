@@ -94,13 +94,7 @@ export interface MCPServerConfig {
 	tags?: string[];
 	enabled?: boolean;
 	// Optional source information for display purposes
-	source?:
-		| 'project-root'
-		| 'project-alternative'
-		| 'nanocoder-dir'
-		| 'claude-dir'
-		| 'local-overrides'
-		| 'global-config';
+	source?: 'project' | 'global';
 }
 
 export interface UserPreferences {

@@ -10,7 +10,7 @@ import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
 export type ConfigLocation = 'project' | 'global';
 
 interface LocationStepProps {
-	onComplete: (location: ConfigLocation, path: string) => void;
+	onComplete: (location: ConfigLocation) => void;
 	onBack?: () => void;
 	projectDir: string;
 }
@@ -63,14 +63,13 @@ export function LocationStep({
 	];
 
 	const handleLocationSelect = (item: LocationOption) => {
-		const path = item.value === 'project' ? projectPath : globalPath;
-		onComplete(item.value, path);
+		onComplete(item.value);
 	};
 
 	const handleExistingConfigSelect = (item: {value: string}) => {
 		if (item.value === 'edit') {
 			const location: ConfigLocation = projectExists ? 'project' : 'global';
-			onComplete(location, existingPath);
+			onComplete(location);
 		} else if (item.value === 'new') {
 			setMode('select-location');
 		} else {

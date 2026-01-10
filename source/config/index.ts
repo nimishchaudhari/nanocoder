@@ -108,10 +108,7 @@ function loadAppConfig(): AppConfig {
 
 	// Load MCP servers from the new hierarchical configuration system
 	const mcpServersWithSource = loadAllMCPConfigs();
-	const mcpServers = mcpServersWithSource.map(item => ({
-		...item.server,
-		source: item.source,
-	}));
+	const mcpServers = mcpServersWithSource.map(item => item.server);
 
 	return {
 		providers,
@@ -119,11 +116,29 @@ function loadAppConfig(): AppConfig {
 	};
 }
 
-export let appConfig = loadAppConfig();
+let _appConfig: AppConfig | null = null;
+
+/**
+ * Lazy-loaded app config to avoid circular dependencies during module initialization
+ * @public
+ */
+export function getAppConfig(): AppConfig {
+	if (!_appConfig) {
+		_appConfig = loadAppConfig();
+	}
+	return _appConfig;
+}
+
+// Legacy export for backward compatibility - use a getter
+export const appConfig = new Proxy({} as AppConfig, {
+	get(_target, prop) {
+		return getAppConfig()[prop as keyof AppConfig];
+	},
+});
 
 // Function to reload the app configuration (useful after config file changes)
 export function reloadAppConfig(): void {
-	appConfig = loadAppConfig();
+	_appConfig = loadAppConfig();
 }
 
 let cachedColors: Colors | null = null;

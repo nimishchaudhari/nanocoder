@@ -101,7 +101,7 @@ test('validateProjectConfigSecurity - only validates project-level configs', t =
 			env: {
 				API_KEY: 'hardcoded-key' // Should trigger warning for project config
 			},
-			source: 'project-root' // Project-level config
+			source: 'project' // Project-level config
 		},
 		{
 			name: 'global-server',
@@ -111,7 +111,7 @@ test('validateProjectConfigSecurity - only validates project-level configs', t =
 			env: {
 				API_KEY: 'hardcoded-key' // Should NOT trigger warning for global config
 			},
-			source: 'global-config' // Global-level config
+			source: 'global' // Global-level config
 		}
 	];
 

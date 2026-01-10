@@ -85,13 +85,7 @@ export function validateProjectConfigSecurity(
 	// Only run security validation for project-level configs
 	const projectServers = mcpServers.filter(server => {
 		// Check if the server has a project-level source
-		return (
-			server.source &&
-			(server.source === 'project-root' ||
-				server.source === 'project-alternative' ||
-				server.source === 'nanocoder-dir' ||
-				server.source === 'claude-dir')
-		);
+		return server.source === 'project';
 	});
 
 	if (projectServers.length > 0) {

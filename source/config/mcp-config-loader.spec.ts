@@ -2,7 +2,7 @@ import test from 'ava';
 import {writeFileSync, mkdirSync, rmSync} from 'fs';
 import {tmpdir} from 'os';
 import {join} from 'path';
-import {loadAllMCPConfigs, loadGlobalMCPConfig, loadProjectMCPConfig, getSourceLabel, loadAllProviderConfigs, loadGlobalProviderConfigs, loadProjectProviderConfigs, mergeMCPConfigs} from '@/config/mcp-config-loader';
+import {loadAllMCPConfigs, loadGlobalMCPConfig, loadProjectMCPConfig, loadAllProviderConfigs, loadGlobalProviderConfigs, loadProjectProviderConfigs, mergeMCPConfigs} from '@/config/mcp-config-loader';
 
 test.beforeEach(t => {
 	// Create a temporary directory for testing
@@ -27,7 +27,7 @@ test.afterEach(t => {
 
 test('loadProjectMCPConfig - loads from .mcp.json', t => {
 	const testDir = t.context.testDir as string;
-	
+
 	const config = {
 		mcpServers: [
 			{
@@ -38,18 +38,18 @@ test('loadProjectMCPConfig - loads from .mcp.json', t => {
 			}
 		]
 	};
-	
+
 	writeFileSync(join(testDir, '.mcp.json'), JSON.stringify(config));
-	
+
 	const result = loadProjectMCPConfig();
 	t.is(result.length, 1);
 	t.is(result[0].server.name, 'test-server');
-	t.is(result[0].source, 'project-root');
+	t.is(result[0].source, 'project');
 });
 
 test('loadProjectMCPConfig - loads Claude Code format from .mcp.json', t => {
 	const testDir = t.context.testDir as string;
-	
+
 	const config = {
 		mcpServers: {
 			'test-server': {
@@ -63,174 +63,16 @@ test('loadProjectMCPConfig - loads Claude Code format from .mcp.json', t => {
 			}
 		}
 	};
-	
+
 	writeFileSync(join(testDir, '.mcp.json'), JSON.stringify(config));
-	
+
 	const result = loadProjectMCPConfig();
 	t.is(result.length, 2);
 	t.is(result[0].server.name, 'test-server');
 	t.is(result[0].server.transport, 'stdio');
 	t.is(result[1].server.name, 'another-server');
 	t.is(result[1].server.transport, 'http');
-	t.is(result[0].source, 'project-root');
-});
-
-test('loadProjectMCPConfig - loads from mcp.json', t => {
-	const testDir = t.context.testDir as string;
-	
-	const config = {
-		mcpServers: [
-			{
-				name: 'alt-server',
-				transport: 'http',
-				url: 'http://localhost:8080'
-			}
-		]
-	};
-	
-	writeFileSync(join(testDir, 'mcp.json'), JSON.stringify(config));
-	
-	const result = loadProjectMCPConfig();
-	t.is(result.length, 1);
-	t.is(result[0].server.name, 'alt-server');
-	t.is(result[0].source, 'project-alternative');
-});
-
-test('loadProjectMCPConfig - loads from .nanocoder/mcp.json', t => {
-	const testDir = t.context.testDir as string;
-	const nanocoderDir = join(testDir, '.nanocoder');
-	mkdirSync(nanocoderDir, {recursive: true});
-	
-	const config = {
-		mcpServers: [
-			{
-				name: 'nanocoder-server',
-				transport: 'websocket',
-				url: 'ws://localhost:8080'
-			}
-		]
-	};
-	
-	writeFileSync(join(nanocoderDir, 'mcp.json'), JSON.stringify(config));
-	
-	const result = loadProjectMCPConfig();
-	t.is(result.length, 1);
-	t.is(result[0].server.name, 'nanocoder-server');
-	t.is(result[0].source, 'nanocoder-dir');
-});
-
-test('loadProjectMCPConfig - loads from .claude/mcp.json', t => {
-	const testDir = t.context.testDir as string;
-	const claudeDir = join(testDir, '.claude');
-	mkdirSync(claudeDir, {recursive: true});
-	
-	const config = {
-		mcpServers: [
-			{
-				name: 'claude-server',
-				transport: 'stdio',
-				command: 'npx',
-				args: ['claude-server']
-			}
-		]
-	};
-	
-	writeFileSync(join(claudeDir, 'mcp.json'), JSON.stringify(config));
-	
-	const result = loadProjectMCPConfig();
-	t.is(result.length, 1);
-	t.is(result[0].server.name, 'claude-server');
-	t.is(result[0].source, 'claude-dir');
-});
-
-test('loadProjectMCPConfig - loads Claude Code format from .claude/mcp.json', t => {
-	const testDir = t.context.testDir as string;
-	const claudeDir = join(testDir, '.claude');
-	mkdirSync(claudeDir, {recursive: true});
-	
-	const config = {
-		mcpServers: {
-			'shadcn-ui-server': {
-				command: 'npx',
-				args: ['-y', 'shadcn-ui-mcp-server']
-			},
-			'taskmaster-ai': {
-				type: 'stdio',
-				command: 'npx',
-				args: ['-y', '--package=task-master-ai', 'task-master-ai'],
-				env: {
-					OLLAMA_BASE_URL: 'http://127.0.0.1:11434/api'
-				}
-			}
-		}
-	};
-	
-	writeFileSync(join(claudeDir, 'mcp.json'), JSON.stringify(config));
-	
-	const result = loadProjectMCPConfig();
-	t.is(result.length, 2);
-	t.is(result[0].server.name, 'shadcn-ui-server');
-	t.is(result[1].server.name, 'taskmaster-ai');
-	t.is(result[1].server.env?.OLLAMA_BASE_URL, 'http://127.0.0.1:11434/api');
-	t.is(result[0].source, 'claude-dir');
-});
-
-test('loadProjectMCPConfig - loads from .nanocoder/mcp.local.json', t => {
-	const testDir = t.context.testDir as string;
-	const nanocoderDir = join(testDir, '.nanocoder');
-	mkdirSync(nanocoderDir, {recursive: true});
-	
-	const config = {
-		mcpServers: [
-			{
-				name: 'local-server',
-				transport: 'stdio',
-				command: 'npx',
-				args: ['local-server']
-			}
-		]
-	};
-	
-	writeFileSync(join(nanocoderDir, 'mcp.local.json'), JSON.stringify(config));
-	
-	const result = loadProjectMCPConfig();
-	t.is(result.length, 1);
-	t.is(result[0].server.name, 'local-server');
-	t.is(result[0].source, 'local-overrides');
-});
-
-test('loadProjectMCPConfig - prioritizes higher priority configs', t => {
-	const testDir = t.context.testDir as string;
-	
-	// Create both .mcp.json and mcp.json - .mcp.json should take priority
-	const projectConfig = {
-		mcpServers: [
-			{
-				name: 'project-server',
-				transport: 'stdio',
-				command: 'npx',
-				args: ['project-server']
-			}
-		]
-	};
-	
-	const altConfig = {
-		mcpServers: [
-			{
-				name: 'alt-server',
-				transport: 'http',
-				url: 'http://localhost:8080'
-			}
-		]
-	};
-	
-	writeFileSync(join(testDir, '.mcp.json'), JSON.stringify(projectConfig));
-	writeFileSync(join(testDir, 'mcp.json'), JSON.stringify(altConfig));
-	
-	const result = loadProjectMCPConfig();
-	t.is(result.length, 1);
-	t.is(result[0].server.name, 'project-server');
-	t.is(result[0].source, 'project-root');
+	t.is(result[0].source, 'project');
 });
 
 test('loadGlobalMCPConfig - loads from agents.config.json', t => {
@@ -263,7 +105,7 @@ test('loadGlobalMCPConfig - loads from agents.config.json', t => {
 		const testServer = result.find(server => server.server.name === 'global-server');
 		t.truthy(testServer, 'Test server should be found');
 		t.is(testServer?.server.name, 'global-server');
-		t.is(testServer?.source, 'global-config');
+		t.is(testServer?.source, 'global');
 	} finally {
 		// Restore original config directory environment variable
 		if (originalConfigDir !== undefined) {
@@ -311,7 +153,7 @@ test('loadGlobalMCPConfig - loads Claude Code format from agents.config.json', t
 		t.truthy(testServer2, 'Second test server should be found');
 		t.is(testServer1?.server.transport, 'stdio');
 		t.is(testServer2?.server.transport, 'http');
-		t.is(testServer1?.source, 'global-config');
+		t.is(testServer1?.source, 'global');
 	} finally {
 		// Restore original config directory environment variable
 		if (originalConfigDir !== undefined) {
@@ -331,7 +173,7 @@ test('mergeMCPConfigs - project configs override global configs', t => {
 				command: 'npx',
 				args: ['project-version']
 			},
-			source: 'project-root' as const
+			source: 'project' as const
 		},
 		{
 			server: {
@@ -339,10 +181,10 @@ test('mergeMCPConfigs - project configs override global configs', t => {
 				transport: 'http',
 				url: 'http://project-only:8080'
 			},
-			source: 'project-root' as const
+			source: 'project' as const
 		}
 	];
-	
+
 	const globalServers = [
 		{
 			server: {
@@ -351,7 +193,7 @@ test('mergeMCPConfigs - project configs override global configs', t => {
 				command: 'npx',
 				args: ['global-version']
 			},
-			source: 'global-config' as const
+			source: 'global' as const
 		},
 		{
 			server: {
@@ -359,35 +201,26 @@ test('mergeMCPConfigs - project configs override global configs', t => {
 				transport: 'websocket',
 				url: 'ws://global-only:8080'
 			},
-			source: 'global-config' as const
+			source: 'global' as const
 		}
 	];
-	
+
 	const result = mergeMCPConfigs(projectServers, globalServers);
-	
+
 	// Should have 3 servers (shared-server from project, project-only, global-only)
 	t.is(result.length, 3);
-	
+
 	const sharedServer = result.find(s => s.server.name === 'shared-server');
 	t.is(sharedServer?.server.args?.[0], 'project-version'); // Project version should win
-	t.is(sharedServer?.source, 'project-root');
-	
+	t.is(sharedServer?.source, 'project');
+
 	const projectOnly = result.find(s => s.server.name === 'project-only');
 	t.truthy(projectOnly);
-	t.is(projectOnly?.source, 'project-root');
-	
+	t.is(projectOnly?.source, 'project');
+
 	const globalOnly = result.find(s => s.server.name === 'global-only');
 	t.truthy(globalOnly);
-	t.is(globalOnly?.source, 'global-config');
-});
-
-test('getSourceLabel - returns correct labels', t => {
-	t.is(getSourceLabel('project-root'), '[project]');
-	t.is(getSourceLabel('project-alternative'), '[project]');
-	t.is(getSourceLabel('nanocoder-dir'), '[project]');
-	t.is(getSourceLabel('claude-dir'), '[project]');
-	t.is(getSourceLabel('local-overrides'), '[local]');
-	t.is(getSourceLabel('global-config'), '[global]');
+	t.is(globalOnly?.source, 'global');
 });
 
 test('loadAllProviderConfigs - loads providers from both project and global configs', t => {

@@ -6,14 +6,8 @@ import {getConfigPath} from '@/config/paths';
 import type {MCPServerConfig, ProviderConfig} from '@/types/config';
 import {logError} from '@/utils/message-queue';
 
-// Configuration source types for tracking where each config came from
-export type ConfigSource =
-	| 'project-root'
-	| 'project-alternative'
-	| 'nanocoder-dir'
-	| 'claude-dir'
-	| 'local-overrides'
-	| 'global-config';
+// Simplified configuration source types
+export type ConfigSource = 'project' | 'global';
 
 export interface MCPServerWithSource {
 	server: MCPServerConfig;
@@ -21,179 +15,100 @@ export interface MCPServerWithSource {
 }
 
 /**
- * Load MCP configuration from project-level files with hierarchical priority
- * Priority order (highest to lowest):
- * 1. .nanocoder/mcp.local.json (local overrides, gitignored, highest priority)
- * 2. .mcp.json (project root)
- * 3. mcp.json (project root)
- * 4. .nanocoder/mcp.json
- * 5. .claude/mcp.json (for Claude Code compatibility)
- * 6. agents.config.json (existing global config, lowest priority)
+ * Show deprecation warning for array format MCP configuration
  */
-export function loadProjectMCPConfig(): MCPServerWithSource[] {
-	const configLocations = [
-		{
-			path: join(process.cwd(), '.nanocoder', 'mcp.local.json'),
-			source: 'local-overrides' as ConfigSource,
-		},
-		{
-			path: join(process.cwd(), '.mcp.json'),
-			source: 'project-root' as ConfigSource,
-		},
-		{
-			path: join(process.cwd(), 'mcp.json'),
-			source: 'project-alternative' as ConfigSource,
-		},
-		{
-			path: join(process.cwd(), '.nanocoder', 'mcp.json'),
-			source: 'nanocoder-dir' as ConfigSource,
-		},
-		{
-			path: join(process.cwd(), '.claude', 'mcp.json'),
-			source: 'claude-dir' as ConfigSource,
-		},
-	];
-
-	// First, try project-level configuration files
-	for (const {path, source} of configLocations) {
-		if (existsSync(path)) {
-			try {
-				const rawData = readFileSync(path, 'utf-8');
-				const config = JSON.parse(rawData);
-
-				// Handle both direct MCP server arrays and nested nanocoder.mcpServers format
-				// Also support Claude Code's object-based format where mcpServers is an object with named keys
-				let mcpServers;
-				if (Array.isArray(config)) {
-					mcpServers = config;
-				} else if (
-					config.nanocoder &&
-					Array.isArray(config.nanocoder.mcpServers)
-				) {
-					mcpServers = config.nanocoder.mcpServers;
-				} else if (Array.isArray(config.mcpServers)) {
-					mcpServers = config.mcpServers;
-				} else if (
-					config.mcpServers &&
-					typeof config.mcpServers === 'object' &&
-					!Array.isArray(config.mcpServers)
-				) {
-					// Claude Code format: { "serverName": { ...serverConfig } }
-					mcpServers = Object.entries(config.mcpServers).map(
-						([name, serverConfig]) => {
-							// Add the name to the server config if it's not already there
-							return {
-								name,
-								...(serverConfig as object),
-							};
-						},
-					);
-				} else {
-					mcpServers = [];
-				}
-
-				if (Array.isArray(mcpServers) && mcpServers.length > 0) {
-					// Apply environment variable substitution
-					const processedServers = substituteEnvVars(mcpServers);
-
-					return processedServers.map((server: unknown) => {
-						// Type assertion to MCPServerConfig since we know the structure after env substitution
-						const typedServer = server as MCPServerConfig;
-						return {
-							server: {
-								name: typedServer.name,
-								transport: typedServer.transport,
-								command: typedServer.command,
-								args: typedServer.args,
-								env: typedServer.env,
-								url: typedServer.url,
-								headers: typedServer.headers,
-								auth: typedServer.auth,
-								timeout: typedServer.timeout,
-								reconnect: typedServer.reconnect,
-								description: typedServer.description,
-								tags: typedServer.tags,
-								enabled: typedServer.enabled,
-							},
-							source,
-						};
-					});
-				}
-			} catch (error) {
-				logError(`Failed to load MCP config from ${path}: ${String(error)}`);
-			}
-		}
-	}
-
-	// If no project-level config found, return empty array
-	// The global config will be handled separately
-	return [];
+function showArrayFormatDeprecationWarning() {
+	logError('Warning: Array format for MCP servers is deprecated.');
+	logError(
+		'Please use object format: { "mcpServers": { "serverName": { ... } } }',
+	);
 }
 
 /**
- * Load global MCP configuration from agents.config.json
- * This function mimics the path resolution logic from getClosestConfigFile
+ * Show deprecation warning for MCP servers in agents.config.json
  */
-export function loadGlobalMCPConfig(): MCPServerWithSource[] {
-	// Use the same path resolution logic as getClosestConfigFile but only for global locations
-	// (avoiding CWD which is handled by project-level loading)
-	const configDir = getConfigPath();
-
-	// First, lets check the $HOME for a hidden file. This should only be for
-	// legacy support
-	const homePath = join(homedir(), '.agents.config.json');
-	if (existsSync(homePath)) {
-		return loadMCPConfigFromFile(homePath, 'global-config');
-	}
-
-	// Next, lets look for a user level config.
-	const configPath = join(configDir, 'agents.config.json');
-	if (existsSync(configPath)) {
-		return loadMCPConfigFromFile(configPath, 'global-config');
-	}
-
-	// Note: We don't check CWD here as that's handled by project-level loading
-	return [];
+function showAgentsConfigDeprecationWarning() {
+	logError('Warning: MCP servers in agents.config.json are deprecated.');
+	logError('Please migrate to ~/.config/nanocoder/.mcp.json');
+	logError(
+		'Format: { "mcpServers": { "serverName": { "command": "...", "args": [...] } } }',
+	);
 }
 
-// Helper function to load MCP config from a specific file
-function loadMCPConfigFromFile(
-	filePath: string,
-	source: ConfigSource,
-): MCPServerWithSource[] {
+/**
+ * Parse MCP servers from config object, supporting both array and object formats
+ * Converts array format to normalized server list with deprecation warning
+ */
+function parseMCPServers(config: unknown): unknown[] | null {
+	if (typeof config !== 'object' || config === null) {
+		return null;
+	}
+
+	const configObj = config as Record<string, unknown>;
+	let mcpServers: unknown[] | null = null;
+	let usedArrayFormat = false;
+
+	// Direct array format at root
+	if (Array.isArray(config)) {
+		mcpServers = config;
+		usedArrayFormat = true;
+	} else if (
+		'nanocoder' in configObj &&
+		configObj.nanocoder &&
+		typeof configObj.nanocoder === 'object' &&
+		'mcpServers' in configObj.nanocoder &&
+		Array.isArray((configObj.nanocoder as Record<string, unknown>).mcpServers)
+	) {
+		mcpServers = (configObj.nanocoder as Record<string, unknown>)
+			.mcpServers as unknown[];
+		usedArrayFormat = true;
+	} else if ('mcpServers' in configObj && Array.isArray(configObj.mcpServers)) {
+		mcpServers = configObj.mcpServers;
+		usedArrayFormat = true;
+	} else if (
+		'mcpServers' in configObj &&
+		configObj.mcpServers &&
+		typeof configObj.mcpServers === 'object' &&
+		!Array.isArray(configObj.mcpServers)
+	) {
+		// Claude Code format: { "serverName": { ...serverConfig } }
+		mcpServers = Object.entries(
+			configObj.mcpServers as Record<string, unknown>,
+		).map(([name, serverConfig]) => ({
+			name,
+			...(serverConfig as object),
+		}));
+	}
+
+	// Show deprecation warning if array format was used
+	if (usedArrayFormat && mcpServers && mcpServers.length > 0) {
+		showArrayFormatDeprecationWarning();
+	}
+
+	return mcpServers;
+}
+
+/**
+ * Load project-level MCP configuration from .mcp.json
+ */
+export function loadProjectMCPConfig(): MCPServerWithSource[] {
+	const configPath = join(process.cwd(), '.mcp.json');
+
+	if (!existsSync(configPath)) {
+		return [];
+	}
+
 	try {
-		const rawData = readFileSync(filePath, 'utf-8');
+		const rawData = readFileSync(configPath, 'utf-8');
 		const config = JSON.parse(rawData);
 
-		let mcpServers;
-		if (config.nanocoder && Array.isArray(config.nanocoder.mcpServers)) {
-			mcpServers = config.nanocoder.mcpServers;
-		} else if (
-			config.nanocoder &&
-			config.nanocoder.mcpServers &&
-			typeof config.nanocoder.mcpServers === 'object' &&
-			!Array.isArray(config.nanocoder.mcpServers)
-		) {
-			// Claude Code format: { "serverName": { ...serverConfig } }
-			mcpServers = Object.entries(config.nanocoder.mcpServers).map(
-				([name, serverConfig]) => {
-					// Add the name to the server config if it's not already there
-					return {
-						name,
-						...(serverConfig as object),
-					};
-				},
-			);
-		} else {
-			mcpServers = [];
-		}
+		const mcpServers = parseMCPServers(config);
 
 		if (Array.isArray(mcpServers) && mcpServers.length > 0) {
 			// Apply environment variable substitution
 			const processedServers = substituteEnvVars(mcpServers);
 
 			return processedServers.map((server: unknown) => {
-				// Type assertion to MCPServerConfig since we know the structure after env substitution
 				const typedServer = server as MCPServerConfig;
 				return {
 					server: {
@@ -211,7 +126,140 @@ function loadMCPConfigFromFile(
 						tags: typedServer.tags,
 						enabled: typedServer.enabled,
 					},
-					source,
+					source: 'project' as ConfigSource,
+				};
+			});
+		}
+	} catch (error) {
+		logError(`Failed to load MCP config from ${configPath}: ${String(error)}`);
+	}
+
+	return [];
+}
+
+/**
+ * Load global MCP configuration from ~/.config/nanocoder/.mcp.json
+ * Falls back to agents.config.json with deprecation warning
+ */
+export function loadGlobalMCPConfig(): MCPServerWithSource[] {
+	const configDir = getConfigPath();
+	const newConfigPath = join(configDir, '.mcp.json');
+
+	// First, check the new .mcp.json location
+	if (existsSync(newConfigPath)) {
+		try {
+			const rawData = readFileSync(newConfigPath, 'utf-8');
+			const config = JSON.parse(rawData);
+
+			const mcpServers = parseMCPServers(config);
+
+			if (Array.isArray(mcpServers) && mcpServers.length > 0) {
+				const processedServers = substituteEnvVars(mcpServers);
+
+				return processedServers.map((server: unknown) => {
+					const typedServer = server as MCPServerConfig;
+					return {
+						server: {
+							name: typedServer.name,
+							transport: typedServer.transport,
+							command: typedServer.command,
+							args: typedServer.args,
+							env: typedServer.env,
+							url: typedServer.url,
+							headers: typedServer.headers,
+							auth: typedServer.auth,
+							timeout: typedServer.timeout,
+							reconnect: typedServer.reconnect,
+							description: typedServer.description,
+							tags: typedServer.tags,
+							enabled: typedServer.enabled,
+						},
+						source: 'global' as ConfigSource,
+					};
+				});
+			}
+		} catch (error) {
+			logError(
+				`Failed to load MCP config from ${newConfigPath}: ${String(error)}`,
+			);
+		}
+
+		return [];
+	}
+
+	// Fallback to legacy agents.config.json with deprecation warning
+	const homePath = join(homedir(), '.agents.config.json');
+	if (existsSync(homePath)) {
+		return loadMCPConfigFromAgentsConfig(homePath);
+	}
+
+	const legacyConfigPath = join(configDir, 'agents.config.json');
+	if (existsSync(legacyConfigPath)) {
+		return loadMCPConfigFromAgentsConfig(legacyConfigPath);
+	}
+
+	return [];
+}
+
+/**
+ * Load MCP config from legacy agents.config.json with deprecation warning
+ */
+function loadMCPConfigFromAgentsConfig(
+	filePath: string,
+): MCPServerWithSource[] {
+	try {
+		const rawData = readFileSync(filePath, 'utf-8');
+		const config = JSON.parse(rawData);
+
+		let mcpServers: unknown[] | null = null;
+		let hasMcpServers = false;
+
+		if (config.nanocoder && Array.isArray(config.nanocoder.mcpServers)) {
+			mcpServers = config.nanocoder.mcpServers;
+			hasMcpServers = mcpServers !== null && mcpServers.length > 0;
+		} else if (
+			config.nanocoder &&
+			config.nanocoder.mcpServers &&
+			typeof config.nanocoder.mcpServers === 'object' &&
+			!Array.isArray(config.nanocoder.mcpServers)
+		) {
+			// Claude Code format in agents.config.json
+			mcpServers = Object.entries(
+				config.nanocoder.mcpServers as Record<string, unknown>,
+			).map(([name, serverConfig]) => ({
+				name,
+				...(serverConfig as object),
+			}));
+			hasMcpServers = mcpServers && mcpServers.length > 0;
+		}
+
+		// Show deprecation warning if MCP servers found in agents.config.json
+		if (hasMcpServers) {
+			showAgentsConfigDeprecationWarning();
+		}
+
+		if (Array.isArray(mcpServers) && mcpServers.length > 0) {
+			const processedServers = substituteEnvVars(mcpServers);
+
+			return processedServers.map((server: unknown) => {
+				const typedServer = server as MCPServerConfig;
+				return {
+					server: {
+						name: typedServer.name,
+						transport: typedServer.transport,
+						command: typedServer.command,
+						args: typedServer.args,
+						env: typedServer.env,
+						url: typedServer.url,
+						headers: typedServer.headers,
+						auth: typedServer.auth,
+						timeout: typedServer.timeout,
+						reconnect: typedServer.reconnect,
+						description: typedServer.description,
+						tags: typedServer.tags,
+						enabled: typedServer.enabled,
+					},
+					source: 'global' as ConfigSource,
 				};
 			});
 		}
@@ -224,23 +272,25 @@ function loadMCPConfigFromFile(
 
 /**
  * Merge project-level and global MCP configurations
- * Project-level configs take precedence over global configs
+ * ALL servers from both locations are loaded (project servers shown first)
+ * No overriding - each unique server is preserved
  */
 export function mergeMCPConfigs(
 	projectServers: MCPServerWithSource[],
 	globalServers: MCPServerWithSource[],
 ): MCPServerWithSource[] {
-	// Create a map of server names to track which source they came from
 	const serverMap = new Map<string, MCPServerWithSource>();
 
-	// Add global servers first (lower priority)
-	for (const globalServer of globalServers) {
-		serverMap.set(globalServer.server.name, globalServer);
-	}
-
-	// Add project servers (higher priority) - they will override global ones
+	// Add project servers first (displayed first in UI)
 	for (const projectServer of projectServers) {
 		serverMap.set(projectServer.server.name, projectServer);
+	}
+
+	// Add global servers (only if not already added from project)
+	for (const globalServer of globalServers) {
+		if (!serverMap.has(globalServer.server.name)) {
+			serverMap.set(globalServer.server.name, globalServer);
+		}
 	}
 
 	return Array.from(serverMap.values());
@@ -254,29 +304,6 @@ export function loadAllMCPConfigs(): MCPServerWithSource[] {
 	const globalServers = loadGlobalMCPConfig();
 
 	return mergeMCPConfigs(projectServers, globalServers);
-}
-
-/**
- * Get MCP server sources (exported for use in commands)
- */
-export function getMcpServerSources(): MCPServerWithSource[] {
-	return loadAllMCPConfigs();
-}
-
-/**
- * Get the display label for a configuration source
- */
-export function getSourceLabel(source: ConfigSource): string {
-	const labels: Record<ConfigSource, string> = {
-		'project-root': '[project]',
-		'project-alternative': '[project]',
-		'nanocoder-dir': '[project]',
-		'claude-dir': '[project]',
-		'local-overrides': '[local]',
-		'global-config': '[global]',
-	};
-
-	return labels[source];
 }
 
 /**

@@ -1,7 +1,6 @@
 import {Box, Text} from 'ink';
 import React from 'react';
 import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
-import {getMcpServerSources, getSourceLabel} from '@/config/mcp-config-loader';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import {getToolManager} from '@/message-handler';
@@ -52,30 +51,23 @@ export function MCP({toolManager}: MCPProps) {
 
 					<Text color={colors.text}>
 						To connect MCP servers, add them to your{' '}
-						<Text color={colors.primary}>agents.config.json</Text> file:
+						<Text color={colors.primary}>.mcp.json</Text> file:
 					</Text>
 
 					<Box marginTop={1} marginBottom={1}>
 						<Text color={colors.secondary}>
 							{`{
-  "nanocoder": {
-    "mcpServers": [
-      {
-        "name": "example-server",
-        "transport": "stdio",
-        "command": "node",
-        "args": ["path/to/server.js"],
-        "env": {
-          "API_KEY": "your-key"
-        }
-      },
-      {
-        "name": "remote-server",
-        "transport": "http",
-        "url": "https://example.com/mcp",
-        "timeout": 30000
-      }
-    ]
+  "mcpServers": {
+    "filesystem": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "description": "Project filesystem access"
+    },
+    "http-server": {
+      "transport": "http",
+      "url": "http://localhost:3000/mcp"
+    }
   }
 }`}
 						</Text>
@@ -101,25 +93,12 @@ export function MCP({toolManager}: MCPProps) {
 							serverInfo?.transport || 'stdio',
 						);
 
-						// Get the source information for this server
-						const mcpServerSources = getMcpServerSources();
-						const serverSource = mcpServerSources.find(
-							item => item.server.name === serverName,
-						);
-						const sourceLabel = serverSource
-							? getSourceLabel(serverSource.source)
-							: '';
-
 						return (
 							<Box key={index} marginBottom={1}>
 								<Box flexDirection="column">
 									<Text color={colors.text}>
 										• {transportIcon}{' '}
-										<Text color={colors.primary}>{serverName}</Text>
-										{sourceLabel && (
-											<Text color={colors.secondary}> {sourceLabel}</Text>
-										)}
-										:{' '}
+										<Text color={colors.primary}>{serverName}</Text>:{' '}
 										<Text color={colors.secondary}>
 											({serverInfo?.transport?.toUpperCase() || 'STDIO'})
 										</Text>{' '}
