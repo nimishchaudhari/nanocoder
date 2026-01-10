@@ -63,9 +63,12 @@ export class BashExecutor extends EventEmitter {
 		});
 
 		// Progress interval - emit updates every 500ms
+		// Using unref() so this interval doesn't prevent Node.js from exiting
+		// (important for tests and clean shutdown)
 		const intervalId = setInterval(() => {
 			this.emit('progress', {...state});
 		}, INTERVAL_BASH_PROGRESS_MS);
+		intervalId.unref();
 
 		const promise = new Promise<BashExecutionState>((resolve, _reject) => {
 			// Store resolve function so cancel() can resolve the promise
