@@ -28,8 +28,9 @@ function showArrayFormatDeprecationWarning() {
  * Show deprecation warning for MCP servers in agents.config.json
  */
 function showAgentsConfigDeprecationWarning() {
+	const _configPath = join(getConfigPath(), '.mcp.json');
 	logError('Warning: MCP servers in agents.config.json are deprecated.');
-	logError('Please migrate to ~/.config/nanocoder/.mcp.json');
+	logError('Please migrate to ${_configPath}');
 	logError(
 		'Format: { "mcpServers": { "serverName": { "command": "...", "args": [...] } } }',
 	);
