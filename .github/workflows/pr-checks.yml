@@ -168,8 +168,7 @@ jobs:
         run: pnpm build
 
       - name: Run unit tests with coverage
-        run: c8 ava
-        # pnpm test:ava:coverage
+        run: npx c8 ava #pnpm test:ava:coverage
 
       - name: Generate coverage summary
         run: |
