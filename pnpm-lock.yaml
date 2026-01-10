@@ -139,6 +139,9 @@ importers:
       lint-staged:
         specifier: ^16.2.7
         version: 16.2.7
+      strip-ansi:
+        specifier: ^7.1.2
+        version: 7.1.2
       tsc-alias:
         specifier: ^1.8.16
         version: 1.8.16
