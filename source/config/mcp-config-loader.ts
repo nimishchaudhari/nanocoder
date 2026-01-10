@@ -301,7 +301,9 @@ export function mergeMCPConfigs(
  */
 export function loadAllMCPConfigs(): MCPServerWithSource[] {
 	const projectServers = loadProjectMCPConfig();
-	const globalServers = loadGlobalMCPConfig();
+	// Skip loading global servers in test environment to allow test isolation
+	const globalServers =
+		process.env.NODE_ENV === 'test' ? [] : loadGlobalMCPConfig();
 
 	return mergeMCPConfigs(projectServers, globalServers);
 }
@@ -312,7 +314,9 @@ export function loadAllMCPConfigs(): MCPServerWithSource[] {
  */
 export function loadAllProviderConfigs(): ProviderConfig[] {
 	const projectProviders = loadProjectProviderConfigs();
-	const globalProviders = loadGlobalProviderConfigs();
+	// Skip loading global providers in test environment to allow test isolation
+	const globalProviders =
+		process.env.NODE_ENV === 'test' ? [] : loadGlobalProviderConfigs();
 
 	// Merge providers with project providers taking precedence over global ones
 	// If a provider with the same name exists in both, project version wins

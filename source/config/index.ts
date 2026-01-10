@@ -141,6 +141,11 @@ export function reloadAppConfig(): void {
 	_appConfig = loadAppConfig();
 }
 
+// Function to clear the cached app configuration (useful for testing)
+export function clearAppConfig(): void {
+	_appConfig = null;
+}
+
 let cachedColors: Colors | null = null;
 
 export function getColors(): Colors {

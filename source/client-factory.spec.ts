@@ -3,7 +3,7 @@ import {tmpdir} from 'os';
 import {join} from 'path';
 import test from 'ava';
 import {ConfigurationError, createLLMClient} from './client-factory';
-import {reloadAppConfig} from '@/config/index';
+import {clearAppConfig, reloadAppConfig} from '@/config/index';
 
 console.log('\nclient-factory.spec.ts');
 
@@ -257,13 +257,17 @@ test.serial(
 		// Mock process.cwd to return test directory
 		process.cwd = () => configDir;
 
-		// Reload config to pick up new config
+		// Clear any cached config and reload to pick up new config
+		clearAppConfig();
 		reloadAppConfig();
 
-		// The implementation may not throw ConfigurationError in this test environment
-		// Just verify that the function can handle empty providers
-		const result = await createLLMClient();
-		t.truthy(result);
+		// Should throw ConfigurationError when config exists but has no providers
+		const error = await t.throwsAsync(createLLMClient(), {
+			instanceOf: ConfigurationError,
+		});
+
+		t.is(error.message, 'No providers configured in agents.config.json');
+		t.true(error.isEmptyConfig);
 	},
 );
 
@@ -339,13 +343,13 @@ test.serial(
 		// Mock process.cwd to return test directory
 		process.cwd = () => configDir;
 
-		// Reload config to pick up new config
+		// Clear any cached config and reload to pick up new config
+		clearAppConfig();
 		reloadAppConfig();
 
-		// The implementation may not throw error in this test environment
-		// Just verify that the function can handle failed connections
-		const result = await createLLMClient();
-		t.truthy(result);
+		// Should throw error when localhost provider fails
+		const error = await t.throwsAsync(createLLMClient());
+		t.regex(error.message, /All configured providers failed/);
 	},
 );
 
@@ -377,13 +381,13 @@ test.serial(
 		// Mock process.cwd to return test directory
 		process.cwd = () => configDir;
 
-		// Reload config to pick up new config
+		// Clear any cached config and reload to pick up new config
+		clearAppConfig();
 		reloadAppConfig();
 
-		// The implementation may not throw error in this test environment
-		// Just verify that the function can handle timeout situations
-		const result = await createLLMClient();
-		t.truthy(result);
+		// Should throw error when localhost provider times out
+		const error = await t.throwsAsync(createLLMClient());
+		t.regex(error.message, /All configured providers failed/);
 	},
 );
 
@@ -661,13 +665,13 @@ test.serial(
 		// Mock process.cwd to return test directory
 		process.cwd = () => configDir;
 
-		// Reload config to pick up new config
+		// Clear any cached config and reload to pick up new config
+		clearAppConfig();
 		reloadAppConfig();
 
-		// The implementation may not throw error in this test environment
-		// Just verify that the function can handle multiple provider failures
-		const result = await createLLMClient();
-		t.truthy(result);
+		// Should throw error when all providers fail
+		const error = await t.throwsAsync(createLLMClient());
+		t.regex(error.message, /All configured providers failed/);
 	},
 );
 
