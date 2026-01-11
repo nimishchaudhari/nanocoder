@@ -1,20 +1,27 @@
 import {spawnSync} from 'node:child_process';
-import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	unlinkSync,
+	writeFileSync,
+} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {Box, Text, useFocus, useInput} from 'ink';
+import SelectInput from 'ink-select-input';
 import Spinner from 'ink-spinner';
 import {useEffect, useState} from 'react';
 import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {colors} from '@/config/index';
 import {getConfigPath} from '@/config/paths';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
-import {logError} from '@/utils/message-queue';
+import {logError, logInfo} from '@/utils/message-queue';
 import type {ProviderConfig} from '../types/config';
 import {type ConfigLocation, LocationStep} from './steps/location-step';
 import {ProviderStep} from './steps/provider-step';
 import {buildProviderConfigObject} from './validation';
 
-interface ConfigWizardProps {
+interface ProviderWizardProps {
 	projectDir: string;
 	onComplete: (configPath: string) => void;
 	onCancel?: () => void;
@@ -24,15 +31,16 @@ type WizardStep =
 	| 'location'
 	| 'providers'
 	| 'summary'
+	| 'confirm-delete'
 	| 'editing'
 	| 'saving'
 	| 'complete';
 
-export function ConfigWizard({
+export function ProviderWizard({
 	projectDir,
 	onComplete,
 	onCancel,
-}: ConfigWizardProps) {
+}: ProviderWizardProps) {
 	const [step, setStep] = useState<WizardStep>('location');
 	const [providerConfigPath, setProviderConfigPath] = useState('');
 	const [providers, setProviders] = useState<ProviderConfig[]>([]);
@@ -130,6 +138,26 @@ export function ConfigWizard({
 	const handleCancel = () => {
 		if (onCancel) {
 			onCancel();
+		}
+	};
+
+	const handleDeleteConfig = () => {
+		setStep('confirm-delete');
+	};
+
+	const handleConfirmDelete = () => {
+		try {
+			if (existsSync(providerConfigPath)) {
+				unlinkSync(providerConfigPath);
+				logInfo(`Deleted configuration file: ${providerConfigPath}`);
+			}
+			// Call onComplete to trigger reload
+			onComplete(providerConfigPath);
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : 'Failed to delete configuration',
+			);
+			setStep('providers');
 		}
 	};
 
@@ -262,6 +290,8 @@ export function ConfigWizard({
 						existingProviders={providers}
 						onComplete={handleProvidersComplete}
 						onBack={() => setStep('location')}
+						onDelete={handleDeleteConfig}
+						configExists={existsSync(providerConfigPath)}
 					/>
 				);
 			}
@@ -288,7 +318,7 @@ export function ConfigWizard({
 								</Text>
 								{providers.map((provider, index) => (
 									<Text key={index} color={colors.success}>
-										• {String(provider.provider)}
+										• {provider.name}
 									</Text>
 								))}
 							</Box>
@@ -299,14 +329,46 @@ export function ConfigWizard({
 						)}
 
 						{/* Actions */}
-						<Box marginTop={1}>
-							<Text color={colors.primary}>Actions:</Text>
-						</Box>
-						<Box flexDirection="column">
+						<Box marginTop={1} flexDirection="column">
 							<Text color={colors.secondary}>• Enter: Save configuration</Text>
-							<Text color={colors.secondary}>• a: Add more providers</Text>
+							<Text color={colors.secondary}>• Shift+Tab: Go back</Text>
 							<Text color={colors.secondary}>• Esc: Cancel</Text>
 						</Box>
+					</Box>
+				);
+			}
+			case 'confirm-delete': {
+				const deleteOptions = [
+					{label: 'Yes, delete the file', value: 'yes'},
+					{label: 'No, go back', value: 'no'},
+				];
+
+				return (
+					<Box flexDirection="column">
+						<Box marginBottom={1}>
+							<Text bold color={colors.error}>
+								Delete Configuration?
+							</Text>
+						</Box>
+						<Box marginBottom={1}>
+							<Text>
+								Are you sure you want to delete{' '}
+								<Text color={colors.warning}>{providerConfigPath}</Text>?
+							</Text>
+						</Box>
+						<Box marginBottom={1}>
+							<Text dimColor>This action cannot be undone.</Text>
+						</Box>
+						<SelectInput
+							items={deleteOptions}
+							onSelect={(item: {value: string}) => {
+								if (item.value === 'yes') {
+									handleConfirmDelete();
+								} else {
+									setStep('providers');
+								}
+							}}
+						/>
 					</Box>
 				);
 			}
@@ -349,7 +411,7 @@ export function ConfigWizard({
 
 	return (
 		<TitledBoxWithPreferences
-			title="Configuration Wizard"
+			title="Provider Wizard"
 			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
@@ -407,11 +469,11 @@ function SummaryStepActions({
 	onAddProviders,
 	onCancel,
 }: SummaryStepActionsProps) {
-	useInput((input, key) => {
-		if (key.return) {
-			onSave();
-		} else if (input === 'a') {
+	useInput((_input, key) => {
+		if (key.shift && key.tab) {
 			onAddProviders();
+		} else if (key.return) {
+			onSave();
 		} else if (key.escape) {
 			onCancel();
 		}

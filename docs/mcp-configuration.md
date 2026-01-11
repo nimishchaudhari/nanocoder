@@ -335,20 +335,37 @@ Use environment variables to keep sensitive data out of configuration files:
 - **Sequential Thinking**: Advanced reasoning capabilities
 - **Remote Fetch**: Web content extraction
 
-## Configuration Wizard
+## MCP Configuration Wizard
 
-For interactive setup, use the built-in configuration wizard:
+For interactive MCP server setup, use the built-in configuration wizard:
 
 ```
-/setup-config
+/setup-mcp
 ```
 
-This provides:
+The wizard provides:
+- **Location selection**: Choose between project-level (`.mcp.json` in current directory) or global configuration (`~/.config/nanocoder/.mcp.json`)
+- **Server templates**: Pre-configured templates for popular MCP servers (filesystem, GitHub, Brave Search, etc.)
+- **Custom server setup**: Add custom stdio, HTTP, or WebSocket servers manually
+- **Edit existing servers**: Modify or delete previously configured servers
+- **Delete configuration**: Option to remove the configuration file entirely
 
-- Pre-built templates for popular MCP servers
-- Real-time validation
-- Transport type selection
-- Automatic configuration file generation
+### Wizard Flow
+
+1. **Choose location**: Select where to save your MCP configuration
+2. **Add servers**: Use templates or configure custom servers
+   - **Local Servers (STDIO)**: Filesystem, GitHub, PostgreSQL, custom commands
+   - **Remote Servers (HTTP/WebSocket)**: Context7, Brave Search, custom endpoints
+3. **Configure fields**: Enter required information (paths, API keys, URLs)
+4. **Review and save**: Confirm your configuration before saving
+
+### Keyboard Shortcuts
+
+- **Enter**: Select option / Continue
+- **Shift+Tab**: Go back to previous step
+- **Esc**: Exit wizard without saving
+- **Tab**: Switch between tabs (when viewing server categories)
+
 
 ## Troubleshooting
 

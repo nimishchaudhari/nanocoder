@@ -6,8 +6,8 @@ import ProviderSelector from '@/components/provider-selector';
 import ThemeSelector from '@/components/theme-selector';
 import TitleShapeSelector from '@/components/title-shape-selector';
 import type {CheckpointListItem, LLMClient} from '@/types';
-import {ConfigWizard} from '@/wizard/config-wizard';
-import {McpWizard} from '@/wizard/mcp-wizard';
+import {McpWizard} from '@/wizards/mcp-wizard';
+import {ProviderWizard} from '@/wizards/provider-wizard';
 
 export interface ModalSelectorsProps {
 	// State flags
@@ -139,7 +139,7 @@ export function ModalSelectors({
 
 	if (isConfigWizardMode) {
 		return (
-			<ConfigWizard
+			<ProviderWizard
 				projectDir={process.cwd()}
 				onComplete={configPath => void onConfigWizardComplete(configPath)}
 				onCancel={onConfigWizardCancel}

@@ -86,10 +86,9 @@ export function LocationStep({
 			// If we're in select-location mode and came from existing-config, go back
 			if (mode === 'select-location' && (projectExists || globalExists)) {
 				setMode('existing-config');
-			} else {
-				// Otherwise, let the parent wizard handle it
-				onBack?.();
 			}
+			// Otherwise, do nothing - this is the first screen of the wizard
+			// The user should use Esc to exit the wizard completely
 		}
 	});
 

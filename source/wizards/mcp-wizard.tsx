@@ -1,13 +1,20 @@
-import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	unlinkSync,
+	writeFileSync,
+} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {Box, Text, useFocus, useInput} from 'ink';
+import SelectInput from 'ink-select-input';
 import Spinner from 'ink-spinner';
 import {useEffect, useState} from 'react';
 import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {colors} from '@/config/index';
 import {getConfigPath} from '@/config/paths';
 import {useResponsiveTerminal} from '@/hooks/useTerminalWidth';
-import {logError} from '@/utils/message-queue';
+import {logError, logInfo} from '@/utils/message-queue';
 import {type ConfigLocation, LocationStep} from './steps/location-step';
 import {McpStep} from './steps/mcp-step';
 import type {McpServerConfig} from './templates/mcp-templates';
@@ -23,6 +30,7 @@ type WizardStep =
 	| 'location'
 	| 'mcp'
 	| 'summary'
+	| 'confirm-delete'
 	| 'editing'
 	| 'saving'
 	| 'complete';
@@ -131,6 +139,26 @@ export function McpWizard({projectDir, onComplete, onCancel}: McpWizardProps) {
 		}
 	};
 
+	const handleDeleteConfig = () => {
+		setStep('confirm-delete');
+	};
+
+	const handleConfirmDelete = () => {
+		try {
+			if (existsSync(mcpConfigPath)) {
+				unlinkSync(mcpConfigPath);
+				logInfo(`Deleted configuration file: ${mcpConfigPath}`);
+			}
+			// Call onComplete to trigger reload
+			onComplete(mcpConfigPath);
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : 'Failed to delete configuration',
+			);
+			setStep('mcp');
+		}
+	};
+
 	// Handle global keyboard shortcuts
 	useInput((_input, key) => {
 		// In complete step, wait for Enter to finish
@@ -166,6 +194,8 @@ export function McpWizard({projectDir, onComplete, onCancel}: McpWizardProps) {
 						existingServers={mcpServers}
 						onComplete={handleMcpComplete}
 						onBack={() => setStep('location')}
+						onDelete={handleDeleteConfig}
+						configExists={existsSync(mcpConfigPath)}
 					/>
 				);
 			}
@@ -203,14 +233,46 @@ export function McpWizard({projectDir, onComplete, onCancel}: McpWizardProps) {
 						)}
 
 						{/* Actions */}
-						<Box marginTop={1}>
-							<Text color={colors.primary}>Actions:</Text>
-						</Box>
-						<Box flexDirection="column">
+						<Box marginTop={1} flexDirection="column">
 							<Text color={colors.secondary}>• Enter: Save configuration</Text>
-							<Text color={colors.secondary}>• a: Add more MCP servers</Text>
+							<Text color={colors.secondary}>• Shift+Tab: Go back</Text>
 							<Text color={colors.secondary}>• Esc: Cancel</Text>
 						</Box>
+					</Box>
+				);
+			}
+			case 'confirm-delete': {
+				const deleteOptions = [
+					{label: 'Yes, delete the file', value: 'yes'},
+					{label: 'No, go back', value: 'no'},
+				];
+
+				return (
+					<Box flexDirection="column">
+						<Box marginBottom={1}>
+							<Text bold color={colors.error}>
+								Delete Configuration?
+							</Text>
+						</Box>
+						<Box marginBottom={1}>
+							<Text>
+								Are you sure you want to delete{' '}
+								<Text color={colors.warning}>{mcpConfigPath}</Text>?
+							</Text>
+						</Box>
+						<Box marginBottom={1}>
+							<Text dimColor>This action cannot be undone.</Text>
+						</Box>
+						<SelectInput
+							items={deleteOptions}
+							onSelect={(item: {value: string}) => {
+								if (item.value === 'yes') {
+									handleConfirmDelete();
+								} else {
+									setStep('mcp');
+								}
+							}}
+						/>
 					</Box>
 				);
 			}
@@ -308,11 +370,11 @@ function SummaryStepActions({
 	onAddMcpServers,
 	onCancel,
 }: SummaryStepActionsProps) {
-	useInput((input, key) => {
-		if (key.return) {
-			onSave();
-		} else if (input === 'a') {
+	useInput((_input, key) => {
+		if (key.shift && key.tab) {
 			onAddMcpServers();
+		} else if (key.return) {
+			onSave();
 		} else if (key.escape) {
 			onCancel();
 		}

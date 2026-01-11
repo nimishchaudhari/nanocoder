@@ -283,8 +283,15 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 
 **Configuration Methods:**
 
-1. **Interactive Setup (Recommended for new users)**: Run `/setup-config` inside Nanocoder for a guided wizard with provider templates
+1. **Interactive Setup (Recommended for new users)**: Run `/setup-providers` inside Nanocoder for a guided wizard with provider templates. The wizard allows you to:
+   - Choose between project-level or global configuration
+   - Select from common provider templates (Ollama, OpenRouter, LM Studio, etc.)
+   - Add custom OpenAI-compatible providers manually
+   - Edit or delete existing providers
+   - Fetch available models automatically from your provider
 2. **Manual Configuration**: Create an `agents.config.json` file (see below for locations)
+
+> **Note**: The `/setup-providers` wizard requires at least one provider to be configured before saving. You cannot exit without adding a provider.
 
 **Configuration File Locations:**
 
@@ -485,7 +492,9 @@ Nanocoder supports connecting to MCP servers to extend its capabilities with add
 
 #### Project-Level Configuration (Recommended for Teams)
 
-Nanocoder now supports project-level MCP configuration files that enable team collaboration:
+Nanocoder supports project-level MCP configuration files that enable team collaboration. Use the `/setup-mcp` wizard for interactive setup, or create configuration files manually.
+
+**Supported configuration file locations:**
 
 - **`.mcp.json`** - Primary project-level config in project root
 - **`mcp.json`** - Alternative project-level config in project root
@@ -493,7 +502,7 @@ Nanocoder now supports project-level MCP configuration files that enable team co
 - **`.claude/mcp.json`** - Claude Code compatibility config
 - **`.nanocoder/mcp.local.json`** - Local overrides (gitignored, highest priority)
 
-Project-level configs take precedence over the global `agents.config.json`.
+Project-level configs take precedence over the global configuration.
 
 **Example `.mcp.json` (Array Format):**
 ```json
@@ -615,7 +624,7 @@ Popular MCP servers:
 - **Sequential Thinking**: Advanced reasoning (http)
 - [View more MCP servers](https://github.com/modelcontextprotocol/servers)
 
-> **Note**: MCP server configuration follows the same hierarchical loading as AI providers, supporting both project-level and global configurations. Use `/setup-config` for an interactive configuration wizard with templates for both local and remote MCP servers. The `/mcp` command now shows the configuration source level (e.g., [project], [global]) next to each server name. Both providers and MCP servers are loaded from all available configuration levels and merged together, with project-level configurations taking precedence over global ones.
+> **Note**: MCP server configuration follows the same hierarchical loading as AI providers, supporting both project-level and global configurations. Use `/setup-mcp` for an interactive configuration wizard with templates for both local and remote MCP servers. The `/mcp` command shows the configuration source level (e.g., [project], [global]) next to each server name. Both providers and MCP servers are loaded from all available configuration levels and merged together, with project-level configurations taking precedence over global ones. See the [MCP Configuration Guide](docs/mcp-configuration.md) for detailed documentation.
 
 ### User Preferences
 
@@ -660,7 +669,8 @@ You can override this directory using `NANOCODER_DATA_DIR`.
 
 - `/help` - Show available commands
 - `/init` - Initialize project with intelligent analysis, create AGENTS.md and configuration files. Use `/init --force` to regenerate AGENTS.md if it already exists.
-- `/setup-config` - Interactive wizard for configuring AI providers and MCP servers with templates
+- `/setup-providers` - Interactive wizard for configuring AI providers with templates
+- `/setup-mcp` - Interactive wizard for configuring MCP servers with templates
 - `/clear` - Clear chat history
 - `/model` - Switch between available models
 - `/provider` - Switch between configured AI providers

@@ -20,7 +20,7 @@ const SPECIAL_COMMANDS = {
 	PROVIDER: 'provider',
 	THEME: 'theme',
 	MODEL_DATABASE: 'model-database',
-	SETUP_CONFIG: 'setup-config',
+	SETUP_PROVIDERS: 'setup-providers',
 	SETUP_MCP: 'setup-mcp',
 	STATUS: 'status',
 	CHECKPOINT: 'checkpoint',
@@ -227,7 +227,7 @@ async function handleSpecialCommand(
 			onCommandComplete?.();
 			return true;
 
-		case SPECIAL_COMMANDS.SETUP_CONFIG:
+		case SPECIAL_COMMANDS.SETUP_PROVIDERS:
 			onEnterConfigWizardMode();
 			onCommandComplete?.();
 			return true;
