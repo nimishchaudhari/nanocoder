@@ -7,27 +7,48 @@ import {fileURLToPath} from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * Result object returned after a CLI process completes execution.
+ */
 export interface CLITestResult {
+	/** Exit code of the process, or null if terminated by signal */
 	exitCode: number | null;
+	/** Signal that terminated the process, or null if exited normally */
 	signal: NodeJS.Signals | null;
+	/** Captured stdout output */
 	stdout: string;
+	/** Captured stderr output */
 	stderr: string;
+	/** Whether the process was killed due to timeout */
 	timedOut: boolean;
+	/** Duration in milliseconds from start to exit */
 	duration: number;
+	/** Whether the process was killed (by timeout, signal, or kill()) */
 	killed: boolean;
 }
 
+/**
+ * Options for configuring CLI test execution.
+ */
 export interface CLITestOptions {
+	/** Command-line arguments to pass to the CLI */
 	args?: string[];
+	/** Environment variables to set (can override defaults when placed after inheritEnv) */
 	env?: Record<string, string>;
+	/** Timeout in milliseconds before killing the process (default: 30000) */
 	timeout?: number;
+	/** Working directory for the process */
 	cwd?: string;
+	/** Data to write to stdin before closing it */
 	stdin?: string;
+	/** Whether to inherit parent process environment variables (default: true) */
 	inheritEnv?: boolean;
+	/** Send a signal to the process after a delay */
 	sendSignal?: {
 		signal: NodeJS.Signals;
 		delayMs: number;
 	};
+	/** Additional arguments to pass to Node.js */
 	nodeArgs?: string[];
 }
 
@@ -41,6 +62,12 @@ const DEFAULT_OPTIONS: Required<Omit<CLITestOptions, 'stdin' | 'sendSignal'>> =
 		nodeArgs: [],
 	};
 
+/**
+ * Gets the path to the CLI entry point.
+ * Prefers the compiled dist/cli.js, falls back to source/cli.tsx.
+ * @returns Absolute path to the CLI entry point
+ * @throws Error if neither path exists
+ */
 export function getCLIPath(): string {
 	const distPath = path.resolve(__dirname, '../../dist/cli.js');
 	if (fs.existsSync(distPath)) {
@@ -57,10 +84,26 @@ export function getCLIPath(): string {
 	);
 }
 
+/**
+ * Checks if the CLI path requires tsx to execute (TypeScript source files).
+ * @param cliPath - Path to the CLI file
+ * @returns true if the file is .ts or .tsx
+ */
 export function needsTsx(cliPath: string): boolean {
 	return cliPath.endsWith('.tsx') || cliPath.endsWith('.ts');
 }
 
+/**
+ * A test harness for spawning and controlling CLI processes.
+ * Extends EventEmitter and emits 'stdout', 'stderr', 'exit', and 'signal-sent' events.
+ *
+ * @example
+ * ```typescript
+ * const harness = createCLITestHarness();
+ * const result = await harness.run({ args: ['run', 'hello world'] });
+ * assertExitCode(result, 0);
+ * ```
+ */
 export class CLITestHarness extends EventEmitter {
 	private process: ChildProcess | null = null;
 	private startTime: number = 0;
@@ -69,8 +112,23 @@ export class CLITestHarness extends EventEmitter {
 	private stderrChunks: Buffer[] = [];
 	private timeoutId: NodeJS.Timeout | null = null;
 	private signalTimeoutId: NodeJS.Timeout | null = null;
+	private _timedOut: boolean = false;
+	private stdoutListener: ((chunk: Buffer) => void) | null = null;
+	private stderrListener: ((chunk: Buffer) => void) | null = null;
 
+	/**
+	 * Spawns the CLI process with the given options and waits for it to exit.
+	 * @param options - Configuration options for the CLI execution
+	 * @returns Promise that resolves with the test result
+	 * @throws Error if called while a process is already running
+	 */
 	async run(options: CLITestOptions = {}): Promise<CLITestResult> {
+		if (this.isRunning()) {
+			throw new Error(
+				'CLITestHarness: Cannot call run() while a process is already running. ' +
+					'Create a new harness instance or wait for the current process to complete.',
+			);
+		}
 		const opts = {...DEFAULT_OPTIONS, ...options};
 		const cliPath = getCLIPath();
 
@@ -86,11 +144,11 @@ export class CLITestHarness extends EventEmitter {
 		}
 
 		const env: NodeJS.ProcessEnv = {
-			...(opts.inheritEnv ? process.env : {}),
-			...opts.env,
 			NODE_ENV: 'test',
 			FORCE_COLOR: '0',
 			NO_COLOR: '1',
+			...(opts.inheritEnv ? process.env : {}),
+			...opts.env,
 		};
 
 		const spawnOptions: SpawnOptions = {
@@ -103,6 +161,7 @@ export class CLITestHarness extends EventEmitter {
 			this.startTime = Date.now();
 			this.stdoutChunks = [];
 			this.stderrChunks = [];
+			this._timedOut = false;
 
 			try {
 				this.process = spawn(command, args, spawnOptions);
@@ -114,8 +173,8 @@ export class CLITestHarness extends EventEmitter {
 			if (opts.timeout && opts.timeout > 0) {
 				this.timeoutId = setTimeout(() => {
 					if (this.process && !this.process.killed) {
+						this._timedOut = true;
 						this.process.kill('SIGKILL');
-						this.result = this.buildResult(null, null, true);
 					}
 				}, opts.timeout);
 			}
@@ -138,22 +197,24 @@ export class CLITestHarness extends EventEmitter {
 			}
 
 			if (this.process.stdout) {
-				this.process.stdout.on('data', (chunk: Buffer) => {
+				this.stdoutListener = (chunk: Buffer) => {
 					this.stdoutChunks.push(chunk);
 					this.emit('stdout', chunk.toString());
-				});
+				};
+				this.process.stdout.on('data', this.stdoutListener);
 			}
 
 			if (this.process.stderr) {
-				this.process.stderr.on('data', (chunk: Buffer) => {
+				this.stderrListener = (chunk: Buffer) => {
 					this.stderrChunks.push(chunk);
 					this.emit('stderr', chunk.toString());
-				});
+				};
+				this.process.stderr.on('data', this.stderrListener);
 			}
 
 			this.process.on('exit', (code, signal) => {
 				this.cleanup();
-				this.result = this.buildResult(code, signal, false);
+				this.result = this.buildResult(code, signal, this._timedOut);
 				this.emit('exit', this.result);
 				resolve(this.result);
 			});
@@ -165,6 +226,11 @@ export class CLITestHarness extends EventEmitter {
 		});
 	}
 
+	/**
+	 * Sends a signal to the running process.
+	 * @param signal - The signal to send (e.g., 'SIGINT', 'SIGTERM')
+	 * @returns true if the signal was sent, false if no process is running
+	 */
 	sendSignal(signal: NodeJS.Signals): boolean {
 		if (this.process && !this.process.killed) {
 			return this.process.kill(signal);
@@ -172,6 +238,11 @@ export class CLITestHarness extends EventEmitter {
 		return false;
 	}
 
+	/**
+	 * Writes data to the process's stdin.
+	 * @param data - The string data to write
+	 * @returns true if data was written, false if no process or stdin is unavailable
+	 */
 	writeToStdin(data: string): boolean {
 		if (this.process?.stdin && !this.process.stdin.destroyed) {
 			this.process.stdin.write(data);
@@ -180,6 +251,10 @@ export class CLITestHarness extends EventEmitter {
 		return false;
 	}
 
+	/**
+	 * Closes the process's stdin stream.
+	 * @returns true if stdin was closed, false if no process or stdin is unavailable
+	 */
 	closeStdin(): boolean {
 		if (this.process?.stdin && !this.process.stdin.destroyed) {
 			this.process.stdin.end();
@@ -188,6 +263,11 @@ export class CLITestHarness extends EventEmitter {
 		return false;
 	}
 
+	/**
+	 * Kills the running process with the specified signal.
+	 * @param signal - The signal to use (default: 'SIGTERM')
+	 * @returns true if the process was killed, false if no process is running
+	 */
 	kill(signal: NodeJS.Signals = 'SIGTERM'): boolean {
 		if (this.process && !this.process.killed) {
 			return this.process.kill(signal);
@@ -195,6 +275,10 @@ export class CLITestHarness extends EventEmitter {
 		return false;
 	}
 
+	/**
+	 * Checks if a process is currently running.
+	 * @returns true if a process is running and has not exited
+	 */
 	isRunning(): boolean {
 		return (
 			this.process !== null &&
@@ -203,14 +287,33 @@ export class CLITestHarness extends EventEmitter {
 		);
 	}
 
+	/**
+	 * Gets the current accumulated stdout output.
+	 * @returns The stdout output collected so far
+	 */
 	getCurrentStdout(): string {
+		if (this.stdoutChunks.length === 0) return '';
+		if (this.stdoutChunks.length === 1) return this.stdoutChunks[0].toString();
 		return Buffer.concat(this.stdoutChunks).toString();
 	}
 
+	/**
+	 * Gets the current accumulated stderr output.
+	 * @returns The stderr output collected so far
+	 */
 	getCurrentStderr(): string {
+		if (this.stderrChunks.length === 0) return '';
+		if (this.stderrChunks.length === 1) return this.stderrChunks[0].toString();
 		return Buffer.concat(this.stderrChunks).toString();
 	}
 
+	/**
+	 * Waits for output matching a pattern to appear in the process output.
+	 * @param pattern - String or RegExp to match against output
+	 * @param options - Options for timeout and which stream(s) to check
+	 * @returns Promise that resolves with the matched string
+	 * @throws Error if timeout is reached before pattern is found
+	 */
 	async waitForOutput(
 		pattern: RegExp | string,
 		options: {timeout?: number; stream?: 'stdout' | 'stderr' | 'both'} = {},
@@ -263,6 +366,14 @@ export class CLITestHarness extends EventEmitter {
 	}
 
 	private cleanup(): void {
+		if (this.process?.stdout && this.stdoutListener) {
+			this.process.stdout.off('data', this.stdoutListener);
+			this.stdoutListener = null;
+		}
+		if (this.process?.stderr && this.stderrListener) {
+			this.process.stderr.off('data', this.stderrListener);
+			this.stderrListener = null;
+		}
 		if (this.timeoutId) {
 			clearTimeout(this.timeoutId);
 			this.timeoutId = null;
@@ -271,6 +382,7 @@ export class CLITestHarness extends EventEmitter {
 			clearTimeout(this.signalTimeoutId);
 			this.signalTimeoutId = null;
 		}
+		this.process = null;
 	}
 
 	private buildResult(
@@ -290,10 +402,21 @@ export class CLITestHarness extends EventEmitter {
 	}
 }
 
+/**
+ * Creates a new CLITestHarness instance.
+ * @returns A new CLITestHarness ready to run tests
+ */
 export function createCLITestHarness(): CLITestHarness {
 	return new CLITestHarness();
 }
 
+/**
+ * Convenience function to run the CLI with the specified arguments.
+ * Creates a new harness, runs the CLI, and returns the result.
+ * @param args - Command-line arguments to pass to the CLI
+ * @param options - Additional options (timeout, env, etc.)
+ * @returns Promise that resolves with the test result
+ */
 export async function runCLI(
 	args: string[],
 	options: Omit<CLITestOptions, 'args'> = {},
@@ -302,6 +425,13 @@ export async function runCLI(
 	return harness.run({...options, args});
 }
 
+/**
+ * Convenience function to run the CLI in non-interactive mode with a prompt.
+ * Equivalent to running: cli run "<prompt>"
+ * @param prompt - The prompt to pass to the CLI
+ * @param options - Additional options (timeout, env, etc.)
+ * @returns Promise that resolves with the test result
+ */
 export async function runNonInteractive(
 	prompt: string,
 	options: Omit<CLITestOptions, 'args'> = {},
@@ -310,6 +440,12 @@ export async function runNonInteractive(
 	return harness.run({...options, args: ['run', prompt]});
 }
 
+/**
+ * Asserts that the process exited with the expected exit code.
+ * @param result - The CLI test result to check
+ * @param expectedCode - The expected exit code
+ * @throws Error if the exit code doesn't match
+ */
 export function assertExitCode(
 	result: CLITestResult,
 	expectedCode: number,
@@ -323,6 +459,12 @@ export function assertExitCode(
 	}
 }
 
+/**
+ * Asserts that the process was terminated by the expected signal.
+ * @param result - The CLI test result to check
+ * @param expectedSignal - The expected termination signal
+ * @throws Error if the signal doesn't match
+ */
 export function assertSignal(
 	result: CLITestResult,
 	expectedSignal: NodeJS.Signals,
@@ -336,6 +478,11 @@ export function assertSignal(
 	}
 }
 
+/**
+ * Asserts that the process timed out.
+ * @param result - The CLI test result to check
+ * @throws Error if the process did not time out
+ */
 export function assertTimedOut(result: CLITestResult): void {
 	if (!result.timedOut) {
 		throw new Error(
@@ -346,6 +493,12 @@ export function assertTimedOut(result: CLITestResult): void {
 	}
 }
 
+/**
+ * Asserts that stdout contains the expected pattern.
+ * @param result - The CLI test result to check
+ * @param pattern - String or RegExp to match against stdout
+ * @throws Error if the pattern is not found in stdout
+ */
 export function assertStdoutContains(
 	result: CLITestResult,
 	pattern: string | RegExp,
@@ -356,12 +509,20 @@ export function assertStdoutContains(
 			: pattern.test(result.stdout);
 
 	if (!matches) {
+		const patternStr =
+			typeof pattern === 'string' ? `"${pattern}"` : pattern.toString();
 		throw new Error(
-			`Expected stdout to contain ${pattern}, but it was:\n${result.stdout}`,
+			`Expected stdout to contain ${patternStr}, but it was:\n${result.stdout}`,
 		);
 	}
 }
 
+/**
+ * Asserts that stderr contains the expected pattern.
+ * @param result - The CLI test result to check
+ * @param pattern - String or RegExp to match against stderr
+ * @throws Error if the pattern is not found in stderr
+ */
 export function assertStderrContains(
 	result: CLITestResult,
 	pattern: string | RegExp,
@@ -372,12 +533,20 @@ export function assertStderrContains(
 			: pattern.test(result.stderr);
 
 	if (!matches) {
+		const patternStr =
+			typeof pattern === 'string' ? `"${pattern}"` : pattern.toString();
 		throw new Error(
-			`Expected stderr to contain ${pattern}, but it was:\n${result.stderr}`,
+			`Expected stderr to contain ${patternStr}, but it was:\n${result.stderr}`,
 		);
 	}
 }
 
+/**
+ * Asserts that the process completed within the specified time.
+ * @param result - The CLI test result to check
+ * @param maxDurationMs - Maximum allowed duration in milliseconds
+ * @throws Error if the process took longer than the specified time
+ */
 export function assertCompletedWithin(
 	result: CLITestResult,
 	maxDurationMs: number,
