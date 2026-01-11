@@ -1,5 +1,5 @@
 import type {TitleShape} from '@/components/ui/styled-title';
-import type {ThemePreset} from '@/types/ui';
+import type {NanocoderShape, ThemePreset} from '@/types/ui';
 
 // AI provider configurations (OpenAI-compatible)
 export interface AIProviderConfig {
@@ -110,4 +110,5 @@ export interface UserPreferences {
 	selectedTheme?: ThemePreset;
 	trustedDirectories?: string[];
 	titleShape?: TitleShape;
+	nanocoderShape?: NanocoderShape;
 }

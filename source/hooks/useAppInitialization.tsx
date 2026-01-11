@@ -13,6 +13,7 @@ import {
 	mcpCommand,
 	modelCommand,
 	modelDatabaseCommand,
+	nanocoderShapeCommand,
 	providerCommand,
 	setupConfigCommand,
 	statusCommand,
@@ -380,6 +381,7 @@ export function useAppInitialization({
 				setupConfigCommand,
 				usageCommand,
 				titleShapeCommand,
+				nanocoderShapeCommand,
 				checkpointCommand,
 			]);
 

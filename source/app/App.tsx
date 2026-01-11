@@ -356,6 +356,7 @@ export default function App({
 		setIsProviderSelectionMode: appState.setIsProviderSelectionMode,
 		setIsThemeSelectionMode: appState.setIsThemeSelectionMode,
 		setIsTitleShapeSelectionMode: appState.setIsTitleShapeSelectionMode,
+		setIsNanocoderShapeSelectionMode: appState.setIsNanocoderShapeSelectionMode,
 		setIsModelDatabaseMode: appState.setIsModelDatabaseMode,
 		setIsConfigWizardMode: appState.setIsConfigWizardMode,
 		addToChatQueue: appState.addToChatQueue,
@@ -394,6 +395,8 @@ export default function App({
 		enterProviderSelectionMode: modeHandlers.enterProviderSelectionMode,
 		enterThemeSelectionMode: modeHandlers.enterThemeSelectionMode,
 		enterTitleShapeSelectionMode: modeHandlers.enterTitleShapeSelectionMode,
+		enterNanocoderShapeSelectionMode:
+			modeHandlers.enterNanocoderShapeSelectionMode,
 		enterModelDatabaseMode: modeHandlers.enterModelDatabaseMode,
 		enterConfigWizardMode: modeHandlers.enterConfigWizardMode,
 		handleChatMessage: chatHandler.handleChatMessage,
@@ -561,6 +564,7 @@ export default function App({
 							appState.isModelDatabaseMode ||
 							appState.isConfigWizardMode ||
 							appState.isTitleShapeSelectionMode ||
+							appState.isNanocoderShapeSelectionMode ||
 							appState.isCheckpointLoadMode) && (
 							<ModalSelectors
 								isModelSelectionMode={appState.isModelSelectionMode}
@@ -570,6 +574,9 @@ export default function App({
 								isConfigWizardMode={appState.isConfigWizardMode}
 								isCheckpointLoadMode={appState.isCheckpointLoadMode}
 								isTitleShapeSelectionMode={appState.isTitleShapeSelectionMode}
+								isNanocoderShapeSelectionMode={
+									appState.isNanocoderShapeSelectionMode
+								}
 								client={appState.client}
 								currentModel={appState.currentModel}
 								currentProvider={appState.currentProvider}
@@ -584,6 +591,10 @@ export default function App({
 								onTitleShapeSelect={modeHandlers.handleTitleShapeSelect}
 								onTitleShapeSelectionCancel={
 									modeHandlers.handleTitleShapeSelectionCancel
+								}
+								onNanocoderShapeSelect={modeHandlers.handleNanocoderShapeSelect}
+								onNanocoderShapeSelectionCancel={
+									modeHandlers.handleNanocoderShapeSelectionCancel
 								}
 								onThemeSelectionCancel={modeHandlers.handleThemeSelectionCancel}
 								onModelDatabaseCancel={modeHandlers.handleModelDatabaseCancel}
@@ -603,6 +614,7 @@ export default function App({
 								appState.isModelDatabaseMode ||
 								appState.isConfigWizardMode ||
 								appState.isTitleShapeSelectionMode ||
+								appState.isNanocoderShapeSelectionMode ||
 								appState.isCheckpointLoadMode
 							) && (
 								<ChatInput

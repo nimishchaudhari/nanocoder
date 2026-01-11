@@ -24,6 +24,7 @@ const SPECIAL_COMMANDS = {
 	STATUS: 'status',
 	CHECKPOINT: 'checkpoint',
 	TITLE_SHAPE: 'title-shape',
+	NANOCODER_SHAPE: 'nanocoder-shape',
 } as const;
 
 /** Checkpoint subcommands */
@@ -177,6 +178,7 @@ async function handleSpecialCommand(
 		onEnterProviderSelectionMode,
 		onEnterThemeSelectionMode,
 		onEnterTitleShapeSelectionMode,
+		onEnterNanocoderShapeSelectionMode,
 		onEnterModelDatabaseMode,
 		onEnterConfigWizardMode,
 		onShowStatus,
@@ -217,6 +219,11 @@ async function handleSpecialCommand(
 
 		case SPECIAL_COMMANDS.TITLE_SHAPE:
 			onEnterTitleShapeSelectionMode();
+			onCommandComplete?.();
+			return true;
+
+		case SPECIAL_COMMANDS.NANOCODER_SHAPE:
+			onEnterNanocoderShapeSelectionMode();
 			onCommandComplete?.();
 			return true;
 

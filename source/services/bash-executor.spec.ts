@@ -3,10 +3,28 @@ import {BashExecutor} from './bash-executor';
 
 console.log(`\nbash-executor.spec.ts`);
 
+// Track executors for cleanup
+const executorsToCleanup: BashExecutor[] = [];
+
 // Helper to create a fresh executor for each test
 function createExecutor(): BashExecutor {
-	return new BashExecutor();
+	const executor = new BashExecutor();
+	executorsToCleanup.push(executor);
+	return executor;
 }
+
+// Clean up after each test to prevent event listeners from keeping Node alive
+test.afterEach(() => {
+	for (const executor of executorsToCleanup) {
+		// Cancel any active executions
+		for (const id of executor.getActiveExecutionIds()) {
+			executor.cancel(id);
+		}
+		// Remove all event listeners to allow Node to exit
+		executor.removeAllListeners();
+	}
+	executorsToCleanup.length = 0;
+});
 
 // Basic execution tests
 test('execute - returns executionId and promise', t => {
