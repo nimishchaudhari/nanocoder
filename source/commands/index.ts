@@ -11,6 +11,7 @@ export * from '@/commands/model';
 export * from '@/commands/model-database';
 export * from '@/commands/provider';
 export * from '@/commands/setup-config';
+export * from '@/commands/setup-mcp';
 export * from '@/commands/status';
 export * from '@/commands/theme';
 export * from '@/commands/title-shape';

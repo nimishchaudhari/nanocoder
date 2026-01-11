@@ -17,6 +17,7 @@ export interface MessageSubmissionOptions {
 	onEnterTitleShapeSelectionMode: () => void;
 	onEnterModelDatabaseMode: () => void;
 	onEnterConfigWizardMode: () => void;
+	onEnterMcpWizardMode: () => void;
 	onEnterCheckpointLoadMode: (
 		checkpoints: CheckpointListItem[],
 		currentMessageCount: number,

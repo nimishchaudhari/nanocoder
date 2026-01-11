@@ -7,6 +7,7 @@ import ThemeSelector from '@/components/theme-selector';
 import TitleShapeSelector from '@/components/title-shape-selector';
 import type {CheckpointListItem, LLMClient} from '@/types';
 import {ConfigWizard} from '@/wizard/config-wizard';
+import {McpWizard} from '@/wizard/mcp-wizard';
 
 export interface ModalSelectorsProps {
 	// State flags
@@ -15,6 +16,7 @@ export interface ModalSelectorsProps {
 	isThemeSelectionMode: boolean;
 	isModelDatabaseMode: boolean;
 	isConfigWizardMode: boolean;
+	isMcpWizardMode: boolean;
 	isCheckpointLoadMode: boolean;
 	isTitleShapeSelectionMode: boolean;
 
@@ -50,6 +52,10 @@ export interface ModalSelectorsProps {
 	onConfigWizardComplete: (configPath: string) => Promise<void>;
 	onConfigWizardCancel: () => void;
 
+	// Handlers - MCP Wizard
+	onMcpWizardComplete: (configPath: string) => Promise<void>;
+	onMcpWizardCancel: () => void;
+
 	// Handlers - Checkpoint
 	onCheckpointSelect: (name: string, backup: boolean) => Promise<void>;
 	onCheckpointCancel: () => void;
@@ -65,6 +71,7 @@ export function ModalSelectors({
 	isThemeSelectionMode,
 	isModelDatabaseMode,
 	isConfigWizardMode,
+	isMcpWizardMode,
 	isCheckpointLoadMode,
 	isTitleShapeSelectionMode,
 	client,
@@ -80,6 +87,8 @@ export function ModalSelectors({
 	onModelDatabaseCancel,
 	onConfigWizardComplete,
 	onConfigWizardCancel,
+	onMcpWizardComplete,
+	onMcpWizardCancel,
 	onCheckpointSelect,
 	onCheckpointCancel,
 	onTitleShapeSelect,
@@ -134,6 +143,16 @@ export function ModalSelectors({
 				projectDir={process.cwd()}
 				onComplete={configPath => void onConfigWizardComplete(configPath)}
 				onCancel={onConfigWizardCancel}
+			/>
+		);
+	}
+
+	if (isMcpWizardMode) {
+		return (
+			<McpWizard
+				projectDir={process.cwd()}
+				onComplete={configPath => void onMcpWizardComplete(configPath)}
+				onCancel={onMcpWizardCancel}
 			/>
 		);
 	}

@@ -30,7 +30,7 @@ function showArrayFormatDeprecationWarning() {
 function showAgentsConfigDeprecationWarning() {
 	const _configPath = join(getConfigPath(), '.mcp.json');
 	logError('Warning: MCP servers in agents.config.json are deprecated.');
-	logError('Please migrate to ${_configPath}');
+	logError(`Please migrate to ${_configPath}`);
 	logError(
 		'Format: { "mcpServers": { "serverName": { "command": "...", "args": [...] } } }',
 	);

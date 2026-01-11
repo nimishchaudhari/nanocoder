@@ -73,6 +73,7 @@ interface UseAppHandlersProps {
 	enterTitleShapeSelectionMode: () => void;
 	enterModelDatabaseMode: () => void;
 	enterConfigWizardMode: () => void;
+	enterMcpWizardMode: () => void;
 
 	// Chat handler
 	handleChatMessage: (message: string) => Promise<void>;
@@ -260,6 +261,7 @@ export function useAppHandlers(props: UseAppHandlersProps): AppHandlers {
 				onEnterThemeSelectionMode: props.enterThemeSelectionMode,
 				onEnterModelDatabaseMode: props.enterModelDatabaseMode,
 				onEnterConfigWizardMode: props.enterConfigWizardMode,
+				onEnterMcpWizardMode: props.enterMcpWizardMode,
 				onEnterCheckpointLoadMode: enterCheckpointLoadMode,
 				onEnterTitleShapeSelectionMode: props.enterTitleShapeSelectionMode,
 				onShowStatus: handleShowStatus,

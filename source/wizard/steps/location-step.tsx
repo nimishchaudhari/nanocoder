@@ -13,6 +13,7 @@ interface LocationStepProps {
 	onComplete: (location: ConfigLocation) => void;
 	onBack?: () => void;
 	projectDir: string;
+	configFileName?: string; // Name of the config file (default: 'agents.config.json')
 }
 
 interface LocationOption {
@@ -24,10 +25,11 @@ export function LocationStep({
 	onComplete,
 	onBack,
 	projectDir,
+	configFileName = 'agents.config.json',
 }: LocationStepProps) {
 	const {isNarrow, truncatePath} = useResponsiveTerminal();
-	const projectPath = join(projectDir, 'agents.config.json');
-	const globalPath = join(getConfigPath(), 'agents.config.json');
+	const projectPath = join(projectDir, configFileName);
+	const globalPath = join(getConfigPath(), configFileName);
 
 	const projectExists = existsSync(projectPath);
 	const globalExists = existsSync(globalPath);

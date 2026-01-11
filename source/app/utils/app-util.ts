@@ -21,6 +21,7 @@ const SPECIAL_COMMANDS = {
 	THEME: 'theme',
 	MODEL_DATABASE: 'model-database',
 	SETUP_CONFIG: 'setup-config',
+	SETUP_MCP: 'setup-mcp',
 	STATUS: 'status',
 	CHECKPOINT: 'checkpoint',
 	TITLE_SHAPE: 'title-shape',
@@ -179,6 +180,7 @@ async function handleSpecialCommand(
 		onEnterTitleShapeSelectionMode,
 		onEnterModelDatabaseMode,
 		onEnterConfigWizardMode,
+		onEnterMcpWizardMode,
 		onShowStatus,
 		onCommandComplete,
 		onAddToChatQueue,
@@ -227,6 +229,11 @@ async function handleSpecialCommand(
 
 		case SPECIAL_COMMANDS.SETUP_CONFIG:
 			onEnterConfigWizardMode();
+			onCommandComplete?.();
+			return true;
+
+		case SPECIAL_COMMANDS.SETUP_MCP:
+			onEnterMcpWizardMode();
 			onCommandComplete?.();
 			return true;
 
