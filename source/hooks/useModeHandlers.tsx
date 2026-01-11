@@ -6,11 +6,12 @@ import {
 	loadPreferences,
 	savePreferences,
 	updateLastUsed,
+	updateNanocoderShape,
 	updateTitleShape,
 } from '@/config/preferences';
 import {getToolManager} from '@/message-handler';
 import {LLMClient, Message} from '@/types/core';
-import type {ThemePreset, TitleShape} from '@/types/ui';
+import type {NanocoderShape, ThemePreset, TitleShape} from '@/types/ui';
 
 interface UseModeHandlersProps {
 	client: LLMClient | null;
@@ -26,6 +27,7 @@ interface UseModeHandlersProps {
 	setIsProviderSelectionMode: (mode: boolean) => void;
 	setIsThemeSelectionMode: (mode: boolean) => void;
 	setIsTitleShapeSelectionMode: (mode: boolean) => void;
+	setIsNanocoderShapeSelectionMode: (mode: boolean) => void;
 	setIsModelDatabaseMode: (mode: boolean) => void;
 	setIsConfigWizardMode: (mode: boolean) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
@@ -49,6 +51,7 @@ export function useModeHandlers({
 	setIsProviderSelectionMode,
 	setIsThemeSelectionMode,
 	setIsTitleShapeSelectionMode,
+	setIsNanocoderShapeSelectionMode,
 	setIsModelDatabaseMode,
 	setIsConfigWizardMode,
 	addToChatQueue,
@@ -190,6 +193,32 @@ export function useModeHandlers({
 		setIsTitleShapeSelectionMode(false);
 	};
 
+	// Helper function to enter nanocoder shape selection mode
+	const enterNanocoderShapeSelectionMode = () => {
+		setIsNanocoderShapeSelectionMode(true);
+	};
+
+	// Handle nanocoder shape selection
+	const handleNanocoderShapeSelect = (selectedShape: NanocoderShape) => {
+		updateNanocoderShape(selectedShape);
+
+		// Add success message to chat queue
+		addToChatQueue(
+			<SuccessMessage
+				key={`nanocoder-shape-changed-${getNextComponentKey()}`}
+				message={`Nanocoder branding style changed to: ${selectedShape}.`}
+				hideBox={true}
+			/>,
+		);
+
+		setIsNanocoderShapeSelectionMode(false);
+	};
+
+	// Handle nanocoder shape selection cancel
+	const handleNanocoderShapeSelectionCancel = () => {
+		setIsNanocoderShapeSelectionMode(false);
+	};
+
 	// Handle theme selection
 	const handleThemeSelect = (selectedTheme: ThemePreset) => {
 		const preferences = loadPreferences();
@@ -319,6 +348,9 @@ export function useModeHandlers({
 		enterTitleShapeSelectionMode,
 		handleTitleShapeSelect,
 		handleTitleShapeSelectionCancel,
+		enterNanocoderShapeSelectionMode,
+		handleNanocoderShapeSelect,
+		handleNanocoderShapeSelectionCancel,
 		enterModelDatabaseMode,
 		enterConfigWizardMode,
 		handleModelSelect,

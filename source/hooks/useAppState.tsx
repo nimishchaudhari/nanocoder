@@ -103,6 +103,8 @@ export function useAppState() {
 		useState<boolean>(false);
 	const [isTitleShapeSelectionMode, setIsTitleShapeSelectionMode] =
 		useState<boolean>(false);
+	const [isNanocoderShapeSelectionMode, setIsNanocoderShapeSelectionMode] =
+		useState<boolean>(false);
 	const [isModelDatabaseMode, setIsModelDatabaseMode] =
 		useState<boolean>(false);
 	const [isConfigWizardMode, setIsConfigWizardMode] = useState<boolean>(false);
@@ -259,6 +261,7 @@ export function useAppState() {
 		isProviderSelectionMode,
 		isThemeSelectionMode,
 		isTitleShapeSelectionMode,
+		isNanocoderShapeSelectionMode,
 		isModelDatabaseMode,
 		isConfigWizardMode,
 		isCheckpointLoadMode,
@@ -301,6 +304,7 @@ export function useAppState() {
 		setIsProviderSelectionMode,
 		setIsThemeSelectionMode,
 		setIsTitleShapeSelectionMode,
+		setIsNanocoderShapeSelectionMode,
 		setIsModelDatabaseMode,
 		setIsConfigWizardMode,
 		setIsCheckpointLoadMode,

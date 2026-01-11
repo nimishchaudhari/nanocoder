@@ -9,6 +9,7 @@ export * from '@/commands/lsp';
 export * from '@/commands/mcp';
 export * from '@/commands/model';
 export * from '@/commands/model-database';
+export * from '@/commands/nanocoder-shape';
 export * from '@/commands/provider';
 export * from '@/commands/setup-config';
 export * from '@/commands/status';

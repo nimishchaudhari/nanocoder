@@ -576,6 +576,7 @@ You can override this directory using `NANOCODER_DATA_DIR`.
 - `/export` - Export current session to markdown file
 - `/theme` - Select a theme for the Nanocoder CLI
 - `/title-shape` - Select a title shape style for the Nanocoder CLI (real-time preview)
+- `/nanocoder-shape` - Select a branding font style for the Nanocoder welcome banner (real-time preview)
 - `/update` - Update Nanocoder to the latest version
 - `/usage` – Get current model context usage visually
 - `/lsp` – List connected LSP servers

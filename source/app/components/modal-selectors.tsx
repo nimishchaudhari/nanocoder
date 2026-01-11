@@ -2,6 +2,7 @@ import React from 'react';
 import {ModelDatabaseDisplay} from '@/commands/model-database';
 import CheckpointSelector from '@/components/checkpoint-selector';
 import ModelSelector from '@/components/model-selector';
+import NanocoderShapeSelector from '@/components/nanocoder-shape-selector';
 import ProviderSelector from '@/components/provider-selector';
 import ThemeSelector from '@/components/theme-selector';
 import TitleShapeSelector from '@/components/title-shape-selector';
@@ -17,6 +18,7 @@ export interface ModalSelectorsProps {
 	isConfigWizardMode: boolean;
 	isCheckpointLoadMode: boolean;
 	isTitleShapeSelectionMode: boolean;
+	isNanocoderShapeSelectionMode: boolean;
 
 	// Current values
 	client: LLMClient | null;
@@ -43,6 +45,10 @@ export interface ModalSelectorsProps {
 	onTitleShapeSelect: (shape: import('@/types/ui').TitleShape) => void;
 	onTitleShapeSelectionCancel: () => void;
 
+	// Handlers - Nanocoder Shape Selection
+	onNanocoderShapeSelect: (shape: import('@/types/ui').NanocoderShape) => void;
+	onNanocoderShapeSelectionCancel: () => void;
+
 	// Handlers - Model Database
 	onModelDatabaseCancel: () => void;
 
@@ -67,6 +73,7 @@ export function ModalSelectors({
 	isConfigWizardMode,
 	isCheckpointLoadMode,
 	isTitleShapeSelectionMode,
+	isNanocoderShapeSelectionMode,
 	client,
 	currentModel,
 	currentProvider,
@@ -84,6 +91,8 @@ export function ModalSelectors({
 	onCheckpointCancel,
 	onTitleShapeSelect,
 	onTitleShapeSelectionCancel,
+	onNanocoderShapeSelect,
+	onNanocoderShapeSelectionCancel,
 }: ModalSelectorsProps): React.ReactElement | null {
 	if (isModelSelectionMode) {
 		return (
@@ -120,6 +129,15 @@ export function ModalSelectors({
 			<TitleShapeSelector
 				onComplete={onTitleShapeSelect}
 				onCancel={onTitleShapeSelectionCancel}
+			/>
+		);
+	}
+
+	if (isNanocoderShapeSelectionMode) {
+		return (
+			<NanocoderShapeSelector
+				onComplete={onNanocoderShapeSelect}
+				onCancel={onNanocoderShapeSelectionCancel}
 			/>
 		);
 	}
