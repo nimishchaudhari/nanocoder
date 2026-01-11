@@ -30,6 +30,7 @@ interface UseModeHandlersProps {
 	setIsNanocoderShapeSelectionMode: (mode: boolean) => void;
 	setIsModelDatabaseMode: (mode: boolean) => void;
 	setIsConfigWizardMode: (mode: boolean) => void;
+	setIsMcpWizardMode: (mode: boolean) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	getNextComponentKey: () => number;
 	reinitializeMCPServers: (
@@ -54,6 +55,7 @@ export function useModeHandlers({
 	setIsNanocoderShapeSelectionMode,
 	setIsModelDatabaseMode,
 	setIsConfigWizardMode,
+	setIsMcpWizardMode,
 	addToChatQueue,
 	getNextComponentKey,
 	reinitializeMCPServers,
@@ -341,6 +343,57 @@ export function useModeHandlers({
 		setIsConfigWizardMode(false);
 	};
 
+	// Helper function to enter MCP wizard mode
+	const enterMcpWizardMode = () => {
+		setIsMcpWizardMode(true);
+	};
+
+	// Handle MCP wizard cancel/complete
+	const handleMcpWizardComplete = async (configPath?: string) => {
+		setIsMcpWizardMode(false);
+		if (configPath) {
+			addToChatQueue(
+				<SuccessMessage
+					key={`mcp-wizard-complete-${getNextComponentKey()}`}
+					message={`MCP configuration saved to: ${configPath}.`}
+					hideBox={true}
+				/>,
+			);
+
+			// Reload the app configuration to pick up the newly saved config
+			reloadAppConfig();
+
+			// Reinitialize MCP servers with the new configuration
+			const toolManager = getToolManager();
+			if (toolManager) {
+				try {
+					await reinitializeMCPServers(toolManager);
+					addToChatQueue(
+						<SuccessMessage
+							key={`mcp-reinit-${getNextComponentKey()}`}
+							message="MCP servers reinitialized with new configuration."
+							hideBox={true}
+						/>,
+					);
+				} catch (mcpError) {
+					addToChatQueue(
+						<ErrorMessage
+							key={`mcp-reinit-error-${getNextComponentKey()}`}
+							message={`Failed to reinitialize MCP servers: ${String(
+								mcpError,
+							)}`}
+							hideBox={true}
+						/>,
+					);
+				}
+			}
+		}
+	};
+
+	const handleMcpWizardCancel = () => {
+		setIsMcpWizardMode(false);
+	};
+
 	return {
 		enterModelSelectionMode,
 		enterProviderSelectionMode,
@@ -353,6 +406,7 @@ export function useModeHandlers({
 		handleNanocoderShapeSelectionCancel,
 		enterModelDatabaseMode,
 		enterConfigWizardMode,
+		enterMcpWizardMode,
 		handleModelSelect,
 		handleModelSelectionCancel,
 		handleProviderSelect,
@@ -362,5 +416,7 @@ export function useModeHandlers({
 		handleModelDatabaseCancel,
 		handleConfigWizardComplete,
 		handleConfigWizardCancel,
+		handleMcpWizardComplete,
+		handleMcpWizardCancel,
 	};
 }

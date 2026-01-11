@@ -290,6 +290,7 @@ export default function App({
 			!appState.isToolExecuting &&
 			!appState.isToolConfirmationMode &&
 			!appState.isConfigWizardMode &&
+			!appState.isMcpWizardMode &&
 			appState.pendingToolCalls.length === 0
 		) {
 			const correlationId = generateCorrelationId();
@@ -313,6 +314,7 @@ export default function App({
 		appState.isToolExecuting,
 		appState.isToolConfirmationMode,
 		appState.isConfigWizardMode,
+		appState.isMcpWizardMode,
 		appState.pendingToolCalls.length,
 		logger,
 		appState.developmentMode,
@@ -359,6 +361,7 @@ export default function App({
 		setIsNanocoderShapeSelectionMode: appState.setIsNanocoderShapeSelectionMode,
 		setIsModelDatabaseMode: appState.setIsModelDatabaseMode,
 		setIsConfigWizardMode: appState.setIsConfigWizardMode,
+		setIsMcpWizardMode: appState.setIsMcpWizardMode,
 		addToChatQueue: appState.addToChatQueue,
 		getNextComponentKey: appState.getNextComponentKey,
 		reinitializeMCPServers: appInitialization.reinitializeMCPServers,
@@ -399,6 +402,7 @@ export default function App({
 			modeHandlers.enterNanocoderShapeSelectionMode,
 		enterModelDatabaseMode: modeHandlers.enterModelDatabaseMode,
 		enterConfigWizardMode: modeHandlers.enterConfigWizardMode,
+		enterMcpWizardMode: modeHandlers.enterMcpWizardMode,
 		handleChatMessage: chatHandler.handleChatMessage,
 	});
 
@@ -563,6 +567,7 @@ export default function App({
 							appState.isThemeSelectionMode ||
 							appState.isModelDatabaseMode ||
 							appState.isConfigWizardMode ||
+							appState.isMcpWizardMode ||
 							appState.isTitleShapeSelectionMode ||
 							appState.isNanocoderShapeSelectionMode ||
 							appState.isCheckpointLoadMode) && (
@@ -572,6 +577,7 @@ export default function App({
 								isThemeSelectionMode={appState.isThemeSelectionMode}
 								isModelDatabaseMode={appState.isModelDatabaseMode}
 								isConfigWizardMode={appState.isConfigWizardMode}
+								isMcpWizardMode={appState.isMcpWizardMode}
 								isCheckpointLoadMode={appState.isCheckpointLoadMode}
 								isTitleShapeSelectionMode={appState.isTitleShapeSelectionMode}
 								isNanocoderShapeSelectionMode={
@@ -600,6 +606,8 @@ export default function App({
 								onModelDatabaseCancel={modeHandlers.handleModelDatabaseCancel}
 								onConfigWizardComplete={modeHandlers.handleConfigWizardComplete}
 								onConfigWizardCancel={modeHandlers.handleConfigWizardCancel}
+								onMcpWizardComplete={modeHandlers.handleMcpWizardComplete}
+								onMcpWizardCancel={modeHandlers.handleMcpWizardCancel}
 								onCheckpointSelect={appHandlers.handleCheckpointSelect}
 								onCheckpointCancel={appHandlers.handleCheckpointCancel}
 							/>
@@ -613,6 +621,7 @@ export default function App({
 								appState.isThemeSelectionMode ||
 								appState.isModelDatabaseMode ||
 								appState.isConfigWizardMode ||
+								appState.isMcpWizardMode ||
 								appState.isTitleShapeSelectionMode ||
 								appState.isNanocoderShapeSelectionMode ||
 								appState.isCheckpointLoadMode

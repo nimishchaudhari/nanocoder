@@ -15,7 +15,9 @@ import {
 	modelDatabaseCommand,
 	nanocoderShapeCommand,
 	providerCommand,
-	setupConfigCommand,
+	quitCommand,
+	setupMcpCommand,
+	setupProvidersCommand,
 	statusCommand,
 	themeCommand,
 	titleShapeCommand,
@@ -29,6 +31,7 @@ import {
 	loadPreferences,
 	updateLastUsed,
 } from '@/config/preferences';
+import {validateProjectConfigSecurity} from '@/config/validation';
 import {CustomCommandExecutor} from '@/custom-commands/executor';
 import {CustomCommandLoader} from '@/custom-commands/loader';
 import {getLSPManager, type LSPInitResult} from '@/lsp/index';
@@ -136,6 +139,9 @@ export function useAppInitialization({
 	// Initialize MCP servers if configured
 	const initializeMCPServers = async (toolManager: ToolManager) => {
 		if (appConfig.mcpServers && appConfig.mcpServers.length > 0) {
+			// Validate security for project-level configurations
+			validateProjectConfigSecurity(appConfig.mcpServers);
+
 			// Initialize status array
 			const mcpStatus: MCPConnectionStatus[] = appConfig.mcpServers.map(
 				server => ({
@@ -378,11 +384,13 @@ export function useAppInitialization({
 				updateCommand,
 				modelDatabaseCommand,
 				statusCommand,
-				setupConfigCommand,
+				setupProvidersCommand,
+				setupMcpCommand,
 				usageCommand,
 				titleShapeCommand,
 				nanocoderShapeCommand,
 				checkpointCommand,
+				quitCommand,
 			]);
 
 			// Now start with the properly initialized objects (excluding MCP)

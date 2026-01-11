@@ -108,6 +108,7 @@ export function useAppState() {
 	const [isModelDatabaseMode, setIsModelDatabaseMode] =
 		useState<boolean>(false);
 	const [isConfigWizardMode, setIsConfigWizardMode] = useState<boolean>(false);
+	const [isMcpWizardMode, setIsMcpWizardMode] = useState<boolean>(false);
 	const [isCheckpointLoadMode, setIsCheckpointLoadMode] =
 		useState<boolean>(false);
 	const [checkpointLoadData, setCheckpointLoadData] = useState<{
@@ -264,6 +265,7 @@ export function useAppState() {
 		isNanocoderShapeSelectionMode,
 		isModelDatabaseMode,
 		isConfigWizardMode,
+		isMcpWizardMode,
 		isCheckpointLoadMode,
 		checkpointLoadData,
 		isToolConfirmationMode,
@@ -307,6 +309,7 @@ export function useAppState() {
 		setIsNanocoderShapeSelectionMode,
 		setIsModelDatabaseMode,
 		setIsConfigWizardMode,
+		setIsMcpWizardMode,
 		setIsCheckpointLoadMode,
 		setCheckpointLoadData,
 		setIsToolConfirmationMode,

@@ -17,8 +17,8 @@ source/config/* @will-lamerton @Avtrkrb
 source/init/* @will-lamerton @Avtrkrb
 
 # Model and AI related
-source/models/* @will-lamerton @Avtrkrb @DenizOkcu
-source/client-factory* @will-lamerton @Avtrkrb @DenizOkcu
+source/models/* @will-lamerton @Avtrkrb
+source/client-factory* @will-lamerton @Avtrkrb
 
 # VSCode plugin
 plugins/vscode/**/* @will-lamerton @Avtrkrb

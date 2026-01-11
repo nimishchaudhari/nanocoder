@@ -181,6 +181,46 @@ pnpm run dev
 
 ## Usage
 
+### CLI Options
+
+Nanocoder supports standard CLI arguments for quick information and help:
+
+```bash
+# Show version information
+nanocoder --version
+nanocoder -v
+
+# Show help and available options
+nanocoder --help
+nanocoder -h
+```
+
+**CLI Options Reference:**
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--version` | `-v` | Display the installed version number |
+| `--help` | `-h` | Show usage information and available options |
+| `--vscode` | | Run in VS Code mode (for extension) |
+| `--vscode-port` | | Specify VS Code server port |
+| `run` | | Run in non-interactive mode |
+
+**Common Use Cases:**
+
+```bash
+# Check version in scripts
+echo "Nanocoder version: $(nanocoder --version)"
+
+# Get help in CI/CD pipelines
+nanocoder --help
+
+# Quick version check
+nanocoder -v
+
+# Discover available options
+nanocoder -h
+```
+
 ### Interactive Mode
 
 To start Nanocoder in interactive mode (the default), simply run:
@@ -243,8 +283,15 @@ Nanocoder supports any OpenAI-compatible API through a unified provider configur
 
 **Configuration Methods:**
 
-1. **Interactive Setup (Recommended for new users)**: Run `/setup-config` inside Nanocoder for a guided wizard with provider templates
+1. **Interactive Setup (Recommended for new users)**: Run `/setup-providers` inside Nanocoder for a guided wizard with provider templates. The wizard allows you to:
+   - Choose between project-level or global configuration
+   - Select from common provider templates (Ollama, OpenRouter, LM Studio, etc.)
+   - Add custom OpenAI-compatible providers manually
+   - Edit or delete existing providers
+   - Fetch available models automatically from your provider
 2. **Manual Configuration**: Create an `agents.config.json` file (see below for locations)
+
+> **Note**: The `/setup-providers` wizard requires at least one provider to be configured before saving. You cannot exit without adding a provider.
 
 **Configuration File Locations:**
 
@@ -441,84 +488,47 @@ For complete documentation, see [Pino Logging Guide](docs/pino-logging.md).
 
 ### MCP (Model Context Protocol) Servers
 
-Nanocoder supports connecting to MCP servers to extend its capabilities with additional tools. Configure MCP servers in your `agents.config.json`:
+Nanocoder supports MCP servers to extend its capabilities with additional tools. Configure servers using `.mcp.json` files at project or global level.
+
+**Quick Start:**
+
+1. Run `/setup-mcp` for an interactive wizard with templates
+2. Or create `.mcp.json` in your project root:
 
 ```json
 {
-	"nanocoder": {
-		"mcpServers": [
-			{
-				"name": "filesystem",
-				"transport": "stdio",
-				"command": "npx",
-				"args": [
-					"@modelcontextprotocol/server-filesystem",
-					"/path/to/allowed/directory"
-				]
-			},
-			{
-				"name": "github",
-				"transport": "stdio",
-				"command": "npx",
-				"args": ["@modelcontextprotocol/server-github"],
-				"env": {
-					"GITHUB_TOKEN": "your-github-token"
-				}
-			},
-			{
-				"name": "remote-search",
-				"transport": "http",
-				"url": "https://api.example.com/mcp",
-				"timeout": 30000
-			},
-			{
-				"name": "websocket-server",
-				"transport": "websocket",
-				"url": "wss://ws.example.com/mcp",
-				"timeout": 60000
-			}
-		]
-	}
+  "mcpServers": {
+    "filesystem": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./src"],
+      "alwaysAllow": ["list_directory", "read_file"]
+    },
+    "github": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_TOKEN": "$GITHUB_TOKEN" }
+    }
+  }
 }
 ```
 
-**MCP Server Configuration:**
+**Key Features:**
 
-- `name`: Display name for the MCP server
-- `transport`: Transport type (`stdio`, `http`, `websocket`)
-- **For stdio transport:**
-  - `command`: Executable command to start the server
-  - `args`: Array of command-line arguments
-  - `env`: Environment variables for the server process
-- **For http/websocket transport:**
-  - `url`: Server endpoint URL
-  - `timeout`: Connection timeout in milliseconds (optional)
+- **Transport types**: `stdio` (local), `http`, `websocket` (remote)
+- **Auto-approve tools**: Use `alwaysAllow` to skip confirmation for trusted tools
+- **Environment variables**: Use `$VAR` or `${VAR:-default}` syntax
+- **Hierarchical config**: Project-level (`.mcp.json`) overrides global (`~/.config/nanocoder/.mcp.json`)
 
-**Transport Types:**
+**Commands:**
 
-- **stdio**: Local command-line servers (most common)
-- **http**: Remote HTTP API endpoints
-- **websocket**: Real-time WebSocket connections
+- `/setup-mcp` - Interactive configuration wizard (supports `Ctrl+E` for manual editing)
+- `/mcp` - Show connected servers and their tools
 
-When MCP servers are configured, Nanocoder will:
+Popular MCP servers: Filesystem, GitHub, Brave Search, Context7, DeepWiki, and [many more](https://github.com/modelcontextprotocol/servers).
 
-- Automatically connect to all configured servers on startup
-- Make all server tools available to the AI model
-- Show connected servers and their tools with the `/mcp` command
-- Display transport type and connection details in configuration summary
-
-Popular MCP servers:
-
-- **Filesystem**: Enhanced file operations (stdio)
-- **GitHub**: Repository management (stdio)
-- **Brave Search**: Web search capabilities (http)
-- **Memory**: Persistent context storage
-- **Context7**: Documentation lookup (http)
-- **DeepWiki**: Wikipedia search (http)
-- **Sequential Thinking**: Advanced reasoning (http)
-- [View more MCP servers](https://github.com/modelcontextprotocol/servers)
-
-> **Note**: MCP server configuration follows the same location hierarchy as AI provider setup above. Use `/setup-config` for an interactive configuration wizard with templates for both local and remote MCP servers, or manually edit `agents.config.json` at the project level (current directory) or user level (platform-specific paths listed above).
+> **Full documentation**: See the [MCP Configuration Guide](docs/mcp-configuration.md) for detailed setup, examples, and troubleshooting.
 
 ### User Preferences
 
@@ -563,7 +573,8 @@ You can override this directory using `NANOCODER_DATA_DIR`.
 
 - `/help` - Show available commands
 - `/init` - Initialize project with intelligent analysis, create AGENTS.md and configuration files. Use `/init --force` to regenerate AGENTS.md if it already exists.
-- `/setup-config` - Interactive wizard for configuring AI providers and MCP servers with templates
+- `/setup-providers` - Interactive wizard for configuring AI providers with templates
+- `/setup-mcp` - Interactive wizard for configuring MCP servers with templates
 - `/clear` - Clear chat history
 - `/model` - Switch between available models
 - `/provider` - Switch between configured AI providers
