@@ -1,3 +1,4 @@
+import {spawnSync} from 'node:child_process';
 import {
 	existsSync,
 	mkdirSync,
@@ -159,8 +160,91 @@ export function McpWizard({projectDir, onComplete, onCancel}: McpWizardProps) {
 		}
 	};
 
+	const openInEditor = () => {
+		try {
+			// Save current progress
+			if (Object.keys(mcpServers).length > 0) {
+				const mcpConfig = buildMcpConfigObject(mcpServers);
+				const mcpDir = dirname(mcpConfigPath);
+				if (!existsSync(mcpDir)) {
+					mkdirSync(mcpDir, {recursive: true});
+				}
+				writeFileSync(
+					mcpConfigPath,
+					JSON.stringify(mcpConfig, null, 2),
+					'utf-8',
+				);
+			}
+
+			// Detect editor (respect $EDITOR or $VISUAL environment variables)
+			// Fall back to nano on Unix/Mac (much friendlier than vi!)
+			// On Windows, use notepad
+			const editor =
+				process.env.EDITOR ||
+				process.env.VISUAL ||
+				(process.platform === 'win32' ? 'notepad' : 'nano');
+
+			// Show cursor and restore terminal for editor
+			process.stdout.write('\x1B[?25h'); // Show cursor
+			process.stdin.setRawMode?.(false); // Disable raw mode
+
+			// Open MCP config in editor
+			const result = spawnSync(editor, [mcpConfigPath], {
+				stdio: 'inherit', // Give editor full control of terminal
+			});
+
+			// Restore terminal state after editor closes
+			process.stdin.setRawMode?.(true); // Re-enable raw mode
+			process.stdout.write('\x1B[?25l'); // Hide cursor (Ink will manage it)
+
+			if (result.status === 0) {
+				// Reload config to get updated values
+				let loadedMcpServers: Record<string, McpServerConfig> = {};
+
+				// Reload MCP config
+				if (existsSync(mcpConfigPath)) {
+					try {
+						const editedContent = readFileSync(mcpConfigPath, 'utf-8');
+						const editedConfig = JSON.parse(editedContent) as {
+							mcpServers?: Record<string, McpServerConfig>;
+						};
+						loadedMcpServers = editedConfig.mcpServers || {};
+					} catch (parseErr) {
+						setError(
+							parseErr instanceof Error
+								? `Invalid JSON: ${parseErr.message}`
+								: 'Failed to parse edited configuration',
+						);
+						setStep('summary');
+						return;
+					}
+				}
+
+				setMcpServers(loadedMcpServers);
+
+				// Return to summary to review changes
+				setStep('summary');
+				setError(null);
+			} else {
+				setError('Editor exited with an error. Changes may not be saved.');
+				setStep('summary');
+			}
+		} catch (err) {
+			// Restore terminal state on error
+			process.stdin.setRawMode?.(true);
+			process.stdout.write('\x1B[?25l');
+
+			setError(
+				err instanceof Error
+					? `Failed to open editor: ${err.message}`
+					: 'Failed to open editor',
+			);
+			setStep('summary');
+		}
+	};
+
 	// Handle global keyboard shortcuts
-	useInput((_input, key) => {
+	useInput((input, key) => {
 		// In complete step, wait for Enter to finish
 		if (step === 'complete' && key.return) {
 			onComplete(mcpConfigPath);
@@ -173,6 +257,16 @@ export function McpWizard({projectDir, onComplete, onCancel}: McpWizardProps) {
 				onCancel();
 			}
 			return;
+		}
+
+		// Ctrl+E to open editor (available after location is chosen)
+		if (
+			key.ctrl &&
+			input === 'e' &&
+			mcpConfigPath &&
+			(step === 'mcp' || step === 'summary')
+		) {
+			openInEditor();
 		}
 	});
 
@@ -332,20 +426,23 @@ export function McpWizard({projectDir, onComplete, onCancel}: McpWizardProps) {
 
 			{renderStep()}
 
-			{step === 'location' || step === 'mcp' ? (
-				isNarrow ? (
+			{(step === 'location' || step === 'mcp' || step === 'summary') &&
+				(isNarrow ? (
 					<Box marginTop={1} flexDirection="column">
 						<Text color={colors.secondary}>Esc: Exit wizard</Text>
 						<Text color={colors.secondary}>Shift+Tab: Go back</Text>
+						{mcpConfigPath && (
+							<Text color={colors.secondary}>Ctrl+E: Edit manually</Text>
+						)}
 					</Box>
 				) : (
 					<Box marginTop={1}>
 						<Text color={colors.secondary}>
 							Esc: Exit wizard | Shift+Tab: Go back
+							{mcpConfigPath && ' | Ctrl+E: Edit manually'}
 						</Text>
 					</Box>
-				)
-			) : null}
+				))}
 
 			{/* Handle summary step actions */}
 			{step === 'summary' && (

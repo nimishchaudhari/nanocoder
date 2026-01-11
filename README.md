@@ -488,143 +488,47 @@ For complete documentation, see [Pino Logging Guide](docs/pino-logging.md).
 
 ### MCP (Model Context Protocol) Servers
 
-Nanocoder supports connecting to MCP servers to extend its capabilities with additional tools. You can configure MCP servers using either the traditional `agents.config.json` file or new project-level configuration files.
+Nanocoder supports MCP servers to extend its capabilities with additional tools. Configure servers using `.mcp.json` files at project or global level.
 
-#### Project-Level Configuration (Recommended for Teams)
+**Quick Start:**
 
-Nanocoder supports project-level MCP configuration files that enable team collaboration. Use the `/setup-mcp` wizard for interactive setup, or create configuration files manually.
+1. Run `/setup-mcp` for an interactive wizard with templates
+2. Or create `.mcp.json` in your project root:
 
-**Supported configuration file locations:**
-
-- **`.mcp.json`** - Primary project-level config in project root
-- **`mcp.json`** - Alternative project-level config in project root
-- **`.nanocoder/mcp.json`** - Nanocoder-specific directory config
-- **`.claude/mcp.json`** - Claude Code compatibility config
-- **`.nanocoder/mcp.local.json`** - Local overrides (gitignored, highest priority)
-
-Project-level configs take precedence over the global configuration.
-
-**Example `.mcp.json` (Array Format):**
-```json
-{
-  "mcpServers": [
-    {
-      "name": "filesystem",
-      "transport": "stdio",
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-filesystem", "./src"],
-      "description": "Project filesystem access",
-      "env": {
-        "ALLOWED_PATHS": "./src"
-      }
-    }
-  ]
-}
-```
-
-**Example `.mcp.json` (Claude Code Object Format):**
 ```json
 {
   "mcpServers": {
     "filesystem": {
       "transport": "stdio",
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-filesystem", "./src"],
-      "description": "Project filesystem access",
-      "env": {
-        "ALLOWED_PATHS": "./src"
-      }
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./src"],
+      "alwaysAllow": ["list_directory", "read_file"]
     },
     "github": {
       "transport": "stdio",
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_TOKEN": "$GITHUB_TOKEN"
-      }
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_TOKEN": "$GITHUB_TOKEN" }
     }
   }
 }
 ```
 
-The Claude Code format (object with named keys) is fully supported alongside the traditional array format.
+**Key Features:**
 
-#### Global Configuration
+- **Transport types**: `stdio` (local), `http`, `websocket` (remote)
+- **Auto-approve tools**: Use `alwaysAllow` to skip confirmation for trusted tools
+- **Environment variables**: Use `$VAR` or `${VAR:-default}` syntax
+- **Hierarchical config**: Project-level (`.mcp.json`) overrides global (`~/.config/nanocoder/.mcp.json`)
 
-You can still use the traditional `agents.config.json` for user-level configuration:
+**Commands:**
 
-```json
-{
-	"nanocoder": {
-		"mcpServers": [
-			{
-				"name": "filesystem",
-				"transport": "stdio",
-				"command": "npx",
-				"args": [
-					"@modelcontextprotocol/server-filesystem",
-					"/path/to/allowed/directory"
-				]
-			},
-			{
-				"name": "github",
-				"transport": "stdio",
-				"command": "npx",
-				"args": ["@modelcontextprotocol/server-github"],
-				"env": {
-					"GITHUB_TOKEN": "your-github-token"
-				}
-			},
-			{
-				"name": "remote-search",
-				"transport": "http",
-				"url": "https://api.example.com/mcp",
-				"timeout": 30000
-			},
-			{
-				"name": "websocket-server",
-				"transport": "websocket",
-				"url": "wss://ws.example.com/mcp",
-				"timeout": 60000
-			}
-		]
-	}
-}
-```
+- `/setup-mcp` - Interactive configuration wizard (supports `Ctrl+E` for manual editing)
+- `/mcp` - Show connected servers and their tools
 
-**MCP Server Configuration:**
+Popular MCP servers: Filesystem, GitHub, Brave Search, Context7, DeepWiki, and [many more](https://github.com/modelcontextprotocol/servers).
 
-- `name`: Display name for the MCP server
-- `transport`: Transport type (`stdio`, `http`, `websocket`)
-- **For stdio transport:**
-  - `command`: Executable command to start the server
-  - `args`: Array of command-line arguments
-  - `env`: Environment variables for the server process
-- **For http/websocket transport:**
-  - `url`: Server endpoint URL
-  - `timeout`: Connection timeout in milliseconds (optional)
-- `description`: Optional description for the server
-- `tags`: Optional tags for categorization
-
-When MCP servers are configured, Nanocoder will:
-
-- Automatically connect to all configured servers on startup
-- Make all server tools available to the AI model
-- Show connected servers and their tools with the `/mcp` command (including configuration source level)
-- Display transport type and connection details in configuration summary
-
-Popular MCP servers:
-
-- **Filesystem**: Enhanced file operations (stdio)
-- **GitHub**: Repository management (stdio)
-- **Brave Search**: Web search capabilities (http)
-- **Memory**: Persistent context storage
-- **Context7**: Documentation lookup (http)
-- **DeepWiki**: Wikipedia search (http)
-- **Sequential Thinking**: Advanced reasoning (http)
-- [View more MCP servers](https://github.com/modelcontextprotocol/servers)
-
-> **Note**: MCP server configuration follows the same hierarchical loading as AI providers, supporting both project-level and global configurations. Use `/setup-mcp` for an interactive configuration wizard with templates for both local and remote MCP servers. The `/mcp` command shows the configuration source level (e.g., [project], [global]) next to each server name. Both providers and MCP servers are loaded from all available configuration levels and merged together, with project-level configurations taking precedence over global ones. See the [MCP Configuration Guide](docs/mcp-configuration.md) for detailed documentation.
+> **Full documentation**: See the [MCP Configuration Guide](docs/mcp-configuration.md) for detailed setup, examples, and troubleshooting.
 
 ### User Preferences
 
