@@ -65,6 +65,14 @@ export interface AppConfig {
 		languages: string[]; // File extensions this server handles
 		env?: Record<string, string>;
 	}[];
+
+	// Tools that can run automatically in non-interactive mode
+	alwaysAllow?: string[];
+
+	// Nanocoder-specific tool configurations
+	nanocoderTools?: {
+		alwaysAllow?: string[];
+	};
 }
 
 // MCP Server configuration with source tracking

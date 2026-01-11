@@ -62,7 +62,8 @@ export function MCP({toolManager}: MCPProps) {
       "transport": "stdio",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
-      "description": "Project filesystem access"
+      "description": "Project filesystem access",
+      "alwaysAllow": ["list_directory", "file_info"]
     },
     "http-server": {
       "transport": "http",
@@ -119,7 +120,12 @@ export function MCP({toolManager}: MCPProps) {
 											Tags: {serverInfo.tags.map(tag => `#${tag}`).join(' ')}
 										</Text>
 									)} */}
-
+									{!!serverInfo?.autoApprovedCommands?.length && (
+										<Text color={colors.secondary}>
+											Auto-approved tools:{' '}
+											{serverInfo.autoApprovedCommands.join(', ')}
+										</Text>
+									)}
 									{serverTools.length > 0 && (
 										<Text color={colors.tool}>
 											Tools:{' '}

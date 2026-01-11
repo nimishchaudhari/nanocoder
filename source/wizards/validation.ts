@@ -61,6 +61,23 @@ export function validateConfig(
 		if (!server.args) {
 			errors.push(`MCP server "${name}" missing args array`);
 		}
+
+		if (server.alwaysAllow && !Array.isArray(server.alwaysAllow)) {
+			errors.push(
+				`MCP server "${name}" has invalid alwaysAllow (must be an array of strings)`,
+			);
+		}
+
+		if (Array.isArray(server.alwaysAllow)) {
+			const invalidItems = server.alwaysAllow.filter(
+				item => typeof item !== 'string',
+			);
+			if (invalidItems.length > 0) {
+				errors.push(
+					`MCP server "${name}" has non-string entries in alwaysAllow`,
+				);
+			}
+		}
 	}
 
 	return {
@@ -298,6 +315,7 @@ export function buildConfigObject(
 			headers: server.headers,
 			auth: server.auth,
 			timeout: server.timeout,
+			alwaysAllow: server.alwaysAllow,
 			description: server.description,
 			tags: server.tags,
 			enabled: true, // Default to enabled for wizard configurations

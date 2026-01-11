@@ -58,6 +58,7 @@ Nanocoder uses a simplified 2-location approach for MCP server configuration:
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "./src"],
       "description": "Project filesystem access",
+      "alwaysAllow": ["list_directory", "read_file"],
       "env": {
         "ALLOWED_PATHS": "./src"
       }
@@ -157,7 +158,8 @@ If you have MCP servers in `agents.config.json`, migrate them to `.mcp.json`:
       "transport": "stdio",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/project"],
-      "env": {}
+      "env": {},
+      "alwaysAllow": ["list_directory", "file_info"]
     }
   }
 }
@@ -253,6 +255,7 @@ If you have MCP servers in `agents.config.json`, migrate them to `.mcp.json`:
 - `description` (optional): Human-readable description of the server
 - `enabled` (optional): Whether the server is enabled (default: `true`)
 - `tags` (optional): Array of tags for categorization
+- `alwaysAllow` (optional): Array of MCP tool names that can run without user confirmation
 
 ### stdio Transport Fields
 
@@ -290,6 +293,47 @@ If you have MCP servers in `agents.config.json`, migrate them to `.mcp.json`:
     "maxAttempts": 3,
     "backoffMs": 1000
   }
+}
+```
+
+### Auto-Approve Tools (alwaysAllow)
+
+The `alwaysAllow` field lets you specify MCP tools that can execute without requiring user confirmation. This is useful for read-only or low-risk tools that you trust to run automatically.
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./src"],
+      "alwaysAllow": ["list_directory", "read_file", "file_info"]
+    }
+  }
+}
+```
+
+**How it works:**
+- Tools listed in `alwaysAllow` skip the confirmation prompt in normal mode
+- Tools not in the list still require user approval before execution
+- In auto-accept mode, all tools run without confirmation regardless of this setting
+- The `/mcp` command shows which tools are auto-approved for each server
+
+**Best practices:**
+- Only auto-approve read-only tools (e.g., `list_directory`, `read_file`, `search`)
+- Avoid auto-approving tools that modify files or execute commands
+- Review the tool list for each MCP server before adding to `alwaysAllow`
+
+**Example - Safe tools to auto-approve:**
+```json
+{
+  "alwaysAllow": [
+    "list_directory",    // Read-only directory listing
+    "read_file",         // Read-only file access
+    "file_info",         // File metadata only
+    "search",            // Search operations
+    "get_status"         // Status queries
+  ]
 }
 ```
 
@@ -365,6 +409,7 @@ The wizard provides:
 - **Shift+Tab**: Go back to previous step
 - **Esc**: Exit wizard without saving
 - **Tab**: Switch between tabs (when viewing server categories)
+- **Ctrl+E**: Open configuration file in your system editor for manual editing
 
 
 ## Troubleshooting

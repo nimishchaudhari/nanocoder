@@ -1,4 +1,5 @@
 import test from 'ava';
+import {setCurrentMode} from '../context/mode-context';
 import {MCPClient} from './mcp-client';
 
 // ============================================================================
@@ -139,7 +140,6 @@ test('MCPClient: isServerConnected returns false for non-existent servers', t =>
 	t.false(client.isServerConnected('another-server'));
 	t.false(client.isServerConnected(''));
 });
-
 // ============================================================================
 // Tests for getAllTools
 // ============================================================================
@@ -874,13 +874,15 @@ test('MCPClient.getToolMapping: returns mapping from connected HTTP server', asy
 
 	// Verify mapping structure
 	const firstMapping = mapping.entries().next().value;
-	const [toolName, mappingInfo] = firstMapping;
+	if (firstMapping) {
+		const [toolName, mappingInfo] = firstMapping;
 
-	t.is(typeof toolName, 'string');
-	t.deepEqual(mappingInfo, {
-		serverName: 'test-deepwiki',
-		originalName: toolName,
-	});
+		t.is(typeof toolName, 'string');
+		t.deepEqual(mappingInfo, {
+			serverName: 'test-deepwiki',
+			originalName: toolName,
+		});
+	}
 
 	await client.disconnect();
 });
@@ -942,4 +944,68 @@ test('MCPClient.connectToServer: validates websocket URL protocol', async t => {
 		async () => await client.connectToServer(server),
 		{message: /websocket URL must use ws:\/\/ or wss:\/\/ protocol/i},
 	);
+});
+
+test('MCPClient: alwaysAllow disables approval prompts', async t => {
+	const client = new MCPClient();
+	const serverName = 'auto-server';
+
+	(client as any).serverTools.set(serverName, [
+		{
+			name: 'safe_tool',
+			description: 'Safe MCP tool',
+			inputSchema: {type: 'object'},
+			serverName,
+		},
+	]);
+
+	(client as any).serverConfigs.set(serverName, {
+		name: serverName,
+		transport: 'stdio',
+		alwaysAllow: ['safe_tool'],
+	});
+
+	setCurrentMode('normal');
+
+	const registry = client.getNativeToolsRegistry();
+	const tool = registry['safe_tool'];
+
+	t.truthy(tool);
+	const needsApproval =
+		typeof tool?.needsApproval === 'function'
+			? await tool.needsApproval({}, {toolCallId: 'test', messages: []})
+			: tool?.needsApproval ?? true;
+	t.false(needsApproval);
+});
+
+test('MCPClient: non-whitelisted tools still require approval', async t => {
+	const client = new MCPClient();
+	const serverName = 'restricted-server';
+
+	(client as any).serverTools.set(serverName, [
+		{
+			name: 'restricted_tool',
+			description: 'Requires approval',
+			inputSchema: {type: 'object'},
+			serverName,
+		},
+	]);
+
+	(client as any).serverConfigs.set(serverName, {
+		name: serverName,
+		transport: 'stdio',
+		alwaysAllow: [],
+	});
+
+	setCurrentMode('normal');
+
+	const registry = client.getNativeToolsRegistry();
+	const tool = registry['restricted_tool'];
+
+	t.truthy(tool);
+	const needsApproval =
+		typeof tool?.needsApproval === 'function'
+			? await tool.needsApproval({}, {toolCallId: 'test', messages: []})
+			: tool?.needsApproval ?? false;
+	t.true(needsApproval);
 });
