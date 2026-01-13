@@ -297,11 +297,25 @@ export class CLITestHarness extends EventEmitter {
 		return Buffer.concat(this.stdoutChunks).toString();
 	}
 
-	/**
-	 * Gets the current accumulated stderr output.
-	 * @returns The stderr output collected so far
-	 */
+	getCurrentStdout(): string {
+		const length = this.stdoutChunks.length;
+		if (length === 0) {
+			return '';
+		}
+		if (length === 1) {
+			return this.stdoutChunks[0].toString();
+		}
+		return Buffer.concat(this.stdoutChunks).toString();
+	}
+
 	getCurrentStderr(): string {
+		const length = this.stderrChunks.length;
+		if (length === 0) {
+			return '';
+		}
+		if (length === 1) {
+			return this.stderrChunks[0].toString();
+		}
 		if (this.stderrChunks.length === 0) return '';
 		if (this.stderrChunks.length === 1) return this.stderrChunks[0].toString();
 		return Buffer.concat(this.stderrChunks).toString();
