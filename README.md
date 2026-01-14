@@ -37,6 +37,7 @@ A local-first CLI coding agent that brings the power of agentic coding tools lik
   - [Advanced Tool System](#advanced-tool-system)
   - [Custom Command System](#custom-command-system)
   - [Enhanced User Experience](#enhanced-user-experience)
+  - [Keyboard Shortcuts](#keyboard-shortcuts)
   - [Developer Features](#developer-features)
 - [VS Code Extension](#vs-code-extension)
 - [Community](#community)
@@ -733,6 +734,21 @@ Generate comprehensive unit tests for {{component}}. Include:
   - **Normal mode**: Standard tool confirmation flow - review potentially dangerous tool calls before execution
   - **Auto-accept mode**: Automatically accepts more tool calls without confirmation for faster workflows
   - **Plan mode**: AI suggests actions but doesn't execute tools - useful for planning and exploration
+
+### Keyboard Shortcuts
+
+| Action | Shortcut | Notes |
+|--------|----------|-------|
+| Submit prompt | Enter | |
+| New line (multi-line input) | Ctrl+J | Most reliable across terminals |
+| New line (multi-line input) | Shift+Enter | Terminal-dependent |
+| New line (multi-line input) | Option/Alt+Enter | VS Code integrated terminal |
+| Toggle development mode | Shift+Tab | Cycles through normal/auto-accept/plan |
+| Cancel AI response | Esc | While AI is processing |
+| Clear input | Esc (twice) | Press Esc twice to clear current input |
+| History navigation | ↑/↓ | Navigate through prompt history |
+
+> **Note on multi-line input**: Terminal support for Shift+Enter / Option/Alt+Enter varies in terminals and operating systems. If one of these shortcuts doesn't work in your terminal, try and use Ctrl+J which sends a literal newline character and works more reliably across platforms and software.
 
 ### Developer Features
 
