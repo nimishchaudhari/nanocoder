@@ -330,8 +330,8 @@ export class CLITestHarness extends EventEmitter {
 		// Pattern is provided by test code, not user input - ReDoS is not a concern here
 		const regex =
 			typeof pattern === 'string'
-				? new RegExp(pattern)
-				: pattern; /* nosemgrep */
+				? new RegExp(pattern) /* nosemgrep */
+				: pattern;
 
 		return new Promise((resolve, reject) => {
 			const timeoutId = setTimeout(() => {
