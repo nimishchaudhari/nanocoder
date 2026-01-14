@@ -327,7 +327,11 @@ export class CLITestHarness extends EventEmitter {
 		options: {timeout?: number; stream?: 'stdout' | 'stderr' | 'both'} = {},
 	): Promise<string> {
 		const {timeout = 10000, stream = 'both'} = options;
-		const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+		// Pattern is provided by test code, not user input - ReDoS is not a concern here
+		const regex =
+			typeof pattern === 'string'
+				? new RegExp(pattern)
+				: pattern; /* nosemgrep */
 
 		return new Promise((resolve, reject) => {
 			const timeoutId = setTimeout(() => {
