@@ -292,12 +292,6 @@ export class CLITestHarness extends EventEmitter {
 	 * @returns The stdout output collected so far
 	 */
 	getCurrentStdout(): string {
-		if (this.stdoutChunks.length === 0) return '';
-		if (this.stdoutChunks.length === 1) return this.stdoutChunks[0].toString();
-		return Buffer.concat(this.stdoutChunks).toString();
-	}
-
-	getCurrentStdout(): string {
 		const length = this.stdoutChunks.length;
 		if (length === 0) {
 			return '';
@@ -422,36 +416,6 @@ export class CLITestHarness extends EventEmitter {
  */
 export function createCLITestHarness(): CLITestHarness {
 	return new CLITestHarness();
-}
-
-/**
- * Convenience function to run the CLI with the specified arguments.
- * Creates a new harness, runs the CLI, and returns the result.
- * @param args - Command-line arguments to pass to the CLI
- * @param options - Additional options (timeout, env, etc.)
- * @returns Promise that resolves with the test result
- */
-export async function runCLI(
-	args: string[],
-	options: Omit<CLITestOptions, 'args'> = {},
-): Promise<CLITestResult> {
-	const harness = createCLITestHarness();
-	return harness.run({...options, args});
-}
-
-/**
- * Convenience function to run the CLI in non-interactive mode with a prompt.
- * Equivalent to running: cli run "<prompt>"
- * @param prompt - The prompt to pass to the CLI
- * @param options - Additional options (timeout, env, etc.)
- * @returns Promise that resolves with the test result
- */
-export async function runNonInteractive(
-	prompt: string,
-	options: Omit<CLITestOptions, 'args'> = {},
-): Promise<CLITestResult> {
-	const harness = createCLITestHarness();
-	return harness.run({...options, args: ['run', prompt]});
 }
 
 /**
