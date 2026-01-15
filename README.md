@@ -394,6 +394,7 @@ Nanocoder looks for configuration in the following order (first found wins):
 - `baseUrl`: OpenAI-compatible API endpoint
 - `apiKey`: API key (optional, may not be required)
 - `models`: Available model list for `/model` command
+- `disableToolModels`: List of model names to disable tool calling for (optional)
 
 **Environment Variables:**
 
@@ -403,7 +404,7 @@ Keep API keys out of version control using environment variables. Variables are 
 - `NANOCODER_DATA_DIR`: Override the application data directory used for internal data like usage statistics.
 
 **Syntax:** `$VAR_NAME`, `${VAR_NAME}`, or `${VAR_NAME:-default}`
-**Supported in:** `baseUrl`, `apiKey`, `models`, MCP server `command`, `args`, `env`
+**Supported in:** `baseUrl`, `apiKey`, `models`, `disableToolModels`, `MCP server`, `command`, `args`, `env`
 
 See `.env.example` for setup instructions
 
