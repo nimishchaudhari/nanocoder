@@ -1,7 +1,7 @@
 import {Box, Text} from 'ink';
 import {memo} from 'react';
 
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 
@@ -48,20 +48,23 @@ const MessageBox = memo(function MessageBox({
 					paddingX={2}
 					paddingY={0}
 					flexDirection="column"
+					marginBottom={1}
 				>
 					<Text color={color}>{message}</Text>
 				</Box>
 			) : (
-				<TitledBox
+				<TitledBoxWithPreferences
 					title={title}
+					reversePowerline={true}
 					width={boxWidth}
 					borderColor={color}
 					paddingX={2}
 					paddingY={1}
 					flexDirection="column"
+					marginBottom={1}
 				>
 					<Text color={color}>{message}</Text>
-				</TitledBox>
+				</TitledBoxWithPreferences>
 			)}
 		</>
 	);

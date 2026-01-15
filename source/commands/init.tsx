@@ -3,7 +3,7 @@ import {Box, Text} from 'ink';
 import {join} from 'path';
 import React from 'react';
 import {ErrorMessage} from '@/components/message-box';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {colors} from '@/config/index';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {AgentsTemplateGenerator} from '@/init/agents-template-generator';
@@ -25,8 +25,9 @@ function InitSuccess({
 }) {
 	const boxWidth = useTerminalWidth();
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="Project Initialized"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -43,7 +44,7 @@ function InitSuccess({
 			{analysis && (
 				<>
 					<Box marginBottom={1}>
-						<Text color={colors.white} bold>
+						<Text color={colors.text} bold>
 							Project Analysis:
 						</Text>
 					</Box>
@@ -64,7 +65,7 @@ function InitSuccess({
 			)}
 
 			<Box marginBottom={1}>
-				<Text color={colors.white} bold>
+				<Text color={colors.text} bold>
 					Files Created:
 				</Text>
 			</Box>
@@ -77,7 +78,7 @@ function InitSuccess({
 
 			<Box marginTop={1} flexDirection="column">
 				<Box marginBottom={1}>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						Your project is now ready for AI-assisted development!
 					</Text>
 				</Box>
@@ -85,7 +86,7 @@ function InitSuccess({
 					The AGENTS.md file will help AI understand your project context.
 				</Text>
 			</Box>
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }
 
@@ -226,8 +227,8 @@ export const initCommand: Command = {
 			const analyzer = new ProjectAnalyzer(cwd);
 			const analysis = analyzer.analyze();
 
-			// Extract existing AI configuration files
-			const rulesExtractor = new ExistingRulesExtractor(cwd);
+			// Extract existing AI configuration files (skip AGENTS.md when force regenerating)
+			const rulesExtractor = new ExistingRulesExtractor(cwd, forceRegenerate);
 			const existingRules = rulesExtractor.extractExistingRules();
 
 			// Create AGENTS.md based on analysis and existing rules

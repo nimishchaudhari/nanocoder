@@ -4,6 +4,12 @@ import type {Colors} from '../types/markdown-parser.js';
 import {decodeHtmlEntities} from './html-entities.js';
 import {parseMarkdownTable} from './table-parser.js';
 
+// Helper function to get compatible color from theme (handles both old and new naming)
+function _getColor(themeColors: Colors, colorProperty: keyof Colors): string {
+	const color = themeColors[colorProperty];
+	return color || '#ffffff'; // fallback to white
+}
+
 // Basic markdown parser for terminal
 export function parseMarkdown(text: string, themeColors: Colors): string {
 	// First decode HTML entities
@@ -65,18 +71,18 @@ export function parseMarkdown(text: string, themeColors: Colors): string {
 	// Use [ \t]* instead of \s* to avoid consuming newlines before the list
 	// Preserve indentation for nested lists
 	result = result.replace(/^([ \t]*)[-*]\s+(.+)$/gm, (_match, indent, text) => {
-		return indent + chalk.hex(themeColors.white)(`• ${text}`);
+		return indent + chalk.hex(themeColors.text)(`• ${text}`);
 	});
 	result = result.replace(
 		/^([ \t]*)(\d+)\.\s+(.+)$/gm,
 		(_match, indent, num, text) => {
-			return indent + chalk.hex(themeColors.white)(`${num}. ${text}`);
+			return indent + chalk.hex(themeColors.text)(`${num}. ${text}`);
 		},
 	);
 
 	// Bold (**text** only - avoid __ to prevent conflicts with snake_case)
 	result = result.replace(/\*\*([^*]+)\*\*/g, (_match, text) => {
-		return chalk.hex(themeColors.white).bold(text);
+		return chalk.hex(themeColors.text).bold(text);
 	});
 
 	// Italic (*text* only - avoid _ to prevent conflicts with snake_case)
@@ -86,7 +92,7 @@ export function parseMarkdown(text: string, themeColors: Colors): string {
 	result = result.replace(
 		/(^|\s)\*([^*\n]*[a-zA-Z][^*\n]*)\*($|\s)/gm,
 		(_match, before, text, after) => {
-			return before + chalk.hex(themeColors.white).italic(text) + after;
+			return before + chalk.hex(themeColors.text).italic(text) + after;
 		},
 	);
 

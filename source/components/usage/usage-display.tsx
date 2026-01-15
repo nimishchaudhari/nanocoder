@@ -3,7 +3,7 @@
  */
 
 import {Box, Text} from 'ink';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import type {Message} from '@/types/core.js';
@@ -84,8 +84,9 @@ export function UsageDisplay({
 	const mainProgressWidth = Math.max(20, Math.min(60, boxWidth - 12));
 
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="Context Usage"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.info}
 			paddingX={2}
@@ -105,7 +106,7 @@ export function UsageDisplay({
 					width={mainProgressWidth}
 					color={progressColor}
 				/>
-				<Text color={colors.white} bold>
+				<Text color={colors.text} bold>
 					{' '}
 					{Math.round(percentUsed)}%
 				</Text>
@@ -136,7 +137,7 @@ export function UsageDisplay({
 						color={colors.info}
 					/>
 					<Box marginLeft={1}>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							{Math.round(systemPercent)}% ({formatTokenCount(breakdown.system)}
 							)
 						</Text>
@@ -156,7 +157,7 @@ export function UsageDisplay({
 						color={colors.info}
 					/>
 					<Box marginLeft={1}>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							{Math.round(userPercent)}% (
 							{formatTokenCount(breakdown.userMessages)})
 						</Text>
@@ -176,7 +177,7 @@ export function UsageDisplay({
 						color={colors.info}
 					/>
 					<Box marginLeft={1}>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							{Math.round(assistantPercent)}% (
 							{formatTokenCount(breakdown.assistantMessages)})
 						</Text>
@@ -196,7 +197,7 @@ export function UsageDisplay({
 						color={colors.info}
 					/>
 					<Box marginLeft={1}>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							{Math.round(toolMessagesPercent)}% (
 							{formatTokenCount(breakdown.toolResults)})
 						</Text>
@@ -216,7 +217,7 @@ export function UsageDisplay({
 						color={colors.info}
 					/>
 					<Box marginLeft={1}>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							{Math.round(toolDefsPercent)}% (
 							{formatTokenCount(breakdown.toolDefinitions)})
 						</Text>
@@ -242,25 +243,25 @@ export function UsageDisplay({
 			</Box>
 			<Box>
 				<Text color={colors.secondary}>
-					Provider: <Text color={colors.white}>{provider}</Text>
+					Provider: <Text color={colors.text}>{provider}</Text>
 				</Text>
 			</Box>
 			<Box>
 				<Text color={colors.secondary}>
-					Model: <Text color={colors.white}>{model}</Text>
+					Model: <Text color={colors.text}>{model}</Text>
 				</Text>
 			</Box>
 			<Box>
 				<Text color={colors.secondary}>
 					Context Limit:{' '}
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						{contextLimit ? formatTokenCount(contextLimit) : 'Unknown'}
 					</Text>
 				</Text>
 			</Box>
 			<Box marginBottom={1}>
 				<Text color={colors.secondary}>
-					Tokenizer: <Text color={colors.white}>{tokenizerName}</Text>
+					Tokenizer: <Text color={colors.text}>{tokenizerName}</Text>
 				</Text>
 			</Box>
 
@@ -273,7 +274,7 @@ export function UsageDisplay({
 			<Box>
 				<Text color={colors.secondary}>
 					Last 5 messages:{' '}
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						{formatTokenCount(last5TokenCount)} tokens
 					</Text>
 				</Text>
@@ -281,11 +282,11 @@ export function UsageDisplay({
 			<Box>
 				<Text color={colors.secondary}>
 					Largest message:{' '}
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						{formatTokenCount(largestMessageTokens)} tokens
 					</Text>
 				</Text>
 			</Box>
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }

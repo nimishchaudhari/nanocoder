@@ -725,6 +725,52 @@ test.serial('search_file_contents handles very long lines', async t => {
 	}
 });
 
+test.serial(
+	'search_file_contents truncates very long matching lines to 300 chars',
+	async t => {
+		t.timeout(10000);
+		const testDir = join(process.cwd(), 'test-search-truncate-temp');
+
+		try {
+			mkdirSync(testDir, {recursive: true});
+			// Create a line that's 500 chars total with searchTarget at the start
+			const longLine = 'searchTarget' + 'x'.repeat(500);
+			writeFileSync(join(testDir, 'test.ts'), longLine);
+
+			const originalCwd = process.cwd();
+
+			try {
+				process.chdir(testDir);
+
+				const result = await searchFileContentsTool.tool.execute!(
+					{
+						query: 'searchTarget',
+						maxResults: 30,
+					},
+					{toolCallId: 'test', messages: []},
+				);
+
+				// The content should be truncated to 300 chars + ellipsis
+				t.true(result.includes('test.ts'), 'Should find the file');
+				t.true(result.includes('…'), 'Should have ellipsis for truncation');
+				// Count x's in result - should be 300 - 12 (searchTarget) = 288
+				const contentLine = result.split('\n').find(l => l.includes('searchTarget'));
+				t.truthy(contentLine, 'Should have content line');
+				// The trimmed content should be max 300 chars + ellipsis
+				const trimmedContent = contentLine!.trim();
+				t.true(
+					trimmedContent.length <= 302, // 300 + ellipsis (1 char) + possible whitespace
+					`Content should be truncated, got ${trimmedContent.length} chars`,
+				);
+			} finally {
+				process.chdir(originalCwd);
+			}
+		} finally {
+			rmSync(testDir, {recursive: true, force: true});
+		}
+	},
+);
+
 test.serial('search_file_contents handles empty files gracefully', async t => {
 	t.timeout(10000);
 	const testDir = join(process.cwd(), 'test-search-empty-temp');

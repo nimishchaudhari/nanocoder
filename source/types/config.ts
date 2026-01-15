@@ -1,4 +1,5 @@
-import type {ThemePreset} from '@/types/ui';
+import type {TitleShape} from '@/components/ui/styled-title';
+import type {NanocoderShape, ThemePreset} from '@/types/ui';
 
 // AI provider configurations (OpenAI-compatible)
 export interface AIProviderConfig {
@@ -63,32 +64,7 @@ export interface AppConfig {
 		[key: string]: unknown; // Allow additional provider-specific config
 	}[];
 
-	mcpServers?: {
-		name: string;
-		transport: 'stdio' | 'websocket' | 'http';
-		command?: string;
-		args?: string[];
-		env?: Record<string, string>;
-		url?: string;
-		headers?: Record<string, string>;
-		auth?: {
-			type: 'bearer' | 'basic' | 'api-key' | 'custom';
-			token?: string;
-			username?: string;
-			password?: string;
-			apiKey?: string;
-			customHeaders?: Record<string, string>;
-		};
-		timeout?: number;
-		reconnect?: {
-			enabled: boolean;
-			maxAttempts: number;
-			backoffMs: number;
-		};
-		description?: string;
-		tags?: string[];
-		enabled?: boolean;
-	}[];
+	mcpServers?: MCPServerConfig[];
 
 	// LSP server configurations (optional - auto-discovery enabled by default)
 	lspServers?: {
@@ -98,6 +74,44 @@ export interface AppConfig {
 		languages: string[]; // File extensions this server handles
 		env?: Record<string, string>;
 	}[];
+
+	// Tools that can run automatically in non-interactive mode
+	alwaysAllow?: string[];
+
+	// Nanocoder-specific tool configurations
+	nanocoderTools?: {
+		alwaysAllow?: string[];
+	};
+}
+
+// MCP Server configuration with source tracking
+export interface MCPServerConfig {
+	name: string;
+	transport: 'stdio' | 'websocket' | 'http';
+	command?: string;
+	args?: string[];
+	env?: Record<string, string>;
+	url?: string;
+	headers?: Record<string, string>;
+	auth?: {
+		type: 'bearer' | 'basic' | 'api-key' | 'custom';
+		token?: string;
+		username?: string;
+		password?: string;
+		apiKey?: string;
+		customHeaders?: Record<string, string>;
+	};
+	timeout?: number;
+	reconnect?: {
+		enabled: boolean;
+		maxAttempts: number;
+		backoffMs: number;
+	};
+	description?: string;
+	tags?: string[];
+	enabled?: boolean;
+	// Optional source information for display purposes
+	source?: 'project' | 'global';
 }
 
 export interface UserPreferences {
@@ -109,4 +123,6 @@ export interface UserPreferences {
 	lastUpdateCheck?: number;
 	selectedTheme?: ThemePreset;
 	trustedDirectories?: string[];
+	titleShape?: TitleShape;
+	nanocoderShape?: NanocoderShape;
 }

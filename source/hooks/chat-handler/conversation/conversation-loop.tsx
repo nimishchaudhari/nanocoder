@@ -3,10 +3,10 @@ import type {ConversationStateManager} from '@/app/utils/conversation-state';
 import AssistantMessage from '@/components/assistant-message';
 import {ErrorMessage} from '@/components/message-box';
 import UserMessage from '@/components/user-message';
+import {appConfig} from '@/config/index';
 import {parseToolCalls} from '@/tool-calling/index';
 import type {ToolManager} from '@/tools/tool-manager';
 import type {LLMClient, Message, ToolCall, ToolResult} from '@/types/core';
-import {getLogger} from '@/utils/logging';
 import {MessageBuilder} from '@/utils/message-builder';
 import {parseToolArguments} from '@/utils/tool-args-parser';
 import {displayToolResult} from '@/utils/tool-result-display';
@@ -273,6 +273,9 @@ export const processAssistantResponse = async (
 		const toolsNeedingConfirmation: ToolCall[] = [];
 		const toolsToExecuteDirectly: ToolCall[] = [];
 
+		// Tools that are permitted to auto-run in non-interactive mode
+		const nonInteractiveAllowList = new Set(appConfig.alwaysAllow ?? []);
+
 		for (const toolCall of validToolCalls) {
 			// Check if tool has a validator
 			let validationFailed = false;
@@ -290,12 +293,8 @@ export const processAssistantResponse = async (
 						if (!validationResult.valid) {
 							validationFailed = true;
 						}
-					} catch (error) {
-						const logger = getLogger();
-						logger.debug('Tool validation threw error', {
-							toolName: toolCall.function.name,
-							error,
-						});
+					} catch {
+						// Validation threw an error - treat as validation failure
 						validationFailed = true;
 					}
 				}
@@ -329,15 +328,8 @@ export const processAssistantResponse = async (
 									args: unknown,
 								) => boolean | Promise<boolean>
 							)(parsedArgs);
-						} catch (error) {
-							const logger = getLogger();
-							logger.debug(
-								'needsApproval evaluation failed, requiring approval',
-								{
-									toolName: toolCall.function.name,
-									error,
-								},
-							);
+						} catch {
+							// If evaluation fails, require approval for safety
 							toolNeedsApproval = true;
 						}
 					}
@@ -347,13 +339,19 @@ export const processAssistantResponse = async (
 			// Execute directly if:
 			// 1. Validation failed (need to send error back to model)
 			// 2. Tool has needsApproval: false
-			// 3. In auto-accept mode (except bash which always needs approval)
+			// 3. Explicitly allowed in non-interactive mode
+			// 4. In auto-accept mode (except bash which always needs approval)
 			const isBashTool = toolCall.function.name === 'execute_bash';
-			if (
+			const isNonInteractiveAllowed =
+				nonInteractiveMode &&
+				nonInteractiveAllowList.has(toolCall.function.name);
+			const shouldExecuteDirectly =
 				validationFailed ||
 				!toolNeedsApproval ||
-				(developmentMode === 'auto-accept' && !isBashTool)
-			) {
+				isNonInteractiveAllowed ||
+				(developmentMode === 'auto-accept' && !isBashTool);
+
+			if (shouldExecuteDirectly) {
 				toolsToExecuteDirectly.push(toolCall);
 			} else {
 				toolsNeedingConfirmation.push(toolCall);

@@ -103,9 +103,6 @@ yarn.lock
 agents.config.json
 .claude
 agents
-CLAUDE.md
-GEMINI.md
-AGENTS.md
 component.md
 refactor.md
 

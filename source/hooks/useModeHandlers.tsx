@@ -6,10 +6,12 @@ import {
 	loadPreferences,
 	savePreferences,
 	updateLastUsed,
+	updateNanocoderShape,
+	updateTitleShape,
 } from '@/config/preferences';
 import {getToolManager} from '@/message-handler';
 import {LLMClient, Message} from '@/types/core';
-import type {ThemePreset} from '@/types/ui';
+import type {NanocoderShape, ThemePreset, TitleShape} from '@/types/ui';
 
 interface UseModeHandlersProps {
 	client: LLMClient | null;
@@ -24,8 +26,11 @@ interface UseModeHandlersProps {
 	setIsModelSelectionMode: (mode: boolean) => void;
 	setIsProviderSelectionMode: (mode: boolean) => void;
 	setIsThemeSelectionMode: (mode: boolean) => void;
+	setIsTitleShapeSelectionMode: (mode: boolean) => void;
+	setIsNanocoderShapeSelectionMode: (mode: boolean) => void;
 	setIsModelDatabaseMode: (mode: boolean) => void;
 	setIsConfigWizardMode: (mode: boolean) => void;
+	setIsMcpWizardMode: (mode: boolean) => void;
 	addToChatQueue: (component: React.ReactNode) => void;
 	getNextComponentKey: () => number;
 	reinitializeMCPServers: (
@@ -46,8 +51,11 @@ export function useModeHandlers({
 	setIsModelSelectionMode,
 	setIsProviderSelectionMode,
 	setIsThemeSelectionMode,
+	setIsTitleShapeSelectionMode,
+	setIsNanocoderShapeSelectionMode,
 	setIsModelDatabaseMode,
 	setIsConfigWizardMode,
+	setIsMcpWizardMode,
 	addToChatQueue,
 	getNextComponentKey,
 	reinitializeMCPServers,
@@ -159,6 +167,58 @@ export function useModeHandlers({
 	// Helper function to enter theme selection mode
 	const enterThemeSelectionMode = () => {
 		setIsThemeSelectionMode(true);
+	};
+
+	// Helper function to enter title shape selection mode
+	const enterTitleShapeSelectionMode = () => {
+		setIsTitleShapeSelectionMode(true);
+	};
+
+	// Handle title shape selection
+	const handleTitleShapeSelect = (selectedShape: TitleShape) => {
+		updateTitleShape(selectedShape);
+
+		// Add success message to chat queue
+		addToChatQueue(
+			<SuccessMessage
+				key={`title-shape-changed-${getNextComponentKey()}`}
+				message={`Title shape changed to: ${selectedShape}.`}
+				hideBox={true}
+			/>,
+		);
+
+		setIsTitleShapeSelectionMode(false);
+	};
+
+	// Handle title shape selection cancel
+	const handleTitleShapeSelectionCancel = () => {
+		setIsTitleShapeSelectionMode(false);
+	};
+
+	// Helper function to enter nanocoder shape selection mode
+	const enterNanocoderShapeSelectionMode = () => {
+		setIsNanocoderShapeSelectionMode(true);
+	};
+
+	// Handle nanocoder shape selection
+	const handleNanocoderShapeSelect = (selectedShape: NanocoderShape) => {
+		updateNanocoderShape(selectedShape);
+
+		// Add success message to chat queue
+		addToChatQueue(
+			<SuccessMessage
+				key={`nanocoder-shape-changed-${getNextComponentKey()}`}
+				message={`Nanocoder branding style changed to: ${selectedShape}.`}
+				hideBox={true}
+			/>,
+		);
+
+		setIsNanocoderShapeSelectionMode(false);
+	};
+
+	// Handle nanocoder shape selection cancel
+	const handleNanocoderShapeSelectionCancel = () => {
+		setIsNanocoderShapeSelectionMode(false);
 	};
 
 	// Handle theme selection
@@ -283,12 +343,70 @@ export function useModeHandlers({
 		setIsConfigWizardMode(false);
 	};
 
+	// Helper function to enter MCP wizard mode
+	const enterMcpWizardMode = () => {
+		setIsMcpWizardMode(true);
+	};
+
+	// Handle MCP wizard cancel/complete
+	const handleMcpWizardComplete = async (configPath?: string) => {
+		setIsMcpWizardMode(false);
+		if (configPath) {
+			addToChatQueue(
+				<SuccessMessage
+					key={`mcp-wizard-complete-${getNextComponentKey()}`}
+					message={`MCP configuration saved to: ${configPath}.`}
+					hideBox={true}
+				/>,
+			);
+
+			// Reload the app configuration to pick up the newly saved config
+			reloadAppConfig();
+
+			// Reinitialize MCP servers with the new configuration
+			const toolManager = getToolManager();
+			if (toolManager) {
+				try {
+					await reinitializeMCPServers(toolManager);
+					addToChatQueue(
+						<SuccessMessage
+							key={`mcp-reinit-${getNextComponentKey()}`}
+							message="MCP servers reinitialized with new configuration."
+							hideBox={true}
+						/>,
+					);
+				} catch (mcpError) {
+					addToChatQueue(
+						<ErrorMessage
+							key={`mcp-reinit-error-${getNextComponentKey()}`}
+							message={`Failed to reinitialize MCP servers: ${String(
+								mcpError,
+							)}`}
+							hideBox={true}
+						/>,
+					);
+				}
+			}
+		}
+	};
+
+	const handleMcpWizardCancel = () => {
+		setIsMcpWizardMode(false);
+	};
+
 	return {
 		enterModelSelectionMode,
 		enterProviderSelectionMode,
 		enterThemeSelectionMode,
+		enterTitleShapeSelectionMode,
+		handleTitleShapeSelect,
+		handleTitleShapeSelectionCancel,
+		enterNanocoderShapeSelectionMode,
+		handleNanocoderShapeSelect,
+		handleNanocoderShapeSelectionCancel,
 		enterModelDatabaseMode,
 		enterConfigWizardMode,
+		enterMcpWizardMode,
 		handleModelSelect,
 		handleModelSelectionCancel,
 		handleProviderSelect,
@@ -298,5 +416,7 @@ export function useModeHandlers({
 		handleModelDatabaseCancel,
 		handleConfigWizardComplete,
 		handleConfigWizardCancel,
+		handleMcpWizardComplete,
+		handleMcpWizardCancel,
 	};
 }

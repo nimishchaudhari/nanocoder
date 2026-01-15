@@ -1,5 +1,11 @@
 import type {LanguageModel} from 'ai';
-import {generateText, stepCountIs} from 'ai';
+import {
+	generateText,
+	InvalidToolInputError,
+	NoSuchToolError,
+	stepCountIs,
+	ToolCallRepairError,
+} from 'ai';
 import {MAX_TOOL_STEPS} from '@/constants';
 import type {
 	AIProviderConfig,
@@ -27,6 +33,7 @@ import {
 import {extractRootError} from '../error-handling/error-extractor.js';
 import {parseAPIError} from '../error-handling/error-parser.js';
 import {isToolSupportError} from '../error-handling/tool-error-detector.js';
+import {formatToolsForPrompt} from '../tools/tool-prompt-formatter.js';
 import {
 	createOnStepFinishHandler,
 	createPrepareStepHandler,
@@ -110,8 +117,32 @@ export async function handleChat(
 					? tools
 					: undefined;
 
+			// When native tools are disabled but we have tools, inject definitions into system prompt
+			// This allows the model to still use tools via XML format
+			let messagesWithToolPrompt = messages;
+			if (shouldDisableTools && Object.keys(tools).length > 0) {
+				const toolPrompt = formatToolsForPrompt(tools);
+				if (toolPrompt) {
+					// Find and augment the system message with tool definitions
+					messagesWithToolPrompt = messages.map((msg, index) => {
+						if (msg.role === 'system' && index === 0) {
+							return {
+								...msg,
+								content: msg.content + toolPrompt,
+							};
+						}
+						return msg;
+					});
+
+					logger.debug('Injected tool definitions into system prompt', {
+						toolCount: Object.keys(tools).length,
+						promptLength: toolPrompt.length,
+					});
+				}
+			}
+
 			// Convert messages to AI SDK v5 ModelMessage format
-			const modelMessages = convertToModelMessages(messages);
+			const modelMessages = convertToModelMessages(messagesWithToolPrompt);
 
 			logger.debug('AI SDK request prepared', {
 				messageCount: modelMessages.length,
@@ -278,12 +309,61 @@ export async function handleChat(
 				});
 			}
 
+			// Handle tool-specific errors - NoSuchToolError
+			if (error instanceof NoSuchToolError) {
+				logger.error('Tool not found', {
+					toolName: error.toolName,
+					model: currentModel,
+					correlationId,
+					provider: providerConfig.name,
+				});
+
+				// Provide helpful error message with available tools
+				const availableTools = Object.keys(tools).join(', ');
+				const errorMessage = availableTools
+					? `Tool "${error.toolName}" does not exist. Available tools: ${availableTools}`
+					: `Tool "${error.toolName}" does not exist and no tools are currently loaded.`;
+
+				throw new Error(errorMessage);
+			}
+
+			// Handle tool-specific errors - InvalidToolInputError
+			if (error instanceof InvalidToolInputError) {
+				logger.error('Invalid tool input', {
+					toolName: error.toolName,
+					model: currentModel,
+					correlationId,
+					provider: providerConfig.name,
+					validationError: error.message,
+				});
+
+				// Provide clear validation error
+				throw new Error(
+					`Invalid arguments for tool "${error.toolName}": ${error.message}`,
+				);
+			}
+
+			// Handle tool-specific errors - ToolCallRepairError
+			if (error instanceof ToolCallRepairError) {
+				logger.error('Tool call repair failed', {
+					toolName: error.originalError.toolName,
+					model: currentModel,
+					correlationId,
+					provider: providerConfig.name,
+					repairError: error.message,
+				});
+
+				// Fall through to general error handling
+				// Don't throw here - let the general handler provide context
+			}
+
 			// Log the error with performance metrics
 			logger.error('Chat request failed', {
 				model: currentModel,
 				duration: `${finalMetrics.duration.toFixed(2)}ms`,
 				error: error instanceof Error ? error.message : error,
 				errorName: error instanceof Error ? error.name : 'Unknown',
+				errorType: error?.constructor?.name || 'Unknown',
 				correlationId,
 				provider: providerConfig.name,
 				memoryDelta: formatMemoryUsage(

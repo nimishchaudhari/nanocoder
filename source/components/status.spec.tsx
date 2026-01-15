@@ -1,42 +1,10 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
 import {themes} from '../config/themes';
-import {ThemeContext} from '../hooks/useTheme';
-import {UIStateProvider} from '../hooks/useUIState';
+import {renderWithTheme} from '../test-utils/render-with-theme.js';
 import Status from './status';
 
 console.log('\nstatus.spec.tsx');
-
-// Mock ThemeProvider for testing
-const MockThemeProvider = ({
-	children,
-	theme = 'tokyo-night',
-}: {
-	children: React.ReactNode;
-	theme?: keyof typeof themes;
-}) => {
-	const mockTheme = {
-		currentTheme: theme as const,
-		colors: themes[theme].colors,
-		setCurrentTheme: () => {},
-	};
-
-	return <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>;
-};
-
-// Wrapper with all required providers
-const TestWrapper = ({
-	children,
-	theme = 'tokyo-night',
-}: {
-	children: React.ReactNode;
-	theme?: keyof typeof themes;
-}) => (
-	<MockThemeProvider theme={theme}>
-		<UIStateProvider>{children}</UIStateProvider>
-	</MockThemeProvider>
-);
 
 // Default props for testing
 const defaultProps = {
@@ -53,10 +21,10 @@ test('Status renders narrow layout without crashing', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+			/>
 	);
 
 	t.truthy(lastFrame());
@@ -68,10 +36,10 @@ test('Status shows CWD in narrow layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+			/>
 	);
 
 	const output = lastFrame();
@@ -86,10 +54,11 @@ test('Status shows model in narrow layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} model="test-model" />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				model="test-model"
+			/>
 	);
 
 	const output = lastFrame();
@@ -104,10 +73,15 @@ test('Status shows theme in narrow layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50;
 
-	const {lastFrame} = render(
-		<TestWrapper theme="tokyo-night">
-			<Status {...defaultProps} theme="tokyo-night" />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<Status
+			{...defaultProps}
+			theme="tokyo-night"
+			confDirMap={{
+				'agents.config.json': '/mock/path/agents.config.json',
+				'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+			}}
+		/>,
 	);
 
 	const output = lastFrame();
@@ -123,10 +97,15 @@ test('Status shows AGENTS.md status in narrow layout', t => {
 	process.stdout.columns = 50;
 
 	// Test without AGENTS.md (default)
-	const {lastFrame: frame1} = render(
-		<TestWrapper>
-			<Status {...defaultProps} agentsMdLoaded={false} />
-		</TestWrapper>,
+	const {lastFrame: frame1} = renderWithTheme(
+		<Status
+			{...defaultProps}
+			agentsMdLoaded={false}
+			confDirMap={{
+				'agents.config.json': '/mock/path/agents.config.json',
+				'nanocoder-preferences.json': '/mock/path/nanocoder-preferences.json'
+			}}
+		/>,
 	);
 	const output1 = frame1();
 	t.truthy(output1);
@@ -139,10 +118,11 @@ test('Status shows preferences loaded in narrow layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} preferencesLoaded={true} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				preferencesLoaded={true}
+			/>
 	);
 
 	const output = lastFrame();
@@ -156,10 +136,11 @@ test('Status shows custom commands count in narrow layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} customCommandsCount={5} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				customCommandsCount={5}
+			/>
 	);
 
 	const output = lastFrame();
@@ -173,10 +154,11 @@ test('Status does not show custom commands when count is 0', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} customCommandsCount={0} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				customCommandsCount={0}
+			/>
 	);
 
 	const output = lastFrame();
@@ -196,10 +178,11 @@ test('Status shows MCP status in narrow layout', t => {
 		{name: 'server2', status: 'connected'},
 	];
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} mcpServersStatus={mcpStatus} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				mcpServersStatus={mcpStatus}
+			/>
 	);
 
 	const output = lastFrame();
@@ -218,10 +201,11 @@ test('Status shows partial MCP connection in narrow layout', t => {
 		{name: 'server2', status: 'failed', errorMessage: 'Connection refused'},
 	];
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} mcpServersStatus={mcpStatus} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				mcpServersStatus={mcpStatus}
+			/>
 	);
 
 	const output = lastFrame();
@@ -240,10 +224,11 @@ test('Status shows LSP status in narrow layout', t => {
 		{name: 'typescript', status: 'connected'},
 	];
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} lspServersStatus={lspStatus} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				lspServersStatus={lspStatus}
+			/>
 	);
 
 	const output = lastFrame();
@@ -264,10 +249,11 @@ test('Status shows update info in narrow layout', t => {
 		updateCommand: 'npm install -g @nanocollective/nanocoder',
 	};
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} updateInfo={updateInfo} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				updateInfo={updateInfo}
+			/>
 	);
 
 	const output = lastFrame();
@@ -289,10 +275,11 @@ test('Status shows update message when no command in narrow layout', t => {
 		updateMessage: 'Please update manually',
 	};
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} updateInfo={updateInfo} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				updateInfo={updateInfo}
+			/>
 	);
 
 	const output = lastFrame();
@@ -310,10 +297,10 @@ test('Status renders normal layout with TitledBox', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+			/>
 	);
 
 	const output = lastFrame();
@@ -328,10 +315,11 @@ test('Status shows provider in normal layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} provider="test-provider" />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				provider="test-provider"
+			/>
 	);
 
 	const output = lastFrame();
@@ -346,10 +334,10 @@ test('Status shows config path in normal layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+			/>
 	);
 
 	const output = lastFrame();
@@ -364,10 +352,11 @@ test('Status shows AGENTS.md message in normal layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} agentsMdLoaded={true} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				agentsMdLoaded={true}
+			/>
 	);
 
 	const output = lastFrame();
@@ -381,10 +370,11 @@ test('Status shows no AGENTS.md message in normal layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} agentsMdLoaded={false} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				agentsMdLoaded={false}
+			/>
 	);
 
 	const output = lastFrame();
@@ -399,10 +389,11 @@ test('Status shows custom commands loaded in normal layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} customCommandsCount={3} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				customCommandsCount={3}
+			/>
 	);
 
 	const output = lastFrame();
@@ -422,10 +413,11 @@ test('Status shows failed MCP servers in normal layout', t => {
 		{name: 'server3', status: 'failed', errorMessage: 'Auth failed'},
 	];
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} mcpServersStatus={mcpStatus} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				mcpServersStatus={mcpStatus}
+			/>
 	);
 
 	const output = lastFrame();
@@ -446,10 +438,11 @@ test('Status shows failed LSP servers in normal layout', t => {
 		{name: 'rust', status: 'failed', errorMessage: 'Not found'},
 	];
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} lspServersStatus={lspStatus} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				lspServersStatus={lspStatus}
+			/>
 	);
 
 	const output = lastFrame();
@@ -464,10 +457,11 @@ test('Status handles no MCP servers', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} mcpServersStatus={[]} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				mcpServersStatus={[]}
+			/>
 	);
 
 	const output = lastFrame();
@@ -482,10 +476,11 @@ test('Status handles no LSP servers', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} lspServersStatus={[]} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				lspServersStatus={[]}
+			/>
 	);
 
 	const output = lastFrame();
@@ -500,10 +495,10 @@ test('Status handles undefined MCP/LSP status', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+			/>
 	);
 
 	const output = lastFrame();
@@ -528,10 +523,11 @@ test('Status handles update info with command in normal layout', t => {
 		updateCommand: 'npm update',
 	};
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} updateInfo={updateInfo} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				updateInfo={updateInfo}
+			/>
 	);
 
 	const output = lastFrame();
@@ -554,10 +550,11 @@ test('Status handles update info with message in normal layout', t => {
 		updateMessage: 'Check the website for updates',
 	};
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} updateInfo={updateInfo} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				updateInfo={updateInfo}
+			/>
 	);
 
 	const output = lastFrame();
@@ -571,10 +568,11 @@ test('Status handles null updateInfo', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} updateInfo={null} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				updateInfo={null}
+			/>
 	);
 
 	const output = lastFrame();
@@ -589,10 +587,10 @@ test('Status handles undefined updateInfo', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+			/>
 	);
 
 	const output = lastFrame();
@@ -612,10 +610,11 @@ test('Status handles updateInfo with hasUpdate false', t => {
 		latestVersion: '1.0.0',
 	};
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} updateInfo={updateInfo} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				updateInfo={updateInfo}
+			/>
 	);
 
 	const output = lastFrame();
@@ -641,10 +640,11 @@ test('Status works with different themes', t => {
 	];
 
 	for (const theme of themes_to_test) {
-		const {lastFrame} = render(
-			<TestWrapper theme={theme}>
-				<Status {...defaultProps} theme={theme} />
-			</TestWrapper>,
+		const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				theme={theme}
+			/>,
 		);
 
 		const output = lastFrame();
@@ -663,10 +663,11 @@ test('Status handles undefined customCommandsCount', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} customCommandsCount={undefined} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				customCommandsCount={undefined}
+			/>
 	);
 
 	const output = lastFrame();
@@ -680,10 +681,11 @@ test('Status handles undefined preferencesLoaded', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} preferencesLoaded={undefined} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				preferencesLoaded={undefined}
+			/>
 	);
 
 	const output = lastFrame();
@@ -697,10 +699,11 @@ test('Status handles undefined agentsMdLoaded', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} agentsMdLoaded={undefined} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				agentsMdLoaded={undefined}
+			/>
 	);
 
 	const output = lastFrame();
@@ -718,10 +721,11 @@ test('Status handles server with no error message', t => {
 		{name: 'server1', status: 'failed'}, // No errorMessage
 	];
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} mcpServersStatus={mcpStatus} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				mcpServersStatus={mcpStatus}
+			/>
 	);
 
 	const output = lastFrame();
@@ -737,10 +741,11 @@ test('Status handles very long model names', t => {
 
 	const longModel = 'anthropic/claude-3-opus-very-long-model-name-that-might-truncate';
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<Status {...defaultProps} model={longModel} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+			<Status
+				{...defaultProps}
+				model={longModel}
+			/>
 	);
 
 	const output = lastFrame();

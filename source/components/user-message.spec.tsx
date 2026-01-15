@@ -228,3 +228,95 @@ test('UserMessage renders without crashing', t => {
 
 	t.truthy(lastFrame());
 });
+
+// ============================================================================
+// VS Code Context Stripping Tests
+// ============================================================================
+
+test('UserMessage strips VS Code context markers from display', t => {
+	const message = `What does this do?
+
+[@App.tsx (lines 149-155)]<!--vscode-context-->
+\`\`\`
+const vscodeServer = useVSCodeServer({
+    enabled: vscodeMode,
+});
+\`\`\`<!--/vscode-context-->`;
+
+	const {lastFrame} = render(
+		<MockThemeProvider>
+			<UserMessage message={message} />
+		</MockThemeProvider>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	// Should show the question and placeholder
+	t.regex(output!, /What does this do/);
+	t.regex(output!, /\[@App\.tsx \(lines 149-155\)\]/);
+	// Should NOT show the context markers or code block
+	t.false(output!.includes('<!--vscode-context-->'));
+	t.false(output!.includes('<!--/vscode-context-->'));
+	t.false(output!.includes('useVSCodeServer'));
+});
+
+test('UserMessage strips VS Code context but preserves placeholder tag', t => {
+	const message = `Explain this
+
+[@utils.ts (lines 10-20)]<!--vscode-context-->
+\`\`\`
+function helper() {}
+\`\`\`<!--/vscode-context-->`;
+
+	const {lastFrame} = render(
+		<MockThemeProvider>
+			<UserMessage message={message} />
+		</MockThemeProvider>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /\[@utils\.ts \(lines 10-20\)\]/);
+	t.false(output!.includes('function helper'));
+});
+
+test('UserMessage handles message without VS Code context normally', t => {
+	const message = 'Regular message without VS Code context';
+
+	const {lastFrame} = render(
+		<MockThemeProvider>
+			<UserMessage message={message} />
+		</MockThemeProvider>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /Regular message without VS Code context/);
+});
+
+test('UserMessage handles multiple VS Code context blocks', t => {
+	const message = `Compare these:
+
+[@file1.ts (lines 1-5)]<!--vscode-context-->
+\`\`\`
+code1
+\`\`\`<!--/vscode-context-->
+
+[@file2.ts (lines 10-15)]<!--vscode-context-->
+\`\`\`
+code2
+\`\`\`<!--/vscode-context-->`;
+
+	const {lastFrame} = render(
+		<MockThemeProvider>
+			<UserMessage message={message} />
+		</MockThemeProvider>,
+	);
+
+	const output = lastFrame();
+	t.truthy(output);
+	t.regex(output!, /\[@file1\.ts \(lines 1-5\)\]/);
+	t.regex(output!, /\[@file2\.ts \(lines 10-15\)\]/);
+	t.false(output!.includes('code1'));
+	t.false(output!.includes('code2'));
+});

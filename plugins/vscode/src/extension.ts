@@ -41,15 +41,9 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('nanocoder.connect', connect),
 		vscode.commands.registerCommand('nanocoder.disconnect', disconnect),
 		vscode.commands.registerCommand('nanocoder.startCli', startCli),
-		// Context menu commands
+		// Context menu command
 		vscode.commands.registerCommand('nanocoder.askAboutCode', () =>
-			sendCodeToNanocoder('ask'),
-		),
-		vscode.commands.registerCommand('nanocoder.explainCode', () =>
-			sendCodeToNanocoder('explain'),
-		),
-		vscode.commands.registerCommand('nanocoder.refactorCode', () =>
-			sendCodeToNanocoder('refactor'),
+			sendCodeToNanocoder(),
 		),
 	);
 
@@ -261,8 +255,8 @@ function sendWorkspaceContext(): void {
 	});
 }
 
-// Send selected code to Nanocoder CLI with a specific action
-function sendCodeToNanocoder(action: 'ask' | 'explain' | 'refactor'): void {
+// Send selected code to Nanocoder CLI
+function sendCodeToNanocoder(): void {
 	const editor = vscode.window.activeTextEditor;
 	if (!editor) {
 		vscode.window.showWarningMessage('No active editor');
@@ -284,7 +278,7 @@ function sendCodeToNanocoder(action: 'ask' | 'explain' | 'refactor'): void {
 			)
 			.then(choice => {
 				if (choice === 'Connect') {
-					connect().then(() => sendCodeToNanocoder(action));
+					connect().then(() => sendCodeToNanocoder());
 				} else if (choice === 'Start CLI') {
 					startCli();
 				}
@@ -298,39 +292,22 @@ function sendCodeToNanocoder(action: 'ask' | 'explain' | 'refactor'): void {
 	const startLine = selection.start.line + 1;
 	const endLine = selection.end.line + 1;
 
-	// Build prompt based on action
-	let prompt: string;
-	switch (action) {
-		case 'ask':
-			// For 'ask', prompt the user for their question
-			vscode.window
-				.showInputBox({
-					prompt: 'What would you like to ask about this code?',
-					placeHolder: 'Enter your question...',
-				})
-				.then(question => {
-					if (question) {
-						const fullPrompt = `${question}\n\nCode from ${fileName} (lines ${startLine}-${endLine}):\n\`\`\`\n${selectedText}\n\`\`\``;
-						sendPromptWithContext(
-							fullPrompt,
-							filePath,
-							selectedText,
-							selection,
-						);
-					}
+	// Prompt the user for their question
+	vscode.window
+		.showInputBox({
+			prompt: 'What would you like to ask about this code?',
+			placeHolder: 'Enter your question...',
+		})
+		.then(question => {
+			if (question) {
+				// Send just the question - the CLI will format the display and include the code
+				sendPromptWithContext(question, filePath, selectedText, selection, {
+					fileName,
+					startLine,
+					endLine,
 				});
-			return;
-
-		case 'explain':
-			prompt = `Explain this code from ${fileName} (lines ${startLine}-${endLine}):\n\`\`\`\n${selectedText}\n\`\`\``;
-			break;
-
-		case 'refactor':
-			prompt = `Suggest refactoring improvements for this code from ${fileName} (lines ${startLine}-${endLine}):\n\`\`\`\n${selectedText}\n\`\`\``;
-			break;
-	}
-
-	sendPromptWithContext(prompt, filePath, selectedText, selection);
+			}
+		});
 }
 
 // Helper to send prompt with context
@@ -339,6 +316,7 @@ function sendPromptWithContext(
 	filePath: string,
 	selection: string,
 	selectionRange: vscode.Selection,
+	lineInfo: {fileName: string; startLine: number; endLine: number},
 ): void {
 	wsClient.send({
 		type: 'send_prompt',
@@ -346,6 +324,9 @@ function sendPromptWithContext(
 		context: {
 			filePath,
 			selection,
+			fileName: lineInfo.fileName,
+			startLine: lineInfo.startLine,
+			endLine: lineInfo.endLine,
 			cursorPosition: {
 				line: selectionRange.start.line,
 				character: selectionRange.start.character,

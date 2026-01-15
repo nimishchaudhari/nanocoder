@@ -33,7 +33,9 @@ export async function execGit(args: string[]): Promise<string> {
 
 		proc.on('close', (code: number | null) => {
 			if (code === 0) {
-				resolve(stdout.trim());
+				// Use trimEnd() instead of trim() to preserve leading whitespace
+				// which is significant in porcelain output (e.g., " M" vs "M ")
+				resolve(stdout.trimEnd());
 			} else {
 				// Non-zero exit code indicates an error
 				// Include stderr in error message for context

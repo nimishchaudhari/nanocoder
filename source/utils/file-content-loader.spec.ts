@@ -2,7 +2,7 @@ import {mkdir, rm, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'ava';
-import {formatFileForContext, loadFileContent} from './file-content-loader.js';
+import {loadFileContent} from './file-content-loader.js';
 
 console.log(`\nfile-content-loader.spec.ts`);
 
@@ -98,17 +98,19 @@ test('handles non-existent file', async t => {
 	t.is(result.metadata.lineCount, 0);
 });
 
-test('formats content with line numbers', async t => {
-	const result = await loadFileContent(join(testDir, 'test.txt'), {
+test('formats content with path header', async t => {
+	const testFilePath = join(testDir, 'test.txt');
+	const result = await loadFileContent(testFilePath, {
 		start: 2,
 		end: 3,
 	});
 
 	t.true(result.success);
 	t.truthy(result.content);
-	// Should have line numbers like "   2: Line 2"
-	t.true(result.content!.includes('   2:'));
-	t.true(result.content!.includes('   3:'));
+	// Should have path header and content without line numbers
+	t.true(result.content!.startsWith(`Path: ${testFilePath}`));
+	t.true(result.content!.includes('Line 2'));
+	t.true(result.content!.includes('Line 3'));
 });
 
 test('calculates token estimate', async t => {
@@ -131,50 +133,3 @@ test('stores absolute path in metadata', async t => {
 	t.true(result.metadata.absolutePath.length >= relativePath.length);
 });
 
-// Tests for formatFileForContext()
-test('formats file for LLM context with header and footer', async t => {
-	const result = await loadFileContent(join(testDir, 'app.tsx'));
-	const formatted = formatFileForContext(result);
-
-	// The header includes the full path, not just filename
-	t.true(formatted.includes('=== File:'));
-	t.true(formatted.includes('app.tsx'));
-	t.true(formatted.includes('==='));
-	t.true(result.content ? formatted.includes(result.content) : false);
-});
-
-test('formats file with line range info', async t => {
-	const result = await loadFileContent(join(testDir, 'test.txt'), {
-		start: 2,
-		end: 4,
-	});
-	const formatted = formatFileForContext(result);
-
-	t.true(formatted.includes('Lines 2-4'));
-	t.true(formatted.includes('(3 lines'));
-});
-
-test('formats file with single line info', async t => {
-	const result = await loadFileContent(join(testDir, 'test.txt'), {
-		start: 3,
-	});
-	const formatted = formatFileForContext(result);
-
-	t.true(formatted.includes('Lines 3'));
-	t.false(formatted.includes('Lines 3-')); // Should not have a range
-});
-
-test('handles error in formatFileForContext', async t => {
-	const result = await loadFileContent(join(testDir, 'nonexistent.txt'));
-	const formatted = formatFileForContext(result);
-
-	t.true(formatted.includes('Error loading file'));
-});
-
-test('includes token estimate in formatted output', async t => {
-	const result = await loadFileContent(join(testDir, 'test.txt'));
-	const formatted = formatFileForContext(result);
-
-	t.true(formatted.includes('tokens'));
-	t.true(/~\d+ tokens/.test(formatted)); // Should have "~123 tokens" format
-});

@@ -289,24 +289,54 @@ const GitStatusEnhancedFormatter = React.memo(
 		}
 		const {colors} = themeContext;
 
+		const [preview, setPreview] = React.useState<string | null>(null);
+		const [isLoading, setIsLoading] = React.useState(false);
+
+		// Generate preview before execution (when no result)
+		React.useEffect(() => {
+			if (!result && !preview && !isLoading) {
+				const generatePreview = async () => {
+					setIsLoading(true);
+					try {
+						const previewResult = await executeGitStatusEnhanced(args);
+						setPreview(previewResult);
+					} catch {
+						// Silently fail on preview generation errors
+					} finally {
+						setIsLoading(false);
+					}
+				};
+				void generatePreview();
+			}
+		}, [result, preview, isLoading, args]);
+
+		// Use either the actual result or the preview
+		const displayResult = result || preview;
+
 		// Parse result for display
 		let branch = '';
 		let summary = '';
 		let hasConflicts = false;
 
-		if (result) {
-			const branchMatch = result.match(/Branch: (.+)/);
+		if (displayResult) {
+			const branchMatch = displayResult.match(/Branch: (.+)/);
 			if (branchMatch) branch = branchMatch[1];
 
-			const summaryMatch = result.match(/Summary: (.+)/);
+			const summaryMatch = displayResult.match(/Summary: (.+)/);
 			if (summaryMatch) summary = summaryMatch[1];
 
-			hasConflicts = result.includes('!!! CONFLICTS !!!');
+			hasConflicts = displayResult.includes('!!! CONFLICTS !!!');
 		}
 
 		const messageContent = (
 			<Box flexDirection="column">
-				<Text color={colors.tool}>git_status_enhanced</Text>
+				<Text color={colors.tool}>⚒ git_status_enhanced</Text>
+
+				{isLoading && (
+					<Box>
+						<Text color={colors.secondary}>Loading status...</Text>
+					</Box>
+				)}
 
 				{branch && (
 					<Box>
@@ -318,7 +348,7 @@ const GitStatusEnhancedFormatter = React.memo(
 				{summary && (
 					<Box>
 						<Text color={colors.secondary}>Status: </Text>
-						<Text color={hasConflicts ? colors.error : colors.white}>
+						<Text color={hasConflicts ? colors.error : colors.text}>
 							{summary}
 						</Text>
 					</Box>
@@ -333,7 +363,7 @@ const GitStatusEnhancedFormatter = React.memo(
 				{args.detailed && (
 					<Box>
 						<Text color={colors.secondary}>Mode: </Text>
-						<Text color={colors.white}>detailed</Text>
+						<Text color={colors.text}>detailed</Text>
 					</Box>
 				)}
 			</Box>

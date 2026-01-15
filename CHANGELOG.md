@@ -1,4 +1,54 @@
+# 1.20.4
+
+- Fixed configuration wizard blocking users from entering HTTP URLs for remote Ollama servers. The wizard now allows any valid HTTP/HTTPS URL without requiring local network addresses.
+
+- Fixed `@modelcontextprotocol/sdk` dependency version to resolve npm audit security issue.
+
+- Fixed TLS certificate errors when using `uvx` MCP servers behind corporate proxies. Nanocoder now automatically adds `--native-tls` to uvx commands to use system certificates instead of rustls.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
+# 1.20.3
+
+- Fixed `search_file_contents` returning excessive tokens by truncating long matching lines to 300 characters. Previously, searching in files with long lines (minified JS, base64 data, etc.) could return ~100k tokens for just 30 matches.
+
+- Added validation to `read_file` to reject minified/binary files (lines >10,000 characters). These files consume excessive tokens without providing useful information to the model. Use `metadata_only=true` to still check file properties.
+
+- Fixed `web_search` result count display showing mismatched values (e.g., "10 / 5 results"). The formatter now correctly uses the same default as the search execution.
+
+- Improved `web_search` and `fetch_url` formatter layouts to match `execute_bash` style with consistent column alignment and spacing.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
+# 1.20.2
+
+- Added preview generation to git workflow tools (`git-status-enhanced`, `git-smart-commit`, `git-create-pr`) showing results before execution.
+
+- Fixed `string-replace` line number display in result mode - now correctly shows line numbers of new content after replacement.
+
+- Added hammer icon (⚒) to git tool formatters for visual consistency.
+
+- Improved formatting in `bash-progress`, `execute-bash`, and `read-file` tools with better spacing and layout.
+
+- Simplified `string-replace` validation logic and removed redundant success messages.
+
+- Fix: Running `/init --force` added duplication to `AGENTS.md`.
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
+# 1.20.1
+
+Fix: React Context Error - useTitleShape must be used within a TitleShapeProvider
+
+If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
+
 # 1.20.0
+
+Happy New Year! We all hope you had a great holidays and are feeling refreshed ready for 2026 🌟
+
+- Added Catpuccin themes (Latte, Frappe, Macchiato, Mocha) with gradient color support. Thanks to @Avtrkrb.
+
+- Added VS Code context menu integration - you can now right-click selected code and ask Nanocoder about it directly.
 
 - Added comprehensive testing achieving 90%+ code coverage across components, hooks, tools, and utilities. Tests now include unit and integration coverage for critical paths.
 
@@ -16,11 +66,21 @@
 
 - Added granular debug logging with structured pino logger throughout catch blocks for better error tracking. Thanks to @JimStenstrom and @abhisek1221.
 
-- Upgraded Biome to v2.3.10 with updated configuration format.
+- Added devcontainer support for streamlined development environments. Thanks to @Avtrkrb.
 
-- Upgraded Ink to 6.6.0 for improved terminal rendering.
+- Added stylized title boxes with powerline-style shapes and real-time preview in custom commands. Thanks to @Avtrkrb.
 
-- Upgraded AI SDK and MCP SDK dependencies to latest versions.
+- Added real-time bash output progress with live updates during command execution.
+
+- Added inline word-level highlighting to string_replace diff display for clearer change visualization.
+
+- Improved code exploration tools with better tool calling prompts and descriptions and new `list_directories` tool. Thanks to @DenizOkcu.
+
+- Centralized token calculation in tools with consistent usage display in formatters. Thanks to @DenizOkcu.
+
+- Added AI SDK error types for better tool call error handling. Thanks to @DenizOkcu.
+
+- Centralized ignored file patterns usage throughout Nanocoder for consistency. Thanks to @DenizOkcu.
 
 - Refactored App component into focused modules (useAppState, useAppInitialization, useChatHandler, useToolHandler, useModeHandlers) for better maintainability.
 
@@ -80,12 +140,31 @@
 
 - Fix: Silent configuration issues resolved. Thanks to @sanjeev55999999.
 
-
 - Fix: Added debug logging to empty catch blocks in LSP modules to improve error tracking and debugging. Thanks to @JimStenstrom.
 
 - Fix: Prevented process hang when exiting security disclaimer for better user experience. Thanks to @JimStenstrom.
 
 - Fix: Handled line wrap in read-file metadata test to ensure proper test reliability. Thanks to @JimStenstrom.
+
+- Fix: Use cmd.exe on Windows for command spawning to resolve cross-platform shell issues.
+
+- Fix: LSP diagnostics tool now properly handles non-existent files.
+
+- Fix: /clear command UI display restored.
+
+- Fix: Bun runtime detection added to LoggerProvider. Thanks to @JimStenstrom.
+
+- Fix: Resolved race conditions in singleton patterns and improved VS Code integration.
+
+- Fix: LoggerProvider async loading completion issues resolved.
+
+- Fix: Cleanup timeout leak in LSP client.
+
+- Fix: Duplicate SIGINT handler issues resolved.
+
+- Fix: High severity qs vulnerability patched via pnpm override. Thanks to @Pahari47.
+
+- Fix: Removed line numbers from tagging files and read_file tool as it confused models when pattern matching content changes.
 
 If there are any problems, feedback or thoughts please drop an issue or message us through Discord! Thank you for using Nanocoder. 🙌
 

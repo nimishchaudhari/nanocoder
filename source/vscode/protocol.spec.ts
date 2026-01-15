@@ -220,6 +220,42 @@ test('SendPromptMessage context is optional', t => {
 	t.is(message.context, undefined);
 });
 
+test('SendPromptMessage context includes line info for VS Code selections', t => {
+	const message: SendPromptMessage = {
+		type: 'send_prompt',
+		prompt: 'What does this do?',
+		context: {
+			filePath: '/path/to/App.tsx',
+			selection: 'const x = 1;',
+			fileName: 'App.tsx',
+			startLine: 10,
+			endLine: 15,
+			cursorPosition: {line: 10, character: 0},
+		},
+	};
+
+	t.is(message.type, 'send_prompt');
+	t.is(message.prompt, 'What does this do?');
+	t.is(message.context?.fileName, 'App.tsx');
+	t.is(message.context?.startLine, 10);
+	t.is(message.context?.endLine, 15);
+	t.is(message.context?.selection, 'const x = 1;');
+});
+
+test('SendPromptMessage context line info fields are optional', t => {
+	const message: SendPromptMessage = {
+		type: 'send_prompt',
+		prompt: 'Hello',
+		context: {
+			filePath: '/path/to/file.ts',
+		},
+	};
+
+	t.is(message.context?.fileName, undefined);
+	t.is(message.context?.startLine, undefined);
+	t.is(message.context?.endLine, undefined);
+});
+
 test('ApplyChangeMessage has correct structure', t => {
 	const message: ApplyChangeMessage = {
 		type: 'apply_change',

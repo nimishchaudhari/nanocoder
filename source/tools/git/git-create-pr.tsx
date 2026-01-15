@@ -409,18 +409,43 @@ const GitCreatePRFormatter = React.memo(
 		}
 		const {colors} = themeContext;
 
+		const [preview, setPreview] = React.useState<string | null>(null);
+		const [isLoading, setIsLoading] = React.useState(false);
+
+		// Generate preview before execution (when no result)
+		React.useEffect(() => {
+			if (!result && !preview && !isLoading) {
+				const generatePreview = async () => {
+					setIsLoading(true);
+					try {
+						// Run the same logic to generate a preview
+						const previewResult = await executeGitCreatePR(args);
+						setPreview(previewResult);
+					} catch {
+						// Silently fail on preview generation errors
+					} finally {
+						setIsLoading(false);
+					}
+				};
+				void generatePreview();
+			}
+		}, [result, preview, isLoading, args]);
+
+		// Use either the actual result or the preview
+		const displayResult = result || preview;
+
 		// Parse result for display
 		let title = '';
 		let description = '';
 		let targetBranch = args.targetBranch || 'main';
 		let hasBreakingChanges = false;
 
-		if (result) {
-			const titleMatch = result.match(/--- Title ---\n(.+)/);
+		if (displayResult) {
+			const titleMatch = displayResult.match(/--- Title ---\n(.+)/);
 			if (titleMatch) title = titleMatch[1];
 
 			// Extract description (between --- Description --- and the end or next section)
-			const descMatch = result.match(
+			const descMatch = displayResult.match(
 				/--- Description ---\n([\s\S]*?)(?:\n---|\n\nTo create|$)/,
 			);
 			if (descMatch) {
@@ -432,42 +457,48 @@ const GitCreatePRFormatter = React.memo(
 				}
 			}
 
-			const branchMatch = result.match(/Branch: .+ -> (.+)/);
+			const branchMatch = displayResult.match(/Branch: .+ -> (.+)/);
 			if (branchMatch) targetBranch = branchMatch[1];
 
-			hasBreakingChanges = result.includes('Breaking Changes');
+			hasBreakingChanges = displayResult.includes('Breaking Changes');
 		}
 
 		const messageContent = (
 			<Box flexDirection="column">
-				<Text color={colors.tool}>git_create_pr</Text>
+				<Text color={colors.tool}>⚒ git_create_pr</Text>
 
 				<Box>
 					<Text color={colors.secondary}>Target: </Text>
 					<Text color={colors.primary}>{targetBranch}</Text>
 				</Box>
 
+				{isLoading && (
+					<Box>
+						<Text color={colors.secondary}>Generating preview...</Text>
+					</Box>
+				)}
+
 				{args.draft && (
 					<Box>
 						<Text color={colors.secondary}>Draft: </Text>
-						<Text color={colors.white}>Yes</Text>
+						<Text color={colors.text}>Yes</Text>
 					</Box>
 				)}
 
 				{title && (
 					<Box>
 						<Text color={colors.secondary}>Title: </Text>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							{title.length > 40 ? title.substring(0, 40) + '...' : title}
 						</Text>
 					</Box>
 				)}
 
 				{description && (
-					<Box flexDirection="column" marginTop={1}>
+					<Box flexDirection="column">
 						<Text color={colors.secondary}>Description:</Text>
 						<Box marginLeft={2}>
-							<Text color={colors.white}>{description}</Text>
+							<Text color={colors.text}>{description}</Text>
 						</Box>
 					</Box>
 				)}

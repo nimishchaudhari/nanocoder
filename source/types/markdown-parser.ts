@@ -6,6 +6,6 @@ export interface Colors {
 	error: string;
 	warning: string;
 	info: string;
-	white: string;
+	text: string;
 	tool: string;
 }

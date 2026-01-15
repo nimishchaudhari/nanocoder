@@ -14,7 +14,6 @@ test('shouldRenderWelcome returns false when in non-interactive mode', t => {
 test('isNonInteractiveModeComplete returns timeout when time exceeded', t => {
 	const state: NonInteractiveModeState = {
 		isToolExecuting: false,
-		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: false,
 		messages: [],
@@ -31,7 +30,6 @@ test('isNonInteractiveModeComplete returns timeout when time exceeded', t => {
 test('isNonInteractiveModeComplete returns tool-approval when tool approval required', t => {
 	const state: NonInteractiveModeState = {
 		isToolExecuting: false,
-		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: false,
 		messages: [{role: 'assistant', content: 'Tool approval required'}],
@@ -48,7 +46,6 @@ test('isNonInteractiveModeComplete returns tool-approval when tool approval requ
 test('isNonInteractiveModeComplete returns error when error messages present', t => {
 	const state: NonInteractiveModeState = {
 		isToolExecuting: false,
-		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: false,
 		messages: [{role: 'error', content: 'Something went wrong'}],
@@ -65,7 +62,6 @@ test('isNonInteractiveModeComplete returns error when error messages present', t
 test('isNonInteractiveModeComplete returns complete when conversation finished', t => {
 	const state: NonInteractiveModeState = {
 		isToolExecuting: false,
-		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: true,
 		messages: [{role: 'assistant', content: 'Done'}],
@@ -82,7 +78,6 @@ test('isNonInteractiveModeComplete returns complete when conversation finished',
 test('isNonInteractiveModeComplete returns false when still processing', t => {
 	const state: NonInteractiveModeState = {
 		isToolExecuting: true,
-		isBashExecuting: false,
 		isToolConfirmationMode: false,
 		isConversationComplete: false,
 		messages: [],

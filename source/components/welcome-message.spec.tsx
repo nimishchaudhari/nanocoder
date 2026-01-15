@@ -1,33 +1,20 @@
+import fs from 'fs';
+import path from 'path';
+import {fileURLToPath} from 'url';
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
-import {themes} from '../config/themes';
-import {ThemeContext} from '../hooks/useTheme';
-import {UIStateProvider} from '../hooks/useUIState';
+import {renderWithTheme} from '../test-utils/render-with-theme.js';
 import WelcomeMessage from './welcome-message';
 
 console.log('\nwelcome-message.spec.tsx');
 
-// Version from package.json (1.19.2) - using actual version since fs is not mocked
-const VERSION = '1.19.2';
-
-// Mock ThemeProvider for testing
-const MockThemeProvider = ({children}: {children: React.ReactNode}) => {
-	const mockTheme = {
-		currentTheme: 'tokyo-night' as const,
-		colors: themes['tokyo-night'].colors,
-		setCurrentTheme: () => {},
-	};
-
-	return <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>;
-};
-
-// Wrapper with all required providers
-const TestWrapper = ({children}: {children: React.ReactNode}) => (
-	<MockThemeProvider>
-		<UIStateProvider>{children}</UIStateProvider>
-	</MockThemeProvider>
-);
+// Read version from package.json dynamically to avoid hardcoding
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const packageJson = JSON.parse(
+	fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf8'),
+) as {version: string};
+const VERSION = packageJson.version;
 
 // ============================================================================
 // Narrow Terminal Tests (width < 60)
@@ -37,11 +24,7 @@ test('WelcomeMessage renders compact layout for narrow terminal', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50; // Narrow terminal
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -55,11 +38,7 @@ test('WelcomeMessage shows version in narrow layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -73,11 +52,7 @@ test('WelcomeMessage shows quick tips in narrow layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -93,11 +68,7 @@ test('WelcomeMessage has bordered box in narrow layout', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 50;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -116,11 +87,7 @@ test('WelcomeMessage renders full layout for normal terminal', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80; // Normal terminal
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -133,11 +100,7 @@ test('WelcomeMessage shows welcome message for normal terminal', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -151,11 +114,7 @@ test('WelcomeMessage shows concise tips for normal terminal', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -172,11 +131,7 @@ test('WelcomeMessage shows help command for normal terminal', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -193,11 +148,7 @@ test('WelcomeMessage renders full layout for wide terminal', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 120; // Wide terminal
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -210,11 +161,7 @@ test('WelcomeMessage shows verbose tips for wide terminal', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 120;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -232,11 +179,7 @@ test('WelcomeMessage renders without crashing', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	t.truthy(lastFrame());
 
@@ -247,11 +190,7 @@ test('WelcomeMessage has consistent layout structure', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -264,11 +203,7 @@ test('WelcomeMessage displays gradient text', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 80;
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -286,11 +221,7 @@ test('WelcomeMessage handles boundary at width 60', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 60; // Boundary between narrow and normal
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -304,11 +235,7 @@ test('WelcomeMessage handles boundary at width 100', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 100; // Boundary between normal and wide
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -322,11 +249,7 @@ test('WelcomeMessage handles very narrow terminal', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 30; // Very narrow
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);
@@ -340,11 +263,7 @@ test('WelcomeMessage handles very wide terminal', t => {
 	const originalColumns = process.stdout.columns;
 	process.stdout.columns = 200; // Very wide
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<WelcomeMessage />
-		</TestWrapper>,
-	);
+	const {lastFrame} = renderWithTheme(<WelcomeMessage />);
 
 	const output = lastFrame();
 	t.truthy(output);

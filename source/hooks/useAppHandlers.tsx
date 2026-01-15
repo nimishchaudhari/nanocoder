@@ -51,8 +51,7 @@ interface UseAppHandlersProps {
 		updater: DevelopmentMode | ((prev: DevelopmentMode) => DevelopmentMode),
 	) => void;
 	setIsConversationComplete: (value: boolean) => void;
-	setIsBashExecuting: (value: boolean) => void;
-	setCurrentBashCommand: (value: string) => void;
+	setIsToolExecuting: (value: boolean) => void;
 	setIsCheckpointLoadMode: (value: boolean) => void;
 	setCheckpointLoadData: (
 		value: {
@@ -63,6 +62,7 @@ interface UseAppHandlersProps {
 
 	// Callbacks
 	addToChatQueue: (component: React.ReactNode) => void;
+	setLiveComponent: (component: React.ReactNode) => void;
 	client: LLMClient | null;
 	getMessageTokens: (message: Message) => number;
 
@@ -70,8 +70,11 @@ interface UseAppHandlersProps {
 	enterModelSelectionMode: () => void;
 	enterProviderSelectionMode: () => void;
 	enterThemeSelectionMode: () => void;
+	enterTitleShapeSelectionMode: () => void;
+	enterNanocoderShapeSelectionMode: () => void;
 	enterModelDatabaseMode: () => void;
 	enterConfigWizardMode: () => void;
+	enterMcpWizardMode: () => void;
 
 	// Chat handler
 	handleChatMessage: (message: string) => Promise<void>;
@@ -259,16 +262,20 @@ export function useAppHandlers(props: UseAppHandlersProps): AppHandlers {
 				onEnterThemeSelectionMode: props.enterThemeSelectionMode,
 				onEnterModelDatabaseMode: props.enterModelDatabaseMode,
 				onEnterConfigWizardMode: props.enterConfigWizardMode,
+				onEnterMcpWizardMode: props.enterMcpWizardMode,
 				onEnterCheckpointLoadMode: enterCheckpointLoadMode,
+				onEnterTitleShapeSelectionMode: props.enterTitleShapeSelectionMode,
+				onEnterNanocoderShapeSelectionMode:
+					props.enterNanocoderShapeSelectionMode,
 				onShowStatus: handleShowStatus,
 				onHandleChatMessage: props.handleChatMessage,
 				onAddToChatQueue: props.addToChatQueue,
+				setLiveComponent: props.setLiveComponent,
+				setIsToolExecuting: props.setIsToolExecuting,
 				onCommandComplete: () => props.setIsConversationComplete(true),
 				getNextComponentKey: props.getNextComponentKey,
 				setMessages: props.updateMessages,
 				messages: props.messages,
-				setIsBashExecuting: props.setIsBashExecuting,
-				setCurrentBashCommand: props.setCurrentBashCommand,
 				provider: props.currentProvider,
 				model: props.currentModel,
 				theme: props.currentTheme,

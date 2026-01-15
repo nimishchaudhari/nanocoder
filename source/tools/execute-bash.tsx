@@ -1,59 +1,66 @@
-import {spawn} from 'node:child_process';
-import {highlight} from 'cli-highlight';
 import {Box, Text} from 'ink';
 import React from 'react';
 
-import ToolMessage from '@/components/tool-message';
+import BashProgress from '@/components/bash-progress';
+import {isNanocoderToolAlwaysAllowed} from '@/config/nanocoder-tools-config';
 import {TRUNCATION_OUTPUT_LIMIT} from '@/constants';
-import {ThemeContext} from '@/hooks/useTheme';
+import {useTheme} from '@/hooks/useTheme';
+import {type BashExecutionState, bashExecutor} from '@/services/bash-executor';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 
+/**
+ * Execute a bash command using the bash executor service.
+ * This is the internal implementation used by both the tool and direct !command mode.
+ *
+ * @param command - The bash command to execute
+ * @returns Object containing executionId and promise for the result
+ */
+export function executeBashCommand(command: string): {
+	executionId: string;
+	promise: Promise<BashExecutionState>;
+} {
+	return bashExecutor.execute(command);
+}
+
+/**
+ * Format bash execution result for LLM context
+ */
+export function formatBashResultForLLM(result: BashExecutionState): string {
+	let fullOutput = '';
+	const exitCodeInfo =
+		result.exitCode !== null ? `EXIT_CODE: ${result.exitCode}\n` : '';
+
+	if (result.stderr) {
+		fullOutput = `${exitCodeInfo}STDERR:\n${result.stderr}\nSTDOUT:\n${result.fullOutput}`;
+	} else {
+		fullOutput = `${exitCodeInfo}${result.fullOutput}`;
+	}
+
+	// Handle errors
+	if (result.error) {
+		fullOutput = `Error: ${result.error}\n${fullOutput}`;
+	}
+
+	// Limit the context for LLM to prevent overwhelming the model
+	const llmContext =
+		fullOutput.length > TRUNCATION_OUTPUT_LIMIT
+			? fullOutput.substring(0, TRUNCATION_OUTPUT_LIMIT) +
+				'\n... [Output truncated. Use more specific commands to see full output]'
+			: fullOutput;
+
+	return llmContext;
+}
+
+/**
+ * Tool execute function - called by the tool system
+ * Note: For streaming tools, the tool handler will use executeBashCommand directly
+ * and this function serves as a fallback/compatibility layer
+ */
 const executeExecuteBash = async (args: {command: string}): Promise<string> => {
-	return new Promise((resolve, reject) => {
-		const proc = spawn('sh', ['-c', args.command]);
-		let stdout = '';
-		let stderr = '';
-
-		proc.stdout.on('data', (data: Buffer) => {
-			stdout += data.toString();
-		});
-
-		proc.stderr.on('data', (data: Buffer) => {
-			stderr += data.toString();
-		});
-
-		proc.on('close', (code: number | null) => {
-			let fullOutput = '';
-
-			// Include exit code information
-			const exitCodeInfo = code !== null ? `EXIT_CODE: ${code}\n` : '';
-
-			if (stderr) {
-				fullOutput = `${exitCodeInfo}STDERR:
-${stderr}
-STDOUT:
-${stdout}`;
-			} else {
-				fullOutput = `${exitCodeInfo}${stdout}`;
-			}
-
-			// Limit the context for LLM to first TRUNCATION_OUTPUT_LIMIT characters to prevent overwhelming the model
-			const llmContext =
-				fullOutput.length > TRUNCATION_OUTPUT_LIMIT
-					? fullOutput.substring(0, TRUNCATION_OUTPUT_LIMIT) +
-						'\n... [Output truncated. Use more specific commands to see full output]'
-					: fullOutput;
-
-			// Return ONLY the llmContext to avoid sending massive outputs to the model
-			// The formatter will need to be updated to handle plain strings
-			resolve(llmContext);
-		});
-
-		proc.on('error', error => {
-			reject(new Error(`Error executing command: ${error.message}`));
-		});
-	});
+	const {promise} = bashExecutor.execute(args.command);
+	const result = await promise;
+	return formatBashResultForLLM(result);
 };
 
 const executeBashCoreTool = tool({
@@ -69,69 +76,61 @@ const executeBashCoreTool = tool({
 		},
 		required: ['command'],
 	}),
-	// High risk: bash commands always require approval in all modes
-	needsApproval: true,
+	// High risk: bash commands require approval unless explicitly configured in nanocoderTools.alwaysAllow
+	needsApproval: () => {
+		// Check if this tool is configured to always be allowed
+		if (isNanocoderToolAlwaysAllowed('execute_bash')) {
+			return false;
+		}
+
+		// Even in auto-accept mode, bash commands should require approval for security
+		return true;
+	},
 	execute: async (args, _options) => {
 		return await executeExecuteBash(args);
 	},
 });
 
-// Create a component that will re-render when theme changes
-const ExecuteBashFormatter = React.memo(
-	({args, result}: {args: {command: string}; result?: string}) => {
-		const themeContext = React.useContext(ThemeContext);
-		if (!themeContext) {
-			throw new Error('ThemeContext is required');
-		}
-		const {colors} = themeContext;
-		const command = args.command || 'unknown';
+/**
+ * Formatter component - used for tool confirmation preview
+ */
+function ExecuteBashFormatterComponent({
+	command,
+}: {
+	command: string;
+}): React.ReactElement {
+	const {colors} = useTheme();
 
-		try {
-			highlight(command, {
-				language: 'bash',
-				theme: 'default',
-			});
-		} catch {
-			// Syntax highlighting failed, will use plain command
-		}
-
-		// Result is now a plain string (truncated output)
-		let outputSize = 0;
-		let estimatedTokens = 0;
-		if (result) {
-			outputSize = result.length;
-			estimatedTokens = Math.ceil(outputSize / 4); // ~4 characters per token
-		}
-
-		const messageContent = (
-			<Box flexDirection="column">
-				<Text color={colors.tool}>⚒ execute_bash</Text>
-
-				<Box>
-					<Text color={colors.secondary}>Command: </Text>
+	return (
+		<Box flexDirection="column">
+			<Text color={colors.tool}>⚒ execute_bash</Text>
+			<Box>
+				<Text color={colors.secondary}>Command: </Text>
+				<Box marginLeft={1}>
 					<Text color={colors.primary}>{command}</Text>
 				</Box>
-
-				{result && (
-					<Box>
-						<Text color={colors.secondary}>Output: </Text>
-						<Text color={colors.white}>
-							{outputSize} characters (~{estimatedTokens} tokens sent to LLM)
-						</Text>
-					</Box>
-				)}
 			</Box>
-		);
+		</Box>
+	);
+}
 
-		return <ToolMessage message={messageContent} hideBox={true} />;
-	},
-);
+/**
+ * Regular formatter - called for tool confirmation preview
+ * Shows the command that will be executed
+ */
+const executeBashFormatter = (args: {command: string}): React.ReactElement => {
+	return <ExecuteBashFormatterComponent command={args.command} />;
+};
 
-const executeBashFormatter = (
+/**
+ * Streaming formatter - called BEFORE execution to set up progress component
+ * The component subscribes to bash executor events and updates itself
+ */
+const executeBashStreamingFormatter = (
 	args: {command: string},
-	result?: string,
+	executionId: string,
 ): React.ReactElement => {
-	return <ExecuteBashFormatter args={args} result={result} />;
+	return <BashProgress executionId={executionId} command={args.command} />;
 };
 
 const executeBashValidator = (args: {
@@ -173,5 +172,6 @@ export const executeBashTool: NanocoderToolExport = {
 	name: 'execute_bash' as const,
 	tool: executeBashCoreTool,
 	formatter: executeBashFormatter,
+	streamingFormatter: executeBashStreamingFormatter,
 	validator: executeBashValidator,
 };

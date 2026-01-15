@@ -4,6 +4,7 @@ VS Code integration for [Nanocoder](https://github.com/Nano-Collective/nanocoder
 
 ## Features
 
+- **Ask About Code**: Right-click on selected code to ask Nanocoder questions about it directly from VS Code
 - **Live Diff Preview**: See proposed file changes in VS Code's diff viewer before approving them in the CLI
 - **Automatic Connection**: Seamlessly connects to the Nanocoder CLI when running with `--vscode`
 - **Status Bar Integration**: Quick connection status and controls from the VS Code status bar
@@ -99,6 +100,18 @@ nanocoder --vscode --vscode-port 51821
    - Syntax highlighting for the file type
 4. **Approve/reject in CLI**: Use the Nanocoder CLI to approve or reject changes
 
+### Ask About Code (Context Menu)
+
+Select code in any file and right-click to see "Ask Nanocoder about this". This lets you:
+
+1. Select any code in VS Code
+2. Right-click and choose "Ask Nanocoder about this"
+3. Enter your question in the input box
+4. The question and code context are sent to the Nanocoder CLI
+5. Nanocoder responds in the CLI with full context of your selected code
+
+The code reference appears in the CLI as a highlighted placeholder (e.g., `[@App.tsx (lines 10-25)]`) while the full code is sent to the AI for analysis.
+
 ### Commands
 
 Access via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
@@ -108,6 +121,7 @@ Access via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
 | `Nanocoder: Connect to Nanocoder`      | Manually connect to the running CLI          |
 | `Nanocoder: Disconnect from Nanocoder` | Disconnect from the CLI                      |
 | `Nanocoder: Start Nanocoder CLI`       | Open a terminal and run `nanocoder --vscode` |
+| `Nanocoder: Ask Nanocoder about this`  | Ask about selected code (also in context menu) |
 
 ### Status Bar
 
@@ -160,6 +174,7 @@ The extension and CLI communicate via JSON messages over WebSocket:
 
 | Message Type           | Description                                           |
 | ---------------------- | ----------------------------------------------------- |
+| `send_prompt`          | User question with optional code selection context    |
 | `apply_change`         | User approved a file change                           |
 | `reject_change`        | User rejected a file change                           |
 | `context`              | Workspace info (open files, active file, diagnostics) |

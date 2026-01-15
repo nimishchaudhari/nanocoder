@@ -123,10 +123,6 @@ export function useNonInteractiveMode({
 			return 'Waiting for tooling...';
 		}
 
-		if (appState.isBashExecuting) {
-			return 'Waiting for bash execution...';
-		}
-
 		return 'Waiting for chat to complete...';
 	}, [
 		nonInteractivePrompt,
@@ -135,7 +131,6 @@ export function useNonInteractiveMode({
 		client,
 		appState.isToolExecuting,
 		appState.isToolConfirmationMode,
-		appState.isBashExecuting,
 	]);
 
 	return {

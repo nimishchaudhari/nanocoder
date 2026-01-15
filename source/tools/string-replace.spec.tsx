@@ -872,7 +872,7 @@ test('string_replace formatter: shows success after execution', async t => {
 
 	t.truthy(output);
 	t.regex(output!, /string_replace/);
-	t.regex(output!, /String replacement completed successfully/);
+	t.regex(output!, /Replace completed/);
 });
 
 test('string_replace formatter: handles multi-line replacements', async t => {

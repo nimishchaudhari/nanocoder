@@ -3,11 +3,12 @@ import BigText from 'ink-big-text';
 import Gradient from 'ink-gradient';
 import SelectInput from 'ink-select-input';
 import {useMemo, useState} from 'react';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {themes} from '@/config/themes';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import type {ThemePreset} from '@/types/ui';
+import {hasCustomGradients} from '@/utils/gradient-utils';
 
 interface ThemeSelectorProps {
 	onThemeSelect: (theme: ThemePreset) => void;
@@ -39,7 +40,12 @@ export default function ThemeSelector({
 	// Create theme options from available themes
 	const themeOptions: ThemeOption[] = Object.values(themes).map(theme => ({
 		label:
-			theme.displayName + (theme.name === originalTheme ? ' (current)' : ''),
+			theme.displayName +
+			' [' +
+			theme.themeType.charAt(0).toUpperCase() +
+			theme.themeType.slice(1) +
+			']' +
+			(theme.name === originalTheme ? ' (current)' : ''),
 		value: theme.name as ThemePreset,
 	}));
 
@@ -64,12 +70,19 @@ export default function ThemeSelector({
 
 	return (
 		<>
-			<Gradient colors={[colors.primary, colors.tool]}>
+			<Gradient
+				colors={
+					hasCustomGradients(colors)
+						? colors.gradientColors
+						: [colors.primary, colors.tool]
+				}
+			>
 				<BigText text="Themes" font="tiny" />
 			</Gradient>
 
-			<TitledBox
-				title="✻ Try out different themes!"
+			<TitledBoxWithPreferences
+				title="✻ Try out different themes! ✻"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
@@ -78,7 +91,7 @@ export default function ThemeSelector({
 				marginBottom={1}
 			>
 				<Box paddingBottom={1}>
-					<Text color={colors.white}>Tips for getting started:</Text>
+					<Text color={colors.text}>Tips for getting started:</Text>
 				</Box>
 				<Box paddingBottom={1} flexDirection="column">
 					<Text color={colors.secondary}>
@@ -91,8 +104,8 @@ export default function ThemeSelector({
 						3. The CLI will remember your choice next time.
 					</Text>
 				</Box>
-				<Text color={colors.white}>/help for help</Text>
-			</TitledBox>
+				<Text color={colors.text}>/help for help</Text>
+			</TitledBoxWithPreferences>
 			<Box
 				borderStyle="round"
 				width={boxWidth}

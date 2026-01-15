@@ -90,7 +90,7 @@ export function CheckpointListDisplay({
 						{checkpoints.map(checkpoint => (
 							<Box key={checkpoint.name} flexDirection="row">
 								<Box width={20}>
-									<Text color={colors.white}>
+									<Text color={colors.text}>
 										{checkpoint.name.length > 18
 											? checkpoint.name.substring(0, 15) + '...'
 											: checkpoint.name}
@@ -102,12 +102,12 @@ export function CheckpointListDisplay({
 									</Text>
 								</Box>
 								<Box width={10}>
-									<Text color={colors.white}>
+									<Text color={colors.text}>
 										{checkpoint.metadata.messageCount}
 									</Text>
 								</Box>
 								<Box width={8}>
-									<Text color={colors.white}>
+									<Text color={colors.text}>
 										{checkpoint.metadata.filesChanged.length}
 									</Text>
 								</Box>

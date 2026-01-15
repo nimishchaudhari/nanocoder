@@ -1,5 +1,6 @@
 import type {
 	AISDKCoreTool,
+	StreamingFormatter,
 	ToolEntry,
 	ToolFormatter,
 	ToolHandler,
@@ -91,6 +92,15 @@ export class ToolRegistry {
 	 */
 	getValidator(name: string): ToolValidator | undefined {
 		return this.tools.get(name)?.validator;
+	}
+
+	/**
+	 * Get a streaming formatter by name
+	 * @param name - The tool name
+	 * @returns The StreamingFormatter or undefined if not found
+	 */
+	getStreamingFormatter(name: string): StreamingFormatter | undefined {
+		return this.tools.get(name)?.streamingFormatter;
 	}
 
 	/**
@@ -200,6 +210,7 @@ export class ToolRegistry {
 	 * @param tools - Record of native AI SDK tools
 	 * @param formatters - Optional record of tool formatters
 	 * @param validators - Optional record of tool validators
+	 * @param streamingFormatters - Optional record of streaming formatters
 	 * @returns New ToolRegistry instance
 	 */
 	static fromRegistries(
@@ -207,6 +218,7 @@ export class ToolRegistry {
 		tools: Record<string, AISDKCoreTool>,
 		formatters?: Record<string, ToolFormatter>,
 		validators?: Record<string, ToolValidator>,
+		streamingFormatters?: Record<string, StreamingFormatter>,
 	): ToolRegistry {
 		const registry = new ToolRegistry();
 
@@ -219,6 +231,7 @@ export class ToolRegistry {
 					tool,
 					formatter: formatters?.[name],
 					validator: validators?.[name],
+					streamingFormatter: streamingFormatters?.[name],
 				});
 			}
 		}

@@ -3,6 +3,7 @@ import {
 	nativeToolsRegistry as staticNativeToolsRegistry,
 	toolFormatters as staticToolFormatters,
 	toolRegistry as staticToolRegistry,
+	toolStreamingFormatters as staticToolStreamingFormatters,
 	toolValidators as staticToolValidators,
 } from '@/tools/index';
 import {ToolRegistry} from '@/tools/tool-registry';
@@ -11,6 +12,7 @@ import type {
 	MCPInitResult,
 	MCPServer,
 	MCPTool,
+	StreamingFormatter,
 	ToolEntry,
 	ToolFormatter,
 	ToolHandler,
@@ -39,6 +41,7 @@ export class ToolManager {
 			staticNativeToolsRegistry,
 			staticToolFormatters,
 			staticToolValidators,
+			staticToolStreamingFormatters,
 		);
 	}
 
@@ -103,6 +106,13 @@ export class ToolManager {
 	}
 
 	/**
+	 * Get a specific streaming formatter
+	 */
+	getStreamingFormatter(toolName: string): StreamingFormatter | undefined {
+		return this.registry.getStreamingFormatter(toolName);
+	}
+
+	/**
 	 * Check if a tool exists
 	 */
 	hasTool(toolName: string): boolean {
@@ -151,6 +161,7 @@ export class ToolManager {
 				staticNativeToolsRegistry,
 				staticToolFormatters,
 				staticToolValidators,
+				staticToolStreamingFormatters,
 			);
 
 			this.mcpClient = null;

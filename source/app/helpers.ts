@@ -19,9 +19,7 @@ export function isNonInteractiveModeComplete(
 	maxExecutionTimeMs: number,
 ): NonInteractiveCompletionResult {
 	const isComplete =
-		!appState.isToolExecuting &&
-		!appState.isBashExecuting &&
-		!appState.isToolConfirmationMode;
+		!appState.isToolExecuting && !appState.isToolConfirmationMode;
 	const _hasMessages = appState.messages.length > 0;
 	const hasTimedOut = Date.now() - startTime > maxExecutionTimeMs;
 

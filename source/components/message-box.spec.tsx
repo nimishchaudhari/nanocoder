@@ -1,8 +1,6 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
-import {themes} from '../config/themes';
-import {ThemeContext} from '../hooks/useTheme';
+import {renderWithTheme} from '../test-utils/render-with-theme.js';
 import {
 	ErrorMessage,
 	InfoMessage,
@@ -12,28 +10,13 @@ import {
 
 console.log(`\nmessage-box.spec.tsx – ${React.version}`);
 
-// Mock ThemeProvider for testing
-const MockThemeProvider = ({children}: {children: React.ReactNode}) => {
-	const mockTheme = {
-		currentTheme: 'tokyo-night' as const,
-		colors: themes['tokyo-night'].colors,
-		setCurrentTheme: () => {},
-	};
-
-	return (
-		<ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>
-	);
-};
-
 // ============================================================================
 // ErrorMessage Component Tests
 // ============================================================================
 
 test('ErrorMessage renders with message', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<ErrorMessage message="Something went wrong" />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -43,10 +26,8 @@ test('ErrorMessage renders with message', t => {
 });
 
 test('ErrorMessage renders with hideTitle', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<ErrorMessage message="Error without title" hideTitle />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -57,10 +38,8 @@ test('ErrorMessage renders with hideTitle', t => {
 });
 
 test('ErrorMessage renders with hideBox', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<ErrorMessage message="Plain error text" hideBox />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -71,11 +50,7 @@ test('ErrorMessage renders with hideBox', t => {
 });
 
 test('ErrorMessage renders without crashing', t => {
-	const {unmount} = render(
-		<MockThemeProvider>
-			<ErrorMessage message="Test" />
-		</MockThemeProvider>,
-	);
+	const {unmount} = renderWithTheme(<ErrorMessage message="Test" />);
 
 	t.notThrows(() => unmount());
 });
@@ -85,10 +60,8 @@ test('ErrorMessage renders without crashing', t => {
 // ============================================================================
 
 test('SuccessMessage renders with message', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<SuccessMessage message="Operation completed" />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -98,10 +71,8 @@ test('SuccessMessage renders with message', t => {
 });
 
 test('SuccessMessage renders with hideTitle', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<SuccessMessage message="Success without title" hideTitle />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -111,10 +82,8 @@ test('SuccessMessage renders with hideTitle', t => {
 });
 
 test('SuccessMessage renders with hideBox', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<SuccessMessage message="Plain success text" hideBox />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -124,11 +93,7 @@ test('SuccessMessage renders with hideBox', t => {
 });
 
 test('SuccessMessage renders without crashing', t => {
-	const {unmount} = render(
-		<MockThemeProvider>
-			<SuccessMessage message="Test" />
-		</MockThemeProvider>,
-	);
+	const {unmount} = renderWithTheme(<SuccessMessage message="Test" />);
 
 	t.notThrows(() => unmount());
 });
@@ -138,10 +103,8 @@ test('SuccessMessage renders without crashing', t => {
 // ============================================================================
 
 test('WarningMessage renders with message', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<WarningMessage message="Proceed with caution" />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -151,10 +114,8 @@ test('WarningMessage renders with message', t => {
 });
 
 test('WarningMessage renders with hideTitle', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<WarningMessage message="Warning without title" hideTitle />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -164,10 +125,8 @@ test('WarningMessage renders with hideTitle', t => {
 });
 
 test('WarningMessage renders with hideBox', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<WarningMessage message="Plain warning text" hideBox />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -177,11 +136,7 @@ test('WarningMessage renders with hideBox', t => {
 });
 
 test('WarningMessage renders without crashing', t => {
-	const {unmount} = render(
-		<MockThemeProvider>
-			<WarningMessage message="Test" />
-		</MockThemeProvider>,
-	);
+	const {unmount} = renderWithTheme(<WarningMessage message="Test" />);
 
 	t.notThrows(() => unmount());
 });
@@ -191,10 +146,8 @@ test('WarningMessage renders without crashing', t => {
 // ============================================================================
 
 test('InfoMessage renders with message', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<InfoMessage message="Here is some information" />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -204,10 +157,8 @@ test('InfoMessage renders with message', t => {
 });
 
 test('InfoMessage renders with hideTitle', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<InfoMessage message="Info without title" hideTitle />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -217,10 +168,8 @@ test('InfoMessage renders with hideTitle', t => {
 });
 
 test('InfoMessage renders with hideBox', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<InfoMessage message="Plain info text" hideBox />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -230,11 +179,7 @@ test('InfoMessage renders with hideBox', t => {
 });
 
 test('InfoMessage renders without crashing', t => {
-	const {unmount} = render(
-		<MockThemeProvider>
-			<InfoMessage message="Test" />
-		</MockThemeProvider>,
-	);
+	const {unmount} = renderWithTheme(<InfoMessage message="Test" />);
 
 	t.notThrows(() => unmount());
 });
@@ -255,11 +200,7 @@ test('Message components accept all valid prop combinations', t => {
 		// Default props
 		t.notThrows(
 			() => {
-				render(
-					<MockThemeProvider>
-						<Component message="Test message" />
-					</MockThemeProvider>,
-				);
+				renderWithTheme(<Component message="Test message" />);
 			},
 			`${name} should render with default props`,
 		);
@@ -267,11 +208,7 @@ test('Message components accept all valid prop combinations', t => {
 		// With hideTitle
 		t.notThrows(
 			() => {
-				render(
-					<MockThemeProvider>
-						<Component message="Test message" hideTitle />
-					</MockThemeProvider>,
-				);
+				renderWithTheme(<Component message="Test message" hideTitle />);
 			},
 			`${name} should render with hideTitle`,
 		);
@@ -279,11 +216,7 @@ test('Message components accept all valid prop combinations', t => {
 		// With hideBox
 		t.notThrows(
 			() => {
-				render(
-					<MockThemeProvider>
-						<Component message="Test message" hideBox />
-					</MockThemeProvider>,
-				);
+				renderWithTheme(<Component message="Test message" hideBox />);
 			},
 			`${name} should render with hideBox`,
 		);
@@ -291,11 +224,7 @@ test('Message components accept all valid prop combinations', t => {
 		// With both hideTitle and hideBox (hideBox takes precedence)
 		t.notThrows(
 			() => {
-				render(
-					<MockThemeProvider>
-						<Component message="Test message" hideTitle hideBox />
-					</MockThemeProvider>,
-				);
+				renderWithTheme(<Component message="Test message" hideTitle hideBox />);
 			},
 			`${name} should render with both hideTitle and hideBox`,
 		);
@@ -307,10 +236,8 @@ test('Message components accept all valid prop combinations', t => {
 // ============================================================================
 
 test('Message components handle empty message', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<ErrorMessage message="" />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -322,10 +249,8 @@ test('Message components handle long messages', t => {
 	const longMessage =
 		'This is a very long message that should still render correctly even though it contains many words and might need to wrap to multiple lines in the terminal output.';
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<InfoMessage message={longMessage} />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -336,10 +261,8 @@ test('Message components handle long messages', t => {
 test('Message components handle special characters', t => {
 	const specialMessage = 'Error: File "test.txt" not found! <path/to/file>';
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<ErrorMessage message={specialMessage} />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -352,10 +275,8 @@ test('Message components handle special characters', t => {
 test('Message components handle newlines in message', t => {
 	const multilineMessage = 'Line 1\nLine 2\nLine 3';
 
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<WarningMessage message={multilineMessage} />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -378,11 +299,7 @@ test('All message types render with TitledBox by default', t => {
 	];
 
 	for (const {Component, title} of components) {
-		const {lastFrame} = render(
-			<MockThemeProvider>
-				<Component message="Test" />
-			</MockThemeProvider>,
-		);
+		const {lastFrame} = renderWithTheme(<Component message="Test" />);
 
 		const output = lastFrame();
 		t.regex(output!, new RegExp(title), `${title} message should show title`);
@@ -392,10 +309,8 @@ test('All message types render with TitledBox by default', t => {
 });
 
 test('hideTitle removes title but keeps border', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<ErrorMessage message="No title here" hideTitle />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();
@@ -408,10 +323,8 @@ test('hideTitle removes title but keeps border', t => {
 });
 
 test('hideBox renders plain text without border', t => {
-	const {lastFrame} = render(
-		<MockThemeProvider>
+	const {lastFrame} = renderWithTheme(
 			<SuccessMessage message="Plain text only" hideBox />
-		</MockThemeProvider>,
 	);
 
 	const output = lastFrame();

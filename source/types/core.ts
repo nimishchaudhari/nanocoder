@@ -81,6 +81,21 @@ export type ToolValidator = (
 ) => Promise<{valid: true} | {valid: false; error: string}>;
 
 /**
+ * Streaming formatter type for tools that need real-time progress updates
+ * Called BEFORE execution to set up the progress component
+ * The component updates itself via event subscription (e.g., EventEmitter)
+ *
+ * @param args - Tool arguments
+ * @param executionId - Unique ID for tracking this execution
+ * @returns React element that will self-update during execution
+ */
+export type StreamingFormatter = (
+	// biome-ignore lint/suspicious/noExplicitAny: Dynamic typing required -- Tool arguments are dynamically typed
+	args: any,
+	executionId: string,
+) => React.ReactElement;
+
+/**
  * Nanocoder tool export structure
  *
  * This is what individual tool files export (e.g., read-file.tsx, execute-bash.tsx).
@@ -90,12 +105,14 @@ export type ToolValidator = (
  * - name: Tool name as const for type safety
  * - tool: Native AI SDK v6 CoreTool with execute() function
  * - formatter: Optional React component for rich CLI UI display
+ * - streamingFormatter: Optional formatter for real-time progress (called before execution)
  * - validator: Optional pre-execution validation function
  */
 export interface NanocoderToolExport {
 	name: string;
 	tool: AISDKCoreTool; // AI SDK v6 tool with execute()
-	formatter?: ToolFormatter; // For UI display
+	formatter?: ToolFormatter; // For UI display (after execution)
+	streamingFormatter?: StreamingFormatter; // For real-time progress (before execution)
 	validator?: ToolValidator; // For pre-execution validation
 }
 
@@ -110,13 +127,15 @@ export interface NanocoderToolExport {
  * - tool: Native AI SDK CoreTool (for passing to AI SDK)
  * - handler: Extracted execute function (for human-in-the-loop execution)
  * - formatter: Optional React component for rich CLI UI display
+ * - streamingFormatter: Optional formatter for real-time progress (called before execution)
  * - validator: Optional pre-execution validation function
  */
 export interface ToolEntry {
 	name: string;
 	tool: AISDKCoreTool; // For AI SDK
 	handler: ToolHandler; // For execution (extracted from tool.execute)
-	formatter?: ToolFormatter; // For UI (React component)
+	formatter?: ToolFormatter; // For UI (React component, after execution)
+	streamingFormatter?: StreamingFormatter; // For real-time progress (before execution)
 	validator?: ToolValidator; // For validation
 }
 

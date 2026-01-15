@@ -1,7 +1,7 @@
 import {Box, Text, useFocus, useInput} from 'ink';
 import {Tab, Tabs} from 'ink-tab';
 import React, {useEffect, useState} from 'react';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {
 	COST_SCORE_CHEAP,
 	COST_SCORE_EXPENSIVE,
@@ -153,35 +153,38 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 
 	if (loading) {
 		return (
-			<TitledBox
+			<TitledBoxWithPreferences
 				title="/model-database"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.primary}
 				paddingX={2}
 				paddingY={1}
 			>
-				<Text color={colors.white}>Fetching models from OpenRouter...</Text>
-			</TitledBox>
+				<Text color={colors.text}>Fetching models from OpenRouter...</Text>
+			</TitledBoxWithPreferences>
 		);
 	}
 
 	if (error) {
 		return (
-			<TitledBox
+			<TitledBoxWithPreferences
 				title="/model-database"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.error}
 				paddingX={2}
 				paddingY={1}
 			>
 				<Text color={colors.error}>Error: {error}</Text>
-			</TitledBox>
+			</TitledBoxWithPreferences>
 		);
 	}
 
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="/model-database"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -223,7 +226,7 @@ function ModelDatabaseDisplay({onCancel}: ModelDatabaseDisplayProps) {
 						: 'Type to search | Up/Down: Navigate | Tab: Switch tabs | Esc: Close'}
 				</Text>
 			</Box>
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }
 
@@ -367,28 +370,28 @@ function ModelItem({model, colors}: {model: ModelEntry; colors: Colors}) {
 			</Box>
 			<Box marginLeft={2} flexDirection="column">
 				<Box flexDirection="column">
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>ID: </Text>
 						<Text dimColor>{model.id}</Text>
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Author: </Text>
 						{model.author}
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Context: </Text>
 						{model.size} tokens
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Type: </Text>
 						{model.local ? 'Open Weights' : 'Proprietary'}
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Cost: </Text>
 						<Text color={costInfo.color}>{costInfo.label}</Text>
 						<Text dimColor> - {model.costDetails}</Text>
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Tools: </Text>
 						{model.hasToolSupport ? (
 							<Text color={colors.success}>Supported</Text>
@@ -396,7 +399,7 @@ function ModelItem({model, colors}: {model: ModelEntry; colors: Colors}) {
 							<Text dimColor>Not supported</Text>
 						)}
 					</Text>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						<Text bold>Added: </Text>
 						{formatDate(model.created)}
 					</Text>

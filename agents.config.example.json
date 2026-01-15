@@ -38,23 +38,8 @@
 				"models": ["glm-4.7", "glm-4.5", "glm-4.5-air"]
 			}
 		],
-		"mcpServers": [
-			{
-				"name": "filesystem",
-				"command": "npx",
-				"args": [
-					"@modelcontextprotocol/server-filesystem",
-					"/path/to/allowed/directory"
-				]
-			},
-			{
-				"name": "github",
-				"command": "npx",
-				"args": ["@modelcontextprotocol/server-github"],
-				"env": {
-					"GITHUB_TOKEN": "your-github-token"
-				}
-			}
-		]
+		"nanocoderTools": {
+			"alwaysAllow": ["execute_bash"]
+		}
 	}
 }

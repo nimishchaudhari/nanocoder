@@ -8,6 +8,7 @@ import {
 	gitSmartCommitTool,
 	gitStatusEnhancedTool,
 } from '@/tools/git';
+import {listDirectoryTool} from '@/tools/list-directory';
 import {getDiagnosticsTool} from '@/tools/lsp-get-diagnostics';
 import {readFileTool} from '@/tools/read-file';
 import {searchFileContentsTool} from '@/tools/search-file-contents';
@@ -17,6 +18,7 @@ import {writeFileTool} from '@/tools/write-file';
 import type {
 	AISDKCoreTool,
 	NanocoderToolExport,
+	StreamingFormatter,
 	ToolHandler,
 } from '@/types/index';
 
@@ -32,6 +34,7 @@ const allTools: NanocoderToolExport[] = [
 	findFilesTool,
 	searchFileContentsTool,
 	getDiagnosticsTool,
+	listDirectoryTool,
 	// Git workflow tools
 	gitSmartCommitTool,
 	gitCreatePRTool,
@@ -111,3 +114,15 @@ export const toolValidators: Record<
 		(args: any) => Promise<{valid: true} | {valid: false; error: string}>
 	>,
 );
+
+// Export streaming formatter registry for real-time progress tools
+export const toolStreamingFormatters: Record<string, StreamingFormatter> =
+	allTools.reduce(
+		(acc, t) => {
+			if ('streamingFormatter' in t && t.streamingFormatter) {
+				acc[t.name] = t.streamingFormatter;
+			}
+			return acc;
+		},
+		{} as Record<string, StreamingFormatter>,
+	);

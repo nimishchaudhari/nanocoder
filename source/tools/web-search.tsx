@@ -3,16 +3,15 @@ import {Box, Text} from 'ink';
 import React from 'react';
 import {fetch} from 'undici';
 
-import ToolMessage from '@/components/tool-message';
 import {
 	DEFAULT_WEB_SEARCH_RESULTS,
 	MAX_WEB_SEARCH_QUERY_LENGTH,
 	TIMEOUT_WEB_SEARCH_MS,
-	WEB_SEARCH_DISPLAY_RESULTS,
 } from '@/constants';
-import {ThemeContext} from '@/hooks/useTheme';
+import {useTheme} from '@/hooks/useTheme';
 import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
+import {calculateTokens} from '@/utils/token-calculator';
 
 interface SearchArgs {
 	query: string;
@@ -128,67 +127,68 @@ const webSearchCoreTool = tool({
 	},
 });
 
-// Create a component that will re-render when theme changes
-const WebSearchFormatter = React.memo(
-	({args, result}: {args: SearchArgs; result?: string}) => {
-		const themeContext = React.useContext(ThemeContext);
-		if (!themeContext) {
-			throw new Error('ThemeContext not found');
-		}
-		const {colors} = themeContext;
-		const query = args.query || 'unknown';
-		const maxResults = args.max_results ?? WEB_SEARCH_DISPLAY_RESULTS;
+function WebSearchFormatterComponent({
+	query,
+	maxResults,
+	result,
+}: {
+	query: string;
+	maxResults: number;
+	result?: string;
+}): React.ReactElement {
+	const {colors} = useTheme();
 
-		// Parse result to count actual results
-		let resultCount = 0;
-		let estimatedTokens = 0;
-		if (result) {
-			const matches = result.match(/^## \d+\./gm);
-			resultCount = matches ? matches.length : 0;
-			estimatedTokens = Math.ceil(result.length / 4);
-		}
+	// Parse result to count actual results
+	let resultCount = 0;
+	let estimatedTokens = 0;
+	if (result) {
+		const matches = result.match(/^## \d+\./gm);
+		resultCount = matches ? matches.length : 0;
+		estimatedTokens = calculateTokens(result);
+	}
 
-		const messageContent = (
-			<Box flexDirection="column">
-				<Text color={colors.tool}>⚒ web_search</Text>
-
-				<Box>
-					<Text color={colors.secondary}>Query: </Text>
-					<Text color={colors.white}>{query}</Text>
+	return (
+		<Box flexDirection="column" marginBottom={1}>
+			<Text color={colors.tool}>⚒ web_search</Text>
+			<Box>
+				<Text color={colors.secondary}>Query: </Text>
+				<Box marginLeft={1}>
+					<Text color={colors.text}>{query}</Text>
 				</Box>
-
-				<Box>
-					<Text color={colors.secondary}>Engine: </Text>
-					<Text color={colors.white}>Brave Search</Text>
-				</Box>
-
-				{result && (
-					<>
-						<Box>
-							<Text color={colors.secondary}>Results: </Text>
-							<Text color={colors.white}>
-								{resultCount} / {maxResults} results
-							</Text>
-						</Box>
-
-						<Box>
-							<Text color={colors.secondary}>Output: </Text>
-							<Text color={colors.white}>~{estimatedTokens} tokens</Text>
-						</Box>
-					</>
-				)}
 			</Box>
-		);
-
-		return <ToolMessage message={messageContent} hideBox={true} />;
-	},
-);
+			<Box>
+				<Text color={colors.secondary}>Engine: </Text>
+				<Text color={colors.text}>Brave Search</Text>
+			</Box>
+			{result && (
+				<>
+					<Box>
+						<Text color={colors.secondary}>Results: </Text>
+						<Text color={colors.text}>
+							{resultCount} / {maxResults} results
+						</Text>
+					</Box>
+					<Box>
+						<Text color={colors.secondary}>Tokens: </Text>
+						<Text color={colors.text}>~{estimatedTokens} tokens</Text>
+					</Box>
+				</>
+			)}
+		</Box>
+	);
+}
 
 const webSearchFormatter = (
 	args: SearchArgs,
 	result?: string,
 ): React.ReactElement => {
-	return <WebSearchFormatter args={args} result={result} />;
+	return (
+		<WebSearchFormatterComponent
+			query={args.query || 'unknown'}
+			maxResults={args.max_results ?? DEFAULT_WEB_SEARCH_RESULTS}
+			result={result}
+		/>
+	);
 };
 
 const webSearchValidator = (

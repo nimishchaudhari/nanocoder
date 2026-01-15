@@ -1,6 +1,8 @@
 import {readFileSync, writeFileSync} from 'fs';
+import type {TitleShape} from '@/components/ui/styled-title';
 import {getClosestConfigFile} from '@/config/index';
 import type {UserPreferences} from '@/types/index';
+import type {NanocoderShape} from '@/types/ui';
 import {logError} from '@/utils/message-queue';
 
 let PREFERENCES_PATH: string | null = null;
@@ -54,7 +56,29 @@ export function updateLastUsed(provider: string, model: string): void {
 	savePreferences(preferences);
 }
 
+export function updateTitleShape(shape: string): void {
+	const preferences = loadPreferences();
+	preferences.titleShape = shape as TitleShape;
+	savePreferences(preferences);
+}
+
+export function getTitleShape(): TitleShape | undefined {
+	const preferences = loadPreferences();
+	return preferences.titleShape;
+}
+
 export function getLastUsedModel(provider: string): string | undefined {
 	const preferences = loadPreferences();
 	return preferences.providerModels?.[provider];
+}
+
+export function updateNanocoderShape(shape: NanocoderShape): void {
+	const preferences = loadPreferences();
+	preferences.nanocoderShape = shape;
+	savePreferences(preferences);
+}
+
+export function getNanocoderShape(): NanocoderShape | undefined {
+	const preferences = loadPreferences();
+	return preferences.nanocoderShape;
 }

@@ -11,8 +11,6 @@ function createDefaultProps(
 		isCancelling: false,
 		isToolExecuting: false,
 		isToolConfirmationMode: false,
-		isBashExecuting: false,
-		currentBashCommand: '',
 		pendingToolCalls: [],
 		currentToolIndex: 0,
 		mcpInitialized: true,
@@ -46,7 +44,6 @@ test('ChatInput shows UserInput when ready for input', t => {
 		nonInteractivePrompt: undefined,
 		isToolExecuting: false,
 		isToolConfirmationMode: false,
-		isBashExecuting: false,
 	});
 
 	const {lastFrame, unmount} = renderWithTheme(<ChatInput {...props} />);
@@ -112,18 +109,6 @@ test('ChatInput shows tool execution indicator when executing', t => {
 		isToolExecuting: true,
 		pendingToolCalls: [mockToolCall],
 		currentToolIndex: 0,
-	});
-
-	const {lastFrame, unmount} = renderWithTheme(<ChatInput {...props} />);
-	const output = lastFrame();
-	t.truthy(output);
-	unmount();
-});
-
-test('ChatInput shows bash execution indicator when executing bash', t => {
-	const props = createDefaultProps({
-		isBashExecuting: true,
-		currentBashCommand: 'ls -la',
 	});
 
 	const {lastFrame, unmount} = renderWithTheme(<ChatInput {...props} />);

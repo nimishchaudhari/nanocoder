@@ -148,13 +148,13 @@ export function VSCodeExtensionPrompt({
 					VS Code Extension
 				</Text>
 				<Box marginTop={1}>
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						The VS Code extension enables live diff previews when Nanocoder
 						modifies files.
 					</Text>
 				</Box>
 				<Box marginTop={1}>
-					<Text color={colors.white}>Install the extension now?</Text>
+					<Text color={colors.text}>Install the extension now?</Text>
 				</Box>
 				<Box marginTop={1}>
 					<SelectInput items={items} onSelect={handleSelect} />

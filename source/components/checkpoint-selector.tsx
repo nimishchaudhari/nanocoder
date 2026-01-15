@@ -1,7 +1,7 @@
 import {Box, Text, useInput} from 'ink';
 import SelectInput from 'ink-select-input';
 import {useState} from 'react';
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {useTerminalWidth} from '@/hooks/useTerminalWidth';
 import {useTheme} from '@/hooks/useTheme';
 import type {CheckpointListItem} from '@/types/checkpoint';
@@ -67,8 +67,9 @@ export default function CheckpointSelector({
 		const checkpoint = checkpoints.find(c => c.name === selectedCheckpoint);
 
 		return (
-			<TitledBox
+			<TitledBoxWithPreferences
 				title="Checkpoint Load - Backup Confirmation"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.warning}
 				paddingX={2}
@@ -77,7 +78,7 @@ export default function CheckpointSelector({
 			>
 				<Box flexDirection="column">
 					<Box marginBottom={1}>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							You have {currentMessageCount} message(s) in the current session.
 						</Text>
 					</Box>
@@ -107,7 +108,7 @@ export default function CheckpointSelector({
 					</Box>
 
 					<Box marginBottom={1}>
-						<Text color={colors.white}>
+						<Text color={colors.text}>
 							[Y] Yes, create backup [N] No, skip backup [Esc] Cancel
 						</Text>
 					</Box>
@@ -118,7 +119,7 @@ export default function CheckpointSelector({
 						</Text>
 					</Box>
 				</Box>
-			</TitledBox>
+			</TitledBoxWithPreferences>
 		);
 	}
 
@@ -131,8 +132,9 @@ export default function CheckpointSelector({
 
 	if (options.length === 0) {
 		return (
-			<TitledBox
+			<TitledBoxWithPreferences
 				title="No Checkpoints Available"
+				reversePowerline={true}
 				width={boxWidth}
 				borderColor={colors.secondary}
 				paddingX={2}
@@ -140,20 +142,21 @@ export default function CheckpointSelector({
 				marginBottom={1}
 			>
 				<Box flexDirection="column">
-					<Text color={colors.white}>
+					<Text color={colors.text}>
 						No checkpoints found. Create one with /checkpoint create [name]
 					</Text>
 					<Box marginTop={1}>
 						<Text color={colors.secondary}>Press Escape to cancel</Text>
 					</Box>
 				</Box>
-			</TitledBox>
+			</TitledBoxWithPreferences>
 		);
 	}
 
 	return (
-		<TitledBox
+		<TitledBoxWithPreferences
 			title="Select Checkpoint to Load"
+			reversePowerline={true}
 			width={boxWidth}
 			borderColor={colors.primary}
 			paddingX={2}
@@ -168,6 +171,6 @@ export default function CheckpointSelector({
 					</Text>
 				</Box>
 			</Box>
-		</TitledBox>
+		</TitledBoxWithPreferences>
 	);
 }

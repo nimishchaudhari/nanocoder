@@ -2,10 +2,11 @@ import {convertToMarkdown} from '@nanocollective/get-md';
 import {Box, Text} from 'ink';
 import React from 'react';
 
-import ToolMessage from '@/components/tool-message';
 import {MAX_URL_CONTENT_BYTES} from '@/constants';
-import {ThemeContext} from '@/hooks/useTheme';
+import {useTheme} from '@/hooks/useTheme';
+import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
+import {calculateTokens} from '@/utils/token-calculator';
 
 interface FetchArgs {
 	url: string;
@@ -61,67 +62,59 @@ const fetchUrlCoreTool = tool({
 	},
 });
 
-// Create a component that will re-render when theme changes
-const FetchUrlFormatter = React.memo(
-	({args, result}: {args: FetchArgs; result?: string}) => {
-		const theme = React.useContext(ThemeContext);
-		if (!theme) {
-			throw new Error('ThemeContext not found');
-		}
-		const {colors} = theme;
-		const url = args.url || 'unknown';
+function FetchUrlFormatterComponent({
+	url,
+	result,
+}: {
+	url: string;
+	result?: string;
+}): React.ReactElement {
+	const {colors} = useTheme();
 
-		// Calculate content stats from result
-		let contentSize = 0;
-		let estimatedTokens = 0;
-		let wasTruncated = false;
+	// Calculate content stats from result
+	let estimatedTokens = 0;
+	let wasTruncated = false;
 
-		if (result) {
-			contentSize = result.length;
-			estimatedTokens = Math.ceil(contentSize / 4);
-			wasTruncated = result.includes('[Content truncated');
-		}
+	if (result) {
+		estimatedTokens = calculateTokens(result);
+		wasTruncated = result.includes('[Content truncated');
+	}
 
-		const messageContent = (
-			<Box flexDirection="column">
-				<Text color={colors.tool}>⚒ fetch_url</Text>
-
-				<Box>
-					<Text color={colors.secondary}>URL: </Text>
-					<Text color={colors.white}>{url}</Text>
+	return (
+		<Box flexDirection="column" marginBottom={1}>
+			<Text color={colors.tool}>⚒ fetch_url</Text>
+			<Box>
+				<Text color={colors.secondary}>URL: </Text>
+				<Box marginLeft={1}>
+					<Text color={colors.text}>{url}</Text>
 				</Box>
-
-				{result && (
-					<>
+			</Box>
+			{result && (
+				<>
+					<Box>
+						<Text color={colors.secondary}>Tokens: </Text>
+						<Text color={colors.text}>~{estimatedTokens} tokens</Text>
+					</Box>
+					{wasTruncated && (
 						<Box>
-							<Text color={colors.secondary}>Content: </Text>
-							<Text color={colors.white}>
-								{contentSize.toLocaleString()} characters (~{estimatedTokens}{' '}
-								tokens)
+							<Text color={colors.warning}>
+								⚠ Content was truncated to 100KB
 							</Text>
 						</Box>
-
-						{wasTruncated && (
-							<Box>
-								<Text color={colors.warning}>
-									⚠ Content was truncated to 100KB
-								</Text>
-							</Box>
-						)}
-					</>
-				)}
-			</Box>
-		);
-
-		return <ToolMessage message={messageContent} hideBox={true} />;
-	},
-);
+					)}
+				</>
+			)}
+		</Box>
+	);
+}
 
 const fetchUrlFormatter = (
 	args: FetchArgs,
 	result?: string,
-): Promise<React.ReactElement> => {
-	return Promise.resolve(<FetchUrlFormatter args={args} result={result} />);
+): React.ReactElement => {
+	return (
+		<FetchUrlFormatterComponent url={args.url || 'unknown'} result={result} />
+	);
 };
 
 const fetchUrlValidator = (
@@ -164,7 +157,7 @@ const fetchUrlValidator = (
 	}
 };
 
-export const fetchUrlTool = {
+export const fetchUrlTool: NanocoderToolExport = {
 	name: 'fetch_url' as const,
 	tool: fetchUrlCoreTool,
 	formatter: fetchUrlFormatter,

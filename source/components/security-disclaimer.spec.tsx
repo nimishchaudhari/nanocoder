@@ -1,50 +1,25 @@
 import test from 'ava';
-import {render} from 'ink-testing-library';
 import React from 'react';
-import {themes} from '../config/themes';
-import {ThemeContext} from '../hooks/useTheme';
-import {UIStateProvider} from '../hooks/useUIState';
+import {renderWithTheme} from '../test-utils/render-with-theme.js';
 import SecurityDisclaimer from './security-disclaimer';
 
 console.log('\nsecurity-disclaimer.spec.tsx');
-
-// Mock ThemeProvider for testing
-const MockThemeProvider = ({children}: {children: React.ReactNode}) => {
-	const mockTheme = {
-		currentTheme: 'tokyo-night' as const,
-		colors: themes['tokyo-night'].colors,
-		setCurrentTheme: () => {},
-	};
-
-	return <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>;
-};
-
-// Wrapper with all required providers
-const TestWrapper = ({children}: {children: React.ReactNode}) => (
-	<MockThemeProvider>
-		<UIStateProvider>{children}</UIStateProvider>
-	</MockThemeProvider>
-);
 
 // ============================================================================
 // Component Rendering Tests
 // ============================================================================
 
 test('SecurityDisclaimer renders without crashing', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
-			<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />,
 	);
 
 	t.truthy(lastFrame());
 });
 
 test('SecurityDisclaimer displays Security Warning title', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
-			<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />,
 	);
 
 	const output = lastFrame();
@@ -53,10 +28,8 @@ test('SecurityDisclaimer displays Security Warning title', t => {
 });
 
 test('SecurityDisclaimer displays the current working directory', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
-			<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />,
 	);
 
 	const output = lastFrame();
@@ -66,10 +39,8 @@ test('SecurityDisclaimer displays the current working directory', t => {
 });
 
 test('SecurityDisclaimer displays trust warning message', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
-			<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />,
 	);
 
 	const output = lastFrame();
@@ -80,10 +51,8 @@ test('SecurityDisclaimer displays trust warning message', t => {
 });
 
 test('SecurityDisclaimer displays Yes and No options', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
-			<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />,
 	);
 
 	const output = lastFrame();
@@ -102,10 +71,8 @@ test('SecurityDisclaimer calls onConfirm when Yes option is selected', t => {
 		confirmCalled = true;
 	};
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<SecurityDisclaimer onConfirm={handleConfirm} onExit={() => {}} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<SecurityDisclaimer onConfirm={handleConfirm} onExit={() => {}} />,
 	);
 
 	t.truthy(lastFrame());
@@ -123,10 +90,8 @@ test('SecurityDisclaimer calls onExit when No option is selected', t => {
 		exitCalled = true;
 	};
 
-	const {lastFrame} = render(
-		<TestWrapper>
-			<SecurityDisclaimer onConfirm={() => {}} onExit={handleExit} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<SecurityDisclaimer onConfirm={() => {}} onExit={handleExit} />,
 	);
 
 	t.truthy(lastFrame());
@@ -180,10 +145,8 @@ test('SecurityDisclaimer has correct item values', t => {
 });
 
 test('SecurityDisclaimer displays with error border color', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
-			<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />,
 	);
 
 	const output = lastFrame();
@@ -193,10 +156,8 @@ test('SecurityDisclaimer displays with error border color', t => {
 });
 
 test('SecurityDisclaimer component structure is valid', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
-			<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />,
 	);
 
 	const output = lastFrame();
@@ -205,10 +166,8 @@ test('SecurityDisclaimer component structure is valid', t => {
 });
 
 test('SecurityDisclaimer maintains consistent layout', t => {
-	const {lastFrame} = render(
-		<TestWrapper>
-			<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />
-		</TestWrapper>,
+	const {lastFrame} = renderWithTheme(
+		<SecurityDisclaimer onConfirm={() => {}} onExit={() => {}} />,
 	);
 
 	const output = lastFrame();

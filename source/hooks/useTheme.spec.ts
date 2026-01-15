@@ -31,8 +31,8 @@ function MockThemeProvider({
 
 	// Mock colors for testing
 	const colors: Colors = {
-		white: '#ffffff',
-		black: '#000000',
+		text: '#ffffff',
+		base: '#000000',
 		primary: '#ff0000',
 		tool: '#00ff00',
 		secondary: '#888888',
@@ -93,8 +93,8 @@ test('useTheme provides colors object', t => {
 	const colors = capturedTheme!.colors;
 
 	// Check all required color properties exist
-	t.is(typeof colors.white, 'string');
-	t.is(typeof colors.black, 'string');
+	t.is(typeof colors.text, 'string');
+	t.is(typeof colors.base, 'string');
 	t.is(typeof colors.primary, 'string');
 	t.is(typeof colors.tool, 'string');
 	t.is(typeof colors.secondary, 'string');

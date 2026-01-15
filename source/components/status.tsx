@@ -2,7 +2,7 @@ import {existsSync} from 'fs';
 import {Box, Text} from 'ink';
 import {memo} from 'react';
 
-import {TitledBox} from '@/components/ui/titled-box';
+import {TitledBoxWithPreferences} from '@/components/ui/titled-box';
 import {confDirMap} from '@/config/index';
 import {getThemeColors, themes} from '@/config/themes';
 import {
@@ -168,9 +168,10 @@ export default memo(function Status({
 					)}
 				</Box>
 			) : (
-				/* Normal/Wide terminal: full layout with TitledBox */
-				<TitledBox
+				/* Normal/Wide terminal: full layout with TitledBoxWithPreferences */
+				<TitledBoxWithPreferences
 					title="Status"
+					reversePowerline={true}
 					width={boxWidth}
 					borderColor={colors.info}
 					paddingX={2}
@@ -287,7 +288,7 @@ export default memo(function Status({
 							) : null}
 						</>
 					)}
-				</TitledBox>
+				</TitledBoxWithPreferences>
 			)}
 		</>
 	);

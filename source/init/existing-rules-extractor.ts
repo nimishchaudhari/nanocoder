@@ -29,7 +29,10 @@ export class ExistingRulesExtractor {
 		'dev-guidelines.md',
 	];
 
-	constructor(private projectPath: string) {}
+	constructor(
+		private projectPath: string,
+		private skipAgentsMd = false,
+	) {}
 
 	/**
 	 * Find and extract content from existing AI configuration files
@@ -38,6 +41,11 @@ export class ExistingRulesExtractor {
 		const found: ExistingRules[] = [];
 
 		for (const configFile of ExistingRulesExtractor.AI_CONFIG_FILES) {
+			// Skip AGENTS.md when force regenerating
+			if (this.skipAgentsMd && configFile === 'AGENTS.md') {
+				continue;
+			}
+
 			const filePath = join(this.projectPath, configFile);
 
 			if (existsSync(filePath)) {

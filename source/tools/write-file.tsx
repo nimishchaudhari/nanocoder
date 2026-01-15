@@ -6,13 +6,16 @@ import {Box, Text} from 'ink';
 import React from 'react';
 
 import ToolMessage from '@/components/tool-message';
+import {isNanocoderToolAlwaysAllowed} from '@/config/nanocoder-tools-config';
 import {getCurrentMode} from '@/context/mode-context';
 import {ThemeContext} from '@/hooks/useTheme';
+import type {NanocoderToolExport} from '@/types/core';
 import {jsonSchema, tool} from '@/types/core';
 import {getCachedFileContent, invalidateCache} from '@/utils/file-cache';
 import {normalizeIndentation} from '@/utils/indentation-normalizer';
 import {isValidFilePath, resolveFilePath} from '@/utils/path-validation';
 import {getLanguageFromExtension} from '@/utils/programming-language-helper';
+import {calculateTokens} from '@/utils/token-calculator';
 import {
 	closeDiffInVSCode,
 	isVSCodeConnected,
@@ -36,7 +39,7 @@ const executeWriteFile = async (args: {
 	const lines = actualContent.split('\n');
 	const lineCount = lines.length;
 	const charCount = actualContent.length;
-	const estimatedTokens = Math.ceil(charCount / 4);
+	const estimatedTokens = calculateTokens(actualContent);
 
 	// Generate full file contents to show the model the current file state
 	let fileContext = '\n\nFile contents after write:\n';
@@ -67,8 +70,13 @@ const writeFileCoreTool = tool({
 		},
 		required: ['path', 'content'],
 	}),
-	// Medium risk: file write operation, requires approval except in auto-accept mode
+	// Medium risk: file write operation, requires approval except in auto-accept mode or if configured in nanocoderTools.alwaysAllow
 	needsApproval: () => {
+		// Check if this tool is configured to always be allowed
+		if (isNanocoderToolAlwaysAllowed('write_file')) {
+			return false;
+		}
+
 		const mode = getCurrentMode();
 		return mode !== 'auto-accept'; // true in normal/plan, false in auto-accept
 	},
@@ -96,7 +104,7 @@ const WriteFileFormatter = React.memo(({args}: {args: WriteFileArgs}) => {
 	const charCount = newContent.length;
 
 	// Estimate tokens (rough approximation: ~4 characters per token)
-	const estimatedTokens = Math.ceil(charCount / 4);
+	const estimatedTokens = calculateTokens(newContent);
 
 	// Normalize indentation for display
 	const lines = newContent.split('\n');
@@ -108,18 +116,18 @@ const WriteFileFormatter = React.memo(({args}: {args: WriteFileArgs}) => {
 
 			<Box>
 				<Text color={colors.secondary}>Path: </Text>
-				<Text color={colors.white}>{path}</Text>
+				<Text color={colors.text}>{path}</Text>
 			</Box>
 			<Box>
 				<Text color={colors.secondary}>Size: </Text>
-				<Text color={colors.white}>
+				<Text color={colors.text}>
 					{lineCount} lines, {charCount} characters (~{estimatedTokens} tokens)
 				</Text>
 			</Box>
 
 			{newContent.length > 0 ? (
 				<Box flexDirection="column" marginTop={1}>
-					<Text color={colors.white}>File content:</Text>
+					<Text color={colors.text}>File content:</Text>
 					{normalizedLines.map((line: string, i: number) => {
 						const lineNumStr = String(i + 1).padStart(4, ' ');
 						const ext = path.split('.').pop()?.toLowerCase() ?? '';
@@ -275,7 +283,7 @@ const writeFileValidator = async (args: {
 	return {valid: true};
 };
 
-export const writeFileTool = {
+export const writeFileTool: NanocoderToolExport = {
 	name: 'write_file' as const,
 	tool: writeFileCoreTool,
 	formatter: writeFileFormatter,

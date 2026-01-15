@@ -917,3 +917,59 @@ the established patterns and conventions.
 		cleanupTestProject(testDir);
 	}
 });
+
+test('extractExistingRules - skips AGENTS.md when skipAgentsMd is true', t => {
+	const testDir = createTestProject('skip-agents-md');
+
+	try {
+		// Create AGENTS.md and other config files
+		writeFileSync(
+			join(testDir, 'AGENTS.md'),
+			`# AGENTS.md
+
+## Coding Standards
+
+Always use TypeScript.
+
+Testing is required.`,
+		);
+
+		writeFileSync(
+			join(testDir, 'CLAUDE.md'),
+			`# CLAUDE.md
+
+## Important Rules
+
+Follow project conventions strictly.`,
+		);
+
+		// Extract with skipAgentsMd = true
+		const extractor = new ExistingRulesExtractor(testDir, true);
+		const rules = extractor.extractExistingRules();
+
+		// Should NOT find AGENTS.md, but should find CLAUDE.md
+		t.is(rules.length, 1);
+		t.false(rules.some(r => r.source === 'AGENTS.md'));
+		t.truthy(rules.some(r => r.source === 'CLAUDE.md'));
+
+		// Extract with skipAgentsMd = false (default)
+		const extractor2 = new ExistingRulesExtractor(testDir, false);
+		const rules2 = extractor2.extractExistingRules();
+
+		// Should find both files
+		t.is(rules2.length, 2);
+		t.truthy(rules2.some(r => r.source === 'AGENTS.md'));
+		t.truthy(rules2.some(r => r.source === 'CLAUDE.md'));
+
+		// Extract with skipAgentsMd not specified (default)
+		const extractor3 = new ExistingRulesExtractor(testDir);
+		const rules3 = extractor3.extractExistingRules();
+
+		// Should find both files (default is false)
+		t.is(rules3.length, 2);
+		t.truthy(rules3.some(r => r.source === 'AGENTS.md'));
+		t.truthy(rules3.some(r => r.source === 'CLAUDE.md'));
+	} finally {
+		cleanupTestProject(testDir);
+	}
+});

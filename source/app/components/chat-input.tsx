@@ -1,7 +1,6 @@
 import {Box, Text} from 'ink';
 import Spinner from 'ink-spinner';
 import React from 'react';
-import BashExecutionIndicator from '@/components/bash-execution-indicator';
 import CancellingIndicator from '@/components/cancelling-indicator';
 import ToolConfirmation from '@/components/tool-confirmation';
 import ToolExecutionIndicator from '@/components/tool-execution-indicator';
@@ -14,8 +13,6 @@ export interface ChatInputProps {
 	isCancelling: boolean;
 	isToolExecuting: boolean;
 	isToolConfirmationMode: boolean;
-	isBashExecuting: boolean;
-	currentBashCommand: string;
 
 	// Tool state
 	pendingToolCalls: ToolCall[];
@@ -53,8 +50,6 @@ export function ChatInput({
 	isCancelling,
 	isToolExecuting,
 	isToolConfirmationMode,
-	isBashExecuting,
-	currentBashCommand,
 	pendingToolCalls,
 	currentToolIndex,
 	mcpInitialized,
@@ -87,16 +82,15 @@ export function ChatInput({
 					onConfirm={onToolConfirm}
 					onCancel={onToolCancel}
 				/>
-			) : /* Tool Execution */
-			isToolExecuting && pendingToolCalls[currentToolIndex] ? (
+			) : /* Tool Execution - skip indicator for streaming tools (they show their own progress) */
+			isToolExecuting &&
+				pendingToolCalls[currentToolIndex] &&
+				pendingToolCalls[currentToolIndex].function.name !== 'execute_bash' ? (
 				<ToolExecutionIndicator
 					toolName={pendingToolCalls[currentToolIndex].function.name}
 					currentIndex={currentToolIndex}
 					totalTools={pendingToolCalls.length}
 				/>
-			) : /* Bash Execution */
-			isBashExecuting ? (
-				<BashExecutionIndicator command={currentBashCommand} />
 			) : /* User Input */
 			mcpInitialized && client && !nonInteractivePrompt ? (
 				<UserInput

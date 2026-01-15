@@ -6,7 +6,6 @@ import {ThemeContext} from '../hooks/useTheme';
 import {
 	DEFAULT_WEB_SEARCH_RESULTS,
 	MAX_WEB_SEARCH_QUERY_LENGTH,
-	WEB_SEARCH_DISPLAY_RESULTS,
 } from '../constants';
 
 console.log('\nweb-search.spec.tsx');
@@ -245,7 +244,7 @@ test('webSearchFormatter shows result count when result provided', t => {
 	const output = lastFrame();
 	t.truthy(output);
 	t.regex(output!, /Results:/);
-	t.regex(output!, /2 \/ 5 results/); // Default WEB_SEARCH_DISPLAY_RESULTS is 5
+	t.regex(output!, /2 \/ 10 results/); // Default DEFAULT_WEB_SEARCH_RESULTS is 10
 });
 
 test('webSearchFormatter shows token estimate', t => {
@@ -278,7 +277,7 @@ test('webSearchFormatter handles zero results', t => {
 
 	const output = lastFrame();
 	t.truthy(output);
-	t.regex(output!, /0 \/ 5 results/);
+	t.regex(output!, /0 \/ 10 results/);
 });
 
 test('webSearchFormatter uses custom max_results', t => {
@@ -341,7 +340,7 @@ test('webSearchFormatter handles empty result string', t => {
 
 	const output = lastFrame();
 	t.truthy(output);
-	t.regex(output!, /0 \/ 5 results/);
+	t.regex(output!, /0 \/ 10 results/);
 });
 
 test('webSearchFormatter counts results correctly from markdown', t => {
@@ -361,7 +360,7 @@ test('webSearchFormatter counts results correctly from markdown', t => {
 
 	const output = lastFrame();
 	t.truthy(output);
-	t.regex(output!, /5 \/ 5 results/);
+	t.regex(output!, /5 \/ 10 results/);
 });
 
 // ============================================================================

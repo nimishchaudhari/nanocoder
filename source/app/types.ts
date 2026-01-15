@@ -31,7 +31,6 @@ export interface NonInteractiveCompletionResult {
  */
 export interface NonInteractiveModeState {
 	isToolExecuting: boolean;
-	isBashExecuting: boolean;
 	isToolConfirmationMode: boolean;
 	isConversationComplete: boolean;
 	messages: Array<{role: string; content: string}>;
