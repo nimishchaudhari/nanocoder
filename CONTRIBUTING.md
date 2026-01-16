@@ -5,6 +5,7 @@ Thank you for your interest in contributing to Nanocoder! We welcome contributio
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+- [How to Contribute](#how-to-contribute)
 - [Development Setup](#development-setup)
 - [Making Changes](#making-changes)
 - [Testing](#testing)
@@ -19,7 +20,20 @@ Before contributing, please:
 
 1. Read our [README](README.md) to understand what Nanocoder does
 2. Check our [issue tracker](https://github.com/Nano-Collective/nanocoder/issues) for existing issues
-3. Look for issues labeled `good first issue` or `help wanted` if you're new to the project
+
+## How to Contribute
+
+### Finding Work
+
+Browse our open issues. If you find an unassigned issue you'd like to work on, comment on it to let us know you're picking it up.
+
+### Working on an Issue
+
+1. **Check for a spec** - Some issues include a specification or implementation details. Feel free to follow it or propose alternatives if you think you have a better approach.
+
+2. **No spec? Write one** - If the issue lacks a spec, draft one and post it in the issue comments for discussion before starting work.
+
+3. **Submit a PR** - When ready, open a pull request referencing the issue. We'll review it and work with you to get it merged.
 
 ## Development Setup
 
@@ -41,24 +55,24 @@ Before contributing, please:
 2. **Install dependencies:**
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Build the project:**
 
    ```bash
-   npm run build
+   pnpm run build
    ```
 
 4. **Test your setup:**
 
    ```bash
-   npm run start
+   pnpm run start
    ```
 
 5. **For development with auto-rebuild:**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 ### Using Dev Containers (Recommended)
@@ -202,8 +216,8 @@ git commit --no-verify -m "your message"
 3. **Test your changes:**
 
    ```bash
-   npm run build
-   npm run start
+   pnpm run build
+   pnpm run start
    ```
 
 4. **Commit your changes:**
@@ -238,7 +252,7 @@ All new features and bug fixes should include appropriate tests:
    pnpm test:all
    ```
 
-   This command runs: Biome formatting checks, type checks, ESLint checks, AVA tests, and Knip.
+   This command runs: Biome formatting checks, type checks, lint checks, AVA tests, Knip, security scans.
 
 4. **Test Requirements for PRs**:
    - New features **must** include passing tests in `.spec.ts/tsx` files
