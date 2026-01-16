@@ -283,6 +283,32 @@ See `source/hooks/__tests__/` for examples of this pattern in practice.
 
 Nanocoder uses structured logging based on Pino. See [`docs/pino-logging.md`](docs/pino-logging.md) for details.
 
+## Development Tips
+
+### Working with AI Providers
+
+- Test with multiple providers to ensure compatibility
+- Handle API failures gracefully
+- Respect rate limits and API quotas
+
+### Tool Development
+
+- New tools should implement the common tool interface
+- Always validate inputs and handle errors
+- Document tool capabilities clearly
+
+### MCP Integration
+
+- Follow MCP protocol specifications
+- Test with real MCP servers
+- Handle connection failures properly
+
+### UI/UX Considerations
+
+- Maintain consistent CLI interface
+- Provide clear feedback to users
+- Handle long-running operations gracefully
+
 ## Community and Communication
 
 ### Getting Help
