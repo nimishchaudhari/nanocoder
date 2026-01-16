@@ -129,8 +129,3 @@ export function setAutoCompactThreshold(threshold: number | null): void {
 		autoCompactSessionOverrides.threshold = null;
 	}
 }
-
-// Set session override for auto-compact mode
-export function setAutoCompactMode(mode: CompressionMode | null): void {
-	autoCompactSessionOverrides.mode = mode;
-}

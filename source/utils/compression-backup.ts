@@ -1,6 +1,6 @@
 import type {Message} from '@/types/core';
 
-export class CompressionBackup {
+class CompressionBackup {
 	private backup: Message[] | null = null;
 	private timestamp: number | null = null;
 
